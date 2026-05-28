@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart√≥n de Bingo Tradicional</title>
+    <title>Carton de Bingo</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
         body { background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 10px; min-height: 100vh; }
         h1 { margin: 10px 0; color: #333; font-size: 1.4rem; text-align: center; }
         
-        /* Tabla optimizada para 9 columnas en m√≥vil */
+        /* Tabla optimizada para m®Æviles */
         .contenedor-tabla { width: 100%; max-width: 550px; background: white; padding: 5px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         td { border: 2px solid #b91c1c; text-align: center; height: 42px; font-size: 1.1rem; font-weight: bold; user-select: none; transition: background 0.2s; color: #1e293b; }
@@ -21,10 +21,11 @@
         button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; transition: opacity 0.2s; }
         button:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-empezar { background-color: #2563eb; }
+        .btn-terminar { background-color: #1e293b; } /* Color oscuro para el estado Terminar */
         .btn-limpiar { background-color: #dc2626; }
         .btn-cambiar { background-color: #d97706; }
         
-        /* Zona de Validaci√≥n */
+        /* Zona de Validaci®Æn */
         .zona-validacion { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; width: 100%; max-width: 550px; margin-top: 12px; display: none; text-align: center; }
         .clave-box { font-size: 1.3rem; font-weight: bold; color: #2563eb; letter-spacing: 2px; margin: 5px 0; }
         input { width: 80px; padding: 8px; text-align: center; font-size: 1.1rem; font-weight: bold; border: 2px solid #ccc; border-radius: 4px; margin-top: 5px; }
@@ -33,16 +34,16 @@
 </head>
 <body>
 
-    <h1>üé∞ Mi Cart√≥n de Bingo (3x9)</h1>
+    <h1>Cart®Æn de Bingo</h1>
 
     <div class="contenedor-tabla">
         <table id="tabla-carton"></table>
     </div>
 
     <div class="panel-botones">
-        <button class="btn-empezar" id="btnEmpezar" onclick="empezarJuego()">Empezar Partida</button>
+        <button class="btn-empezar" id="btnAccion" onclick="conmutarEstadoJuego()">Empezar Partida</button>
         <button class="btn-limpiar" id="btnLimpiar" onclick="limpiarMarcas()">Limpiar Tachados</button>
-        <button class="btn-cambiar" id="btnCambiar" onclick="mostrarZonaCambio()">Cambiar Cart√≥n</button>
+        <button class="btn-cambiar" id="btnCambiar" onclick="mostrarZonaCambio()">Cambiar Cart®Æn</button>
     </div>
 
     <div class="zona-validacion" id="zonaCambio">
@@ -57,15 +58,33 @@
         let juegoEmpezado = false;
         let matrizCarton = [];
         let claveGenerada = 0;
+        let posicionesTachadas = [];
 
-        function generarCarton() {
-            const tabla = document.getElementById('tabla-carton');
-            tabla.innerHTML = '';
-            
-            // Inicializar matriz vac√≠a de 3 filas x 9 columnas
+        // Funci®Æn principal al cargar o recargar la p®¢gina
+        function comprobarMemoriaOCrear() {
+            const estadoGuardado = sessionStorage.getItem('bingo_juegoEmpezado');
+            const cartonGuardado = sessionStorage.getItem('bingo_matrizCarton');
+            const tachadosGuardados = sessionStorage.getItem('bingo_tachados');
+
+            if (cartonGuardado) {
+                matrizCarton = JSON.parse(cartonGuardado);
+                if (estadoGuardado === 'true') {
+                    juegoEmpezado = true;
+                }
+                if (tachadosGuardados) {
+                    posicionesTachadas = JSON.parse(tachadosGuardados);
+                }
+                dibujarCartonHTML();
+                actualizarInterfazBotones();
+            } else {
+                generarNuevaEstructuraCarton();
+            }
+        }
+
+        function generarNuevaEstructuraCarton() {
             matrizCarton = Array.from({ length: 3 }, () => Array(9).fill(null));
+            posicionesTachadas = [];
 
-            // 1. Asignar exactamente 5 huecos con n√∫meros por fila (y 4 vac√≠os)
             for (let f = 0; f < 3; f++) {
                 let indicesColumnas = [];
                 while (indicesColumnas.length < 5) {
@@ -74,51 +93,53 @@
                         indicesColumnas.push(colAleatoria);
                     }
                 }
-                indicesColumnas.forEach(c => matrizCarton[f][c] = 0); // Marcamos que aqu√≠ ir√° un n√∫mero
+                indicesColumnas.forEach(c => matrizCarton[f][c] = 0);
             }
 
-            // Asegurar que ninguna columna se quede completamente vac√≠a (regla oficial)
             for (let c = 0; c < 9; c++) {
                 let tieneNumero = false;
                 for (let f = 0; f < 3; f++) {
                     if (matrizCarton[f][c] === 0) tieneNumero = true;
                 }
                 if (!tieneNumero) {
-                    // Si est√° vac√≠a, forzamos un n√∫mero en una fila aleatoria
                     let filaAleatoria = Math.floor(Math.random() * 3);
                     matrizCarton[filaAleatoria][c] = 0;
                 }
             }
 
-            // 2. Rellenar las columnas con sus n√∫meros correspondientes y ordenarlos
             for (let c = 0; c < 9; c++) {
-                // Definir rangos oficiales por columna
                 let cMin = (c === 0) ? 1 : c * 10;
                 let cMax = (c === 8) ? 90 : (c * 10) + 9;
 
-                // Contar cu√°ntos n√∫meros necesitamos en esta columna espec√≠fica
                 let filasAAsignar = [];
                 for (let f = 0; f < 3; f++) {
                     if (matrizCarton[f][c] === 0) filasAAsignar.push(f);
                 }
 
-                // Generar n√∫meros √∫nicos para la columna
                 let numerosColumna = [];
                 while (numerosColumna.length < filasAAsignar.length) {
                     let num = Math.floor(Math.random() * (cMax - cMin + 1)) + cMin;
                     if (!numerosColumna.includes(num)) numerosColumna.push(num);
                 }
-                
-                // Ordenar de menor a mayor (requisito indispensable)
                 numerosColumna.sort((a, b) => a - b);
 
-                // Colocar los n√∫meros ordenados en sus filas correspondientes
                 filasAAsignar.forEach((f, idx) => {
                     matrizCarton[f][c] = numerosColumna[idx];
                 });
             }
 
-            // 3. Dibujar la tabla en el HTML
+            sessionStorage.setItem('bingo_matrizCarton', JSON.stringify(matrizCarton));
+            sessionStorage.setItem('bingo_juegoEmpezado', 'false');
+            sessionStorage.setItem('bingo_tachados', JSON.stringify([]));
+
+            dibujarCartonHTML();
+            actualizarInterfazBotones();
+        }
+
+        function dibujarCartonHTML() {
+            const tabla = document.getElementById('tabla-carton');
+            tabla.innerHTML = '';
+
             for (let f = 0; f < 3; f++) {
                 let filaHTML = document.createElement('tr');
                 for (let c = 0; c < 9; c++) {
@@ -129,7 +150,13 @@
                         celda.classList.add('sombreada');
                     } else {
                         celda.textContent = valor;
-                        celda.onclick = () => tacharNumero(celda);
+                        
+                        let yaTachada = posicionesTachadas.some(p => p.f === f && p.c === c);
+                        if (yaTachada) {
+                            celda.classList.add('marcado');
+                        }
+
+                        celda.onclick = () => tacharNumero(celda, f, c);
                     }
                     filaHTML.appendChild(celda);
                 }
@@ -137,20 +164,66 @@
             }
         }
 
-        function tacharNumero(celda) {
+        function tacharNumero(celda, fila, col) {
             if (!juegoEmpezado) return; 
+            
             celda.classList.toggle('marcado');
+
+            if (celda.classList.contains('marcado')) {
+                posicionesTachadas.push({f: fila, c: col});
+            } else {
+                posicionesTachadas = posicionesTachadas.filter(p => !(p.f === fila && p.c === col));
+            }
+            sessionStorage.setItem('bingo_tachados', JSON.stringify(posicionesTachadas));
         }
 
-        function empezarJuego() {
-            juegoEmpezado = true;
-            document.getElementById('btnEmpezar').disabled = true;
-            document.getElementById('btnCambiar').disabled = true;
-            document.getElementById('zonaCambio').style.display = 'none';
+        // Maneja la acci®Æn del bot®Æn principal (Empezar / Terminar)
+        function conmutarEstadoJuego() {
+            if (!juegoEmpezado) {
+                // ESTADO: Empezar Partida
+                juegoEmpezado = true;
+                sessionStorage.setItem('bingo_juegoEmpezado', 'true');
+                document.getElementById('zonaCambio').style.display = 'none';
+                actualizarInterfazBotones();
+            } else {
+                // ESTADO: Terminar Partida (Pide confirmaci®Æn)
+                if (confirm("Confirmar para terminar la partida")) {
+                    juegoEmpezado = false;
+                    sessionStorage.setItem('bingo_juegoEmpezado', 'false');
+                    
+                    // Opcional: Si quieres que al "Terminar" tambi®¶n se limpien los tachados verdes autom®¢ticamente, 
+                    // puedes descomentar las siguientes dos l®™neas:
+                    // posicionesTachadas = [];
+                    // sessionStorage.setItem('bingo_tachados', JSON.stringify([]));
+                    // dibujarCartonHTML();
+
+                    actualizarInterfazBotones();
+                }
+            }
+        }
+
+        // Actualiza el texto, colores y estados de deshabilitado seg®≤n el momento del juego
+        function actualizarInterfazBotones() {
+            const btnAccion = document.getElementById('btnAccion');
+            const btnCambiar = document.getElementById('btnCambiar');
+
+            if (juegoEmpezado) {
+                // Durante la partida
+                btnAccion.textContent = "Terminar Partida";
+                btnAccion.className = "btn-terminar";
+                btnCambiar.disabled = true;
+            } else {
+                // Fuera de la partida
+                btnAccion.textContent = "Empezar Partida";
+                btnAccion.className = "btn-empezar";
+                btnCambiar.disabled = false;
+            }
         }
 
         function limpiarMarcas() {
-            if (confirm("¬øEst√°s seguro de que quieres desmarcar todos los n√∫meros tildados?")) {
+            if (confirm("Confirmar para limpiar el juego")) {
+                posicionesTachadas = [];
+                sessionStorage.setItem('bingo_tachados', JSON.stringify([]));
                 const marcados = document.querySelectorAll('.marcado');
                 marcados.forEach(c => c.classList.remove('marcado'));
             }
@@ -167,16 +240,16 @@
             let contraclaveCorrecta = ((claveGenerada * 3) + 7) % 10000; 
             
             if (input === contraclaveCorrecta) {
-                alert("¬°Contraclave v√°lida! Generando nuevo cart√≥n tradicional...");
-                generarCarton();
+                alert("?Contraclave v®¢lida! Eliminando cart®Æn viejo y generando uno nuevo...");
                 document.getElementById('zonaCambio').style.display = 'none';
                 document.getElementById('inputContraclave').value = '';
+                generarNuevaEstructuraCarton();
             } else {
-                alert("Contraclave incorrecta. P√≠desela al monitor.");
+                alert("Contraclave incorrecta. P®™desela al monitor.");
             }
         }
 
-        window.onload = generarCarton;
+        window.onload = comprobarMemoriaOCrear;
     </script>
 </body>
 </html>

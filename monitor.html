@@ -92,7 +92,7 @@
                 btn.textContent = "Pausar";
                 btn.className = "btn-pausar";
                 sacarBola(); 
-                intervalo = setInterval(sacarBola, 4000); // Automático cada 4 segundos
+                intervalo = setInterval(sacarBola, 3000); // Automático cada 3 segundos
             } else {
                 enMarcha = false;
                 btn.textContent = "Reanudar";
@@ -125,7 +125,7 @@
         }
 
         function reiniciarTodo() {
-            if (confirm("¿Seguro que quieres reiniciar el monitor? Se borrarán todos los números cantados.")) {
+            if (confirm("Continuar para reiniciar el monitor")) {
                 clearInterval(intervalo);
                 enMarcha = false;
                 numerosDisponibles = Array.from({length: 90}, (_, i) => i + 1);
