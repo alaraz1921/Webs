@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Número a Número - Valentina's Playtime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+        body {
+            font-family: 'Comic Neue', cursive;
+        }
+        .game-cell {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #1f2937;
+            border-radius: 8px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #1f2937;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .game-cell:hover:not(.filled) {
+            background-color: #e5e7eb;
+        }
+        .game-cell.filled {
+            background-color: #d1d5db;
+            cursor: default;
+        }
+        .game-cell.valid {
+            background-color: #4ade80;
+        }
+        .game-button {
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        .game-button:hover {
+            transform: scale(1.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .modal-button {
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        .modal-button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-blue-200 to-pink-200 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-purple-600 mb-4">Número a Número</h1>
+        <div class="text-2xl text-gray-700 mb-4">Número actual: <span id="currentNumber">1</span></div>
+        <div class="grid grid-cols-5 gap-2 bg-blue-400 p-4 rounded-2xl" id="gameGrid"></div>
+        <div class="flex flex-col sm:flex-row gap-4 mt-4">
+            <button id="instructionsButton" class="game-button bg-blue-400 text-white text-lg font-bold py-3 px-6 rounded-2xl shadow-lg">Instrucciones</button>
+            <button id="resetButton" class="game-button bg-green-400 text-white text-lg font-bold py-3 px-6 rounded-2xl shadow-lg">Reiniciar Juego</button>
+            <a href="index.html" class="game-button bg-purple-400 text-white text-lg font-bold py-3 px-6 rounded-2xl shadow-lg text-center">Volver a Valentina's Playtime</a>
+        </div>
+    </div>
+
+    <!-- Modal para confirmación -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content bg-blue-100">
+            <h2 id="modalTitle" class="text-2xl font-bold text-purple-600 mb-4"></h2>
+            <div class="flex justify-center gap-4">
+                <button id="confirmYes" class="modal-button bg-green-400 text-white font-bold py-2 px-4 rounded-lg">Sí</button>
+                <button id="confirmNo" class="modal-button bg-red-400 text-white font-bold py-2 px-4 rounded-lg">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para felicitación -->
+    <div id="winModal" class="modal">
+        <div class="modal-content bg-blue-100">
+            <h2 class="text-2xl font-bold text-purple-600 mb-4">¡Felicidades!</h2>
+            <p class="text-lg text-gray-700 mb-4">¡Has completado la cuadrícula! Eres un genio de los números.</p>
+            <button id="winRestart" class="modal-button bg-green-400 text-white font-bold py-2 px-4 rounded-lg">Jugar de nuevo</button>
+        </div>
+    </div>
+
+    <!-- Modal para instrucciones -->
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content bg-blue-100">
+            <h2 class="text-2xl font-bold text-purple-600 mb-4">Instrucciones</h2>
+            <p class="text-lg text-gray-700 mb-4">El juego consiste en rellenar las casillas con los números del 1 al 25. Para ello iremos pulsando en las casillas en blanco para ir rellenando los huecos empezando por el 1 y en la posición que queramos. El resto de números se podrán colocar según la anterior, contando dos casillas si el desplazamiento es diagonal y tres casillas si el desplazamiento es horizontal o vertical. ¡Suerte!</p>
+            <button id="instructionsClose" class="modal-button bg-red-400 text-white font-bold py-2 px-4 rounded-lg">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        const gameGrid = document.getElementById('gameGrid');
+        const currentNumberDisplay = document.getElementById('currentNumber');
+        const confirmModal = document.getElementById('confirmModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const winModal = document.getElementById('winModal');
+        const instructionsModal = document.getElementById('instructionsModal');
+        let board = Array(5).fill().map(() => Array(5).fill(0));
+        let currentNumber = 1;
+        let lastPosition = null;
+        let confirmCallback = null;
+
+        function createGrid() {
+            gameGrid.innerHTML = '';
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('game-cell', 'bg-white');
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    cell.addEventListener('click', () => handleCellClick(row, col));
+                    gameGrid.appendChild(cell);
+                }
+            }
+        }
+
+        function isValidMove(row, col) {
+            if (currentNumber === 1) return true;
+            if (!lastPosition) return false;
+            const { row: lastRow, col: lastCol } = lastPosition;
+            const rowDiff = Math.abs(row - lastRow);
+            const colDiff = Math.abs(col - lastCol);
+            if (rowDiff === 0 && colDiff === 3) return true; // Horizontal
+            if (colDiff === 0 && rowDiff === 3) return true; // Vertical
+            if (rowDiff === 2 && colDiff === 2) return true; // Diagonal
+            return false;
+        }
+
+        function handleCellClick(row, col) {
+            if (board[row][col] !== 0) return;
+            if (!isValidMove(row, col)) return;
+            board[row][col] = currentNumber;
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.textContent = currentNumber;
+            cell.classList.add('filled');
+            cell.classList.add('valid');
+            setTimeout(() => cell.classList.remove('valid'), 500);
+            lastPosition = { row, col };
+            currentNumber++;
+            currentNumberDisplay.textContent = currentNumber;
+            if (currentNumber > 25) {
+                winModal.style.display = 'flex';
+            }
+        }
+
+        function showConfirmModal(message, callback) {
+            modalTitle.textContent = message;
+            confirmModal.style.display = 'flex';
+            confirmCallback = callback;
+        }
+
+        function resetGame() {
+            showConfirmModal('¿Estás seguro de que quieres reiniciar el juego? Esto limpiará tu progreso.', () => {
+                board = Array(5).fill().map(() => Array(5).fill(0));
+                currentNumber = 1;
+                lastPosition = null;
+                currentNumberDisplay.textContent = currentNumber;
+                createGrid();
+                confirmModal.style.display = 'none';
+            });
+        }
+
+        document.getElementById('resetButton').addEventListener('click', resetGame);
+        document.getElementById('confirmYes').addEventListener('click', () => {
+            if (confirmCallback) confirmCallback();
+        });
+        document.getElementById('confirmNo').addEventListener('click', () => {
+            confirmModal.style.display = 'none';
+        });
+        document.getElementById('winRestart').addEventListener('click', () => {
+            board = Array(5).fill().map(() => Array(5).fill(0));
+            currentNumber = 1;
+            lastPosition = null;
+            currentNumberDisplay.textContent = currentNumber;
+            createGrid();
+            winModal.style.display = 'none';
+        });
+        document.getElementById('instructionsButton').addEventListener('click', () => {
+            instructionsModal.style.display = 'flex';
+        });
+        document.getElementById('instructionsClose').addEventListener('click', () => {
+            instructionsModal.style.display = 'none';
+        });
+
+        createGrid();
+    </script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Bingo - Valentina's Playtime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+        body {
+            font-family: 'Comic Neue', cursive;
+        }
+        .bingo-cell:hover:not(.marked) {
+            background-color: #fef08a;
+            transform: scale(1.05);
+        }
+        .bingo-cell {
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .bingo-cell.marked {
+            background-color: #f87171 !important;
+        }
+        .game-button {
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        .game-button:hover {
+            transform: scale(1.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .modal-button {
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        .modal-button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-blue-200 to-pink-200 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-purple-600 mb-4">Monitor de Bingo</h1>
+        <div id="currentNumber" class="text-xl text-gray-700 mb-4">Número actual: -</div>
+        <div class="grid grid-cols-10 gap-2 bg-blue-400 p-4 rounded-2xl max-w-4xl" id="bingoGrid"></div>
+        <div class="flex flex-col sm:flex-row gap-4 mt-4">
+            <button id="pauseButton" class="game-button bg-orange-400 text-white text-lg font-bold py-3 px-6 rounded-2xl shadow-lg">Pausar</button>
+            <button id="resetButton" class="game-button bg-green-400 text-white text-lg font-bold py-3 px-6 rounded-2xl shadow-lg">Reiniciar Juego</button>
+            <a href="index.html" class="game-button bg-purple-400 text-white text-lg font-bold py-3 px-6 rounded-2xl shadow-lg text-center">Volver a Valentina's Playtime</a>
+        </div>
+    </div>
+
+    <!-- Modal para confirmación -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content bg-blue-100">
+            <h2 id="modalTitle" class="text-2xl font-bold text-purple-600 mb-4"></h2>
+            <div class="flex justify-center gap-4">
+                <button id="confirmYes" class="modal-button bg-green-400 text-white font-bold py-2 px-4 rounded-lg">Sí</button>
+                <button id="confirmNo" class="modal-button bg-red-400 text-white font-bold py-2 px-4 rounded-lg">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const bingoGrid = document.getElementById('bingoGrid');
+        const pauseButton = document.getElementById('pauseButton');
+        const currentNumberDisplay = document.getElementById('currentNumber');
+        const confirmModal = document.getElementById('confirmModal');
+        const modalTitle = document.getElementById('modalTitle');
+        let numbers = Array.from({ length: 90 }, (_, i) => i + 1);
+        let drawnNumbers = [];
+        let intervalId = null;
+        let isPaused = false;
+        let confirmCallback = null;
+
+        function showConfirmModal(message, callback) {
+            modalTitle.textContent = message;
+            confirmModal.style.display = 'flex';
+            confirmCallback = callback;
+        }
+
+        function closeConfirmModal() {
+            confirmModal.style.display = 'none';
+            confirmCallback = null;
+        }
+
+        function createGrid() {
+            bingoGrid.innerHTML = '';
+            for (let i = 1; i <= 90; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('bingo-cell', 'w-12', 'h-12', 'bg-white', 'border-2', 'border-gray-800', 'rounded-lg', 'flex', 'items-center', 'justify-center', 'text-lg', 'font-bold', 'text-gray-800');
+                cell.textContent = i;
+                bingoGrid.appendChild(cell);
+            }
+        }
+
+        function drawNumber() {
+            if (numbers.length === 0) {
+                clearInterval(intervalId);
+                currentNumberDisplay.textContent = '¡Todos los números han salido!';
+                pauseButton.disabled = true;
+                return;
+            }
+            const randomIndex = Math.floor(Math.random() * numbers.length);
+            const number = numbers.splice(randomIndex, 1)[0];
+            drawnNumbers.push(number);
+            currentNumberDisplay.textContent = `Número actual: ${number}`;
+            const cells = document.querySelectorAll('.bingo-cell');
+            cells[number - 1].classList.add('marked');
+        }
+
+        function startDrawing() {
+            if (!isPaused && !intervalId) {
+                intervalId = setInterval(drawNumber, 3000);
+            }
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            pauseButton.textContent = isPaused ? 'Reanudar' : 'Pausar';
+            if (isPaused) {
+                clearInterval(intervalId);
+                intervalId = null;
+            } else {
+                startDrawing();
+            }
+        }
+
+        function resetGame() {
+            showConfirmModal('¿Estás seguro de que quieres reiniciar el juego? Esto limpiará todos los números sorteados.', () => {
+                numbers = Array.from({ length: 90 }, (_, i) => i + 1);
+                drawnNumbers = [];
+                isPaused = false;
+                pauseButton.textContent = 'Pausar';
+                pauseButton.disabled = false;
+                currentNumberDisplay.textContent = 'Número actual: -';
+                const cells = document.querySelectorAll('.bingo-cell');
+                cells.forEach(cell => cell.classList.remove('marked'));
+                clearInterval(intervalId);
+                intervalId = null;
+                startDrawing();
+                closeConfirmModal();
+            });
+        }
+
+        document.getElementById('pauseButton').addEventListener('click', togglePause);
+        document.getElementById('resetButton').addEventListener('click', resetGame);
+        document.getElementById('confirmYes').addEventListener('click', () => confirmCallback && confirmCallback());
+        document.getElementById('confirmNo').addEventListener('click', closeConfirmModal);
+
+        createGrid();
+        startDrawing();
+    </script>
+</body>
+</html>

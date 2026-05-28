@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reloj Mágico - Valentina's Playtime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+        body {
+            font-family: 'Comic Neue', cursive;
+        }
+        .game-button {
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        .game-button:hover {
+            transform: scale(1.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .modal-button {
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        .modal-button:hover {
+            transform: scale(1.05);
+        }
+        .clock {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            border: 4px solid #1e40af;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+        }
+        .hour-hand, .minute-hand {
+            position: absolute;
+            left: 50%;
+            bottom: 50%;
+            transform-origin: center bottom;
+            transform: translateX(-50%);
+        }
+        .hour-hand {
+            width: 6px;
+            height: 80px;
+            background-color: #ef4444;
+            border-radius: 3px;
+        }
+        .minute-hand {
+            width: 4px;
+            height: 100px;
+            background-color: #3b82f6;
+            border-radius: 2px;
+        }
+        .clock-center {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #1f2937;
+            border-radius: 50%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .clock-number {
+            position: absolute;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1f2937;
+            text-align: center;
+            width: 30px;
+            height: 30px;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-blue-200 to-pink-200 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-purple-600 mb-4">Reloj Mágico</h1>
+        <div id="targetTime" class="text-2xl font-bold text-gray-700 mb-4">Marca: ?</div>
+        <div class="clock">
+            <div class="hour-hand" id="hourHand"></div>
+            <div class="minute-hand" id="minuteHand"></div>
+            <div class="clock-center"></div>
+            <!-- Números posicionados en orden correcto (sentido horario, 12 arriba) -->
+            <div class="clock-number" style="top: calc(50% - 110px * cos(0deg)); left: calc(50% + 110px * sin(0deg));">12</div>
+            <div class="clock-number" style="top: calc(50% - 110px * cos(30deg)); left: calc(50% + 110px * sin(30deg));">1</div>
+            <div class="clock-number" style="top: calc(50% - 110px * cos(60deg)); left: calc(50% + 110px * sin(60deg));">2</div>
+            <div class="clock-number" style="top: calc(50% - 110px * cos(90deg)); left: calc(50% + 110px * sin(90deg));">3</div>
+            <div class="clock-number" style="top: calc(50% - 110px * cos(120deg)); left: calc(50% + 110px * sin(120deg));">4</div>
+            <div class="clock-number" style="top: calc(50% - 110px * cos(150deg)); left: calc(50% + 110px * sin(150deg));">5</div>
+            <div class="clock-number" style="top: calc(50% - 110px * cos(180deg)); left: calc(50% + 110px * sin(180deg));">6</div>
+            <div class="clock-number" style="top: calc(50% - 110px * cos(210deg)); left: calc(50% + 110px * sin(210deg));">7</div>
+            <div class="clock-number" style="top: calc(50% - 110px * cos(240deg)); left: calc(50% + 110px * sin(240deg));">8</div>
+            <div class="clock-number" style="top: calc(50% - 110px * cos(270deg)); left: calc(50% + 110px * sin(270deg));">9</div>
+            <div class="clock-number" style="top: calc(50% - 110px * cos(300deg)); left: calc(50% + 110px * sin(300deg));">10</div>
+            <div class="clock-number" style="top: calc(50% - 110px * cos(330deg)); left: calc(50% + 110px * sin(330deg));">11</div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-4 mt-4">
+            <div class="flex gap-2">
+                <button id="hourPlus" class="game-button bg-green-400 text-white text-lg font-bold py-2 px-4 rounded-2xl shadow-lg">+1 Hora</button>
+                <button id="hourMinus" class="game-button bg-red-400 text-white text-lg font-bold py-2 px-4 rounded-2xl shadow-lg">-1 Hora</button>
+            </div>
+            <div class="flex gap-2">
+                <button id="minutePlus" class="game-button bg-green-400 text-white text-lg font-bold py-2 px-4 rounded-2xl shadow-lg">+5 Min</button>
+                <button id="minuteMinus" class="game-button bg-red-400 text-white text-lg font-bold py-2 px-4 rounded-2xl shadow-lg">-5 Min</button>
+            </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-4 mt-4">
+            <button id="checkButton" class="game-button bg-yellow-400 text-white text-lg font-bold py-3 px-6 rounded-2xl shadow-lg">Comprobar</button>
+            <button id="resetButton" class="game-button bg-green-400 text-white text-lg font-bold py-3 px-6 rounded-2xl shadow-lg">Reiniciar Juego</button>
+            <a href="index.html" class="game-button bg-purple-400 text-white text-lg font-bold py-3 px-6 rounded-2xl shadow-lg text-center">Volver a Valentina's Playtime</a>
+        </div>
+    </div>
+
+    <!-- Modal para confirmación de reinicio -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content bg-blue-100">
+            <h2 id="modalTitle" class="text-2xl font-bold text-purple-600 mb-4"></h2>
+            <div class="flex justify-center gap-4">
+                <button id="confirmYes" class="modal-button bg-green-400 text-white font-bold py-2 px-4 rounded-lg">Sí</button>
+                <button id="confirmNo" class="modal-button bg-red-400 text-white font-bold py-2 px-4 rounded-lg">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para felicitación (8 aciertos) -->
+    <div id="winModal" class="modal">
+        <div class="modal-content bg-blue-100">
+            <h2 class="text-2xl font-bold text-purple-600 mb-4">¡Felicidades!</h2>
+            <p class="text-lg text-gray-700 mb-4">Has acertado 8 horas. ¡Eres un experto del tiempo!</p>
+            <button id="winRestart" class="modal-button bg-green-400 text-white font-bold py-2 px-4 rounded-lg">Jugar de nuevo</button>
+        </div>
+    </div>
+
+    <!-- Modal para retroalimentación -->
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content bg-blue-100">
+            <h2 id="feedbackTitle" class="text-2xl font-bold text-purple-600 mb-4"></h2>
+            <p id="feedbackMessage" class="text-lg text-gray-700 mb-4"></p>
+            <button id="feedbackClose" class="modal-button bg-red-400 text-white font-bold py-2 px-4 rounded-lg">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        const targetTimeDisplay = document.getElementById('targetTime');
+        const hourHand = document.getElementById('hourHand');
+        const minuteHand = document.getElementById('minuteHand');
+        const checkButton = document.getElementById('checkButton');
+        const resetButton = document.getElementById('resetButton');
+        const confirmModal = document.getElementById('confirmModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const winModal = document.getElementById('winModal');
+        const feedbackModal = document.getElementById('feedbackModal');
+        const feedbackTitle = document.getElementById('feedbackTitle');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        let targetHours = 0;
+        let targetMinutes = 0;
+        let userHours = 12;
+        let userMinutes = 0;
+        let score = 0;
+        let confirmCallback = null;
+
+        function updateClock() {
+            // Calcular ángulos
+            const minuteAngle = (userMinutes / 60) * 360;
+            const hourAngle = ((userHours % 12) / 12) * 360 + (userMinutes / 60) * 30;
+            
+            // Aplicar rotación
+            hourHand.style.transform = `translateX(-50%) rotate(${hourAngle}deg)`;
+            minuteHand.style.transform = `translateX(-50%) rotate(${minuteAngle}deg)`;
+        }
+
+        function generateTargetTime() {
+            targetHours = Math.floor(Math.random() * 12) + 1;
+            targetMinutes = Math.floor(Math.random() * 12) * 5; // Múltiplos de 5
+            const targetHourDisplay = targetHours % 12 === 0 ? 12 : targetHours % 12;
+            const targetMinuteDisplay = targetMinutes < 10 ? `0${targetMinutes}` : targetMinutes;
+            targetTimeDisplay.textContent = `Marca: ${targetHourDisplay}:${targetMinuteDisplay}`;
+        }
+
+        function checkTime() {
+            const userHourDisplay = userHours % 12 === 0 ? 12 : userHours % 12;
+            const userMinuteDisplay = userMinutes < 10 ? `0${userMinutes}` : userMinutes;
+            if (userHours % 12 === targetHours % 12 && userMinutes === targetMinutes) {
+                score++;
+                if (score >= 8) {
+                    winModal.style.display = 'flex';
+                } else {
+                    showFeedbackModal('¡Enhorabuena!', '¡Has marcado la hora correcta!');
+                    setTimeout(() => {
+                        generateTargetTime();
+                        closeFeedbackModal();
+                    }, 1000);
+                }
+            } else {
+                showFeedbackModal('¡Intenta de nuevo!', `La hora de las manecillas es ${userHourDisplay}:${userMinuteDisplay}. Continúa ajustando.`);
+            }
+        }
+
+        function showConfirmModal(message, callback) {
+            modalTitle.textContent = message;
+            confirmModal.style.display = 'flex';
+            confirmCallback = callback;
+        }
+
+        function closeConfirmModal() {
+            confirmModal.style.display = 'none';
+            confirmCallback = null;
+        }
+
+        function showFeedbackModal(title, message) {
+            feedbackTitle.textContent = title;
+            feedbackMessage.textContent = message;
+            feedbackModal.style.display = 'flex';
+        }
+
+        function closeFeedbackModal() {
+            feedbackModal.style.display = 'none';
+        }
+
+        function resetGame() {
+            showConfirmModal('¿Estás seguro de que quieres reiniciar el juego? Esto limpiará tu progreso.', () => {
+                score = 0;
+                userHours = 12;
+                userMinutes = 0;
+                generateTargetTime();
+                updateClock();
+                closeConfirmModal();
+            });
+        }
+
+        document.getElementById('hourPlus').addEventListener('click', () => {
+            userHours = (userHours + 1) % 24;
+            updateClock();
+        });
+
+        document.getElementById('hourMinus').addEventListener('click', () => {
+            userHours = (userHours - 1 + 24) % 24;
+            updateClock();
+        });
+
+        document.getElementById('minutePlus').addEventListener('click', () => {
+            userMinutes += 5;
+            if (userMinutes >= 60) {
+                userMinutes -= 60;
+                userHours = (userHours + 1) % 24;
+            }
+            updateClock();
+        });
+
+        document.getElementById('minuteMinus').addEventListener('click', () => {
+            userMinutes -= 5;
+            if (userMinutes < 0) {
+                userMinutes += 60;
+                userHours = (userHours - 1 + 24) % 24;
+            }
+            updateClock();
+        });
+
+        document.getElementById('checkButton').addEventListener('click', checkTime);
+        document.getElementById('resetButton').addEventListener('click', resetGame);
+        document.getElementById('confirmYes').addEventListener('click', () => confirmCallback && confirmCallback());
+        document.getElementById('confirmNo').addEventListener('click', closeConfirmModal);
+        document.getElementById('winRestart').addEventListener('click', () => {
+            resetGame();
+            closeConfirmModal();
+            winModal.style.display = 'none';
+        });
+        document.getElementById('feedbackClose').addEventListener('click', closeFeedbackModal);
+
+        generateTargetTime();
+        updateClock();
+    </script>
+</body>
+</html>

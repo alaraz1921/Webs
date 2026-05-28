@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3 en Raya - Valentina's Playtime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+        body {
+            font-family: 'Comic Neue', cursive;
+        }
+        .game-cell:hover:not(.x):not(.o) {
+            background-color: #fef08a;
+            transform: scale(1.05);
+        }
+        .game-cell {
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .game-button {
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        .game-button:hover {
+            transform: scale(1.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .modal-button {
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        .modal-button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-blue-200 to-pink-200 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-purple-600 mb-4">3 en Raya</h1>
+        <div class="grid grid-cols-3 gap-2 bg-blue-400 p-4 rounded-2xl max-w-sm" id="gameGrid"></div>
+        <div class="flex flex-col sm:flex-row gap-4 mt-4">
+            <button id="newGameButton" class="game-button bg-green-400 text-white text-lg font-bold py-3 px-6 rounded-2xl shadow-lg">Nuevo Juego</button>
+            <a href="index.html" class="game-button bg-purple-400 text-white text-lg font-bold py-3 px-6 rounded-2xl shadow-lg text-center">Volver a Valentina's Playtime</a>
+        </div>
+    </div>
+
+    <!-- Modal para confirmación -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content bg-blue-100">
+            <h2 id="modalTitle" class="text-2xl font-bold text-purple-600 mb-4"></h2>
+            <div class="flex justify-center gap-4">
+                <button id="confirmYes" class="modal-button bg-green-400 text-white font-bold py-2 px-4 rounded-lg">Sí</button>
+                <button id="confirmNo" class="modal-button bg-red-400 text-white font-bold py-2 px-4 rounded-lg">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gameGrid = document.getElementById('gameGrid');
+        const confirmModal = document.getElementById('confirmModal');
+        const modalTitle = document.getElementById('modalTitle');
+        let currentPlayer = 'x';
+        let confirmCallback = null;
+
+        function showConfirmModal(message, callback) {
+            modalTitle.textContent = message;
+            confirmModal.style.display = 'flex';
+            confirmCallback = callback;
+        }
+
+        function closeConfirmModal() {
+            confirmModal.style.display = 'none';
+            confirmCallback = null;
+        }
+
+        function createGrid() {
+            gameGrid.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('game-cell', 'w-20', 'h-20', 'bg-white', 'border-2', 'border-gray-800', 'rounded-lg', 'flex', 'items-center', 'justify-center', 'text-4xl', 'font-bold', 'text-gray-800');
+                cell.addEventListener('click', () => handleCellClick(cell));
+                gameGrid.appendChild(cell);
+            }
+        }
+
+        function handleCellClick(cell) {
+            if (!cell.textContent) {
+                cell.textContent = currentPlayer.toUpperCase();
+                cell.classList.add(currentPlayer, currentPlayer === 'x' ? 'text-red-600' : 'text-blue-600');
+                currentPlayer = currentPlayer === 'x' ? 'o' : 'x';
+            }
+        }
+
+        function newGame() {
+            showConfirmModal('¿Estás seguro de que quieres iniciar un nuevo juego? Esto limpiará todas las casillas.', () => {
+                createGrid();
+                currentPlayer = 'x';
+                closeConfirmModal();
+            });
+        }
+
+        document.getElementById('newGameButton').addEventListener('click', newGame);
+        document.getElementById('confirmYes').addEventListener('click', () => confirmCallback && confirmCallback());
+        document.getElementById('confirmNo').addEventListener('click', closeConfirmModal);
+
+        createGrid();
+    </script>
+</body>
+</html>
