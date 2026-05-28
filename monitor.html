@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Bingo Profesional</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background-color: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; padding: 10px; min-height: 100vh; }
+        h1 { font-size: 1.4rem; margin: 5px 0; color: #cbd5e1; }
+
+        /* Marcador de bolas */
+        .marcador-bolas { background: #334155; border-radius: 8px; padding: 12px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .bola-actual { font-size: 4.5rem; font-weight: bold; color: #f59e0b; line-height: 1; margin-bottom: 4px; }
+        .bola-anterior { font-size: 1.1rem; color: #94a3b8; }
+
+        /* Panel de control de 9x10 */
+        .contenedor-tabla { width: 100%; max-width: 450px; margin-top: 12px; background: #0f172a; padding: 6px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        td { border: 1px solid #334155; text-align: center; height: 32px; font-weight: bold; font-size: 0.95rem; color: #64748b; }
+        .cantado { background-color: #f59e0b !important; color: #0f172a !important; border-color: #f59e0b; font-size: 1.1rem; }
+
+        /* Botonera */
+        .panel-botones { display: flex; flex-direction: column; width: 100%; max-width: 450px; gap: 8px; margin-top: 12px; }
+        button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; }
+        .btn-comenzar { background-color: #22c55e; }
+        .btn-pausar { background-color: #eab308; color: #0f172a; }
+        .btn-limpiar { background-color: #ef4444; }
+        .btn-validar { background-color: #3b82f6; }
+
+        /* Panel criptográfico */
+        .zona-validacion { background: #334155; padding: 15px; border-radius: 8px; width: 100%; max-width: 450px; margin-top: 10px; display: none; text-align: center; }
+        input { padding: 8px; width: 100px; font-size: 1.1rem; font-weight: bold; text-align: center; border-radius: 4px; border: none; margin-right: 5px; color: #0f172a; }
+        .resultado-validacion { font-size: 1.3rem; font-weight: bold; color: #4ade80; margin-top: 10px; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+    <h1>🎙️ Monitor de Bingo</h1>
+
+    <div class="marcador-bolas">
+        <div class="bola-actual" id="bolaActual">--</div>
+        <div class="bola-anterior">Bola anterior: <span id="bolaAnterior">--</span></div>
+    </div>
+
+    <div class="contenedor-tabla">
+        <table id="tabla-panel"></table>
+    </div>
+
+    <div class="panel-botones">
+        <button class="btn-comenzar" id="btnControl" onclick="conmutarJuego()">Comenzar</button>
+        <button class="btn-validar" onclick="alternarZonaValidar()">Validar Cartón</button>
+        <button class="btn-limpiar" onclick="reiniciarTodo()">Limpiar</button>
+    </div>
+
+    <div class="zona-validacion" id="zonaValidar">
+        <p style="margin-bottom: 8px;">Introduce la clave del Jugador:</p>
+        <input type="number" id="claveJugador" placeholder="0000" min="1000" max="9999">
+        <button style="width:auto; display:inline-block; padding: 8px 15px;" class="btn-validar" onclick="calcularContraclave()">Calcular</button>
+        <div class="resultado-validacion" id="resultadoContraclave"></div>
+    </div>
+
+    <script>
+        let numerosDisponibles = Array.from({length: 90}, (_, i) => i + 1);
+        let numerosCantados = [];
+        let intervalo = null;
+        let enMarcha = false;
+
+        function inicializarPanel() {
+            const tabla = document.getElementById('tabla-panel');
+            tabla.innerHTML = '';
+            let contador = 1;
+            
+            // Estructura limpia de 9 filas y 10 columnas para los 90 números
+            for (let f = 0; f < 9; f++) {
+                let fila = document.createElement('tr');
+                for (let c = 0; c < 10; c++) {
+                    let celda = document.createElement('td');
+                    celda.textContent = contador;
+                    celda.id = 'bola-' + contador;
+                    fila.appendChild(celda);
+                    contador++;
+                }
+                tabla.appendChild(fila);
+            }
+        }
+
+        function conmutarJuego() {
+            const btn = document.getElementById('btnControl');
+            if (!enMarcha) {
+                enMarcha = true;
+                btn.textContent = "Pausar";
+                btn.className = "btn-pausar";
+                sacarBola(); 
+                intervalo = setInterval(sacarBola, 4000); // Automático cada 4 segundos
+            } else {
+                enMarcha = false;
+                btn.textContent = "Reanudar";
+                btn.className = "btn-comenzar";
+                clearInterval(intervalo);
+            }
+        }
+
+        function sacarBola() {
+            if (numerosDisponibles.length === 0) {
+                clearInterval(intervalo);
+                alert("¡Se han cantado los 90 números! Fin de la partida.");
+                return;
+            }
+
+            const actualBox = document.getElementById('bolaActual');
+            const anteriorBox = document.getElementById('bolaAnterior');
+            if (actualBox.textContent !== '--') {
+                anteriorBox.textContent = actualBox.textContent;
+            }
+
+            let indiceAleatorio = Math.floor(Math.random() * numerosDisponibles.length);
+            let bolaSacadada = numerosDisponibles.splice(indiceAleatorio, 1)[0];
+            numerosCantados.push(bolaSacadada);
+
+            actualBox.textContent = bolaSacadada;
+
+            const celdaPanel = document.getElementById('bola-' + bolaSacadada);
+            if (celdaPanel) celdaPanel.classList.add('cantado');
+        }
+
+        function reiniciarTodo() {
+            if (confirm("¿Seguro que quieres reiniciar el monitor? Se borrarán todos los números cantados.")) {
+                clearInterval(intervalo);
+                enMarcha = false;
+                numerosDisponibles = Array.from({length: 90}, (_, i) => i + 1);
+                numerosCantados = [];
+                document.getElementById('bolaActual').textContent = '--';
+                document.getElementById('bolaAnterior').textContent = '--';
+                document.getElementById('btnControl').textContent = "Comenzar";
+                document.getElementById('btnControl').className = "btn-comenzar";
+                document.getElementById('resultadoContraclave').textContent = '';
+                document.getElementById('claveJugador').value = '';
+                inicializarPanel();
+            }
+        }
+
+        function alternarZonaValidar() {
+            const zona = document.getElementById('zonaValidar');
+            zona.style.display = (zona.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function calcularContraclave() {
+            let clave = parseInt(document.getElementById('claveJugador').value);
+            if (isNaN(clave)) {
+                alert("Por favor, introduce los 4 números de la clave.");
+                return;
+            }
+            // Mismo algoritmo matemático síncrono
+            let contraclave = ((clave * 3) + 7) % 10000;
+            let contraclaveString = contraclave.toString().padStart(4, '0');
+            
+            document.getElementById('resultadoContraclave').textContent = "CONTRACLAVE: " + contraclaveString;
+        }
+
+        window.onload = inicializarPanel;
+    </script>
+</body>
+</html>

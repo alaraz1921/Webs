@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartón de Bingo Tradicional</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 10px; min-height: 100vh; }
+        h1 { margin: 10px 0; color: #333; font-size: 1.4rem; text-align: center; }
+        
+        /* Tabla optimizada para 9 columnas en móvil */
+        .contenedor-tabla { width: 100%; max-width: 550px; background: white; padding: 5px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        td { border: 2px solid #b91c1c; text-align: center; height: 42px; font-size: 1.1rem; font-weight: bold; user-select: none; transition: background 0.2s; color: #1e293b; }
+        .sombreada { background-color: #cbd5e1; }
+        .marcado { background-color: #22c55e !important; color: white !important; }
+        
+        /* Panel de Botones */
+        .panel-botones { display: flex; flex-direction: column; width: 100%; max-width: 550px; gap: 8px; margin-top: 12px; }
+        button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; transition: opacity 0.2s; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-empezar { background-color: #2563eb; }
+        .btn-limpiar { background-color: #dc2626; }
+        .btn-cambiar { background-color: #d97706; }
+        
+        /* Zona de Validación */
+        .zona-validacion { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; width: 100%; max-width: 550px; margin-top: 12px; display: none; text-align: center; }
+        .clave-box { font-size: 1.3rem; font-weight: bold; color: #2563eb; letter-spacing: 2px; margin: 5px 0; }
+        input { width: 80px; padding: 8px; text-align: center; font-size: 1.1rem; font-weight: bold; border: 2px solid #ccc; border-radius: 4px; margin-top: 5px; }
+        .btn-confirmar-cambio { background-color: #10b981; margin-top: 10px; padding: 8px; }
+    </style>
+</head>
+<body>
+
+    <h1>🎰 Mi Cartón de Bingo (3x9)</h1>
+
+    <div class="contenedor-tabla">
+        <table id="tabla-carton"></table>
+    </div>
+
+    <div class="panel-botones">
+        <button class="btn-empezar" id="btnEmpezar" onclick="empezarJuego()">Empezar Partida</button>
+        <button class="btn-limpiar" id="btnLimpiar" onclick="limpiarMarcas()">Limpiar Tachados</button>
+        <button class="btn-cambiar" id="btnCambiar" onclick="mostrarZonaCambio()">Cambiar Cartón</button>
+    </div>
+
+    <div class="zona-validacion" id="zonaCambio">
+        <p>Comunica esta clave al Monitor:</p>
+        <div class="clave-box" id="txtClave">0000</div>
+        <p>Introduce la contraclave recibida:</p>
+        <input type="number" id="inputContraclave" placeholder="0000" min="0" max="9999">
+        <button class="btn-confirmar-cambio" onclick="procesarCambioCarton()">Validar y Cambiar</button>
+    </div>
+
+    <script>
+        let juegoEmpezado = false;
+        let matrizCarton = [];
+        let claveGenerada = 0;
+
+        function generarCarton() {
+            const tabla = document.getElementById('tabla-carton');
+            tabla.innerHTML = '';
+            
+            // Inicializar matriz vacía de 3 filas x 9 columnas
+            matrizCarton = Array.from({ length: 3 }, () => Array(9).fill(null));
+
+            // 1. Asignar exactamente 5 huecos con números por fila (y 4 vacíos)
+            for (let f = 0; f < 3; f++) {
+                let indicesColumnas = [];
+                while (indicesColumnas.length < 5) {
+                    let colAleatoria = Math.floor(Math.random() * 9);
+                    if (!indicesColumnas.includes(colAleatoria)) {
+                        indicesColumnas.push(colAleatoria);
+                    }
+                }
+                indicesColumnas.forEach(c => matrizCarton[f][c] = 0); // Marcamos que aquí irá un número
+            }
+
+            // Asegurar que ninguna columna se quede completamente vacía (regla oficial)
+            for (let c = 0; c < 9; c++) {
+                let tieneNumero = false;
+                for (let f = 0; f < 3; f++) {
+                    if (matrizCarton[f][c] === 0) tieneNumero = true;
+                }
+                if (!tieneNumero) {
+                    // Si está vacía, forzamos un número en una fila aleatoria
+                    let filaAleatoria = Math.floor(Math.random() * 3);
+                    matrizCarton[filaAleatoria][c] = 0;
+                }
+            }
+
+            // 2. Rellenar las columnas con sus números correspondientes y ordenarlos
+            for (let c = 0; c < 9; c++) {
+                // Definir rangos oficiales por columna
+                let cMin = (c === 0) ? 1 : c * 10;
+                let cMax = (c === 8) ? 90 : (c * 10) + 9;
+
+                // Contar cuántos números necesitamos en esta columna específica
+                let filasAAsignar = [];
+                for (let f = 0; f < 3; f++) {
+                    if (matrizCarton[f][c] === 0) filasAAsignar.push(f);
+                }
+
+                // Generar números únicos para la columna
+                let numerosColumna = [];
+                while (numerosColumna.length < filasAAsignar.length) {
+                    let num = Math.floor(Math.random() * (cMax - cMin + 1)) + cMin;
+                    if (!numerosColumna.includes(num)) numerosColumna.push(num);
+                }
+                
+                // Ordenar de menor a mayor (requisito indispensable)
+                numerosColumna.sort((a, b) => a - b);
+
+                // Colocar los números ordenados en sus filas correspondientes
+                filasAAsignar.forEach((f, idx) => {
+                    matrizCarton[f][c] = numerosColumna[idx];
+                });
+            }
+
+            // 3. Dibujar la tabla en el HTML
+            for (let f = 0; f < 3; f++) {
+                let filaHTML = document.createElement('tr');
+                for (let c = 0; c < 9; c++) {
+                    let celda = document.createElement('td');
+                    let valor = matrizCarton[f][c];
+                    
+                    if (valor === null) {
+                        celda.classList.add('sombreada');
+                    } else {
+                        celda.textContent = valor;
+                        celda.onclick = () => tacharNumero(celda);
+                    }
+                    filaHTML.appendChild(celda);
+                }
+                tabla.appendChild(filaHTML);
+            }
+        }
+
+        function tacharNumero(celda) {
+            if (!juegoEmpezado) return; 
+            celda.classList.toggle('marcado');
+        }
+
+        function empezarJuego() {
+            juegoEmpezado = true;
+            document.getElementById('btnEmpezar').disabled = true;
+            document.getElementById('btnCambiar').disabled = true;
+            document.getElementById('zonaCambio').style.display = 'none';
+        }
+
+        function limpiarMarcas() {
+            if (confirm("¿Estás seguro de que quieres desmarcar todos los números tildados?")) {
+                const marcados = document.querySelectorAll('.marcado');
+                marcados.forEach(c => c.classList.remove('marcado'));
+            }
+        }
+
+        function mostrarZonaCambio() {
+            claveGenerada = Math.floor(1000 + Math.random() * 9000); 
+            document.getElementById('txtClave').textContent = claveGenerada;
+            document.getElementById('zonaCambio').style.display = 'block';
+        }
+
+        function procesarCambioCarton() {
+            let input = parseInt(document.getElementById('inputContraclave').value);
+            let contraclaveCorrecta = ((claveGenerada * 3) + 7) % 10000; 
+            
+            if (input === contraclaveCorrecta) {
+                alert("¡Contraclave válida! Generando nuevo cartón tradicional...");
+                generarCarton();
+                document.getElementById('zonaCambio').style.display = 'none';
+                document.getElementById('inputContraclave').value = '';
+            } else {
+                alert("Contraclave incorrecta. Pídesela al monitor.");
+            }
+        }
+
+        window.onload = generarCarton;
+    </script>
+</body>
+</html>
