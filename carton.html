@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carton de Bingo</title>
+    <title>Cart&oacute;n de Bingo Tradicional</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
         body { background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 10px; min-height: 100vh; }
         h1 { margin: 10px 0; color: #333; font-size: 1.4rem; text-align: center; }
         
-        /* Tabla optimizada para m¨®viles */
+        /* Tabla optimizada para m&oacute;viles */
         .contenedor-tabla { width: 100%; max-width: 550px; background: white; padding: 5px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         td { border: 2px solid #b91c1c; text-align: center; height: 42px; font-size: 1.1rem; font-weight: bold; user-select: none; transition: background 0.2s; color: #1e293b; }
@@ -18,23 +18,34 @@
         
         /* Panel de Botones */
         .panel-botones { display: flex; flex-direction: column; width: 100%; max-width: 550px; gap: 8px; margin-top: 12px; }
-        button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; transition: opacity 0.2s; }
+        button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; transition: opacity 0.2s; text-align: center; }
         button:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-empezar { background-color: #2563eb; }
-        .btn-terminar { background-color: #1e293b; } /* Color oscuro para el estado Terminar */
+        .btn-terminar { background-color: #1e293b; }
         .btn-limpiar { background-color: #dc2626; }
         .btn-cambiar { background-color: #d97706; }
         
-        /* Zona de Validaci¨®n */
+        /* Zona de Validaci&oacute;n */
         .zona-validacion { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; width: 100%; max-width: 550px; margin-top: 12px; display: none; text-align: center; }
         .clave-box { font-size: 1.3rem; font-weight: bold; color: #2563eb; letter-spacing: 2px; margin: 5px 0; }
-        input { width: 80px; padding: 8px; text-align: center; font-size: 1.1rem; font-weight: bold; border: 2px solid #ccc; border-radius: 4px; margin-top: 5px; }
-        .btn-confirmar-cambio { background-color: #10b981; margin-top: 10px; padding: 8px; }
+        input { width: 90px; padding: 8px; text-align: center; font-size: 1.1rem; font-weight: bold; border: 2px solid #ccc; border-radius: 4px; margin-top: 5px; color: #1e293b; }
+        .btn-confirmar-cambio { background-color: #10b981; margin-top: 10px; padding: 8px; width: 100%; }
+
+        /* MODALES PERSONALIZADOS ANTI-BLOQUEO */
+        .modal-background { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-box { background: white; padding: 20px; border-radius: 10px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); animation: fadein 0.2s ease-out; }
+        .modal-box p { font-size: 1.1rem; color: #333; margin-bottom: 20px; line-height: 1.4; }
+        .modal-flex-botones { display: table; width: 100%; border-spacing: 10px 0; }
+        .modal-cell { display: table-cell; width: 50%; }
+        .btn-modal-ok { background: #2563eb; width: 100%; padding: 10px; }
+        .btn-modal-cancel { background: #64748b; width: 100%; padding: 10px; }
+        .btn-modal-alert { background: #dc2626; width: 100%; padding: 10px; }
+        @keyframes fadein { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <h1>Cart¨®n de Bingo</h1>
+    <h1>ðŸŽ° Mi Cart&oacute;n de Bingo (3x9)</h1>
 
     <div class="contenedor-tabla">
         <table id="tabla-carton"></table>
@@ -42,41 +53,86 @@
 
     <div class="panel-botones">
         <button class="btn-empezar" id="btnAccion" onclick="conmutarEstadoJuego()">Empezar Partida</button>
-        <button class="btn-limpiar" id="btnLimpiar" onclick="limpiarMarcas()">Limpiar Tachados</button>
-        <button class="btn-cambiar" id="btnCambiar" onclick="mostrarZonaCambio()">Cambiar Cart¨®n</button>
+        <button class="btn-limpiar" id="btnLimpiar" onclick="solicitarLimpieza()">Limpiar Tachados</button>
+        <button class="btn-cambiar" id="btnCambiar" onclick="solicitudCambioCarton()">Cambiar Cart&oacute;n</button>
     </div>
 
     <div class="zona-validacion" id="zonaCambio">
         <p>Comunica esta clave al Monitor:</p>
         <div class="clave-box" id="txtClave">0000</div>
         <p>Introduce la contraclave recibida:</p>
-        <input type="number" id="inputContraclave" placeholder="0000" min="0" max="9999">
+        <input type="number" id="inputContraclave" placeholder="0000" min="0" max="9999" oninput="if(this.value.length > 4) this.value = this.value.slice(0,4);">
         <button class="btn-confirmar-cambio" onclick="procesarCambioCarton()">Validar y Cambiar</button>
+    </div>
+
+    <div id="miModalConfirm" class="modal-background">
+        <div class="modal-box">
+            <p id="textoModalConfirm">&iquest;Est&aacute;s seguro?</p>
+            <div class="modal-flex-botones">
+                <div class="modal-cell"><button class="btn-modal-ok" id="btnModalConfirmSi">S&iacute;</button></div>
+                <div class="modal-cell"><button class="btn-modal-cancel" id="btnModalConfirmNo">No</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="miModalAlert" class="modal-background">
+        <div class="modal-box">
+            <p id="textoModalAlert">Aviso del sistema</p>
+            <button class="btn-modal-alert" onclick="cerrarModalAlert()">Entendido</button>
+        </div>
     </div>
 
     <script>
         let juegoEmpezado = false;
+        let bloqueadoPorSeguridad = false; // Controla si se requiere clave/contraclave
         let matrizCarton = [];
         let claveGenerada = 0;
         let posicionesTachadas = [];
 
-        // Funci¨®n principal al cargar o recargar la p¨¢gina
+        // MODALES WEB
+        function mostrarConfirmacion(texto, callback) {
+            document.getElementById('textoModalConfirm').innerHTML = texto;
+            const modal = document.getElementById('miModalConfirm');
+            modal.style.display = 'flex';
+            
+            document.getElementById('btnModalConfirmSi').onclick = function() {
+                modal.style.display = 'none';
+                callback();
+            };
+            document.getElementById('btnModalConfirmNo').onclick = function() {
+                modal.style.display = 'none';
+            };
+        }
+
+        function mostrarAlerta(texto) {
+            document.getElementById('textoModalAlert').innerHTML = texto;
+            document.getElementById('miModalAlert').style.display = 'flex';
+        }
+
+        function cerrarModalAlert() {
+            document.getElementById('miModalAlert').style.display = 'none';
+        }
+
+        // CONTROL DE MEMORIA PERMANENTE
         function comprobarMemoriaOCrear() {
-            const estadoGuardado = sessionStorage.getItem('bingo_juegoEmpezado');
-            const cartonGuardado = sessionStorage.getItem('bingo_matrizCarton');
-            const tachadosGuardados = sessionStorage.getItem('bingo_tachados');
+            const estadoGuardado = localStorage.getItem('bingo_perm_juegoEmpezado');
+            const cartonGuardado = localStorage.getItem('bingo_perm_matrizCarton');
+            const tachadosGuardados = localStorage.getItem('bingo_perm_tachados');
+            const bloqueoGuardado = localStorage.getItem('bingo_perm_bloqueo');
 
             if (cartonGuardado) {
                 matrizCarton = JSON.parse(cartonGuardado);
-                if (estadoGuardado === 'true') {
-                    juegoEmpezado = true;
-                }
+                juegoEmpezado = (estadoGuardado === 'true');
+                bloqueadoPorSeguridad = (bloqueoGuardado === 'true');
+                
                 if (tachadosGuardados) {
                     posicionesTachadas = JSON.parse(tachadosGuardados);
                 }
                 dibujarCartonHTML();
                 actualizarInterfazBotones();
             } else {
+                bloqueadoPorSeguridad = false;
+                localStorage.setItem('bingo_perm_bloqueo', 'false');
                 generarNuevaEstructuraCarton();
             }
         }
@@ -128,9 +184,9 @@
                 });
             }
 
-            sessionStorage.setItem('bingo_matrizCarton', JSON.stringify(matrizCarton));
-            sessionStorage.setItem('bingo_juegoEmpezado', 'false');
-            sessionStorage.setItem('bingo_tachados', JSON.stringify([]));
+            localStorage.setItem('bingo_perm_matrizCarton', JSON.stringify(matrizCarton));
+            localStorage.setItem('bingo_perm_juegoEmpezado', juegoEmpezado ? 'true' : 'false');
+            localStorage.setItem('bingo_perm_tachados', JSON.stringify(posicionesTachadas));
 
             dibujarCartonHTML();
             actualizarInterfazBotones();
@@ -174,58 +230,51 @@
             } else {
                 posicionesTachadas = posicionesTachadas.filter(p => !(p.f === fila && p.c === col));
             }
-            sessionStorage.setItem('bingo_tachados', JSON.stringify(posicionesTachadas));
+            localStorage.setItem('bingo_perm_tachados', JSON.stringify(posicionesTachadas));
         }
 
-        // Maneja la acci¨®n del bot¨®n principal (Empezar / Terminar)
         function conmutarEstadoJuego() {
             if (!juegoEmpezado) {
-                // ESTADO: Empezar Partida
+                // SE INICIA LA PARTIDA
                 juegoEmpezado = true;
-                sessionStorage.setItem('bingo_juegoEmpezado', 'true');
+                bloqueadoPorSeguridad = true; // A partir de este momento, si se cancela o termina, requerirÃ¡ clave
+                localStorage.setItem('bingo_perm_juegoEmpezado', 'true');
+                localStorage.setItem('bingo_perm_bloqueo', 'true');
                 document.getElementById('zonaCambio').style.display = 'none';
                 actualizarInterfazBotones();
             } else {
-                // ESTADO: Terminar Partida (Pide confirmaci¨®n)
-                if (confirm("Confirmar para terminar la partida")) {
+                // SE TERMINA LA PARTIDA
+                mostrarConfirmacion("&iquest;Est&aacute;s seguro de que quieres terminar la partida actual? El cart&oacute;n quedar&aacute; bloqueado hasta que el monitor lo valide.", function() {
                     juegoEmpezado = false;
-                    sessionStorage.setItem('bingo_juegoEmpezado', 'false');
-                    
-                    // Opcional: Si quieres que al "Terminar" tambi¨¦n se limpien los tachados verdes autom¨¢ticamente, 
-                    // puedes descomentar las siguientes dos l¨ªneas:
-                    // posicionesTachadas = [];
-                    // sessionStorage.setItem('bingo_tachados', JSON.stringify([]));
-                    // dibujarCartonHTML();
-
+                    localStorage.setItem('bingo_perm_juegoEmpezado', 'false');
                     actualizarInterfazBotones();
-                }
+                });
             }
         }
 
-        // Actualiza el texto, colores y estados de deshabilitado seg¨²n el momento del juego
         function actualizarInterfazBotones() {
             const btnAccion = document.getElementById('btnAccion');
             const btnCambiar = document.getElementById('btnCambiar');
 
             if (juegoEmpezado) {
-                // Durante la partida
                 btnAccion.textContent = "Terminar Partida";
                 btnAccion.className = "btn-terminar";
                 btnCambiar.disabled = true;
             } else {
-                // Fuera de la partida
                 btnAccion.textContent = "Empezar Partida";
                 btnAccion.className = "btn-empezar";
                 btnCambiar.disabled = false;
             }
         }
 
-        function limpiarMarcas() {
-            if (confirm("Confirmar para limpiar el juego")) {
-                posicionesTachadas = [];
-                sessionStorage.setItem('bingo_tachados', JSON.stringify([]));
-                const marcados = document.querySelectorAll('.marcado');
-                marcados.forEach(c => c.classList.remove('marcado'));
+        // FUNCI&Oacute;N DEL BOT&Oacute;N "CAMBIAR CART&Oacute;N"
+        function solicitudCambioCarton() {
+            if (bloqueadoPorSeguridad) {
+                // Si est&aacute; bloqueado por haber iniciado partida previamente, pide clave/contraclave
+                mostrarZonaCambio();
+            } else {
+                // Si est&aacute; libre (antes de jugar o ya validado), cambia el cart&oacute;n DIRECTAMENTE e ilimitadamente
+                generarNuevaEstructuraCarton();
             }
         }
 
@@ -236,17 +285,36 @@
         }
 
         function procesarCambioCarton() {
-            let input = parseInt(document.getElementById('inputContraclave').value);
+            const inputElement = document.getElementById('inputContraclave');
+            let input = parseInt(inputElement.value);
             let contraclaveCorrecta = ((claveGenerada * 3) + 7) % 10000; 
             
             if (input === contraclaveCorrecta) {
-                alert("?Contraclave v¨¢lida! Eliminando cart¨®n viejo y generando uno nuevo...");
+                mostrarAlerta("&iexcl;Contraclave v&aacute;lida! Se ha desbloqueado el cambio de cart&oacute;n.");
+                
+                // DESBLOQUEO DEFINITIVO: Cambiamos el estado a false en memoria
+                bloqueadoPorSeguridad = false;
+                localStorage.setItem('bingo_perm_bloqueo', 'false');
+                
+                // Resetear por completo la interfaz del panel de contraclaves
                 document.getElementById('zonaCambio').style.display = 'none';
-                document.getElementById('inputContraclave').value = '';
+                inputElement.value = ''; 
+                document.getElementById('txtClave').textContent = '0000';
+                
+                // Generar el primer cambio de cart&oacute;n de esta nueva etapa de libertad
                 generarNuevaEstructuraCarton();
             } else {
-                alert("Contraclave incorrecta. P¨ªdesela al monitor.");
+                mostrarAlerta("Contraclave incorrecta. P&iacute;desela al monitor.");
             }
+        }
+
+        function solicitarLimpieza() {
+            mostrarConfirmacion("&iquest;Est&aacute;s seguro de que quieres desmarcar todos los n&uacute;meros tildados?", function() {
+                posicionesTachadas = [];
+                localStorage.setItem('bingo_perm_tachados', JSON.stringify([]));
+                const marcados = document.querySelectorAll('.marcado');
+                marcados.forEach(c => c.classList.remove('marcado'));
+            });
         }
 
         window.onload = comprobarMemoriaOCrear;
