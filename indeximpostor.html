@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Impostor - Pass & Play</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; background-color: #f0f2f5; color: #333; }
+        .screen { display: none; max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .active { display: block; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .reveal-box { background: #343a40; color: white; padding: 40px; border-radius: 10px; margin: 20px 0; font-size: 20px; user-select: none; -webkit-user-select: none; }
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA 1: BLOQUEO -->
+    <div id="screen-lock" class="screen active">
+        <h2>Acceso Restringido</h2>
+        <p>Introduce la clave del día para entrar:</p>
+        <input type="text" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Ej: 1021">
+        <button onclick="verificarClave()">Acceder</button>
+    </div>
+
+    <!-- PANTALLA 2: CONFIGURACIÓN -->
+    <div id="screen-config" class="screen">
+        <h2>Configuración</h2>
+        <label>¿Cuántos juegan?</label>
+        <select id="totalPlayers"></select>
+        <label>¿Cuántos impostores?</label>
+        <select id="totalImpostors">
+            <option value="1">1 Impostor</option>
+            <option value="2">2 Impostores</option>
+        </select>
+        <button id="btn-continue" onclick="generarInputsNombres()">Continuar</button>
+        
+        <div id="container-names"></div>
+        <button id="btn-start" style="display:none;" onclick="iniciarSorteo()">Comenzar Sorteo</button>
+    </div>
+
+    <!-- PANTALLA 3: REPARTO DE ROLES -->
+    <div id="screen-draw" class="screen">
+        <h2 id="player-turn-name">Turno de: </h2>
+        <p>Pasa el móvil a este jugador. Mantén pulsado el botón negro para ver tu rol oculto:</p>
+        <div id="reveal-area" class="reveal-box" onmousedown="mostrarRol()" onmouseup="ocultarRol()" ontouchstart="mostrarRol()" ontouchend="ocultarRol()">
+            MANTÉN PULSADO
+        </div>
+        <button id="btn-next-player" onclick="siguienteJugador()">Siguiente Jugador</button>
+    </div>
+
+    <!-- PANTALLA 4: RESOLUCIÓN -->
+    <div id="screen-game" class="screen">
+        <h2>Partida en Curso</h2>
+        <p>¡Debatid! Cuando creáis saber quiénes son los impostores, escribid sus nombres aquí:</p>
+        <div id="impostor-inputs-evaluation"></div>
+        <button onclick="evaluarImpostores()">Resolver</button>
+        <button style="background-color: #dc3545;" onclick="rendirse()">Rendirse / Mostrar Impostores</button>
+    </div>
+
+    <script>
+        // Lista de lugares para los aldeanos
+        const LUGARES = ["Hospital", "Estación Espacial", "Playa Tropical", "Hollywood", "Submarino", "Restaurante", "Escuela"];
+        
+        let jugadores = [];
+        let roles = {}; 
+        let impostoresAsignados = [];
+        let jugadorActualIndex = 0;
+        let lugarSecreto = "";
+
+        // Inicializar desplegable de 3 a 20
+        const selectP = document.getElementById('totalPlayers');
+        for(let i=3; i<=20; i++) {
+            let opt = document.createElement('option');
+            opt.value = i; opt.textContent = i + " Jugadores";
+            selectP.appendChild(opt);
+        }
+
+        function verificarClave() {
+            const input = document.getElementById('pinInput').value;
+            const hoy = new Date().getDate();
+            const claveCorrecta = hoy + 1021;
+
+            if (parseInt(input) === claveCorrecta) {
+                cambiarPantalla('screen-lock', 'screen-config');
+            } else {
+                alert("Clave incorrecta. Pista: Día del mes + 1021");
+            }
+        }
+
+        function cambiarPantalla(actual, siguiente) {
+            document.getElementById(actual).classList.remove('active');
+            document.getElementById(siguiente).classList.add('active');
+        }
+
+        function generarInputsNombres() {
+            const num = document.getElementById('totalPlayers').value;
+            const container = document.getElementById('container-names');
+            container.innerHTML = "<h3>Introduce los nombres:</h3>";
+            
+            for(let i=1; i<=num; i++) {
+                container.innerHTML += `<input type="text" class="player-name-input" placeholder="Jugador ${i}" required>`;
+            }
+            document.getElementById('btn-continue').style.display = 'none';
+            document.getElementById('btn-start').style.display = 'block';
+        }
+
+        function iniciarSorteo() {
+            const inputs = document.querySelectorAll('.player-name-input');
+            jugadores = Array.from(inputs).map(inp => inp.value.trim() || inp.placeholder);
+            
+            const numImpostores = parseInt(document.getElementById('totalImpostors').value);
+            lugarSecreto = LUGARES[Math.floor(Math.random() * LUGARES.length)];
+            
+            // Mezclar jugadores para asignar impostores
+            let copiaJugadores = [...jugadores];
+            impostoresAsignados = [];
+            for(let i=0; i<numImpostores; i++) {
+                let index = Math.floor(Math.random() * copiaJugadores.length);
+                impostoresAsignados.push(copiaJugadores.splice(index, 1)[0]);
+            }
+
+            // Asignar roles
+            jugadores.forEach(j => {
+                roles[j] = impostoresAsignados.includes(j) ? "Eres el IMPOSTOR 🏴‍☠️" : `Lugar: ${lugarSecreto} 🏙️`;
+            });
+
+            jugadorActualIndex = 0;
+            prepararTurnoJugador();
+            cambiarPantalla('screen-config', 'screen-draw');
+        }
+
+        function prepararTurnoJugador() {
+            document.getElementById('player-turn-name').textContent = "Turno de: " + jugadores[jugadorActualIndex];
+            document.getElementById('reveal-area').textContent = "MANTÉN PULSADO";
+            
+            const btnNext = document.getElementById('btn-next-player');
+            if (jugadorActualIndex === jugadores.length - 1) {
+                btnNext.textContent = "Comenzar Partida";
+            } else {
+                btnNext.textContent = "Siguiente Jugador";
+            }
+        }
+
+        function mostrarRol() {
+            const nombre = jugadores[jugadorActualIndex];
+            document.getElementById('reveal-area').textContent = roles[nombre];
+        }
+
+        function ocultarRol() {
+            document.getElementById('reveal-area').textContent = "MANTÉN PULSADO";
+        }
+
+        function siguienteJugador() {
+            if (jugadorActualIndex < jugadores.length - 1) {
+                jugadorActualIndex++;
+                prepararTurnoJugador();
+            } else {
+                // Ir a la pantalla de resolución
+                const contenedorEval = document.getElementById('impostor-inputs-evaluation');
+                contenedorEval.innerHTML = "";
+                const numImpostores = impostoresAsignados.length;
+                for(let i=1; i<=numImpostores; i++) {
+                    contenedorEval.innerHTML += `<input type="text" class="guess-impostor" placeholder="Nombre del Impostor ${i}">`;
+                }
+                cambiarPantalla('screen-draw', 'screen-game');
+            }
+        }
+
+        function evaluarImpostores() {
+            const inputs = document.querySelectorAll('.guess-impostor');
+            const respuestas = Array.from(inputs).map(inp => inp.value.trim().toLowerCase());
+            const correctos = impostoresAsignados.map(imp => imp.toLowerCase());
+
+            // Comprobar si todos los ingresados están en la lista de impostores reales
+            const aciertoTotal = correctos.every(imp => respuestas.includes(imp)) && respuestas.length === correctos.length;
+
+            if (aciertoTotal) {
+                alert("¡VICTORIA! Habéis descubierto a los impostores: " + impostoresAsignados.join(', '));
+                location.reload(); // Reinicia el juego
+            } else {
+                alert("❌ ¡Incorrecto! Esos no son los impostores o falta alguno. ¡Seguid debatiendo!");
+            }
+        }
+
+        function rendirse() {
+            alert("Partida terminada. Los impostores eran: " + impostoresAsignados.join(' y ') + `.\nEl lugar secreto era: ${lugarSecreto}.`);
+            location.reload();
+        }
+    </script>
+</body>
+</html>
