@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>El Impostor - Sala de Juego</title>
     <style>
-        /* ESTILO GENERAL VARIACIÓN MONITOR DE BINGO */
         body { 
             font-family: 'Segoe UI', Arial, sans-serif; 
             text-align: center; 
             padding: 20px; 
-            background-color: #0b132b; /* Azul ultra oscuro */
+            background-color: #0b132b; 
             color: #ffffff; 
             margin: 0;
         }
@@ -19,7 +18,7 @@
             display: none; 
             max-width: 450px; 
             margin: 40px auto; 
-            background: #1c2541; /* Azul noche del contenedor */
+            background: #1c2541; 
             padding: 30px; 
             border-radius: 20px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
@@ -31,7 +30,6 @@
         h2 { color: #4cc9f0; margin-top: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
         p { color: #cbd5e1; font-size: 15px; line-height: 1.5; }
 
-        /* FORMULARIOS Y BOTONES */
         input, select, button { 
             width: 100%; 
             padding: 14px; 
@@ -67,8 +65,9 @@
         
         .btn-danger { background-color: #f72585; color: white; }
         .btn-danger:hover { background-color: #b5179e; }
+        .btn-secondary { background-color: #3a506b; color: white; border: none; }
+        .btn-secondary:hover { background-color: #5c7aff; }
 
-        /* ÁREA DE REVELAR ROL */
         .reveal-box { 
             background: #0b132b; 
             color: #ffb703; 
@@ -83,12 +82,12 @@
             cursor: pointer;
         }
 
-        /* SISTEMA DE VENTANAS EMERGENTES (MODALES) */
+        /* MODALES */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 19, 43, 0.85); /* Fondo oscurecido */
+            background: rgba(11, 19, 43, 0.85); 
             backdrop-filter: blur(4px);
             z-index: 1000;
             justify-content: center;
@@ -97,7 +96,7 @@
         
         .modal-box {
             background: #1c2541;
-            border: 3px solid #ffb703; /* Borde dorado/amarillo estilo cartel luminoso */
+            border: 3px solid #ffb703; 
             padding: 30px;
             border-radius: 20px;
             max-width: 400px;
@@ -113,8 +112,7 @@
         
         .modal-box h3 { color: #ffb703; margin-top: 0; font-size: 22px; text-transform: uppercase; }
         .modal-box p { color: #ffffff; font-size: 16px; margin: 20px 0; }
-        .modal-box button { background-color: #ffb703; color: #0b132b; }
-        .modal-box button:hover { background-color: #fb8500; color: white; }
+        .modal-footer-buttons { display: flex; flex-direction: column; gap: 5px; }
     </style>
 </head>
 <body>
@@ -123,13 +121,15 @@
         <div class="modal-box">
             <h3 id="modal-title">Aviso</h3>
             <p id="modal-message">Mensaje del sistema.</p>
-            <button id="modal-btn-close" onclick="cerrarModal()">Entendido</button>
+            <div id="modal-buttons" class="modal-footer-buttons">
+                <button id="modal-default-btn" onclick="cerrarModal()">Entendido</button>
+            </div>
         </div>
     </div>
 
     <div id="screen-lock" class="screen active">
         <h2>Acceso Restringido</h2>
-        <p>Introduce la clave del día para entrar:</p>
+        <p>Introduce la clave para entrar:</p>
         <input type="text" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0000">
         <button onclick="verificarClave()">Acceder</button>
     </div>
@@ -137,10 +137,10 @@
     <div id="screen-config" class="screen">
         <h2>Configuración</h2>
         <label>¿Cuántos juegan?</label>
-        <select id="totalPlayers"></select>
+        <select id="totalPlayers" onchange="guardarConfiguracionBase()"></select>
         
         <label>¿Cuántos impostores?</label>
-        <select id="totalImpostors">
+        <select id="totalImpostors" onchange="guardarConfiguracionBase()">
             <option value="1">1 Impostor</option>
             <option value="2">2 Impostores</option>
         </select>
@@ -169,13 +169,16 @@
 
     <script>
         const LUGARES = ["Hospital", "Estación Espacial", "Playa Tropical", "Hollywood", "Submarino", "Casino Bingo", "Restaurante", "Escuela"];
+        
+        // Variables de estado
         let jugadores = [];
         let roles = {}; 
         let impostoresAsignados = [];
         let jugadorActualIndex = 0;
         let lugarSecreto = "";
+        let faseActual = "BLOQUEO";
 
-        // Inicializar desplegable (3 a 20)
+        // Inicializar desplegable de número de jugadores (3 a 20)
         const selectP = document.getElementById('totalPlayers');
         for(let i=3; i<=20; i++) {
             let opt = document.createElement('option');
@@ -183,43 +186,139 @@
             selectP.appendChild(opt);
         }
 
-        // CONTROL DEL MODAL PERSONALIZADO
-        function abrirModal(titulo, mensaje, recargarAlCerrar = false) {
+        // AL CARGAR LA PÁGINA: Comprobar el estado del LocalStorage
+        window.onload = function() {
+            comprobarExpiracionTiempo();
+            cargarEstadoJuego();
+        };
+
+        // Comprueba si pasaron más de 5 horas desde la última validación exitosa
+        function comprobarExpiracionTiempo() {
+            const loginTimestamp = localStorage.getItem('impostor_login_time');
+            if (loginTimestamp) {
+                const cincoHorasEnMs = 5 * 60 * 60 * 1000;
+                const tiempoTranscurrido = Date.now() - parseInt(loginTimestamp);
+                
+                if (tiempoTranscurrido > cincoHorasEnMs) {
+                    reiniciarTodoSistema(); // Borra localStorage y fuerza login
+                }
+            }
+        }
+
+        // Guarda qué pantalla y qué datos tenemos activos
+        function guardarEstadoJuego() {
+            localStorage.setItem('impostor_fase', faseActual);
+            localStorage.setItem('impostor_jugadores', JSON.stringify(jugadores));
+            localStorage.setItem('impostor_roles', JSON.stringify(roles));
+            localStorage.setItem('impostor_impostoresAsignados', JSON.stringify(impostoresAsignados));
+            localStorage.setItem('impostor_jugadorActualIndex', jugadorActualIndex);
+            localStorage.setItem('impostor_lugarSecreto', lugarSecreto);
+            guardarConfiguracionBase();
+        }
+
+        function guardarConfiguracionBase() {
+            localStorage.setItem('impostor_config_total', document.getElementById('totalPlayers').value);
+            localStorage.setItem('impostor_config_imps', document.getElementById('totalImpostors').value);
+        }
+
+        // Recupera la partida si se refresca la pestaña
+        function cargarEstadoJuego() {
+            const sesionActiva = localStorage.getItem('impostor_login_time');
+            if (!sesionActiva) return; // Si no hay login, se queda en pantalla de bloqueo.
+
+            faseActual = localStorage.getItem('impostor_fase') || "CONFIGURACION";
+            
+            // Cargar selectores de configuración guardados
+            if(localStorage.getItem('impostor_config_total')) document.getElementById('totalPlayers').value = localStorage.getItem('impostor_config_total');
+            if(localStorage.getItem('impostor_config_imps')) document.getElementById('totalImpostors').value = localStorage.getItem('impostor_config_imps');
+
+            if (faseActual === "BLOQUEO") {
+                cambiarPantallaVisual('screen-lock');
+            } else if (faseActual === "CONFIGURACION") {
+                cambiarPantallaVisual('screen-config');
+            } else {
+                // Recuperar variables de juego en curso
+                jugadores = JSON.parse(localStorage.getItem('impostor_jugadores')) || [];
+                roles = JSON.parse(localStorage.getItem('impostor_roles')) || {};
+                impostoresAsignados = JSON.parse(localStorage.getItem('impostor_impostoresAsignados')) || [];
+                jugadorActualIndex = parseInt(localStorage.getItem('impostor_jugadorActualIndex')) || 0;
+                lugarSecreto = localStorage.getItem('impostor_lugarSecreto') || "";
+
+                if (faseActual === "REPARTO") {
+                    prepararTurnoJugador();
+                    cambiarPantallaVisual('screen-draw');
+                } else if (faseActual === "PARTIDA") {
+                    prepararPantallaResolucion();
+                    cambiarPantallaVisual('screen-game');
+                }
+            }
+        }
+
+        // CONTROL DE MODALES
+        function abrirModal(titulo, mensaje, esFinPartida = false) {
             document.getElementById('modal-title').textContent = titulo;
             document.getElementById('modal-message').textContent = mensaje;
-            const modal = document.getElementById('custom-modal');
-            modal.style.display = 'flex';
             
-            // Si el juego debe reiniciarse al cerrar el modal (Fin de partida)
-            if(recargarAlCerrar) {
-                document.getElementById('modal-btn-close').setAttribute('onclick', 'location.reload()');
+            const btnContenedor = document.getElementById('modal-buttons');
+            btnContenedor.innerHTML = ""; // Limpiar botones anteriores
+
+            if (esFinPartida) {
+                // Botón 1: Otra partida manteniendo el mismo grupo
+                const btnMismos = document.createElement('button');
+                btnMismos.textContent = "Nueva Partida (Mismos Jugadores)";
+                btnMismos.onclick = function() {
+                    cerrarModal();
+                    reiniciarMismosJugadores();
+                };
+                
+                // Botón 2: Reiniciar todo desde cero borrando todo
+                const btnTodo = document.createElement('button');
+                btnTodo.textContent = "Reiniciar Todo (Borrar Datos)";
+                btnTodo.className = "btn-danger";
+                btnTodo.onclick = function() {
+                    cerrarModal();
+                    reiniciarTodoSistema();
+                };
+
+                btnContenedor.appendChild(btnMismos);
+                btnContenedor.appendChild(btnTodo);
             } else {
-                document.getElementById('modal-btn-close').setAttribute('onclick', 'cerrarModal()');
+                // Botón normal de cierre
+                const btnCerrar = document.createElement('button');
+                btnCerrar.textContent = "Entendido";
+                btnCerrar.onclick = cerrarModal;
+                btnContenedor.appendChild(btnCerrar);
             }
+
+            document.getElementById('custom-modal').style.display = 'flex';
         }
 
         function cerrarModal() {
             document.getElementById('custom-modal').style.display = 'none';
         }
 
-        // LÓGICA DEL JUEGO
+        // LOGICA DE ACCESO
         function verificarClave() {
             const input = document.getElementById('pinInput').value;
             const hoy = new Date().getDate();
             const claveCorrecta = hoy + 1021;
 
             if (parseInt(input) === claveCorrecta) {
-                cambiarPantalla('screen-lock', 'screen-config');
+                localStorage.setItem('impostor_login_time', Date.now()); // Guardamos momento de entrada
+                faseActual = "CONFIGURACION";
+                guardarEstadoJuego();
+                cambiarPantallaVisual('screen-config');
             } else {
-                abrirModal("⚠️ Acceso Denegado", "La clave introducida es incorrecta. Pista: Día del mes + 1021.");
+                abrirModal("⚠️ Acceso Denegado", "La clave introducida es incorrecta.");
             }
         }
 
-        function cambiarPantalla(actual, siguiente) {
-            document.getElementById(actual).classList.remove('active');
-            document.getElementById(siguiente).classList.add('active');
+        function cambiarPantallaVisual(idPantalla) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(idPantalla).classList.add('active');
         }
 
+        // LOGICA DE CONFIGURACIÓN Y JUEGO
         function generarInputsNombres() {
             const num = document.getElementById('totalPlayers').value;
             const container = document.getElementById('container-names');
@@ -234,32 +333,39 @@
 
         function iniciarSorteo() {
             const inputs = document.querySelectorAll('.player-name-input');
-            jugadores = Array.from(inputs).map(inp => inp.value.trim() || inp.placeholder);
-            
+            if (inputs.length > 0) {
+                jugadores = Array.from(inputs).map(inp => inp.value.trim() || inp.placeholder);
+            }
+            ejecutarMezclaYAsignacion();
+        }
+
+        function ejecutarMezclaYAsignacion() {
             const numImpostores = parseInt(document.getElementById('totalImpostors').value);
             
-            // Control de seguridad: No se pueden pedir más impostores que jugadores
             if (numImpostores >= jugadores.length) {
-                abrirModal("Configuración Errónea", "No puede haber igual o más impostores que el total de jugadores.");
+                abrirModal("Configuración Errónea", "No puede haber igual o más impostores que jugadores.");
                 return;
             }
 
             lugarSecreto = LUGARES[Math.floor(Math.random() * LUGARES.length)];
-            
             let copiaJugadores = [...jugadores];
             impostoresAsignados = [];
+            
             for(let i=0; i<numImpostores; i++) {
                 let index = Math.floor(Math.random() * copiaJugadores.length);
                 impostoresAsignados.push(copiaJugadores.splice(index, 1)[0]);
             }
 
+            roles = {};
             jugadores.forEach(j => {
                 roles[j] = impostoresAsignados.includes(j) ? "Eres el IMPOSTOR 🏴‍☠️" : `Lugar: ${lugarSecreto} 🏙️`;
             });
 
             jugadorActualIndex = 0;
+            faseActual = "REPARTO";
+            guardarEstadoJuego();
             prepararTurnoJugador();
-            cambiarPantalla('screen-config', 'screen-draw');
+            cambiarPantallaVisual('screen-draw');
         }
 
         function prepararTurnoJugador() {
@@ -286,15 +392,22 @@
         function siguienteJugador() {
             if (jugadorActualIndex < jugadores.length - 1) {
                 jugadorActualIndex++;
+                localStorage.setItem('impostor_jugadorActualIndex', jugadorActualIndex);
                 prepararTurnoJugador();
             } else {
-                const contenedorEval = document.getElementById('impostor-inputs-evaluation');
-                contenedorEval.innerHTML = "";
-                const numImpostores = impostoresAsignados.length;
-                for(let i=1; i<=numImpostores; i++) {
-                    contenedorEval.innerHTML += `<input type="text" class="guess-impostor" placeholder="Nombre del Impostor ${i}">`;
-                }
-                cambiarPantalla('screen-draw', 'screen-game');
+                faseActual = "PARTIDA";
+                guardarEstadoJuego();
+                prepararPantallaResolucion();
+                cambiarPantallaVisual('screen-game');
+            }
+        }
+
+        function prepararPantallaResolucion() {
+            const contenedorEval = document.getElementById('impostor-inputs-evaluation');
+            contenedorEval.innerHTML = "";
+            const numImpostores = impostoresAsignados.length;
+            for(let i=1; i<=numImpostores; i++) {
+                contenedorEval.innerHTML += `<input type="text" class="guess-impostor" placeholder="Nombre del Impostor ${i}">`;
             }
         }
 
@@ -314,6 +427,31 @@
 
         function rendirse() {
             abrirModal("🏳️ Partida Terminada", "Os habéis rendido. Los impostores eran: " + impostoresAsignados.join(' y ') + `. El lugar secreto era: ${lugarSecreto}.`, true);
+        }
+
+        // RESOLUCIÓN DE FIN DE PARTIDA
+        function reiniciarMismosJugadores() {
+            // Reutiliza el array de `jugadores` existente y genera un nuevo escenario/roles directo
+            ejecutarMezclaYAsignacion();
+        }
+
+        function reiniciarTodoSistema() {
+            // Limpieza absoluta de la memoria del navegador
+            localStorage.clear();
+            jugadores = [];
+            roles = {};
+            impostoresAsignados = [];
+            jugadorActualIndex = 0;
+            lugarSecreto = "";
+            faseActual = "BLOQUEO";
+            
+            // Reestablecer interfaz base
+            document.getElementById('pinInput').value = "";
+            document.getElementById('container-names').innerHTML = "";
+            document.getElementById('btn-continue').style.display = 'block';
+            document.getElementById('btn-start').style.display = 'none';
+            
+            cambiarPantallaVisual('screen-lock');
         }
     </script>
 </body>
