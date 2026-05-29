@@ -134,6 +134,10 @@
             }
         }*/ /*comentamos la accion automatica de mostrar el submenu*/
 
+        .submenu.desktop-open {
+            display: block !important;
+        }
+
         /* BOTÓN HAMBURGUESA */
         .menu-toggle {
             display: none;
@@ -566,27 +570,30 @@
             menuList.classList.toggle('mobile-open');
         });
 
-        // CONTROL DEL DESPLEGABLE DEL MENÚ EN MÓVIL
+        // CONTROL DEL DESPLEGABLE CON CLIC (UNIVERSAL para Escritorio y Móvil)
         const dropdownTrigger = document.getElementById('dropdown-trigger');
         const customSubmenu = document.getElementById('custom-submenu');
         const parentItem = dropdownTrigger.parentElement;
-
+        
         dropdownTrigger.addEventListener('click', (e) => {
-            if (window.innerWidth <= 768) {
-                e.preventDefault(); 
+            e.preventDefault(); // Evita que navegue al '#'
+            
+            // Intercambia la clase para abrir o cerrar
+            if (window.innerWidth > 768) {
+                customSubmenu.classList.toggle('desktop-open');
+            } else {
                 customSubmenu.classList.toggle('open');
-                parentItem.classList.toggle('active');
             }
+            parentItem.classList.toggle('active');
         });
-
-        // Cierra el menú hamburguesa si se pincha en enlaces normales del menú superior
-        document.querySelectorAll('.nav-menu a:not(#dropdown-trigger)').forEach(link => {
-            link.addEventListener('click', () => {
-                menuBtn.classList.remove('open');
-                menuList.classList.remove('mobile-open');
+        
+        // Cierra el menú de escritorio si el usuario hace clic en cualquier otro lado de la pantalla
+        window.addEventListener('click', (e) => {
+            if (!parentItem.contains(e.target)) {
+                customSubmenu.classList.remove('desktop-open');
                 customSubmenu.classList.remove('open');
                 parentItem.classList.remove('active');
-            });
+            }
         });
 
         // LÓGICA DE LA VENTANA MODAL (SÓLO EL BOTÓN DE ABAJO)
