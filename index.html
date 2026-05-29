@@ -1,15 +1,622 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=https://www.alaraz1921.com">
-  <title>Redirigiendo...</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>alaraz1921</title>
+    <!-- Importamos la fuente Manrope desde Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --azul-oscuro: #0b132b;
+            --azul-medio: #1c2541;
+            --azul-borde: #3a506b;
+            --azul-neon: #4cc9f0;
+            --dorado: #ffb703;
+        }
 
-  <script>
-    window.location.href = "https://www.alaraz1921.com";
-  </script>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Manrope', sans-serif;
+            background-color: var(--azul-oscuro);
+            color: #ffffff;
+            scroll-behavior: smooth;
+        }
+
+        /* ─────────────── MENÚ DE NAVEGACIÓN ─────────────── */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: transparent;
+            border-bottom: 2px solid transparent;
+            z-index: 1000;
+            transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .navbar.scrolled {
+            background-color: var(--azul-medio);
+            border-bottom: 2px solid var(--azul-borde);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .nav-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            box-sizing: border-box;
+        }
+
+        .nav-logo {
+            font-size: 24px;
+            font-weight: 400;
+            color: #ffffff;
+            text-transform: lowercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 25px;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-menu a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 14px;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-menu a:hover {
+            color: var(--azul-neon);
+        }
+
+        .arrow {
+            font-size: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        /* ─────────────── SUBMENÚ DEL MENÚ SUPERIOR (ESCRITORIO) ─────────────── */
+        .submenu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--azul-medio);
+            border: 2px solid var(--azul-borde);
+            border-radius: 8px;
+            list-style: none;
+            padding: 10px 0;
+            margin: 10px 0 0 0;
+            min-width: 180px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+        }
+
+        .submenu li a {
+            padding: 10px 20px;
+            font-size: 13px;
+            text-transform: none;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        @media (min-width: 769px) {
+            .nav-item:hover .submenu {
+                display: block;
+                animation: fadeIn 0.2s ease-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translate(-50%, 5px); }
+                to { opacity: 1; transform: translate(-50%, 0); }
+            }
+        }
+
+        /* BOTÓN HAMBURGUESA */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 5px;
+            background: none;
+            border: none;
+            padding: 5px;
+        }
+
+        .menu-toggle span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        /* HERO */
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background-image: url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 19, 43, 0.75);
+            z-index: 1;
+        }
+
+        .hero-text {
+            position: relative;
+            z-index: 2;
+            font-size: 42px;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 2px;
+            padding: 0 20px;
+            color: #ffffff;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+            text-transform: uppercase;
+        }
+
+        /* CONTENIDO INFERIOR */
+        .content-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 50px 20px;
+            box-sizing: border-box;
+        }
+
+        .buttons-grid {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+            margin-bottom: 50px;
+            justify-content: center;
+        }
+
+        .btn-section {
+            flex: 1;
+            background-color: var(--azul-medio);
+            color: #ffffff;
+            border: 2px solid var(--azul-borde);
+            padding: 16px;
+            font-size: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .btn-section:hover {
+            border-color: var(--azul-neon);
+            color: var(--azul-neon);
+            transform: translateY(-2px);
+        }
+
+        /* FORMULARIO CONTACTO */
+        .contact-form {
+            background-color: var(--azul-medio);
+            border: 2px solid var(--azul-borde);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        .contact-form h2 {
+            margin-top: 0;
+            color: var(--azul-neon);
+            text-transform: uppercase;
+            font-size: 20px;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-transform: uppercase;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: var(--azul-oscuro);
+            border: 2px solid var(--azul-borde);
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            box-sizing: border-box;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--azul-neon);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--azul-neon);
+            color: var(--azul-oscuro);
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 5px;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .btn-submit:hover {
+            background-color: #4361ee;
+            color: white;
+        }
+
+        /* ─────────────── VENTANA MODAL (SOLO PARA EL BOTÓN DE ABAJO) ─────────────── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(11, 19, 43, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background-color: var(--azul-medio);
+            border: 2px solid var(--azul-borde);
+            padding: 30px 25px;
+            border-radius: 20px;
+            width: 85%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            animation: modalScaleUp 0.3s ease-out forwards;
+            position: relative;
+        }
+
+        @keyframes modalScaleUp {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-box h3 {
+            margin-top: 0;
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .modal-buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-modal-link {
+            background-color: var(--azul-oscuro);
+            color: #ffffff;
+            border: 2px solid var(--azul-borde);
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            transition: all 0.2s ease;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .btn-modal-link:hover {
+            border-color: var(--azul-neon);
+            color: var(--azul-neon);
+            background-color: rgba(76, 201, 240, 0.05);
+        }
+
+        .close-modal-btn {
+            background: none;
+            border: none;
+            color: #cbd5e1;
+            font-size: 22px;
+            cursor: pointer;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            transition: color 0.2s;
+        }
+        
+        .close-modal-btn:hover {
+            color: var(--azul-neon);
+        }
+
+        /* ─────────────── RESPONSIVE (MÓVILES) ─────────────── */
+        @media (max-width: 768px) {
+            .navbar {
+                background-color: rgba(28, 37, 65, 0.95);
+                border-bottom: 2px solid var(--azul-borde);
+            }
+            
+            .menu-toggle {
+                display: flex;
+            }
+
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: var(--azul-medio);
+                border-bottom: 2px solid var(--azul-borde);
+                padding: 10px 0;
+                gap: 0;
+            }
+
+            .nav-menu.mobile-open {
+                display: flex;
+            }
+
+            .nav-menu li { width: 100%; text-align: center; }
+            
+            .nav-menu a { 
+                display: flex;
+                justify-content: center;
+                padding: 15px 0; 
+                width: 100%; 
+                border-bottom: 1px solid rgba(58, 80, 107, 0.2);
+            }
+
+            /* Submenú en móvil (Formato colapsable bajo "Otros") */
+            .submenu {
+                position: static;
+                transform: none;
+                background-color: var(--azul-oscuro);
+                box-shadow: none;
+                border: none;
+                border-radius: 0;
+                padding: 0;
+                margin: 0;
+                width: 100%;
+            }
+
+            .submenu.open {
+                display: block;
+            }
+
+            .submenu li a {
+                padding: 12px 0;
+                background-color: rgba(11, 19, 43, 0.5);
+                border-bottom: 1px solid rgba(58, 80, 107, 0.1);
+            }
+
+            .nav-item.active .arrow {
+                transform: rotate(180deg);
+            }
+
+            .hero-text {
+                font-size: 28px;
+            }
+
+            .buttons-grid {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .btn-section {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <p>Redirigiendo...</p>
+
+    <!-- VENTANA MODAL (SOLO SE ABRE CON EL BOTÓN DE ABAJO) -->
+    <div class="modal-overlay" id="otros-modal">
+        <div class="modal-box">
+            <button class="close-modal-btn" onclick="cerrarModal()">&times;</button>
+            <h3>Otros Proyectos</h3>
+            
+            <div class="modal-buttons-container">
+                <a href="#" class="btn-modal-link">El Infiltrado 🏴‍☠️</a>
+                <a href="#" class="btn-modal-link">La Bomba 💣</a>
+                <a href="#" class="btn-modal-link">Galería de Fotos 📸</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MENÚ DE NAVEGACIÓN -->
+    <nav class="navbar" id="main-navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">alaraz1921</a>
+            
+            <button class="menu-toggle" id="mobile-menu-btn" aria-label="Abrir menú">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <ul class="nav-menu" id="nav-menu-list">
+                <li class="nav-item"><a href="#privado">Privado</a></li>
+                <li class="nav-item"><a href="#valentina">Valentina's Play Time</a></li>
+                
+                <!-- EL MENU SUPERIOR SIGUE SIENDO DESPLEGABLE -->
+                <li class="nav-item has-submenu">
+                    <a href="#otros" id="dropdown-trigger">Otros <span class="arrow">▼</span></a>
+                    <ul class="submenu" id="custom-submenu">
+                        <li><a href="#seccion1">Opción Menú 1</a></li>
+                        <li><a href="#seccion2">Opción Menú 2</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <h1 class="hero-text">Nothing Gonna Change My World</h1>
+    </header>
+
+    <!-- SECCIÓN INFERIOR -->
+    <main class="content-section">
+        
+        <!-- BOTONES ADAPTATIVOS -->
+        <div class="buttons-grid">
+            <button class="btn-section" onclick="location.href='#privado'">Privado</button>
+            <button class="btn-section" onclick="location.href='#valentina'">Valentina's Play Time</button>
+            <!-- ESTE BOTÓN DE ABAJO ES EL ÚNICO QUE ABRE LA VENTANA MODAL -->
+            <button class="btn-section" onclick="abrirModal()">Otros</button>
+        </div>
+
+        <!-- FORMULARIO COMPACTO -->
+        <section class="contact-form">
+            <h2>Contacto</h2>
+            <form action="#" method="POST" onsubmit="event.preventDefault(); alert('Mensaje enviado con éxito');">
+                <div class="form-group">
+                    <label for="name">Nombre</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Asunto</label>
+                    <input type="text" id="subject" name="subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Mensaje</label>
+                    <textarea id="message" name="message" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Enviar</button>
+            </form>
+        </section>
+
+    </main>
+
+    <script>
+        // LÓGICA DEL MENÚ HAMBURGUESA MÓVIL
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const menuList = document.getElementById('nav-menu-list');
+
+        menuBtn.addEventListener('click', () => {
+            menuBtn.classList.toggle('open');
+            menuList.classList.toggle('mobile-open');
+        });
+
+        // CONTROL DEL DESPLEGABLE DEL MENÚ EN MÓVIL
+        const dropdownTrigger = document.getElementById('dropdown-trigger');
+        const customSubmenu = document.getElementById('custom-submenu');
+        const parentItem = dropdownTrigger.parentElement;
+
+        dropdownTrigger.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                e.preventDefault(); 
+                customSubmenu.classList.toggle('open');
+                parentItem.classList.toggle('active');
+            }
+        });
+
+        // Cierra el menú hamburguesa si se pincha en enlaces normales del menú superior
+        document.querySelectorAll('.nav-menu a:not(#dropdown-trigger)').forEach(link => {
+            link.addEventListener('click', () => {
+                menuBtn.classList.remove('open');
+                menuList.classList.remove('mobile-open');
+                customSubmenu.classList.remove('open');
+                parentItem.classList.remove('active');
+            });
+        });
+
+        // LÓGICA DE LA VENTANA MODAL (SÓLO EL BOTÓN DE ABAJO)
+        const modal = document.getElementById('otros-modal');
+
+        function abrirModal() {
+            modal.style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            modal.style.display = 'none';
+        }
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                cerrarModal();
+            }
+        });
+
+        // CAMBIO DE COLOR DEL NAVBAR CON EL SCROLL (ESCRITORIO)
+        const navbar = document.getElementById('main-navbar');
+        
+        window.addEventListener('scroll', () => {
+            if (window.innerWidth > 768) {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+        });
+    </script>
+
 </body>
 </html>
