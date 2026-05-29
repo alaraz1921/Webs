@@ -61,7 +61,7 @@
         <p>Comunica esta clave al Monitor:</p>
         <div class="clave-box" id="txtClave">0000</div>
         <p>Introduce la contraclave recibida:</p>
-        <input type="number" id="inputContraclave" placeholder="0000" min="0" max="9999" oninput="if(this.value.length > 4) this.value = this.value.slice(0,4);">
+        <input type="number" id="inputContraclave" placeholder="0000" inputmode="numeric" min="0" max="9999" oninput="if(this.value.length > 4) this.value = this.value.slice(0,4);">
         <button class="btn-confirmar-cambio" onclick="procesarCambioCarton()">Validar y Cambiar</button>
     </div>
 

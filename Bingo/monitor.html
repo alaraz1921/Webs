@@ -22,7 +22,7 @@
 
         /* Botonera */
         .panel-botones { display: flex; flex-direction: column; width: 100%; max-width: 450px; gap: 8px; margin-top: 12px; }
-        button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; }
+        button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; text-align: center; }
         .btn-comenzar { background-color: #22c55e; }
         .btn-pausar { background-color: #eab308; color: #0f172a; }
         .btn-limpiar { background-color: #ef4444; }
@@ -30,11 +30,31 @@
 
         /* Panel criptográfico */
         .zona-validacion { background: #334155; padding: 15px; border-radius: 8px; width: 100%; max-width: 450px; margin-top: 10px; display: none; text-align: center; }
-        input { padding: 8px; width: 100px; font-size: 1.1rem; font-weight: bold; text-align: center; border-radius: 4px; border: none; margin-right: 5px; color: #0f172a; }
+        .input-num { padding: 8px; width: 100px; font-size: 1.1rem; font-weight: bold; text-align: center; border-radius: 4px; border: none; margin-right: 5px; color: #0f172a; }
         .resultado-validacion { font-size: 1.3rem; font-weight: bold; color: #4ade80; margin-top: 10px; letter-spacing: 1px; }
+
+        /* --- PANTALLA DE ACCESO (LOGIN MODAL COMPLETO) --- */
+        #pantallaLogin { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .login-box { background: #1e293b; padding: 30px 20px; border-radius: 12px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .login-box h2 { font-size: 1.3rem; color: #f59e0b; margin-bottom: 10px; }
+        .login-box p { font-size: 0.95rem; color: #94a3b8; margin-bottom: 20px; }
+        .login-box input { width: 140px; padding: 12px; font-size: 1.4rem; font-weight: bold; letter-spacing: 4px; text-align: center; border-radius: 6px; border: 2px solid #334155; background: #0f172a; color: white; margin-bottom: 15px; }
+        .login-box input:focus { border-color: #f59e0b; outline: none; }
+        .btn-entrar { background: #22c55e; padding: 12px; width: 100%; font-size: 1.1rem; }
+        .error-login { color: #ef4444; font-size: 0.9rem; font-weight: bold; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
+
+    <div id="pantallaLogin">
+        <div class="login-box">
+            <h2>🔒 Control de Acceso</h2>
+            <p>Introduce el PIN del Monitor para gestionar la partida:</p>
+            <input type="password" id="pinAcceso" placeholder="****" inputmode="numeric" pattern="[0-9]*" maxlength="4" onkeypress="if(event.key === 'Enter') verificarPin();">
+            <button class="btn-entrar" onclick="verificarPin()">Acceder al Panel</button>
+            <div class="error-login" id="msgError">PIN incorrecto. Int&eacute;ntalo de nuevo.</div>
+        </div>
+    </div>
 
     <h1>🎙️ Monitor de Bingo</h1>
 
@@ -49,29 +69,49 @@
 
     <div class="panel-botones">
         <button class="btn-comenzar" id="btnControl" onclick="conmutarJuego()">Comenzar</button>
-        <button class="btn-validar" onclick="alternarZonaValidar()">Validar Cartón</button>
+        <button class="btn-validar" onclick="alternarZonaValidar()">Validar Cart&oacute;n</button>
         <button class="btn-limpiar" onclick="reiniciarTodo()">Limpiar</button>
     </div>
 
     <div class="zona-validacion" id="zonaValidar">
         <p style="margin-bottom: 8px;">Introduce la clave del Jugador:</p>
-        <input type="number" id="claveJugador" placeholder="0000" min="1000" max="9999">
+        <input type="number" id="claveJugador" class="input-num" placeholder="0000" inputmode="numeric" min="1000" max="9999" oninput="if(this.value.length > 4) this.value = this.value.slice(0,4);">
         <button style="width:auto; display:inline-block; padding: 8px 15px;" class="btn-validar" onclick="calcularContraclave()">Calcular</button>
         <div class="resultado-validacion" id="resultadoContraclave"></div>
     </div>
 
     <script>
+        // CONFIGURACIÓN DEL PIN (Puedes cambiar el "1234" por la clave que quieras)
+        const PIN_CORRECTO = "2017";
+
         let numerosDisponibles = Array.from({length: 90}, (_, i) => i + 1);
         let numerosCantados = [];
         let intervalo = null;
         let enMarcha = false;
+
+        // Función para validar el PIN de entrada
+        function verificarPin() {
+            const inputPin = document.getElementById('pinAcceso').value;
+            const msgError = document.getElementById('msgError');
+            
+            if (inputPin === PIN_CORRECTO) {
+                // Si es correcto, desvanecemos la pantalla de bloqueo
+                document.getElementById('pantallaLogin').style.display = 'none';
+                // Inicializamos el panel de juego seguro
+                inicializarPanel();
+            } else {
+                // Si falla, mostramos error y limpiamos el cuadro
+                msgError.style.display = 'block';
+                document.getElementById('pinAcceso').value = '';
+                document.getElementById('pinAcceso').focus();
+            }
+        }
 
         function inicializarPanel() {
             const tabla = document.getElementById('tabla-panel');
             tabla.innerHTML = '';
             let contador = 1;
             
-            // Estructura limpia de 9 filas y 10 columnas para los 90 números
             for (let f = 0; f < 9; f++) {
                 let fila = document.createElement('tr');
                 for (let c = 0; c < 10; c++) {
@@ -92,7 +132,7 @@
                 btn.textContent = "Pausar";
                 btn.className = "btn-pausar";
                 sacarBola(); 
-                intervalo = setInterval(sacarBola, 3000); // Automático cada 3 segundos
+                intervalo = setInterval(sacarBola, 4000); 
             } else {
                 enMarcha = false;
                 btn.textContent = "Reanudar";
@@ -104,7 +144,7 @@
         function sacarBola() {
             if (numerosDisponibles.length === 0) {
                 clearInterval(intervalo);
-                alert("¡Se han cantado los 90 números! Fin de la partida.");
+                alert("Se han cantado los 90 n&uacute;meros. Fin de la partida.");
                 return;
             }
 
@@ -125,7 +165,7 @@
         }
 
         function reiniciarTodo() {
-            if (confirm("Continuar para reiniciar el monitor")) {
+            if (confirm("&iquest;Seguro que quieres reiniciar el monitor? Se borrar&aacute;n todos los n&uacute;meros cantados.")) {
                 clearInterval(intervalo);
                 enMarcha = false;
                 numerosDisponibles = Array.from({length: 90}, (_, i) => i + 1);
@@ -148,17 +188,19 @@
         function calcularContraclave() {
             let clave = parseInt(document.getElementById('claveJugador').value);
             if (isNaN(clave)) {
-                alert("Por favor, introduce los 4 números de la clave.");
+                alert("Por favor, introduce los 4 n&uacute;meros de la clave.");
                 return;
             }
-            // Mismo algoritmo matemático síncrono
             let contraclave = ((clave * 3) + 7) % 10000;
             let contraclaveString = contraclave.toString().padStart(4, '0');
             
             document.getElementById('resultadoContraclave').textContent = "CONTRACLAVE: " + contraclaveString;
         }
 
-        window.onload = inicializarPanel;
+        // Al arrancar, el foco se pone directamente en el cuadro de contraseña
+        window.onload = function() {
+            document.getElementById('pinAcceso').focus();
+        };
     </script>
 </body>
 </html>
