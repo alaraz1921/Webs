@@ -97,9 +97,14 @@
             transition: transform 0.3s ease;
         }
 
-        /* ─────────────── SUBMENÚ DEL MENÚ SUPERIOR (ESCRITORIO) ─────────────── */
+        /* Rotar la flechita cuando el menú esté activo */
+        .nav-item.active .arrow {
+            transform: rotate(180deg);
+        }
+
+        /* ─────────────── SUBMENÚ EN ESCRITORIO (ABRE CON CLIC) ─────────────── */
         .submenu {
-            display: none;
+            display: none; /* Oculto por defecto */
             position: absolute;
             top: 100%;
             left: 50%;
@@ -112,6 +117,7 @@
             margin: 10px 0 0 0;
             min-width: 180px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            z-index: 1100;
         }
 
         .submenu li a {
@@ -120,25 +126,21 @@
             text-transform: none;
             font-weight: 500;
             white-space: nowrap;
+            display: block;
         }
 
-        /*
-        @media (min-width: 769px) {
-            .nav-item:hover .submenu {
-                display: block;
-                animation: fadeIn 0.2s ease-out;
-            }
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translate(-50%, 5px); }
-                to { opacity: 1; transform: translate(-50%, 0); }
-            }
-        }*/ /*comentamos la accion automatica de mostrar el submenu*/
-
+        /* Clase de control que activa JavaScript en escritorio */
         .submenu.desktop-open {
             display: block !important;
+            animation: fadeIn 0.2s ease-out;
         }
 
-        /* BOTÓN HAMBURGUESA */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, 5px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        /* BOTÓN HAMBURGUESA MÓVIL */
         .menu-toggle {
             display: none;
             flex-direction: column;
@@ -158,7 +160,7 @@
             transition: all 0.3s ease;
         }
 
-        /* HERO */
+        /* HERO / PORTADA */
         .hero {
             position: relative;
             width: 100%;
@@ -306,7 +308,7 @@
             color: white;
         }
 
-        /* ─────────────── VENTANA MODAL (SOLO PARA EL BOTÓN DE ABAJO) ─────────────── */
+        /* ─────────────── VENTANA MODAL (SOLO PARA EL BOTÓN INFERIOR) ─────────────── */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -393,10 +395,10 @@
             color: var(--azul-neon);
         }
 
-        /* ─────────────── RESPONSIVE (MÓVILES) ─────────────── */
+        /* ─────────────── RESPONSIVE (PANTALLAS MÓVILES) ─────────────── */
         @media (max-width: 768px) {
             .navbar {
-                background-color: rgba(28, 37, 65, 0.95);
+                background-color: var(--azul-medio);
                 border-bottom: 2px solid var(--azul-borde);
             }
             
@@ -431,7 +433,7 @@
                 border-bottom: 1px solid rgba(58, 80, 107, 0.2);
             }
 
-            /* Submenú en móvil (Formato colapsable bajo "Otros") */
+            /* Submenú adaptado a móviles (bajo el botón "Otros") */
             .submenu {
                 position: static;
                 transform: none;
@@ -445,17 +447,13 @@
             }
 
             .submenu.open {
-                display: block;
+                display: block !important;
             }
 
             .submenu li a {
                 padding: 12px 0;
                 background-color: rgba(11, 19, 43, 0.5);
                 border-bottom: 1px solid rgba(58, 80, 107, 0.1);
-            }
-
-            .nav-item.active .arrow {
-                transform: rotate(180deg);
             }
 
             .hero-text {
@@ -475,13 +473,14 @@
 </head>
 <body>
 
-    <!-- VENTANA MODAL (SOLO SE ABRE CON EL BOTÓN DE ABAJO) -->
+    <!-- VENTANA MODAL (ABIERTA ÚNICAMENTE POR EL BOTÓN "OTROS" DE ABAJO) -->
     <div class="modal-overlay" id="otros-modal">
         <div class="modal-box">
             <button class="close-modal-btn" onclick="cerrarModal()">&times;</button>
             <h3>Otros Proyectos</h3>
             
             <div class="modal-buttons-container">
+                <!-- Puedes cambiar estos enlaces de ejemplo por los tuyos propios -->
                 <a href="impostor/indeximpostor.html" class="btn-modal-link">El Impostor</a>
                 <a href="Bingo/carton.html" class="btn-modal-link">Bingo</a>
                 <a href="Bingo/monitor.html" class="btn-modal-link">Monitor</a>
@@ -489,7 +488,7 @@
         </div>
     </div>
 
-    <!-- MENÚ DE NAVEGACIÓN -->
+    <!-- MENÚ DE NAVEGACIÓN SUPERIOR -->
     <nav class="navbar" id="main-navbar">
         <div class="nav-container">
             <a href="#" class="nav-logo">alaraz1921</a>
@@ -504,9 +503,9 @@
                 <li class="nav-item"><a href="https://alaraz1921.github.io/Webs/Privado">Privado</a></li>
                 <li class="nav-item"><a href="ValentinaPlay">Valentina's Play Time</a></li>
                 
-                <!-- EL MENU SUPERIOR SIGUE SIENDO DESPLEGABLE -->
+                <!-- MENÚ DESPLEGABLE TRADICIONAL (ABRE CON UN CLIC) -->
                 <li class="nav-item has-submenu">
-                    <a href="#otros" id="dropdown-trigger">Otros <span class="arrow">▼</span></a>
+                    <a href="#" id="dropdown-trigger">Otros <span class="arrow">▼</span></a>
                     <ul class="submenu" id="custom-submenu">
                         <li><a href="Bingo/carton.html">Bingo</a></li>
                         <li><a href="Bingo/monitor.html">Monitor</a></li>
@@ -517,24 +516,24 @@
         </div>
     </nav>
 
-    <!-- HERO -->
+    <!-- HERO / PORTADA -->
     <header class="hero">
         <div class="hero-overlay"></div>
         <h1 class="hero-text">Nothing Gonna Change My World</h1>
     </header>
 
-    <!-- SECCIÓN INFERIOR -->
+    <!-- CUERPO DE LA PÁGINA -->
     <main class="content-section">
         
-        <!-- BOTONES ADAPTATIVOS -->
+        <!-- GRID DE BOTONES ADAPTATIVOS -->
         <div class="buttons-grid">
             <button class="btn-section" onclick="location.href='https://alaraz1921.github.io/Webs/Privado'">Privado</button>
             <button class="btn-section" onclick="location.href='ValentinaPlay'">Valentina's Play Time</button>
-            <!-- ESTE BOTÓN DE ABAJO ES EL ÚNICO QUE ABRE LA VENTANA MODAL -->
+            <!-- Este botón abre el Modal Emergente -->
             <button class="btn-section" onclick="abrirModal()">Otros</button>
         </div>
 
-        <!-- FORMULARIO COMPACTO -->
+        <!-- FORMULARIO DE CONTACTO -->
         <section class="contact-form">
             <h2>Contacto</h2>
             <form action="#" method="POST" onsubmit="event.preventDefault(); alert('Mensaje enviado con éxito');">
@@ -560,8 +559,9 @@
 
     </main>
 
+    <!-- ─────────────── SCRIPTS DE CONTROL (JAVASCRIPT) ─────────────── */ -->
     <script>
-        // LÓGICA DEL MENÚ HAMBURGUESA MÓVIL
+        // LÓGICA DEL MENÚ HAMBURGUESA EN MÓVILES
         const menuBtn = document.getElementById('mobile-menu-btn');
         const menuList = document.getElementById('nav-menu-list');
 
@@ -570,25 +570,28 @@
             menuList.classList.toggle('mobile-open');
         });
 
-        // CONTROL DEL DESPLEGABLE CON CLIC (UNIVERSAL para Escritorio y Móvil)
+        // CONTROL DEL DESPLEGABLE "OTROS" (FUNCIONA CON CLIC EN ESCRITORIO Y MÓVIL)
         const dropdownTrigger = document.getElementById('dropdown-trigger');
         const customSubmenu = document.getElementById('custom-submenu');
         const parentItem = dropdownTrigger.parentElement;
-        
+
         dropdownTrigger.addEventListener('click', (e) => {
-            e.preventDefault(); // Evita que navegue al '#'
+            e.preventDefault(); // Evita que la página salte al inicio al pulsar '#'
+            e.stopPropagation(); // Evita que el evento 'click' se propague al documento
             
-            // Intercambia la clase para abrir o cerrar
             if (window.innerWidth > 768) {
+                // Modo Escritorio: Activa/Desactiva el desplegable flotante
                 customSubmenu.classList.toggle('desktop-open');
             } else {
+                // Modo Móvil: Activa/Desactiva el menú colapsable vertical
                 customSubmenu.classList.toggle('open');
             }
             parentItem.classList.toggle('active');
         });
-        
-        // Cierra el menú de escritorio si el usuario hace clic en cualquier otro lado de la pantalla
-        window.addEventListener('click', (e) => {
+
+        // DETECTAR CLICS FUERA DEL MENÚ PARA CERRARLO AUTOMÁTICAMENTE
+        document.addEventListener('click', (e) => {
+            // Si hacemos clic fuera del botón "Otros" y de su menú desplegable, lo cerramos
             if (!parentItem.contains(e.target)) {
                 customSubmenu.classList.remove('desktop-open');
                 customSubmenu.classList.remove('open');
@@ -596,7 +599,7 @@
             }
         });
 
-        // LÓGICA DE LA VENTANA MODAL (SÓLO EL BOTÓN DE ABAJO)
+        // LÓGICA PARA CONTROLAR EL MODAL EMERGENTE (BOTÓN DE ABAJO)
         const modal = document.getElementById('otros-modal');
 
         function abrirModal() {
@@ -607,13 +610,14 @@
             modal.style.display = 'none';
         }
 
-        window.addEventListener('click', (e) => {
+        // Cerrar el modal si se pulsa sobre la capa oscura del fondo
+        modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 cerrarModal();
             }
         });
 
-        // CAMBIO DE COLOR DEL NAVBAR CON EL SCROLL (ESCRITORIO)
+        // CAMBIAR COLOR DEL NAVBAR AL HACER SCROLL (SÓLO ESCRITORIO)
         const navbar = document.getElementById('main-navbar');
         
         window.addEventListener('scroll', () => {
