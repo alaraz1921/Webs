@@ -3,32 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Impostor - Pass & Play</title>
+    <title>El Impostor - Sala de Juego</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; background-color: #f0f2f5; color: #333; }
-        .screen { display: none; max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        /* ESTILO GENERAL VARIACIÓN MONITOR DE BINGO */
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            text-align: center; 
+            padding: 20px; 
+            background-color: #0b132b; /* Azul ultra oscuro */
+            color: #ffffff; 
+            margin: 0;
+        }
+        
+        .screen { 
+            display: none; 
+            max-width: 450px; 
+            margin: 40px auto; 
+            background: #1c2541; /* Azul noche del contenedor */
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
+            border: 2px solid #3a506b;
+        }
+        
         .active { display: block; }
-        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        .reveal-box { background: #343a40; color: white; padding: 40px; border-radius: 10px; margin: 20px 0; font-size: 20px; user-select: none; -webkit-user-select: none; }
+        
+        h2 { color: #4cc9f0; margin-top: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
+        p { color: #cbd5e1; font-size: 15px; line-height: 1.5; }
+
+        /* FORMULARIOS Y BOTONES */
+        input, select, button { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 12px 0; 
+            border-radius: 10px; 
+            border: 2px solid #3a506b; 
+            font-size: 16px; 
+            box-sizing: border-box; 
+            background-color: #0b132b;
+            color: white;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4cc9f0;
+        }
+
+        button { 
+            background-color: #4cc9f0; 
+            color: #0b132b; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+        
+        button:hover { 
+            background-color: #4361ee; 
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .btn-danger { background-color: #f72585; color: white; }
+        .btn-danger:hover { background-color: #b5179e; }
+
+        /* ÁREA DE REVELAR ROL */
+        .reveal-box { 
+            background: #0b132b; 
+            color: #ffb703; 
+            padding: 50px 20px; 
+            border-radius: 15px; 
+            margin: 25px 0; 
+            font-size: 22px; 
+            font-weight: bold;
+            border: 2px dashed #4cc9f0;
+            user-select: none; 
+            -webkit-user-select: none; 
+            cursor: pointer;
+        }
+
+        /* SISTEMA DE VENTANAS EMERGENTES (MODALES) */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 19, 43, 0.85); /* Fondo oscurecido */
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-box {
+            background: #1c2541;
+            border: 3px solid #ffb703; /* Borde dorado/amarillo estilo cartel luminoso */
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 85%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+            animation: popUp 0.3s ease-out;
+        }
+        
+        @keyframes popUp {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .modal-box h3 { color: #ffb703; margin-top: 0; font-size: 22px; text-transform: uppercase; }
+        .modal-box p { color: #ffffff; font-size: 16px; margin: 20px 0; }
+        .modal-box button { background-color: #ffb703; color: #0b132b; }
+        .modal-box button:hover { background-color: #fb8500; color: white; }
     </style>
 </head>
 <body>
 
-    <!-- PANTALLA 1: BLOQUEO -->
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modal-title">Aviso</h3>
+            <p id="modal-message">Mensaje del sistema.</p>
+            <button id="modal-btn-close" onclick="cerrarModal()">Entendido</button>
+        </div>
+    </div>
+
     <div id="screen-lock" class="screen active">
         <h2>Acceso Restringido</h2>
         <p>Introduce la clave del día para entrar:</p>
-        <input type="text" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Ej: 1021">
+        <input type="text" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0000">
         <button onclick="verificarClave()">Acceder</button>
     </div>
 
-    <!-- PANTALLA 2: CONFIGURACIÓN -->
     <div id="screen-config" class="screen">
         <h2>Configuración</h2>
         <label>¿Cuántos juegan?</label>
         <select id="totalPlayers"></select>
+        
         <label>¿Cuántos impostores?</label>
         <select id="totalImpostors">
             <option value="1">1 Impostor</option>
@@ -40,36 +150,32 @@
         <button id="btn-start" style="display:none;" onclick="iniciarSorteo()">Comenzar Sorteo</button>
     </div>
 
-    <!-- PANTALLA 3: REPARTO DE ROLES -->
     <div id="screen-draw" class="screen">
         <h2 id="player-turn-name">Turno de: </h2>
-        <p>Pasa el móvil a este jugador. Mantén pulsado el botón negro para ver tu rol oculto:</p>
+        <p>Pasa el móvil a este jugador. Mantén pulsado el recuadro para ver tu rol:</p>
         <div id="reveal-area" class="reveal-box" onmousedown="mostrarRol()" onmouseup="ocultarRol()" ontouchstart="mostrarRol()" ontouchend="ocultarRol()">
             MANTÉN PULSADO
         </div>
         <button id="btn-next-player" onclick="siguienteJugador()">Siguiente Jugador</button>
     </div>
 
-    <!-- PANTALLA 4: RESOLUCIÓN -->
     <div id="screen-game" class="screen">
         <h2>Partida en Curso</h2>
-        <p>¡Debatid! Cuando creáis saber quiénes son los impostores, escribid sus nombres aquí:</p>
+        <p>¡Debatid! Cuando creáis saber quiénes son los impostores, escribid sus nombres:</p>
         <div id="impostor-inputs-evaluation"></div>
         <button onclick="evaluarImpostores()">Resolver</button>
-        <button style="background-color: #dc3545;" onclick="rendirse()">Rendirse / Mostrar Impostores</button>
+        <button class="btn-danger" onclick="rendirse()">Rendirse / Revelar</button>
     </div>
 
     <script>
-        // Lista de lugares para los aldeanos
-        const LUGARES = ["Hospital", "Estación Espacial", "Playa Tropical", "Hollywood", "Submarino", "Restaurante", "Escuela"];
-        
+        const LUGARES = ["Hospital", "Estación Espacial", "Playa Tropical", "Hollywood", "Submarino", "Casino Bingo", "Restaurante", "Escuela"];
         let jugadores = [];
         let roles = {}; 
         let impostoresAsignados = [];
         let jugadorActualIndex = 0;
         let lugarSecreto = "";
 
-        // Inicializar desplegable de 3 a 20
+        // Inicializar desplegable (3 a 20)
         const selectP = document.getElementById('totalPlayers');
         for(let i=3; i<=20; i++) {
             let opt = document.createElement('option');
@@ -77,6 +183,26 @@
             selectP.appendChild(opt);
         }
 
+        // CONTROL DEL MODAL PERSONALIZADO
+        function abrirModal(titulo, mensaje, recargarAlCerrar = false) {
+            document.getElementById('modal-title').textContent = titulo;
+            document.getElementById('modal-message').textContent = mensaje;
+            const modal = document.getElementById('custom-modal');
+            modal.style.display = 'flex';
+            
+            // Si el juego debe reiniciarse al cerrar el modal (Fin de partida)
+            if(recargarAlCerrar) {
+                document.getElementById('modal-btn-close').setAttribute('onclick', 'location.reload()');
+            } else {
+                document.getElementById('modal-btn-close').setAttribute('onclick', 'cerrarModal()');
+            }
+        }
+
+        function cerrarModal() {
+            document.getElementById('custom-modal').style.display = 'none';
+        }
+
+        // LÓGICA DEL JUEGO
         function verificarClave() {
             const input = document.getElementById('pinInput').value;
             const hoy = new Date().getDate();
@@ -85,7 +211,7 @@
             if (parseInt(input) === claveCorrecta) {
                 cambiarPantalla('screen-lock', 'screen-config');
             } else {
-                alert("Clave incorrecta. Pista: Día del mes + 1021");
+                abrirModal("⚠️ Acceso Denegado", "La clave introducida es incorrecta. Pista: Día del mes + 1021.");
             }
         }
 
@@ -111,9 +237,15 @@
             jugadores = Array.from(inputs).map(inp => inp.value.trim() || inp.placeholder);
             
             const numImpostores = parseInt(document.getElementById('totalImpostors').value);
+            
+            // Control de seguridad: No se pueden pedir más impostores que jugadores
+            if (numImpostores >= jugadores.length) {
+                abrirModal("Configuración Errónea", "No puede haber igual o más impostores que el total de jugadores.");
+                return;
+            }
+
             lugarSecreto = LUGARES[Math.floor(Math.random() * LUGARES.length)];
             
-            // Mezclar jugadores para asignar impostores
             let copiaJugadores = [...jugadores];
             impostoresAsignados = [];
             for(let i=0; i<numImpostores; i++) {
@@ -121,7 +253,6 @@
                 impostoresAsignados.push(copiaJugadores.splice(index, 1)[0]);
             }
 
-            // Asignar roles
             jugadores.forEach(j => {
                 roles[j] = impostoresAsignados.includes(j) ? "Eres el IMPOSTOR 🏴‍☠️" : `Lugar: ${lugarSecreto} 🏙️`;
             });
@@ -157,7 +288,6 @@
                 jugadorActualIndex++;
                 prepararTurnoJugador();
             } else {
-                // Ir a la pantalla de resolución
                 const contenedorEval = document.getElementById('impostor-inputs-evaluation');
                 contenedorEval.innerHTML = "";
                 const numImpostores = impostoresAsignados.length;
@@ -173,20 +303,17 @@
             const respuestas = Array.from(inputs).map(inp => inp.value.trim().toLowerCase());
             const correctos = impostoresAsignados.map(imp => imp.toLowerCase());
 
-            // Comprobar si todos los ingresados están en la lista de impostores reales
             const aciertoTotal = correctos.every(imp => respuestas.includes(imp)) && respuestas.length === correctos.length;
 
             if (aciertoTotal) {
-                alert("¡VICTORIA! Habéis descubierto a los impostores: " + impostoresAsignados.join(', '));
-                location.reload(); // Reinicia el juego
+                abrirModal("🎉 ¡VICTORIA TOTAL!", "¡Felicidades! Habéis descubierto a todos los impostores: " + impostoresAsignados.join(' y ') + ".", true);
             } else {
-                alert("❌ ¡Incorrecto! Esos no son los impostores o falta alguno. ¡Seguid debatiendo!");
+                abrirModal("❌ Fallo", "Esos no son los impostores (o falta alguno por escribir). ¡Seguid debatiendo en el grupo!");
             }
         }
 
         function rendirse() {
-            alert("Partida terminada. Los impostores eran: " + impostoresAsignados.join(' y ') + `.\nEl lugar secreto era: ${lugarSecreto}.`);
-            location.reload();
+            abrirModal("🏳️ Partida Terminada", "Os habéis rendido. Los impostores eran: " + impostoresAsignados.join(' y ') + `. El lugar secreto era: ${lugarSecreto}.`, true);
         }
     </script>
 </body>
