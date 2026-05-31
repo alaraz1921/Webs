@@ -386,18 +386,18 @@
             color: var(--azul-neon);
         }
 
-        body.home-page /* ─────────────── RESPONSIVE (PANTALLAS MÓVILES) ─────────────── */
+                /* RESPONSIVE (PANTALLAS MOVILES) */
         @media (max-width: 768px) {
-            .navbar {
+            body.home-page .navbar {
                 background-color: var(--azul-medio);
                 border-bottom: 2px solid var(--azul-borde);
             }
             
-            .menu-toggle {
+            body.home-page .menu-toggle {
                 display: flex;
             }
 
-            .nav-menu {
+            body.home-page .nav-menu {
                 display: none;
                 flex-direction: column;
                 position: absolute;
@@ -410,13 +410,13 @@
                 gap: 0;
             }
 
-            .nav-menu.mobile-open {
+            body.home-page .nav-menu.mobile-open {
                 display: flex;
             }
 
-            .nav-menu li { width: 100%; text-align: center; }
+            body.home-page .nav-menu li { width: 100%; text-align: center; }
             
-            .nav-menu a { 
+            body.home-page .nav-menu a { 
                 display: flex;
                 justify-content: center;
                 padding: 15px 0; 
@@ -424,8 +424,7 @@
                 border-bottom: 1px solid rgba(58, 80, 107, 0.2);
             }
 
-            /* Submenú adaptado a móviles (bajo el botón "Otros") */
-            .submenu {
+            body.home-page .submenu {
                 position: static;
                 transform: none;
                 background-color: var(--azul-oscuro);
@@ -437,26 +436,26 @@
                 width: 100%;
             }
 
-            .submenu.open {
+            body.home-page .submenu.open {
                 display: block !important;
             }
 
-            .submenu li a {
+            body.home-page .submenu li a {
                 padding: 12px 0;
                 background-color: rgba(11, 19, 43, 0.5);
                 border-bottom: 1px solid rgba(58, 80, 107, 0.1);
             }
 
-            .hero-text {
+            body.home-page .hero-text {
                 font-size: 28px;
             }
 
-            .buttons-grid {
+            body.home-page .buttons-grid {
                 flex-direction: column;
                 gap: 12px;
             }
             
-            .btn-section {
+            body.home-page .btn-section {
                 width: 100%;
             }
         }
