@@ -4,46 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cart&oacute;n de Bingo Tradicional</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body { background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 10px; min-height: 100vh; }
-        h1 { margin: 10px 0; color: #333; font-size: 1.4rem; text-align: center; }
-        
-        /* Tabla optimizada para m&oacute;viles */
-        .contenedor-tabla { width: 100%; max-width: 550px; background: white; padding: 5px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        td { border: 2px solid #b91c1c; text-align: center; height: 42px; font-size: 1.1rem; font-weight: bold; user-select: none; transition: background 0.2s; color: #1e293b; }
-        .sombreada { background-color: #cbd5e1; }
-        .marcado { background-color: #22c55e !important; color: white !important; }
-        
-        /* Panel de Botones */
-        .panel-botones { display: flex; flex-direction: column; width: 100%; max-width: 550px; gap: 8px; margin-top: 12px; }
-        button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; transition: opacity 0.2s; text-align: center; }
-        button:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-empezar { background-color: #2563eb; }
-        .btn-terminar { background-color: #1e293b; }
-        .btn-limpiar { background-color: #dc2626; }
-        .btn-cambiar { background-color: #d97706; }
-        
-        /* Zona de Validaci&oacute;n */
-        .zona-validacion { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; width: 100%; max-width: 550px; margin-top: 12px; display: none; text-align: center; }
-        .clave-box { font-size: 1.3rem; font-weight: bold; color: #2563eb; letter-spacing: 2px; margin: 5px 0; }
-        input { width: 90px; padding: 8px; text-align: center; font-size: 1.1rem; font-weight: bold; border: 2px solid #ccc; border-radius: 4px; margin-top: 5px; color: #1e293b; }
-        .btn-confirmar-cambio { background-color: #10b981; margin-top: 10px; padding: 8px; width: 100%; }
-
-        /* MODALES PERSONALIZADOS ANTI-BLOQUEO */
-        .modal-background { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
-        .modal-box { background: white; padding: 20px; border-radius: 10px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); animation: fadein 0.2s ease-out; }
-        .modal-box p { font-size: 1.1rem; color: #333; margin-bottom: 20px; line-height: 1.4; }
-        .modal-flex-botones { display: table; width: 100%; border-spacing: 10px 0; }
-        .modal-cell { display: table-cell; width: 50%; }
-        .btn-modal-ok { background: #2563eb; width: 100%; padding: 10px; }
-        .btn-modal-cancel { background: #64748b; width: 100%; padding: 10px; }
-        .btn-modal-alert { background: #dc2626; width: 100%; padding: 10px; }
-        @keyframes fadein { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-    </style>
+    <link rel="stylesheet" href="../assets/styles.css">
 </head>
-<body>
+<body class="bingo-carton-page">
 
     <h1>🎰 Mi Cart&oacute;n de Bingo (3x9)</h1>
 
