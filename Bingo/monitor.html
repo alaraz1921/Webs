@@ -44,6 +44,16 @@
         <div class="resultado-validacion" id="resultadoContraclave"></div>
     </div>
 
+
+    <div id="monitorModalConfirm" class="modal-background">
+        <div class="modal-box">
+            <p id="textoMonitorModalConfirm">&iquest;Est&aacute;s seguro?</p>
+            <div class="modal-flex-botones">
+                <div class="modal-cell"><button class="btn-modal-ok" id="btnMonitorConfirmSi">S&iacute;</button></div>
+                <div class="modal-cell"><button class="btn-modal-cancel" id="btnMonitorConfirmNo">No</button></div>
+            </div>
+        </div>
+    </div>
     <script>
         // CONFIGURACIÓN DEL PIN (Puedes cambiar el "1234" por la clave que quieras)
         const PIN_CORRECTO = "2017";
@@ -128,8 +138,22 @@
             if (celdaPanel) celdaPanel.classList.add('cantado');
         }
 
+
+        function mostrarConfirmacionMonitor(texto, callback) {
+            document.getElementById('textoMonitorModalConfirm').innerHTML = texto;
+            const modal = document.getElementById('monitorModalConfirm');
+            modal.style.display = 'flex';
+
+            document.getElementById('btnMonitorConfirmSi').onclick = function() {
+                modal.style.display = 'none';
+                callback();
+            };
+            document.getElementById('btnMonitorConfirmNo').onclick = function() {
+                modal.style.display = 'none';
+            };
+        }
         function reiniciarTodo() {
-            if (confirm("&iquest;Seguro que quieres reiniciar el monitor? Se borrar&aacute;n todos los n&uacute;meros cantados.")) {
+            mostrarConfirmacionMonitor("&iquest;Seguro que quieres reiniciar el monitor? Se borrar&aacute;n todos los n&uacute;meros cantados.", function() {
                 clearInterval(intervalo);
                 enMarcha = false;
                 numerosDisponibles = Array.from({length: 90}, (_, i) => i + 1);
@@ -141,7 +165,7 @@
                 document.getElementById('resultadoContraclave').textContent = '';
                 document.getElementById('claveJugador').value = '';
                 inicializarPanel();
-            }
+            });
         }
 
         function alternarZonaValidar() {
