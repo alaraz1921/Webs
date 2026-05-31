@@ -156,7 +156,7 @@
             position: relative;
             width: 100%;
             height: 100vh;
-            background-image: url('https://lh3.googleusercontent.com/sitesv/AA5AbUCENunL7rRt5ZN0afyhPt0kAgepXN8lnWQitn5EqqnXFAhzsdp_w0ZZHXj-mtuLXTaChaGuBeX4_2Scp6bt37aKMAPr6J3tOUbTRmN5wwW1mKRNEPSlrqoEjZbGNmii3nrzGBUUxHbjqFqyS2gvXEEfk7Bj_TJXOW06_3rIk0Gn1eN85N5ecEy5=w16383');
+            background-image: url('../images/IMG_1914.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -171,7 +171,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(11, 19, 43, 0.75);
+            background: rgba(0, 0, 0, 0.62);
             z-index: 1;
         }
 
@@ -492,8 +492,7 @@ body.impostor-page {
             margin: 0;
         }
 
-        body.impostor-page /* TÍTULO PRINCIPAL COMPACTO PARA MÓVILES */
-        .main-app-title {
+        body.impostor-page .main-app-title {
             font-size: 26px;
             color: #ffb703;
             text-transform: uppercase;
@@ -503,6 +502,23 @@ body.impostor-page {
             text-shadow: 0 0 10px rgba(255, 183, 3, 0.4);
         }
         
+
+        body.impostor-page .btn-principal {
+            display: block;
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto 12px;
+            padding: 12px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            color: white;
+            background: #475569;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        body.impostor-page .btn-principal:hover { background: #64748b; }
         body.impostor-page .screen { 
             display: none; 
             max-width: 450px; 
@@ -520,7 +536,6 @@ body.impostor-page {
         body.impostor-page h2 { color: #4cc9f0; margin-top: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
         body.impostor-page p { color: #cbd5e1; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
 
-        body.impostor-page /* INPUTS Y BOTONES */
         body.impostor-page input, body.impostor-page select, body.impostor-page button { 
             width: 100%; 
             padding: 14px; 
@@ -556,8 +571,7 @@ body.impostor-page {
         body.impostor-page .btn-danger { background-color: #f72585; color: white; }
         body.impostor-page .btn-danger:hover { background-color: #b5179e; }
 
-        body.impostor-page /* ZONA DE PULSAR TOTALMENTE OPTIMIZADA PARA MÓVIL */
-        .reveal-box { 
+        body.impostor-page .reveal-box { 
             background: #2a3a5c; /* Fondo más claro que el fondo general para que destaque */
             color: #ffb703; 
             padding: 75px 20px; /* Área vertical muy amplia para que quepa el dedo holgadamente */
@@ -580,8 +594,7 @@ body.impostor-page {
             background: #344872; /* Efecto visual al mantener pulsado */
         }
 
-        body.impostor-page /* MODALES */
-        .modal-overlay {
+        body.impostor-page .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -616,7 +629,7 @@ body.impostor-page {
 /* Bingo/carton.html */
 body.bingo-carton-page * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
         body.bingo-carton-page { font-family: Arial, sans-serif; background-color: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; padding: 10px; min-height: 100vh; }
-        body.bingo-carton-page h1 { font-size: 1.4rem; margin: 5px 0; color: #cbd5e1; text-align: center; }
+        body.bingo-carton-page h1 { font-size: 1.8rem; margin: 8px 0 12px; color: #f59e0b; text-align: center; font-weight: 900; letter-spacing: 2px; }
         
         body.bingo-carton-page .contenedor-tabla { width: 100%; max-width: 550px; background: #0f172a; padding: 6px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         body.bingo-carton-page table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -870,10 +883,22 @@ body.private-page .private-login {
 }
 
 body.private-page .private-back-link {
-    color: #4cc9f0;
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    padding: 12px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    color: white;
+    background: #475569;
+    text-align: center;
+    text-decoration: none;
     font-weight: 700;
     margin-bottom: 16px;
-    text-decoration: none;
+}
+
+body.private-page .private-back-link:hover {
+    background: #64748b;
 }
 
 body.private-page .private-card {
@@ -890,6 +915,7 @@ body.private-page .private-card {
 body.private-page h1 {
     margin: 0 0 10px;
     color: #ffb703;
+    text-align: center;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -897,6 +923,7 @@ body.private-page h1 {
 body.private-page p {
     color: #cbd5e1;
     line-height: 1.5;
+    text-align: center;
 }
 
 body.private-page label {
