@@ -634,6 +634,8 @@ body.bingo-carton-page * { box-sizing: border-box; margin: 0; padding: 0; font-f
         body.bingo-carton-page .btn-terminar { background-color: #1e293b; }
         body.bingo-carton-page .btn-limpiar { background-color: #dc2626; }
         body.bingo-carton-page .btn-cambiar { background-color: #d97706; }
+        body.bingo-carton-page .btn-principal { display: block; width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 6px; color: white; background: #334155; text-align: center; text-decoration: none; }
+        body.bingo-carton-page .btn-principal:hover { background: #1e293b; }
         
         body.bingo-carton-page /* Zona de Validaci&oacute;n */
         .zona-validacion { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; width: 100%; max-width: 550px; margin-top: 12px; display: none; text-align: center; }
@@ -675,6 +677,9 @@ body.bingo-monitor-page * { box-sizing: border-box; margin: 0; padding: 0; font-
         body.bingo-monitor-page .btn-pausar { background-color: #eab308; color: #0f172a; }
         body.bingo-monitor-page .btn-limpiar { background-color: #ef4444; }
         body.bingo-monitor-page .btn-validar { background-color: #3b82f6; }
+        body.bingo-monitor-page .btn-principal { display: block; width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 6px; color: white; background: #475569; text-align: center; text-decoration: none; }
+        body.bingo-monitor-page .btn-principal:hover { background: #64748b; }
+        body.bingo-monitor-page .btn-login-principal { margin-top: 10px; }
 
         body.bingo-monitor-page /* Panel criptográfico */
         .zona-validacion { background: #334155; padding: 15px; border-radius: 8px; width: 100%; max-width: 450px; margin-top: 10px; display: none; text-align: center; }

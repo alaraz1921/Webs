@@ -30,15 +30,6 @@
             <a href="magic_clock.html" class="game-button bg-indigo-400 text-white text-xl font-bold py-4 px-6 rounded-2xl shadow-lg text-center">
                 Reloj Mágico
             </a>
-			<a href="https://alaraz1921.github.io/Webs/Bingo/carton.html" target="_blank" class="game-button bg-yellow-400 text-white text-xl font-bold py-4 px-6 rounded-2xl shadow-lg text-center">
-                Cartón de Bingo
-            </a>
-			<!--<button onclick="showPasswordModal()" class="game-button bg-blue-400 text-white text-xl font-bold py-4 px-6 rounded-2xl shadow-lg text-center">
-                Monitor de Bingo
-            </button>-->
-			<a href="https://alaraz1921.github.io/Webs/Bingo/monitor.html" target="_blank" class="game-button bg-yellow-400 text-white text-xl font-bold py-4 px-6 rounded-2xl shadow-lg text-center">
-                Monitor de Bingo
-            </a>
             
         </div>
     </div>
@@ -54,41 +45,5 @@
         </div>
     </div>
 
-    <!-- Modal para la clave -->
-    <div id="passwordModal" class="modal">
-        <div class="modal-content bg-blue-100">
-            <h2 class="text-2xl font-bold text-purple-600 mb-4">Introduce la clave</h2>
-            <input id="passwordInput" type="password" class="w-full p-2 mb-4 border-2 border-gray-800 rounded-lg text-center" placeholder="Clave para el Monitor de Bingo">
-            <p id="errorMessage" class="text-red-600 mb-4 hidden">Clave incorrecta. Inténtalo de nuevo.</p>
-            <div class="flex justify-center gap-4">
-                <button onclick="checkPassword()" class="modal-button bg-green-400 text-white font-bold py-2 px-4 rounded-lg">Aceptar</button>
-                <button onclick="closePasswordModal()" class="modal-button bg-red-400 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function showPasswordModal() {
-            document.getElementById('passwordModal').style.display = 'flex';
-            document.getElementById('passwordInput').focus();
-            document.getElementById('errorMessage').classList.add('hidden');
-        }
-
-        function closePasswordModal() {
-            document.getElementById('passwordModal').style.display = 'none';
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('errorMessage').classList.add('hidden');
-        }
-
-        function checkPassword() {
-            const password = document.getElementById('passwordInput').value;
-            if (password === 'bingo123') {
-                window.location.href = 'https://alaraz1921.github.io/Webs/Bingo/monitor.html';
-            } else {
-                document.getElementById('errorMessage').classList.remove('hidden');
-                document.getElementById('passwordInput').value = '';
-            }
-        }
-    </script>
-</body>
+    </body>
 </html>
