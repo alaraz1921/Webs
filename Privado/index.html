@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso privado - alaraz1921</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="private-page">
+    <main class="private-login">
+        <a class="private-back-link" href="../index.html">Volver a la pagina principal</a>
+        <section class="private-card">
+            <h1>Zona privada</h1>
+            <p>Acceso reservado. El formulario ya esta preparado, aunque el login todavia no valida contra ningun sistema.</p>
+            <form onsubmit="event.preventDefault(); document.getElementById('private-message').hidden = false;">
+                <label for="private-user">Usuario</label>
+                <input id="private-user" name="user" type="text" autocomplete="username" required>
+
+                <label for="private-password">Clave</label>
+                <input id="private-password" name="password" type="password" autocomplete="current-password" required>
+
+                <button type="submit">Entrar</button>
+                <p id="private-message" class="private-message" hidden>Acceso pendiente de configurar.</p>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

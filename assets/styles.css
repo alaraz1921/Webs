@@ -521,7 +521,7 @@ body.impostor-page {
         body.impostor-page p { color: #cbd5e1; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
 
         body.impostor-page /* INPUTS Y BOTONES */
-        input, body.impostor-page select, body.impostor-page button { 
+        body.impostor-page input, body.impostor-page select, body.impostor-page button { 
             width: 100%; 
             padding: 14px; 
             margin: 10px 0; 
@@ -615,37 +615,33 @@ body.impostor-page {
 
 /* Bingo/carton.html */
 body.bingo-carton-page * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body.bingo-carton-page { font-family: Arial, sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 10px; min-height: 100vh; }
-        body.bingo-carton-page h1 { margin: 10px 0; color: #333; font-size: 1.4rem; text-align: center; }
+        body.bingo-carton-page { font-family: Arial, sans-serif; background-color: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; padding: 10px; min-height: 100vh; }
+        body.bingo-carton-page h1 { font-size: 1.4rem; margin: 5px 0; color: #cbd5e1; text-align: center; }
         
-        body.bingo-carton-page /* Tabla optimizada para m&oacute;viles */
-        .contenedor-tabla { width: 100%; max-width: 550px; background: white; padding: 5px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        body.bingo-carton-page .contenedor-tabla { width: 100%; max-width: 550px; background: #0f172a; padding: 6px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         body.bingo-carton-page table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        body.bingo-carton-page td { border: 2px solid #b91c1c; text-align: center; height: 42px; font-size: 1.1rem; font-weight: bold; user-select: none; transition: background 0.2s; color: #1e293b; }
-        body.bingo-carton-page .sombreada { background-color: #cbd5e1; }
-        body.bingo-carton-page .marcado { background-color: #22c55e !important; color: white !important; }
+        body.bingo-carton-page td { border: 1px solid #334155; text-align: center; height: 42px; font-size: 1.1rem; font-weight: bold; user-select: none; transition: background 0.2s; color: #cbd5e1; }
+        body.bingo-carton-page .sombreada { background-color: #334155; }
+        body.bingo-carton-page .marcado { background-color: #f59e0b !important; color: #0f172a !important; }
         
-        body.bingo-carton-page /* Panel de Botones */
-        .panel-botones { display: flex; flex-direction: column; width: 100%; max-width: 550px; gap: 8px; margin-top: 12px; }
+        body.bingo-carton-page .panel-botones { display: flex; flex-direction: column; width: 100%; max-width: 550px; gap: 8px; margin-top: 12px; }
         body.bingo-carton-page button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; transition: opacity 0.2s; text-align: center; }
         body.bingo-carton-page button:disabled { opacity: 0.4; cursor: not-allowed; }
         body.bingo-carton-page .btn-empezar { background-color: #2563eb; }
         body.bingo-carton-page .btn-terminar { background-color: #1e293b; }
         body.bingo-carton-page .btn-limpiar { background-color: #dc2626; }
         body.bingo-carton-page .btn-cambiar { background-color: #d97706; }
-        body.bingo-carton-page .btn-principal { display: block; width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 6px; color: white; background: #334155; text-align: center; text-decoration: none; }
-        body.bingo-carton-page .btn-principal:hover { background: #1e293b; }
+        body.bingo-carton-page .btn-principal { display: block; width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 6px; color: white; background: #475569; text-align: center; text-decoration: none; }
+        body.bingo-carton-page .btn-principal:hover { background: #64748b; }
         
-        body.bingo-carton-page /* Zona de Validaci&oacute;n */
-        .zona-validacion { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; width: 100%; max-width: 550px; margin-top: 12px; display: none; text-align: center; }
-        body.bingo-carton-page .clave-box { font-size: 1.3rem; font-weight: bold; color: #2563eb; letter-spacing: 2px; margin: 5px 0; }
-        body.bingo-carton-page input { width: 90px; padding: 8px; text-align: center; font-size: 1.1rem; font-weight: bold; border: 2px solid #ccc; border-radius: 4px; margin-top: 5px; color: #1e293b; }
+        body.bingo-carton-page .zona-validacion { background: #334155; padding: 15px; border-radius: 8px; border: 1px solid #475569; width: 100%; max-width: 550px; margin-top: 12px; display: none; text-align: center; }
+        body.bingo-carton-page .clave-box { font-size: 1.3rem; font-weight: bold; color: #f59e0b; letter-spacing: 2px; margin: 5px 0; }
+        body.bingo-carton-page input { width: 90px; padding: 8px; text-align: center; font-size: 1.1rem; font-weight: bold; border: 2px solid #334155; border-radius: 4px; margin-top: 5px; color: #0f172a; }
         body.bingo-carton-page .btn-confirmar-cambio { background-color: #10b981; margin-top: 10px; padding: 8px; width: 100%; }
 
-        body.bingo-carton-page /* MODALES PERSONALIZADOS ANTI-BLOQUEO */
-        .modal-background { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
-        body.bingo-carton-page .modal-box { background: white; padding: 20px; border-radius: 10px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); animation: fadein 0.2s ease-out; }
-        body.bingo-carton-page .modal-box p { font-size: 1.1rem; color: #333; margin-bottom: 20px; line-height: 1.4; }
+        body.bingo-carton-page .modal-background { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        body.bingo-carton-page .modal-box { background: #1e293b; border: 1px solid #475569; padding: 20px; border-radius: 10px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); animation: fadein 0.2s ease-out; }
+        body.bingo-carton-page .modal-box p { font-size: 1.1rem; color: #cbd5e1; margin-bottom: 20px; line-height: 1.4; }
         body.bingo-carton-page .modal-flex-botones { display: table; width: 100%; border-spacing: 10px 0; }
         body.bingo-carton-page .modal-cell { display: table-cell; width: 50%; }
         body.bingo-carton-page .btn-modal-ok { background: #2563eb; width: 100%; padding: 10px; }
@@ -663,14 +659,12 @@ body.bingo-monitor-page * { box-sizing: border-box; margin: 0; padding: 0; font-
         body.bingo-monitor-page .bola-actual { font-size: 4.5rem; font-weight: bold; color: #f59e0b; line-height: 1; margin-bottom: 4px; }
         body.bingo-monitor-page .bola-anterior { font-size: 1.1rem; color: #94a3b8; }
 
-        body.bingo-monitor-page /* Panel de control de 9x10 */
-        .contenedor-tabla { width: 100%; max-width: 450px; margin-top: 12px; background: #0f172a; padding: 6px; border-radius: 8px; }
+        body.bingo-monitor-page .contenedor-tabla { width: 100%; max-width: 450px; margin-top: 12px; background: #0f172a; padding: 6px; border-radius: 8px; }
         body.bingo-monitor-page table { width: 100%; border-collapse: collapse; }
         body.bingo-monitor-page td { border: 1px solid #334155; text-align: center; height: 32px; font-weight: bold; font-size: 0.95rem; color: #64748b; }
         body.bingo-monitor-page .cantado { background-color: #f59e0b !important; color: #0f172a !important; border-color: #f59e0b; font-size: 1.1rem; }
 
-        body.bingo-monitor-page /* Botonera */
-        .panel-botones { display: flex; flex-direction: column; width: 100%; max-width: 450px; gap: 8px; margin-top: 12px; }
+        body.bingo-monitor-page .panel-botones { display: flex; flex-direction: column; width: 100%; max-width: 450px; gap: 8px; margin-top: 12px; }
         body.bingo-monitor-page button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; text-align: center; }
         body.bingo-monitor-page .btn-comenzar { background-color: #22c55e; }
         body.bingo-monitor-page .btn-pausar { background-color: #eab308; color: #0f172a; }
@@ -680,13 +674,11 @@ body.bingo-monitor-page * { box-sizing: border-box; margin: 0; padding: 0; font-
         body.bingo-monitor-page .btn-principal:hover { background: #64748b; }
         body.bingo-monitor-page .btn-login-principal { margin-top: 10px; }
 
-        body.bingo-monitor-page /* Panel criptográfico */
-        .zona-validacion { background: #334155; padding: 15px; border-radius: 8px; width: 100%; max-width: 450px; margin-top: 10px; display: none; text-align: center; }
+        body.bingo-monitor-page .zona-validacion { background: #334155; padding: 15px; border-radius: 8px; width: 100%; max-width: 450px; margin-top: 10px; display: none; text-align: center; }
         body.bingo-monitor-page .input-num { padding: 8px; width: 100px; font-size: 1.1rem; font-weight: bold; text-align: center; border-radius: 4px; border: none; margin-right: 5px; color: #0f172a; }
         body.bingo-monitor-page .resultado-validacion { font-size: 1.3rem; font-weight: bold; color: #4ade80; margin-top: 10px; letter-spacing: 1px; }
 
-        body.bingo-monitor-page /* --- PANTALLA DE ACCESO (LOGIN MODAL COMPLETO) --- */
-        #pantallaLogin { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        body.bingo-monitor-page #pantallaLogin { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
         body.bingo-monitor-page .login-box { background: #1e293b; padding: 30px 20px; border-radius: 12px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         body.bingo-monitor-page .login-box h2 { font-size: 1.3rem; color: #f59e0b; margin-bottom: 10px; }
         body.bingo-monitor-page .login-box p { font-size: 0.95rem; color: #94a3b8; margin-bottom: 20px; }
@@ -856,4 +848,114 @@ body.valentina-page .clock-number {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-5px); }
     75% { transform: translateX(5px); }
+}
+
+/* Privado/index.html */
+body.private-page {
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    background: #0b132b;
+    color: #ffffff;
+}
+
+body.private-page .private-login {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+body.private-page .private-back-link {
+    color: #4cc9f0;
+    font-weight: 700;
+    margin-bottom: 16px;
+    text-decoration: none;
+}
+
+body.private-page .private-card {
+    width: 100%;
+    max-width: 420px;
+    background: #1c2541;
+    border: 2px solid #3a506b;
+    border-radius: 14px;
+    padding: 26px;
+    box-sizing: border-box;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.45);
+}
+
+body.private-page h1 {
+    margin: 0 0 10px;
+    color: #ffb703;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+body.private-page p {
+    color: #cbd5e1;
+    line-height: 1.5;
+}
+
+body.private-page label {
+    display: block;
+    margin: 14px 0 6px;
+    color: #cbd5e1;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 13px;
+}
+
+body.private-page input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    background: #0b132b;
+    border: 2px solid #3a506b;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+}
+
+body.private-page input:focus {
+    outline: none;
+    border-color: #4cc9f0;
+}
+
+body.private-page button {
+    width: 100%;
+    margin-top: 18px;
+    padding: 13px;
+    border: 0;
+    border-radius: 8px;
+    background: #4cc9f0;
+    color: #0b132b;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+body.private-page .private-message {
+    margin-bottom: 0;
+    color: #ffb703;
+    font-weight: 700;
+}
+/* Mobile layout fixes */
+@media (max-width: 768px) {
+    body.home-page .buttons-grid,
+    body.home-page .modal-buttons-container,
+    body.valentina-page.valentina-home .grid {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    body.home-page .btn-section,
+    body.home-page .btn-modal-link,
+    body.valentina-page.valentina-home .game-button {
+        width: 100%;
+        box-sizing: border-box;
+    }
 }
