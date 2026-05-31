@@ -507,7 +507,7 @@ body.impostor-page {
             display: block;
             width: 100%;
             max-width: 450px;
-            margin: 0 auto 12px;
+            margin: 18px auto 0;
             padding: 12px;
             box-sizing: border-box;
             border-radius: 6px;
@@ -894,7 +894,7 @@ body.private-page .private-back-link {
     text-align: center;
     text-decoration: none;
     font-weight: 700;
-    margin-bottom: 16px;
+    margin-top: 16px;
 }
 
 body.private-page .private-back-link:hover {
