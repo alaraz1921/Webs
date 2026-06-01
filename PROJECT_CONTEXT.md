@@ -1,4 +1,4 @@
-# PROJECT_CONTEXT
+﻿# PROJECT_CONTEXT
 
 ## Resumen
 
@@ -34,8 +34,8 @@ b2ca9cc Usar modal propio en monitor de bingo
 - Tailwind CSS por CDN en las paginas de `ValentinaPlay`.
 - Google Fonts por CDN en la portada y zona privada.
 - Supabase JS por CDN en `Privado/index.html`.
-- Supabase JS por CDN en `Bingo/monitor.html` e `impostor/index.html` para validar clave diaria por RPC.
-- Persistencia local mediante `localStorage` en Bingo y El Impostor.
+- Supabase JS por CDN en `Bingo/monitor.html` e `infiltrado/index.html` para validar clave diaria por RPC.
+- Persistencia local mediante `localStorage` en Bingo y El Infiltrado.
 
 No se encontraron:
 
@@ -68,7 +68,7 @@ No se encontraron:
 |-- Bingo/
 |   |-- carton.html
 |   |-- monitor.html
-|-- impostor/
+|-- infiltrado/
 |   `-- index.html
 `-- ValentinaPlay/
     |-- index.html
@@ -107,7 +107,7 @@ Incluye estilos para:
 
 - Portada.
 - Pagina 404.
-- El Impostor.
+- El Infiltrado.
 - Bingo carton.
 - Bingo monitor.
 - ValentinaPlay.
@@ -145,7 +145,7 @@ Tablas iniciales:
 
 Todas tienen RLS activado.
 
-Tambien contiene una migracion para validar claves diarias de Bingo Monitor e Impostor mediante RPC:
+Tambien contiene una migracion para validar claves diarias de Bingo Monitor e Infiltrado mediante RPC:
 
 - `validate_daily_access_code(text, text)`.
 - `get_daily_access_formula_note()`.
@@ -198,15 +198,15 @@ Notas importantes:
 - El monitor no persiste la partida si se recarga la pagina.
 
 
-### `impostor/index.html`
+### `infiltrado/index.html`
 
-Juego "El Infiltrado/El Impostor".
+Juego "El Infiltrado/El Infiltrado".
 
 Responsabilidades:
 
 - Login por clave calculada segun el dia.
-- Configuracion de numero de jugadores e impostores.
-- Asignacion aleatoria de lugar secreto e impostores.
+- Configuracion de numero de jugadores e infiltrados.
+- Asignacion aleatoria de lugar secreto e infiltrados.
 - Flujo de revelado por turnos.
 - Evaluacion final mediante desplegables con los nombres de participantes.
 - Ayuda contextual con reglas basicas.
@@ -214,21 +214,21 @@ Responsabilidades:
 
 Claves principales de `localStorage`:
 
-- `impostor_login_time`
-- `impostor_fase`
-- `impostor_jugadores`
-- `impostor_roles`
-- `impostor_impostoresAsignados`
-- `impostor_jugadorActualIndex`
-- `impostor_lugarSecreto`
-- `impostor_config_total`
-- `impostor_config_imps`
+- `infiltrado_login_time`
+- `infiltrado_fase`
+- `infiltrado_jugadores`
+- `infiltrado_roles`
+- `infiltrado_infiltradosAsignados`
+- `infiltrado_jugadorActualIndex`
+- `infiltrado_lugarSecreto`
+- `infiltrado_config_total`
+- `infiltrado_config_infs`
 
 Notas:
 
 - La sesion caduca tras 5 horas.
 - La clave diaria se valida en Supabase mediante `validate_daily_access_code`.
-- `reiniciarTodoSistema()` borra solo claves con prefijo `impostor_`, evitando eliminar datos de Bingo u otras paginas del mismo origen.
+- `reiniciarTodoSistema()` borra solo claves con prefijo `infiltrado_`, evitando eliminar datos de Bingo u otras paginas del mismo origen.
 
 ### `ValentinaPlay/`
 

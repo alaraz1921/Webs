@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
 
 /* index.html */
 :root {
@@ -383,7 +383,7 @@
             right: 15px;
             transition: color 0.2s;
         }
-        
+
         body.home-page .close-modal-btn:hover {
             color: var(--azul-neon);
         }
@@ -394,7 +394,7 @@
                 background-color: transparent;
                 border-bottom: 2px solid transparent;
             }
-            
+
             body.home-page .menu-toggle {
                 display: flex;
             }
@@ -418,12 +418,12 @@
             }
 
             body.home-page .nav-menu li { width: 100%; text-align: center; }
-            
-            body.home-page .nav-menu a { 
+
+            body.home-page .nav-menu a {
                 display: flex;
                 justify-content: center;
-                padding: 15px 0; 
-                width: 100%; 
+                padding: 15px 0;
+                width: 100%;
                 border-bottom: 1px solid rgba(58, 80, 107, 0.2);
             }
 
@@ -457,7 +457,7 @@
                 flex-direction: column;
                 gap: 12px;
             }
-            
+
             body.home-page .btn-section {
                 width: 100%;
             }
@@ -466,36 +466,36 @@
 /* 404.html */
 body.error-page * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
         body.error-page { font-family: Arial, sans-serif; background-color: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; min-height: 100vh; text-align: center; }
-        
+
         body.error-page /* Contenedor principal estilo Monitor de Bingo */
         .contenedor-error { background: #334155; border-radius: 12px; padding: 40px 20px; width: 100%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); border: 1px solid #475569; }
-        
+
         body.error-page /* El 404 grande estilo "Bola Cantada" */
         .numero-404 { font-size: 6rem; font-weight: bold; color: #f59e0b; line-height: 1; margin-bottom: 15px; text-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-        
+
         body.error-page h2 { font-size: 1.4rem; color: #cbd5e1; margin-bottom: 12px; }
         body.error-page p { font-size: 1rem; color: #94a3b8; margin-bottom: 25px; line-height: 1.5; }
-        
+
         body.error-page /* Botón de retorno estilo "Validar Cartón" */
         .btn-regresar { display: block; width: 100%; padding: 14px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; background-color: #3b82f6; text-decoration: none; transition: background-color 0.2s, transform 0.1s; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
         body.error-page .btn-regresar:hover { background-color: #2563eb; }
         body.error-page .btn-regresar:active { transform: scale(0.98); }
-        
+
         body.error-page /* Zona de la imagen al final */
         .imagen-decorativa { margin-top: 30px; max-width: 150px; height: auto; border-radius: 8px; opacity: 0.8; }
 
-/* impostor/index.html */
+/* infiltrado/index.html */
 /* ESTILO GENERAL MONITOR DE BINGO */
-body.impostor-page { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            text-align: center; 
-            padding: 10px; 
-            background-color: #0b132b; 
-            color: #ffffff; 
+body.infiltrado-page {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            text-align: center;
+            padding: 10px;
+            background-color: #0b132b;
+            color: #ffffff;
             margin: 0;
         }
 
-        body.impostor-page .main-app-title {
+        body.infiltrado-page .main-app-title {
             font-size: 26px;
             color: #ffb703;
             text-transform: uppercase;
@@ -527,14 +527,14 @@ body.impostor-page {
             color: #0f172a;
         }
 
-        body.impostor-page .impostor-footer-actions {
+        body.infiltrado-page .infiltrado-footer-actions {
             width: 100%;
             max-width: 450px;
             margin: 0 auto;
         }
-        
 
-        body.impostor-page .btn-principal {
+
+        body.infiltrado-page .btn-principal {
             display: block;
             width: 100%;
             max-width: 450px;
@@ -549,22 +549,22 @@ body.impostor-page {
             font-weight: 700;
         }
 
-        body.impostor-page .btn-principal:hover { background: #64748b; }
-        body.impostor-page .screen { 
-            display: none; 
-            max-width: 450px; 
-            margin: 15px auto; 
-            background: #1c2541; 
-            padding: 25px 20px; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
+        body.infiltrado-page .btn-principal:hover { background: #64748b; }
+        body.infiltrado-page .screen {
+            display: none;
+            max-width: 450px;
+            margin: 15px auto;
+            background: #1c2541;
+            padding: 25px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             border: 2px solid #3a506b;
             box-sizing: border-box;
         }
-        
-        body.impostor-page .active { display: block; }
 
-        body.impostor-page #screen-lock.active {
+        body.infiltrado-page .active { display: block; }
+
+        body.infiltrado-page #screen-lock.active {
             display: flex;
             position: fixed;
             top: 0;
@@ -584,39 +584,45 @@ body.impostor-page {
             justify-content: center;
         }
 
-        body.impostor-page #screen-lock .login-box {
+        body.infiltrado-page #screen-lock .login-box {
             background: #1e293b;
             margin: 20px auto;
             padding: 30px 20px;
             border-radius: 12px;
             width: 100%;
             max-width: 360px;
+            box-sizing: border-box;
             text-align: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
 
-        body.impostor-page #screen-lock .login-box h2 {
+        body.infiltrado-page #screen-lock .login-box h2 {
             font-size: 1.3rem;
             color: #f59e0b;
             margin-bottom: 10px;
         }
 
-        body.impostor-page #screen-lock .login-page-title {
-            margin: 0 0 18px;
+        body.infiltrado-page #screen-lock .login-page-title {
+            position: absolute;
+            top: 24px;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
             color: #ffffff;
             font-size: 1.65rem;
             font-weight: 900;
             letter-spacing: 1px;
             text-transform: uppercase;
+            text-align: center;
         }
 
-        body.impostor-page #screen-lock .login-box p {
+        body.infiltrado-page #screen-lock .login-box p {
             font-size: 0.95rem;
             color: #94a3b8;
             margin-bottom: 20px;
         }
 
-        body.impostor-page #screen-lock .login-box input {
+        body.infiltrado-page #screen-lock .login-box input {
             width: 140px;
             padding: 12px;
             font-size: 1.4rem;
@@ -630,11 +636,11 @@ body.impostor-page {
             margin-bottom: 15px;
         }
 
-        body.impostor-page #screen-lock .login-box input:focus {
+        body.infiltrado-page #screen-lock .login-box input:focus {
             border-color: #f59e0b;
         }
 
-        body.impostor-page #screen-lock .btn-entrar {
+        body.infiltrado-page #screen-lock .btn-entrar {
             background: #22c55e;
             color: white;
             padding: 12px;
@@ -643,60 +649,60 @@ body.impostor-page {
             border-radius: 6px;
         }
 
-        body.impostor-page #screen-lock .btn-login-principal {
+        body.infiltrado-page #screen-lock .btn-login-principal {
             max-width: none;
             margin-top: 10px;
         }
-        
-        body.impostor-page h2 { color: #4cc9f0; margin-top: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        body.impostor-page p { color: #cbd5e1; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
 
-        body.impostor-page input, body.impostor-page select, body.impostor-page button { 
-            width: 100%; 
-            padding: 14px; 
-            margin: 10px 0; 
-            border-radius: 10px; 
-            border: 2px solid #3a506b; 
-            font-size: 16px; 
-            box-sizing: border-box; 
+        body.infiltrado-page h2 { color: #4cc9f0; margin-top: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        body.infiltrado-page p { color: #cbd5e1; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
+
+        body.infiltrado-page input, body.infiltrado-page select, body.infiltrado-page button {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: 2px solid #3a506b;
+            font-size: 16px;
+            box-sizing: border-box;
             background-color: #0b132b;
             color: white;
         }
-        
-        body.impostor-page input:focus, body.impostor-page select:focus {
+
+        body.infiltrado-page input:focus, body.infiltrado-page select:focus {
             outline: none;
             border-color: #4cc9f0;
         }
 
-        body.impostor-page button { 
-            background-color: #4cc9f0; 
-            color: #0b132b; 
-            border: none; 
-            font-weight: bold; 
-            cursor: pointer; 
+        body.infiltrado-page button {
+            background-color: #4cc9f0;
+            color: #0b132b;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
             transition: all 0.2s ease;
             text-transform: uppercase;
         }
-        
-        body.impostor-page button:hover { 
-            background-color: #4361ee; 
+
+        body.infiltrado-page button:hover {
+            background-color: #4361ee;
             color: white;
         }
-        
-        body.impostor-page .btn-danger { background-color: #f72585; color: white; }
-        body.impostor-page .btn-danger:hover { background-color: #b5179e; }
 
-        body.impostor-page .reveal-box { 
+        body.infiltrado-page .btn-danger { background-color: #f72585; color: white; }
+        body.infiltrado-page .btn-danger:hover { background-color: #b5179e; }
+
+        body.infiltrado-page .reveal-box {
             background: #2a3a5c; /* Fondo más claro que el fondo general para que destaque */
-            color: #ffb703; 
+            color: #ffb703;
             padding: 75px 20px; /* Área vertical muy amplia para que quepa el dedo holgadamente */
-            border-radius: 15px; 
-            margin: 20px 0; 
-            font-size: 24px; 
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 24px;
             font-weight: bold;
             border: 3px dashed #4cc9f0;
-            user-select: none; 
-            -webkit-user-select: none; 
+            user-select: none;
+            -webkit-user-select: none;
             cursor: pointer;
             box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
             text-transform: uppercase;
@@ -705,24 +711,24 @@ body.impostor-page {
             justify-content: center;
             line-height: 1.3;
         }
-        body.impostor-page .reveal-box:active {
+        body.infiltrado-page .reveal-box:active {
             background: #344872; /* Efecto visual al mantener pulsado */
         }
 
-        body.impostor-page .modal-overlay {
+        body.infiltrado-page .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 19, 43, 0.9); 
+            background: rgba(11, 19, 43, 0.9);
             backdrop-filter: blur(4px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
         }
-        
-        body.impostor-page .modal-box {
+
+        body.infiltrado-page .modal-box {
             background: #1c2541;
-            border: 3px solid #ffb703; 
+            border: 3px solid #ffb703;
             padding: 25px;
             border-radius: 20px;
             max-width: 400px;
@@ -731,15 +737,15 @@ body.impostor-page {
             animation: popUp 0.25s ease-out;
             box-sizing: border-box;
         }
-        
+
         @keyframes popUp {
             from { transform: scale(0.85); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
-        
-        body.impostor-page .modal-box h3 { color: #ffb703; margin-top: 0; font-size: 20px; text-transform: uppercase; }
-        body.impostor-page .modal-box p { color: #ffffff; font-size: 16px; margin: 15px 0; white-space: pre-line; }
-        body.impostor-page .modal-footer-buttons { display: flex; flex-direction: column; gap: 8px; }
+
+        body.infiltrado-page .modal-box h3 { color: #ffb703; margin-top: 0; font-size: 20px; text-transform: uppercase; }
+        body.infiltrado-page .modal-box p { color: #ffffff; font-size: 16px; margin: 15px 0; white-space: pre-line; }
+        body.infiltrado-page .modal-footer-buttons { display: flex; flex-direction: column; gap: 8px; }
 
 /* Bingo/carton.html */
 body.bingo-carton-page * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
@@ -814,13 +820,13 @@ body.bingo-carton-page * { box-sizing: border-box; margin: 0; padding: 0; font-f
             background: #334155;
             color: #f59e0b;
         }
-        
+
         body.bingo-carton-page .contenedor-tabla { width: 100%; max-width: 550px; background: #0f172a; padding: 6px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         body.bingo-carton-page table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         body.bingo-carton-page td { border: 1px solid #334155; text-align: center; height: 42px; font-size: 1.1rem; font-weight: bold; user-select: none; transition: background 0.2s; color: #cbd5e1; }
         body.bingo-carton-page .sombreada { background-color: #334155; }
         body.bingo-carton-page .marcado { background-color: #f59e0b !important; color: #0f172a !important; }
-        
+
         body.bingo-carton-page .panel-botones { display: flex; flex-direction: column; width: 100%; max-width: 550px; gap: 8px; margin-top: 12px; }
         body.bingo-carton-page button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; transition: opacity 0.2s; text-align: center; }
         body.bingo-carton-page button:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -830,7 +836,7 @@ body.bingo-carton-page * { box-sizing: border-box; margin: 0; padding: 0; font-f
         body.bingo-carton-page .btn-cambiar { background-color: #d97706; }
         body.bingo-carton-page .btn-principal { display: block; width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 6px; color: white; background: #475569; text-align: center; text-decoration: none; }
         body.bingo-carton-page .btn-principal:hover { background: #64748b; }
-        
+
         body.bingo-carton-page .zona-validacion { background: #334155; padding: 15px; border-radius: 8px; border: 1px solid #475569; width: 100%; max-width: 550px; margin-top: 12px; display: none; text-align: center; }
         body.bingo-carton-page .clave-box { font-size: 1.3rem; font-weight: bold; color: #f59e0b; letter-spacing: 2px; margin: 5px 0; }
         body.bingo-carton-page input { width: 90px; padding: 8px; text-align: center; font-size: 1.1rem; font-weight: bold; border: 2px solid #334155; border-radius: 4px; margin-top: 5px; color: #0f172a; }
@@ -875,9 +881,9 @@ body.bingo-monitor-page * { box-sizing: border-box; margin: 0; padding: 0; font-
         body.bingo-monitor-page .input-num { padding: 8px; width: 100px; font-size: 1.1rem; font-weight: bold; text-align: center; border-radius: 4px; border: none; margin-right: 5px; color: #0f172a; }
         body.bingo-monitor-page .resultado-validacion { font-size: 1.3rem; font-weight: bold; color: #4ade80; margin-top: 10px; letter-spacing: 1px; }
 
-        body.bingo-monitor-page #pantallaLogin { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        body.bingo-monitor-page .login-box { background: #1e293b; margin: 20px auto; padding: 30px 20px; border-radius: 12px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        body.bingo-monitor-page .login-page-title { margin: 0 0 18px; color: #ffffff; font-size: 1.65rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
+        body.bingo-monitor-page #pantallaLogin { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; font-family: 'Segoe UI', Arial, sans-serif; }
+        body.bingo-monitor-page .login-box { background: #1e293b; margin: 20px auto; padding: 30px 20px; border-radius: 12px; width: 100%; max-width: 360px; box-sizing: border-box; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        body.bingo-monitor-page .login-page-title { position: absolute; top: 24px; left: 0; right: 0; margin: 0 auto; color: #ffffff; font-size: 1.65rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; text-align: center; }
         body.bingo-monitor-page .login-box h2 { font-size: 1.3rem; color: #f59e0b; margin-bottom: 10px; }
         body.bingo-monitor-page .login-box p { font-size: 0.95rem; color: #94a3b8; margin-bottom: 20px; }
         body.bingo-monitor-page .login-box input { width: 140px; padding: 12px; font-size: 1.4rem; font-weight: bold; letter-spacing: 4px; text-align: center; border-radius: 6px; border: 2px solid #334155; background: #0f172a; color: white; margin-bottom: 15px; }
@@ -1039,7 +1045,7 @@ body.valentina-page .clock-number {
 
 body.bingo-carton-page .help-button,
 body.bingo-monitor-page .help-button,
-body.impostor-page .help-button {
+body.infiltrado-page .help-button {
     width: 32px;
     height: 32px;
     min-width: 32px;
@@ -1057,7 +1063,7 @@ body.impostor-page .help-button {
 
 body.bingo-carton-page .help-button-bottom,
 body.bingo-monitor-page .help-button-bottom,
-body.impostor-page .help-button-bottom {
+body.infiltrado-page .help-button-bottom {
     display: block;
     margin: 10px auto 0;
 }

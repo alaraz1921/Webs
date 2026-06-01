@@ -1,4 +1,4 @@
-﻿create or replace function public.validate_daily_access_code(
+create or replace function public.validate_daily_access_code(
     p_game_slug text,
     p_access_code text
 )
@@ -26,20 +26,4 @@ begin
 end;
 $$;
 
-create or replace function public.get_daily_access_formula_note()
-returns text
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-    if auth.uid() is null then
-        raise exception 'Authentication required';
-    end if;
-
-    return 'La clave diaria para Bingo Monitor y El Infiltrado es: día del mes + 1021. Ejemplo: si hoy es día 7, la clave es 1028.';
-end;
-$$;
-
 grant execute on function public.validate_daily_access_code(text, text) to anon, authenticated;
-grant execute on function public.get_daily_access_formula_note() to authenticated;

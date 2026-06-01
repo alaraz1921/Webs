@@ -1,15 +1,15 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IMPOSTOR</title>
+    <title>INFILTRADO</title>
     <link rel="stylesheet" href="../assets/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="impostor-page">
+<body class="infiltrado-page">
 
-    <h1 class="main-app-title">IMPOSTOR</h1>
+    <h1 class="main-app-title">INFILTRADO</h1>
 
     <div id="custom-modal" class="modal-overlay">
         <div class="modal-box">
@@ -22,8 +22,8 @@
     </div>
 
     <div id="screen-lock" class="screen active">
+        <h1 class="login-page-title">INFILTRADO</h1>
         <div class="login-box">
-            <h1 class="login-page-title">IMPOSTOR</h1>
             <h2>&#128274; CONTROL DE ACCESO</h2>
             <p>Introduce la clave para entrar:</p>
             <input type="password" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="****">
@@ -38,7 +38,7 @@
         <select id="totalPlayers" onchange="guardarConfiguracionBase()"></select>
         
         <label>¿Cuántos infiltrados?</label>
-        <select id="totalImpostors" onchange="guardarConfiguracionBase()">
+        <select id="totalInfiltrados" onchange="guardarConfiguracionBase()">
             <option value="1">1 Infiltrado</option>
             <option value="2">2 Infiltrados</option>
         </select>
@@ -60,17 +60,17 @@
     <div id="screen-game" class="screen">
         <h2>Partida en Curso</h2>
         <p>¡Debatid! Cuando creáis saber quiénes son los infiltrados, seleccionad sus nombres:</p>
-        <div id="impostor-inputs-evaluation"></div>
-        <button onclick="evaluarImpostores()">Resolver</button>
+        <div id="infiltrado-inputs-evaluation"></div>
+        <button onclick="evaluarInfiltrados()">Resolver</button>
         <button class="btn-danger" onclick="rendirse()">Rendirse / Revelar</button>
     </div>
 
-    <div class="impostor-footer-actions">
-        <a class="impostor-home-link btn-principal" href="../index.html">Volver a la p&aacute;gina principal</a>
-        <button class="help-button help-button-bottom" type="button" onclick="mostrarAyudaImpostor()" aria-label="Ayuda de El Infiltrado">?</button>
+    <div class="infiltrado-footer-actions">
+        <a class="infiltrado-home-link btn-principal" href="../index.html">Volver a la p&aacute;gina principal</a>
+        <button class="help-button help-button-bottom" type="button" onclick="mostrarAyudaInfiltrado()" aria-label="Ayuda de El Infiltrado">?</button>
     </div>
 
     <script src="../assets/supabase-client.js"></script>
-    <script src="../assets/js/impostor.js"></script>
+    <script src="../assets/js/infiltrado.js"></script>
 </body>
 </html>

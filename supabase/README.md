@@ -1,4 +1,4 @@
-# Supabase
+﻿# Supabase
 
 Este directorio contiene el esquema inicial para la base de datos de `Webs`.
 
@@ -38,5 +38,5 @@ Todas las tablas tienen RLS activado.
 
 ## Funciones RPC
 
-- `validate_daily_access_code(game_slug, access_code)`: valida la clave diaria para `bingo_monitor` e `impostor`.
+- `validate_daily_access_code(game_slug, access_code)`: valida la clave diaria para `bingo_monitor` e `infiltrado`.
 - `get_daily_access_formula_note()`: devuelve el recordatorio de la formula para mostrarlo en la zona privada.
