@@ -223,43 +223,40 @@
             if (juegoEmpezado) {
                 btnAccion.textContent = "Terminar Partida";
                 btnAccion.className = "btn-terminar";
-                btnCambiar.disabled = true;
             } else {
                 btnAccion.textContent = "Empezar Partida";
                 btnAccion.className = "btn-empezar";
-                btnCambiar.disabled = false;
             }
+            btnCambiar.disabled = false;
         }
 
         // FUNCI&Oacute;N DEL BOT&Oacute;N "CAMBIAR CART&Oacute;N"
         function solicitudCambioCarton() {
-            if (bloqueadoPorSeguridad) {
-                // Si est&aacute; bloqueado por haber iniciado partida previamente, pide clave/contraclave
-                mostrarZonaCambio();
-            } else {
-                // Si est&aacute; libre (antes de jugar o ya validado), cambia el cart&oacute;n DIRECTAMENTE e ilimitadamente
-                generarNuevaEstructuraCarton();
-            }
+            mostrarZonaCambio();
         }
 
         function mostrarZonaCambio() {
-            claveGenerada = Math.floor(1000 + Math.random() * 9000); 
+            claveGenerada = Math.floor(1000 + Math.random() * 9000);
             document.getElementById('txtClave').textContent = claveGenerada;
+            document.getElementById('inputContraclave').value = '';
             document.getElementById('zonaCambio').style.display = 'block';
+            document.getElementById('inputContraclave').focus();
         }
 
         function procesarCambioCarton() {
             const inputElement = document.getElementById('inputContraclave');
             let input = parseInt(inputElement.value);
-            let contraclaveCorrecta = ((claveGenerada * 3) + 7) % 10000; 
-            
+            let contraclaveCorrecta = ((claveGenerada * 3) + 7) % 10000;
+
             if (input === contraclaveCorrecta) {
-                mostrarAlerta("&iexcl;Contraclave v&aacute;lida! Se ha desbloqueado el cambio de cart&oacute;n.");
-                
-                // DESBLOQUEO DEFINITIVO: Cambiamos el estado a false en memoria
+                mostrarAlerta("&iexcl;Contraclave v&aacute;lida! Se ha cambiado el cart&oacute;n.");
+
+                // El cambio validado cierra la partida actual y deja listo el nuevo carton.
+                juegoEmpezado = false;
                 bloqueadoPorSeguridad = false;
+                localStorage.setItem('bingo_perm_juegoEmpezado', 'false');
                 localStorage.setItem('bingo_perm_bloqueo', 'false');
-                
+
                 // Resetear por completo la interfaz del panel de contraclaves
                 document.getElementById('zonaCambio').style.display = 'none';
                 inputElement.value = ''; 
