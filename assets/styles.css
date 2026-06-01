@@ -909,10 +909,14 @@ body.bingo-monitor-page * { box-sizing: border-box; margin: 0; padding: 0; font-
 /* ValentinaPlay shared */
 body.valentina-page {
     font-family: 'Comic Neue', cursive;
+    touch-action: manipulation;
 }
 
 body.valentina-page .game-button, body.valentina-page .modal-button {
     transition: transform 0.2s, background-color 0.3s;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 body.valentina-page .game-button:hover, body.valentina-page .modal-button:hover {
