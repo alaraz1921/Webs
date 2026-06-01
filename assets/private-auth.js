@@ -8,6 +8,7 @@ const authPanel = document.getElementById('private-auth-panel');
 const contentPanel = document.getElementById('private-content-panel');
 const userEmail = document.getElementById('private-user-email');
 const logoutButton = document.getElementById('private-logout');
+const dailyAccessFormula = document.getElementById('daily-access-formula');
 
 function showMessage(text, type = 'info') {
     messageBox.textContent = text;
@@ -25,12 +26,25 @@ function showPrivateContent(user) {
     authPanel.hidden = true;
     contentPanel.hidden = false;
     userEmail.textContent = user.email;
+    loadDailyAccessFormula();
 }
 
 function showLogin() {
     authPanel.hidden = false;
     contentPanel.hidden = true;
     userEmail.textContent = '';
+    dailyAccessFormula.textContent = 'Cargando recordatorio...';
+}
+
+async function loadDailyAccessFormula() {
+    const { data, error } = await supabaseClient.rpc('get_daily_access_formula_note');
+
+    if (error) {
+        dailyAccessFormula.textContent = 'No se pudo cargar el recordatorio de claves.';
+        return;
+    }
+
+    dailyAccessFormula.textContent = data;
 }
 
 async function loadSession() {

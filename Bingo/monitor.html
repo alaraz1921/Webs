@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitor de Bingo Profesional</title>
     <link rel="stylesheet" href="../assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bingo-monitor-page">
 
@@ -63,27 +64,38 @@
             <button class="btn-modal-ok" onclick="cerrarAlertaMonitor()">Entendido</button>
         </div>
     </div>
+    <script src="../assets/supabase-client.js"></script>
     <script>
-        // CONFIGURACIÓN DEL PIN (Puedes cambiar el "1234" por la clave que quieras)
-        const PIN_CORRECTO = "2017";
-
         let numerosDisponibles = Array.from({length: 90}, (_, i) => i + 1);
         let numerosCantados = [];
         let intervalo = null;
         let enMarcha = false;
 
         // Función para validar el PIN de entrada
-        function verificarPin() {
+        async function verificarPin() {
             const inputPin = document.getElementById('pinAcceso').value;
             const msgError = document.getElementById('msgError');
-            
-            if (inputPin === PIN_CORRECTO) {
+            msgError.style.display = 'none';
+
+            const { data, error } = await window.websSupabase.rpc('validate_daily_access_code', {
+                p_game_slug: 'bingo_monitor',
+                p_access_code: inputPin
+            });
+
+            if (error) {
+                msgError.textContent = 'No se pudo validar la clave. Inténtalo de nuevo.';
+                msgError.style.display = 'block';
+                return;
+            }
+
+            if (data === true) {
                 // Si es correcto, desvanecemos la pantalla de bloqueo
                 document.getElementById('pantallaLogin').style.display = 'none';
                 // Inicializamos el panel de juego seguro
                 inicializarPanel();
             } else {
                 // Si falla, mostramos error y limpiamos el cuadro
+                msgError.textContent = 'Clave diaria incorrecta. Inténtalo de nuevo.';
                 msgError.style.display = 'block';
                 document.getElementById('pinAcceso').value = '';
                 document.getElementById('pinAcceso').focus();

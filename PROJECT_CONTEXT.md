@@ -34,6 +34,7 @@ b2ca9cc Usar modal propio en monitor de bingo
 - Tailwind CSS por CDN en las paginas de `ValentinaPlay`.
 - Google Fonts por CDN en la portada y zona privada.
 - Supabase JS por CDN en `Privado/index.html`.
+- Supabase JS por CDN en `Bingo/monitor.html` e `impostor/index.html` para validar clave diaria por RPC.
 - Persistencia local mediante `localStorage` en Bingo y El Impostor.
 
 No se encontraron:
@@ -126,6 +127,7 @@ Comportamiento actual:
 - Usa `assets/supabase-client.js` y `assets/private-auth.js`.
 - Mantiene la sesion con Supabase Auth.
 - Muestra un panel privado basico cuando hay sesion activa.
+- Muestra un recordatorio de la formula de claves diarias obtenido desde Supabase.
 - Todavia no carga proyectos desde tablas privadas.
 
 ### `supabase/`
@@ -139,6 +141,11 @@ Tablas iniciales:
 - `project_members`.
 
 Todas tienen RLS activado.
+
+Tambien contiene una migracion para validar claves diarias de Bingo Monitor e Impostor mediante RPC:
+
+- `validate_daily_access_code(text, text)`.
+- `get_daily_access_formula_note()`.
 
 ### `Bingo/carton.html`
 
@@ -173,6 +180,7 @@ Monitor para cantar bolas de bingo.
 Responsabilidades:
 
 - Pantalla de login por PIN.
+- El PIN del monitor se valida en Supabase mediante `validate_daily_access_code`.
 - Generar tablero 1-90.
 - Sacar bola aleatoria cada 4 segundos.
 - Pausar/reanudar.
@@ -216,7 +224,7 @@ Claves principales de `localStorage`:
 Notas:
 
 - La sesion caduca tras 5 horas.
-- La clave se calcula como `diaDelMes + 1021`.
+- La clave diaria se valida en Supabase mediante `validate_daily_access_code`.
 - `reiniciarTodoSistema()` borra solo claves con prefijo `impostor_`, evitando eliminar datos de Bingo u otras paginas del mismo origen.
 
 ### `ValentinaPlay/`

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>El Infiltrado</title>
     <link rel="stylesheet" href="../assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="impostor-page">
 
@@ -65,6 +66,7 @@
 
     <a class="impostor-home-link btn-principal" href="../index.html">Volver a la p&aacute;gina principal</a>
 
+    <script src="../assets/supabase-client.js"></script>
     <script>
         const LUGARES = ["Banco", "Banda", "Cabo", "Planta", "Esposa", "Gato", "Cura", "Coche", "Estación", "Bisturí", 
     "Gemelos", "Batería", "Carta", "Cuadro", "Corona", "Línea", "Marco", "Órgano", "Impresora", "Radio", 
@@ -200,12 +202,19 @@
         }
 
         // ACCESO
-        function verificarClave() {
+        async function verificarClave() {
             const input = document.getElementById('pinInput').value;
-            const hoy = new Date().getDate();
-            const claveCorrecta = hoy + 1021;
+            const { data, error } = await window.websSupabase.rpc('validate_daily_access_code', {
+                p_game_slug: 'impostor',
+                p_access_code: input
+            });
 
-            if (parseInt(input) === claveCorrecta) {
+            if (error) {
+                abrirModal("Error de conexión", "No se pudo validar la clave. Inténtalo de nuevo.");
+                return;
+            }
+
+            if (data === true) {
                 localStorage.setItem('impostor_login_time', Date.now()); 
                 faseActual = "CONFIGURACION";
                 guardarEstadoJuego();
