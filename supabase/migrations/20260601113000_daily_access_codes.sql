@@ -37,7 +37,7 @@ begin
         raise exception 'Authentication required';
     end if;
 
-    return 'La clave para El Infiltrado y El Moninor de bingo es:\nDía del mes + 1021. \nEjemplo: si hoy es día 7, la clave es 1028.';
+    return E'La clave para El Infiltrado y El Moninor de bingo es:\nDía del mes + 1021. \nEjemplo: si hoy es día 7, la clave es 1028.';
 end;
 $$;
 

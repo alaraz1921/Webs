@@ -1238,3 +1238,7 @@ body.private-page .private-project-list {
         box-sizing: border-box;
     }
 }
+
+#daily-access-formula {
+    white-space: pre-line;
+}
