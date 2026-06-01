@@ -30,7 +30,7 @@ b2ca9cc Usar modal propio en monitor de bingo
 
 - HTML multipagina.
 - CSS compartido en `assets/styles.css`.
-- JavaScript inline dentro de cada HTML.
+- JavaScript por pagina en `assets/js/`.
 - Tailwind CSS por CDN en las paginas de `ValentinaPlay`.
 - Google Fonts por CDN en la portada y zona privada.
 - Supabase JS por CDN en `Privado/index.html`.
@@ -53,7 +53,10 @@ No se encontraron:
 |-- 404.html
 |-- Notas
 |-- assets/
-|   `-- styles.css
+|   |-- styles.css
+|   |-- supabase-client.js
+|   |-- private-auth.js
+|   `-- js/
 |-- images/
 |   `-- IMG_1914.jpg
 |-- Privado/

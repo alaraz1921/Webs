@@ -21,7 +21,7 @@
 - [ ] Hacer que el monitor de Bingo persista partida en `localStorage` si se recarga accidentalmente.
 - [ ] Revisar el formulario de contacto de `index.html`: conectar a un servicio real, usar `mailto:` o quitarlo si es decorativo.
 - [ ] Fijar o reemplazar dependencias CDN, especialmente Tailwind, para evitar cambios inesperados o fallos sin conexion.
-- [ ] Separar JavaScript inline en archivos por pagina cuando el mantenimiento empiece a crecer.
+- [x] Separar JavaScript inline en archivos por pagina cuando el mantenimiento empiece a crecer.
 - [ ] Dividir `assets/styles.css` en secciones o archivos mas manejables si se siguen añadiendo paginas.
 
 ## Prioridad Baja
