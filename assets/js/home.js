@@ -52,6 +52,7 @@
         // LÓGICA PARA CONTROLAR EL MODAL EMERGENTE (BOTÓN DE ABAJO)
         const modal = document.getElementById('otros-modal');
         const mensajeModal = document.getElementById('mensaje-modal');
+        const contactoModal = document.getElementById('contacto-modal');
 
         function abrirModal() {
             modal.style.display = 'flex';
@@ -71,6 +72,18 @@
             mensajeModal.style.display = 'none';
         }
 
+        function abrirContactoModal(event) {
+            if (event) {
+                event.preventDefault();
+            }
+            cerrarMenuMovil();
+            contactoModal.style.display = 'flex';
+        }
+
+        function cerrarContactoModal() {
+            contactoModal.style.display = 'none';
+        }
+
         // Cerrar el modal si se pulsa sobre la capa oscura del fondo
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -81,6 +94,12 @@
         mensajeModal.addEventListener('click', (e) => {
             if (e.target === mensajeModal) {
                 cerrarMensajeModal();
+            }
+        });
+
+        contactoModal.addEventListener('click', (e) => {
+            if (e.target === contactoModal) {
+                cerrarContactoModal();
             }
         });
 

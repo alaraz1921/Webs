@@ -36,6 +36,18 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="contacto-modal">
+        <div class="modal-box">
+            <button class="close-modal-btn" onclick="cerrarContactoModal()">&times;</button>
+            <h3>Contacto</h3>
+            <p>Quieres contarnos algo? Envíanos un email</p>
+            <div class="modal-buttons-container modal-buttons-row">
+                <a class="btn-modal-link" href="mailto:alaraz1921@gmail.com">ENVIAR</a>
+                <button class="btn-modal-link btn-modal-cancel" type="button" onclick="cerrarContactoModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MENÚ DE NAVEGACIÓN SUPERIOR -->
     <nav class="navbar" id="main-navbar">
         <div class="nav-container">
@@ -59,7 +71,7 @@
                         <li><a href="infiltrado/">Infiltrado</a></li>
                     </ul>
                 </li>
-                <li class="nav-item"><a href="#contacto">Contacto</a></li>
+                <li class="nav-item"><a href="#" onclick="abrirContactoModal(event)">Contacto</a></li>
             </ul>
         </div>
     </nav>
@@ -79,10 +91,11 @@
             <button class="btn-section" onclick="location.href='ValentinaPlay'">Valentina's PlayTime</button>
             <!-- Este botón abre el Modal Emergente -->
             <button class="btn-section" onclick="abrirModal()">Games</button>
+            <button class="btn-section" onclick="abrirContactoModal(event)">Contacto</button>
         </div>
 
         <!-- FORMULARIO DE CONTACTO -->
-        <section class="contact-form" id="contacto">
+        <section class="contact-form" id="contacto" hidden>
             <h2>Contacto</h2>
             <form action="#" method="POST" onsubmit="enviarContacto(event)">
                 <div class="form-group">

@@ -23,7 +23,7 @@
 - [ ] PM-07 Cargar en `Privado/index.html` los proyectos accesibles desde `app_projects` y `project_members`.
 - [x] PM-08 Sustituir los `alert()` restantes por modales propios para mantener una UX consistente.
 - [ ] PM-09 Hacer que el monitor de Bingo persista partida en `localStorage` si se recarga accidentalmente.
-- [ ] PM-10 Revisar el formulario de contacto de `index.html`: conectar a un servicio real, usar `mailto:` o quitarlo si es decorativo.
+- [x] PM-10 Revisar el formulario de contacto de `index.html`: conectar a un servicio real, usar `mailto:` o quitarlo si es decorativo.
 - [ ] PM-11 Fijar o reemplazar dependencias CDN, especialmente Tailwind, para evitar cambios inesperados o fallos sin conexion.
 - [x] PM-12 Separar JavaScript inline en archivos por pagina cuando el mantenimiento empiece a crecer.
 - [ ] PM-13 Dividir `assets/styles.css` en secciones o archivos mas manejables si se siguen añadiendo paginas.
