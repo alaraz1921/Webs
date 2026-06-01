@@ -65,7 +65,7 @@
         }
 
         function mostrarAyudaBingo() {
-            mostrarAlerta("<strong>Cómo jugar al Bingo</strong><br><br>1. Pulsa Empezar Partida cuando el monitor empiece a cantar bolas.<br>2. Toca en tu cartón los números que vayan saliendo.<br>3. Usa Limpiar Tachados si necesitas desmarcar todo.<br>4. Si la partida ya ha empezado, para cambiar de cartón pide una contraclave al monitor.<br>5. Tras validar un cambio, podrás cambiar de cartón libremente hasta que vuelvas a pulsar Empezar Partida.");
+            mostrarAlerta("<strong>Cómo jugar al Bingo</strong><br><br>1. Antes de empezar puedes cambiar de cartón libremente.<br>2. Pulsa Empezar Partida cuando el monitor empiece a cantar bolas.<br>3. Durante la partida puedes tocar los números que vayan saliendo.<br>4. Si quieres cambiar de cartón con la partida empezada, pide una contraclave al monitor.<br>5. Tras validar la contraclave, podrás cambiar de cartón libremente hasta que vuelvas a pulsar Empezar Partida.");
         }
 
         // CONTROL DE MEMORIA PERMANENTE
@@ -189,22 +189,14 @@
         }
 
         function conmutarEstadoJuego() {
-            if (!juegoEmpezado) {
-                // SE INICIA LA PARTIDA
-                juegoEmpezado = true;
-                bloqueadoPorSeguridad = true; // A partir de este momento, si se cancela o termina, requerirá clave
-                localStorage.setItem('bingo_perm_juegoEmpezado', 'true');
-                localStorage.setItem('bingo_perm_bloqueo', 'true');
-                document.getElementById('zonaCambio').style.display = 'none';
-                actualizarInterfazBotones();
-            } else {
-                // SE TERMINA LA PARTIDA
-                mostrarConfirmacion("&iquest;Est&aacute;s seguro de que quieres terminar la partida actual? El cart&oacute;n quedar&aacute; bloqueado hasta que el monitor lo valide.", function() {
-                    juegoEmpezado = false;
-                    localStorage.setItem('bingo_perm_juegoEmpezado', 'false');
-                    actualizarInterfazBotones();
-                });
-            }
+            if (juegoEmpezado) return;
+
+            juegoEmpezado = true;
+            bloqueadoPorSeguridad = true;
+            localStorage.setItem('bingo_perm_juegoEmpezado', 'true');
+            localStorage.setItem('bingo_perm_bloqueo', 'true');
+            document.getElementById('zonaCambio').style.display = 'none';
+            actualizarInterfazBotones();
         }
 
         function actualizarInterfazBotones() {
@@ -212,18 +204,20 @@
             const btnCambiar = document.getElementById('btnCambiar');
 
             if (juegoEmpezado) {
-                btnAccion.textContent = "Terminar Partida";
+                btnAccion.textContent = "Partida en curso";
                 btnAccion.className = "btn-terminar";
+                btnAccion.disabled = true;
             } else {
                 btnAccion.textContent = "Empezar Partida";
                 btnAccion.className = "btn-empezar";
+                btnAccion.disabled = false;
             }
             btnCambiar.disabled = false;
         }
 
         // FUNCI&Oacute;N DEL BOT&Oacute;N "CAMBIAR CART&Oacute;N"
         function solicitudCambioCarton() {
-            if (!bloqueadoPorSeguridad) {
+            if (!juegoEmpezado || !bloqueadoPorSeguridad) {
                 cambiarCartonLibre();
                 return;
             }
@@ -270,6 +264,12 @@
                 localStorage.setItem('bingo_perm_tachados', JSON.stringify([]));
                 const marcados = document.querySelectorAll('.marcado');
                 marcados.forEach(c => c.classList.remove('marcado'));
+            });
+        }
+
+        function solicitarVolverPrincipal() {
+            mostrarConfirmacion("&iquest;Quieres volver a la p&aacute;gina principal?", function() {
+                window.location.href = "../index.html";
             });
         }
 
