@@ -181,7 +181,7 @@
             position: relative;
             z-index: 2;
             font-size: 42px;
-            font-weight: 800;
+            font-weight: 400;
             text-align: center;
             letter-spacing: 2px;
             padding: 0 20px;
@@ -504,14 +504,6 @@ body.impostor-page {
             text-shadow: 0 0 10px rgba(255, 183, 3, 0.4);
         }
 
-        .page-help-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-        }
-
         .help-button {
             width: 32px;
             height: 32px;
@@ -532,6 +524,12 @@ body.impostor-page {
         .help-button:hover {
             background: #f59e0b;
             color: #0f172a;
+        }
+
+        body.impostor-page .impostor-footer-actions {
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
         }
         
 
@@ -900,6 +898,13 @@ body.impostor-page .help-button {
     font-weight: 900;
     line-height: 1;
     text-align: center;
+}
+
+body.bingo-carton-page .help-button-bottom,
+body.bingo-monitor-page .help-button-bottom,
+body.impostor-page .help-button-bottom {
+    display: block;
+    margin: 10px auto 0;
 }
 
 @keyframes bounce {

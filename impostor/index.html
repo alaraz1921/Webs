@@ -9,10 +9,7 @@
 </head>
 <body class="impostor-page">
 
-    <div class="page-help-header">
-        <h1 class="main-app-title">El Infiltrado</h1>
-        <button class="help-button" type="button" onclick="mostrarAyudaImpostor()" aria-label="Ayuda de El Infiltrado">?</button>
-    </div>
+    <h1 class="main-app-title">El Infiltrado</h1>
 
     <div id="custom-modal" class="modal-overlay">
         <div class="modal-box">
@@ -64,7 +61,10 @@
         <button class="btn-danger" onclick="rendirse()">Rendirse / Revelar</button>
     </div>
 
-    <a class="impostor-home-link btn-principal" href="../index.html">Volver a la p&aacute;gina principal</a>
+    <div class="impostor-footer-actions">
+        <a class="impostor-home-link btn-principal" href="../index.html">Volver a la p&aacute;gina principal</a>
+        <button class="help-button help-button-bottom" type="button" onclick="mostrarAyudaImpostor()" aria-label="Ayuda de El Infiltrado">?</button>
+    </div>
 
     <script src="../assets/supabase-client.js"></script>
     <script src="../assets/js/impostor.js"></script>
