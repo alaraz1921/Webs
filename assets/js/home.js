@@ -28,7 +28,7 @@
 
         // DETECTAR CLICS FUERA DEL MENÚ PARA CERRARLO AUTOMÁTICAMENTE
         document.addEventListener('click', (e) => {
-            // Si hacemos clic fuera del botón "Otros" y de su menú desplegable, lo cerramos
+            // Si hacemos clic fuera del botón "Games" y de su menú desplegable, lo cerramos
             if (!parentItem.contains(e.target)) {
                 customSubmenu.classList.remove('desktop-open');
                 customSubmenu.classList.remove('open');

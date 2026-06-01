@@ -22,10 +22,13 @@
     </div>
 
     <div id="screen-lock" class="screen active">
-        <h2>Acceso Restringido</h2>
-        <p>Introduce la clave para entrar:</p>
-        <input type="text" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0000">
-        <button onclick="verificarClave()">Acceder</button>
+        <div class="login-box">
+            <h2>Control de Acceso</h2>
+            <p>Introduce la clave para entrar:</p>
+            <input type="text" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0000">
+            <button class="btn-entrar" onclick="verificarClave()">Acceder</button>
+            <a class="btn-principal btn-login-principal" href="../index.html">Volver a la p&aacute;gina principal</a>
+        </div>
     </div>
 
     <div id="screen-config" class="screen">

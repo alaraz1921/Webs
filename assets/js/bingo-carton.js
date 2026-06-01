@@ -4,6 +4,42 @@
         let claveGenerada = 0;
         let posicionesTachadas = [];
 
+        function cerrarMenuBingo() {
+            const menu = document.getElementById('bingoMenuList');
+            const toggle = document.getElementById('bingoMenuToggle');
+            if (!menu || !toggle) return;
+
+            menu.classList.remove('is-open');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        function inicializarMenuBingo() {
+            const toggle = document.getElementById('bingoMenuToggle');
+            const menu = document.getElementById('bingoMenuList');
+            const helpButton = document.getElementById('bingoHelpMenuBtn');
+
+            if (!toggle || !menu) return;
+
+            toggle.addEventListener('click', function(event) {
+                event.stopPropagation();
+                const estaAbierto = menu.classList.toggle('is-open');
+                toggle.setAttribute('aria-expanded', estaAbierto ? 'true' : 'false');
+            });
+
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('.bingo-top-menu')) {
+                    cerrarMenuBingo();
+                }
+            });
+
+            if (helpButton) {
+                helpButton.addEventListener('click', function() {
+                    cerrarMenuBingo();
+                    mostrarAyudaBingo();
+                });
+            }
+        }
+
         // MODALES WEB
         function mostrarConfirmacion(texto, callback) {
             document.getElementById('textoModalConfirm').innerHTML = texto;
@@ -233,4 +269,7 @@
             });
         }
 
-        window.onload = comprobarMemoriaOCrear;
+        window.onload = function() {
+            inicializarMenuBingo();
+            comprobarMemoriaOCrear();
+        };

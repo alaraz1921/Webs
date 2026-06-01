@@ -8,6 +8,18 @@
 </head>
 <body class="bingo-carton-page">
 
+    <nav class="bingo-top-menu" aria-label="Menu de Bingo">
+        <button class="bingo-menu-toggle" id="bingoMenuToggle" type="button" aria-label="Abrir menu de Bingo" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="bingo-menu-list" id="bingoMenuList">
+            <button type="button" id="bingoHelpMenuBtn">Ayuda</button>
+            <a href="monitor.html">Monitor</a>
+        </div>
+    </nav>
+
     <h1>CARTÓN</h1>
 
     <div class="contenedor-tabla">
@@ -19,7 +31,6 @@
         <button class="btn-limpiar" id="btnLimpiar" onclick="solicitarLimpieza()">Limpiar Tachados</button>
         <button class="btn-cambiar" id="btnCambiar" onclick="solicitudCambioCarton()">Cambiar Cart&oacute;n</button>
         <a class="btn-principal" href="../index.html">Volver a la p&aacute;gina principal</a>
-        <button class="help-button help-button-bottom" type="button" onclick="mostrarAyudaBingo()" aria-label="Ayuda de Bingo">?</button>
     </div>
 
     <div class="zona-validacion" id="zonaCambio">
