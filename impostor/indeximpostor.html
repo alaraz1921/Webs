@@ -325,8 +325,14 @@
             ejecutarMezclaYAsignacion();
         }
 
+        function limpiarDatosImpostor() {
+            Object.keys(localStorage)
+                .filter(clave => clave.startsWith('impostor_'))
+                .forEach(clave => localStorage.removeItem(clave));
+        }
+
         function reiniciarTodoSistema() {
-            localStorage.clear();
+            limpiarDatosImpostor();
             jugadores = [];
             roles = {};
             impostoresAsignados = [];

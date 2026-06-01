@@ -60,8 +60,6 @@ No se encontraron:
 |-- Bingo/
 |   |-- carton.html
 |   |-- monitor.html
-|   |-- bingoOLD.html
-|   `-- bingo_monitorOLD.html
 |-- impostor/
 |   `-- indeximpostor.html
 `-- ValentinaPlay/
@@ -91,7 +89,7 @@ Responsabilidades:
 Notas:
 
 - El formulario no envia datos reales. Hace `event.preventDefault()` y muestra un `alert`.
-- Hay texto que aparece con caracteres corruptos en consola, por ejemplo acentos y simbolos. Conviene revisar codificacion real de los archivos.
+- La codificacion de caracteres fue revisada y corregida en la pasada de mantenimiento del 2026-06-01.
 
 ### `assets/styles.css`
 
@@ -168,15 +166,6 @@ Notas importantes:
 - El algoritmo de contraclave coincide con `carton.html`.
 - El monitor no persiste la partida si se recarga la pagina.
 
-### `Bingo/bingoOLD.html` y `Bingo/bingo_monitorOLD.html`
-
-Versiones antiguas de carton y monitor.
-
-Notas:
-
-- Usan Tailwind por CDN.
-- Parecen conservadas como historico.
-- Pueden confundir mantenimiento y navegacion si no esta claro si siguen en uso.
 
 ### `impostor/indeximpostor.html`
 
@@ -207,7 +196,7 @@ Notas:
 
 - La sesion caduca tras 5 horas.
 - La clave se calcula como `diaDelMes + 1021`.
-- `reiniciarTodoSistema()` usa `localStorage.clear()`, lo que puede borrar datos de otras paginas del mismo origen.
+- `reiniciarTodoSistema()` borra solo claves con prefijo `impostor_`, evitando eliminar datos de Bingo u otras paginas del mismo origen.
 
 ### `ValentinaPlay/`
 
@@ -295,16 +284,14 @@ Fortalezas:
 
 Riesgos y deuda:
 
-- Codificacion de caracteres aparentemente dañada o mal interpretada en varios HTML/CSS.
+- Codificacion de caracteres corregida en la pasada de mantenimiento del 2026-06-01.
 - Credenciales/PIN y algoritmos de acceso visibles en el cliente.
 - No hay autenticacion real en `Privado`.
 - El formulario de contacto no envia mensajes.
 - JavaScript inline dificulta reutilizacion, pruebas y mantenimiento.
 - CSS compartido muy grande y acoplado a muchas paginas.
-- Uso de `localStorage.clear()` en El Impostor puede borrar estado de Bingo u otras partes del sitio.
 - Dependencia de CDN para Tailwind y fuentes.
 - No hay pruebas manuales documentadas ni tests automatizados.
-- Existen archivos `OLD` sin documentar como historico o descartables.
 
 ## Convenciones Observadas
 
@@ -318,9 +305,8 @@ Riesgos y deuda:
 
 Mantener el proyecto como estatico por ahora, pero ordenar progresivamente:
 
-1. Corregir codificacion y textos.
+1. Mantener codificacion y textos revisados en nuevas paginas.
 2. Documentar uso local y despliegue.
 3. Separar JavaScript por modulo/pagina.
 4. Dividir CSS por areas o componentes.
-5. Definir si `OLD` se conserva, se archiva o se elimina.
-6. Sustituir accesos cliente por autenticacion real si la zona privada debe proteger contenido sensible.
+5. Sustituir accesos cliente por autenticacion real si la zona privada debe proteger contenido sensible.

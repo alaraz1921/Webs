@@ -2,11 +2,11 @@
 
 ## Prioridad Alta
 
-- [ ] Corregir la codificacion de caracteres en HTML/CSS para que acentos, eñes, simbolos e iconos se vean correctamente.
+- [x] Corregir la codificacion de caracteres en HTML/CSS para que acentos, eñes, simbolos e iconos se vean correctamente.
 - [ ] Definir si `Privado/index.html` sera una zona privada real o solo un placeholder; ahora no autentica ni protege contenido.
 - [ ] Evitar publicar PINes o claves como seguridad real en cliente. `Bingo/monitor.html` contiene `PIN_CORRECTO = "2017"` y `impostor/indeximpostor.html` calcula la clave en JavaScript.
-- [ ] Cambiar `localStorage.clear()` en `impostor/indeximpostor.html` por borrado selectivo de claves `impostor_*` para no eliminar estado de Bingo u otras paginas.
-- [ ] Decidir que hacer con `Bingo/bingoOLD.html` y `Bingo/bingo_monitorOLD.html`: archivar, renombrar claramente como historico o eliminar si ya no se usan.
+- [x] Cambiar `localStorage.clear()` en `impostor/indeximpostor.html` por borrado selectivo de claves `impostor_*` para no eliminar estado de Bingo u otras paginas.
+- [x] Decidir que hacer con `Bingo/bingoOLD.html` y `Bingo/bingo_monitorOLD.html`: eliminados porque ya no se usan.
 
 ## Prioridad Media
 
