@@ -47,8 +47,8 @@
 ## Ideas de Mejora
 
 - [ ] Convertir los juegos en componentes reutilizables solo si el proyecto crece lo suficiente para justificarlo.
-- [ ] Añadir una pagina de indice tecnico o ayuda privada para explicar reglas de Bingo e Impostor.
+- [x] Añadir ayuda contextual para explicar reglas de Bingo e Impostor.
 - [ ] Preparar despliegue en GitHub Pages con instrucciones claras.
 - [ ] Añadir versionado visible o changelog si se usa en eventos/familia.
-- [ ] En el juego del impostor, cambiar las cajas de texto para indicar los impostores al resolver el juego, por desplegables que contengan los nombres de los participantes.
+- [x] En el juego del impostor, cambiar las cajas de texto para indicar los impostores al resolver el juego, por desplegables que contengan los nombres de los participantes.
 - [ ] Icono para el 404.

@@ -503,6 +503,36 @@ body.impostor-page {
             font-weight: 900;
             text-shadow: 0 0 10px rgba(255, 183, 3, 0.4);
         }
+
+        .page-help-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .help-button {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            margin: 0;
+            padding: 0;
+            border: 2px solid #f59e0b;
+            border-radius: 50%;
+            background: #334155;
+            color: #f59e0b;
+            font-size: 18px;
+            font-weight: 900;
+            line-height: 1;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .help-button:hover {
+            background: #f59e0b;
+            color: #0f172a;
+        }
         
 
         body.impostor-page .btn-principal {
@@ -625,7 +655,7 @@ body.impostor-page {
         }
         
         body.impostor-page .modal-box h3 { color: #ffb703; margin-top: 0; font-size: 20px; text-transform: uppercase; }
-        body.impostor-page .modal-box p { color: #ffffff; font-size: 16px; margin: 15px 0; }
+        body.impostor-page .modal-box p { color: #ffffff; font-size: 16px; margin: 15px 0; white-space: pre-line; }
         body.impostor-page .modal-footer-buttons { display: flex; flex-direction: column; gap: 8px; }
 
 /* Bingo/carton.html */
@@ -852,6 +882,24 @@ body.valentina-page .clock-number {
     width: 30px;
     height: 30px;
     transform: translate(-50%, -50%);
+}
+
+body.bingo-carton-page .help-button,
+body.bingo-monitor-page .help-button,
+body.impostor-page .help-button {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    margin: 0;
+    padding: 0;
+    border: 2px solid #f59e0b;
+    border-radius: 50%;
+    background: #334155;
+    color: #f59e0b;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1;
+    text-align: center;
 }
 
 @keyframes bounce {

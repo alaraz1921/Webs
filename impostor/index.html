@@ -8,7 +8,10 @@
 </head>
 <body class="impostor-page">
 
-    <h1 class="main-app-title">El Infiltrado</h1>
+    <div class="page-help-header">
+        <h1 class="main-app-title">El Infiltrado</h1>
+        <button class="help-button" type="button" onclick="mostrarAyudaImpostor()" aria-label="Ayuda de El Infiltrado">?</button>
+    </div>
 
     <div id="custom-modal" class="modal-overlay">
         <div class="modal-box">
@@ -54,7 +57,7 @@
 
     <div id="screen-game" class="screen">
         <h2>Partida en Curso</h2>
-        <p>¡Debatid! Cuando creáis saber quiénes son los infiltrados, escribid sus nombres:</p>
+        <p>¡Debatid! Cuando creáis saber quiénes son los infiltrados, seleccionad sus nombres:</p>
         <div id="impostor-inputs-evaluation"></div>
         <button onclick="evaluarImpostores()">Resolver</button>
         <button class="btn-danger" onclick="rendirse()">Rendirse / Revelar</button>
@@ -189,6 +192,13 @@
             document.getElementById('custom-modal').style.display = 'none';
         }
 
+        function mostrarAyudaImpostor() {
+            abrirModal(
+                "Ayuda de El Infiltrado",
+                "1. Configura cuántos jugadores e infiltrados participan.\n2. Cada jugador mira su rol manteniendo pulsado el recuadro, sin enseñarlo a los demás.\n3. Los jugadores normales ven el lugar secreto. Los infiltrados no lo conocen.\n4. Durante el debate, todos intentan descubrir a los infiltrados sin revelar demasiado.\n5. Al resolver, seleccionad los nombres de los infiltrados. Si acertáis todos, ganáis."
+            );
+        }
+
         // ACCESO
         function verificarClave() {
             const input = document.getElementById('pinInput').value;
@@ -299,13 +309,29 @@
             contenedorEval.innerHTML = "";
             const numImpostores = impostoresAsignados.length;
             for(let i=1; i<=numImpostores; i++) {
-                contenedorEval.innerHTML += `<input type="text" class="guess-impostor" placeholder="Nombre del Infiltrado ${i}">`;
+                const select = document.createElement('select');
+                select.className = 'guess-impostor';
+                select.setAttribute('aria-label', `Nombre del Infiltrado ${i}`);
+
+                const emptyOption = document.createElement('option');
+                emptyOption.value = '';
+                emptyOption.textContent = `Selecciona infiltrado ${i}`;
+                select.appendChild(emptyOption);
+
+                jugadores.forEach(nombre => {
+                    const option = document.createElement('option');
+                    option.value = nombre;
+                    option.textContent = nombre;
+                    select.appendChild(option);
+                });
+
+                contenedorEval.appendChild(select);
             }
         }
 
         function evaluarImpostores() {
             const inputs = document.querySelectorAll('.guess-impostor');
-            const respuestas = Array.from(inputs).map(inp => inp.value.trim().toLowerCase());
+            const respuestas = Array.from(inputs).map(inp => inp.value.trim().toLowerCase()).filter(Boolean);
             const correctos = impostoresAsignados.map(imp => imp.toLowerCase());
 
             const aciertoTotal = correctos.every(imp => respuestas.includes(imp)) && respuestas.length === correctos.length;

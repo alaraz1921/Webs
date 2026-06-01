@@ -151,6 +151,7 @@ Responsabilidades:
 - Permitir marcar numeros solo cuando la partida esta empezada.
 - Bloquear cambio de carton tras iniciar partida.
 - Solicitar clave/contraclave para desbloquear cambio.
+- Mostrar ayuda contextual con reglas basicas del juego.
 
 Claves de `localStorage`:
 
@@ -177,6 +178,7 @@ Responsabilidades:
 - Pausar/reanudar.
 - Reiniciar monitor con modal propio.
 - Calcular contraclave para validar carton.
+- Mostrar ayuda contextual del rol de monitor.
 
 Notas importantes:
 
@@ -195,7 +197,8 @@ Responsabilidades:
 - Configuracion de numero de jugadores e impostores.
 - Asignacion aleatoria de lugar secreto e impostores.
 - Flujo de revelado por turnos.
-- Evaluacion final.
+- Evaluacion final mediante desplegables con los nombres de participantes.
+- Ayuda contextual con reglas basicas.
 - Persistencia de sesion y estado en `localStorage`.
 
 Claves principales de `localStorage`:

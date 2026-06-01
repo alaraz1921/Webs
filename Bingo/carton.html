@@ -8,7 +8,10 @@
 </head>
 <body class="bingo-carton-page">
 
-    <h1>CARTÓN</h1>
+    <div class="page-help-header">
+        <h1>CARTÓN</h1>
+        <button class="help-button" type="button" onclick="mostrarAyudaBingo()" aria-label="Ayuda de Bingo">?</button>
+    </div>
 
     <div class="contenedor-tabla">
         <table id="tabla-carton"></table>
@@ -75,6 +78,10 @@
 
         function cerrarModalAlert() {
             document.getElementById('miModalAlert').style.display = 'none';
+        }
+
+        function mostrarAyudaBingo() {
+            mostrarAlerta("<strong>Cómo jugar al Bingo</strong><br><br>1. Pulsa Empezar Partida cuando el monitor empiece a cantar bolas.<br>2. Toca en tu cartón los números que vayan saliendo.<br>3. Usa Limpiar Tachados si necesitas desmarcar todo.<br>4. Para cambiar de cartón, pide una contraclave al monitor: el cartón muestra una clave y el monitor calcula la contraclave.<br>5. Solo se genera un cartón nuevo cuando la contraclave es correcta.");
         }
 
         // CONTROL DE MEMORIA PERMANENTE

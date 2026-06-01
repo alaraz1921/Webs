@@ -19,7 +19,10 @@
         </div>
     </div>
 
-    <h1>🎙️ Monitor de Bingo</h1>
+    <div class="page-help-header">
+        <h1>🎙️ Monitor de Bingo</h1>
+        <button class="help-button" type="button" onclick="mostrarAyudaMonitor()" aria-label="Ayuda del monitor de Bingo">?</button>
+    </div>
 
     <div class="marcador-bolas">
         <div class="bola-actual" id="bolaActual">--</div>
@@ -166,6 +169,10 @@
 
         function cerrarAlertaMonitor() {
             document.getElementById('monitorModalAlert').style.display = 'none';
+        }
+
+        function mostrarAyudaMonitor() {
+            mostrarAlertaMonitor("<strong>Monitor de Bingo</strong><br><br>1. Accede con el PIN del monitor.<br>2. Pulsa Comenzar para cantar bolas automáticamente cada pocos segundos.<br>3. Usa Pausar o Reanudar para controlar la partida.<br>4. Validar Cartón calcula la contraclave que necesita un jugador para cambiar de cartón.<br>5. Limpiar reinicia todas las bolas cantadas y deja el monitor preparado para una nueva partida.");
         }
 
         function reiniciarTodo() {
