@@ -11,10 +11,11 @@
 
     <div id="pantallaLogin">
         <div class="login-box">
-            <h2>🔒 Control de Acceso</h2>
+            <h1 class="login-page-title">MONITOR BINGO</h1>
+            <h2>&#128274; CONTROL DE ACCESO</h2>
             <p>Introduce el PIN del Monitor para gestionar la partida:</p>
             <input type="password" id="pinAcceso" placeholder="****" inputmode="numeric" pattern="[0-9]*" maxlength="4" onkeypress="if(event.key === 'Enter') verificarPin();">
-            <button class="btn-entrar" onclick="verificarPin()">Acceder al Panel</button>
+            <button class="btn-entrar" onclick="verificarPin()">ACCEDER</button>
             <a class="btn-principal btn-login-principal" href="../index.html">Volver a la p&aacute;gina principal</a>
             <div class="error-login" id="msgError">PIN incorrecto. Int&eacute;ntalo de nuevo.</div>
         </div>

@@ -2,15 +2,28 @@
         const menuBtn = document.getElementById('mobile-menu-btn');
         const menuList = document.getElementById('nav-menu-list');
 
+        function cerrarMenuMovil() {
+            menuBtn.classList.remove('open');
+            menuList.classList.remove('mobile-open');
+            customSubmenu.classList.remove('open');
+            parentItem.classList.remove('active');
+        }
+
         menuBtn.addEventListener('click', () => {
             menuBtn.classList.toggle('open');
             menuList.classList.toggle('mobile-open');
         });
 
-        // CONTROL DEL DESPLEGABLE "OTROS" (FUNCIONA CON CLIC EN ESCRITORIO Y MÓVIL)
+        // CONTROL DEL DESPLEGABLE "GAMES" (FUNCIONA CON CLIC EN ESCRITORIO Y MÓVIL)
         const dropdownTrigger = document.getElementById('dropdown-trigger');
         const customSubmenu = document.getElementById('custom-submenu');
         const parentItem = dropdownTrigger.parentElement;
+
+        menuList.querySelectorAll('a').forEach((link) => {
+            if (link !== dropdownTrigger) {
+                link.addEventListener('click', cerrarMenuMovil);
+            }
+        });
 
         dropdownTrigger.addEventListener('click', (e) => {
             e.preventDefault(); // Evita que la página salte al inicio al pulsar '#'

@@ -7,9 +7,9 @@
 - [x] PA-03 Evitar publicar PINes o claves como seguridad real en cliente. Bingo Monitor e Impostor validan la clave diaria con RPC en Supabase.
 - [x] PA-04 Cambiar `localStorage.clear()` en `impostor/index.html` por borrado selectivo de claves `impostor_*` para no eliminar estado de Bingo u otras paginas.
 - [x] PA-05 Decidir que hacer con `Bingo/bingoOLD.html` y `Bingo/bingo_monitorOLD.html`: eliminados porque ya no se usan.
-- [ ] PA-06 Al desplegar el menú hamburguesa el fondo de este no debe ser opaco, que tenga transparencia. Y parece que hay un error cuando desde el menu se pulsa en contacto, que a pesar de desplazarse a esta sección, no se cierra el menu.
-- [ ] PA-07 En el panel de acceso de el impostor en la caja de la clave deben aparecer asteriscos y poner titulo a la pagina "IMPOSTOR" y al label "CONTROL DE ACCESO" le falta el icono del candado. Ademas poner un poco de margen al panel de acceso, igual que tiene el panel de acceso al bingo.
-- [ ] PA-08 en el panel de accesor al monitor de bingo tambien añadir el titulo "MONITOR BINGO" y el label "CONTROL DE ACCESO" en mayusculas y el boton verde de acceder solo con el caption "ACCEDER" en mayúsculas.
+- [x] PA-06 Al desplegar el menú hamburguesa el fondo de este no debe ser opaco, que tenga transparencia. Y parece que hay un error cuando desde el menu se pulsa en contacto, que a pesar de desplazarse a esta sección, no se cierra el menu.
+- [x] PA-07 En el panel de acceso de el impostor en la caja de la clave deben aparecer asteriscos y poner titulo a la pagina "IMPOSTOR" y al label "CONTROL DE ACCESO" le falta el icono del candado. Ademas poner un poco de margen al panel de acceso, igual que tiene el panel de acceso al bingo.
+- [x] PA-08 en el panel de accesor al monitor de bingo tambien añadir el titulo "MONITOR BINGO" y el label "CONTROL DE ACCESO" en mayusculas y el boton verde de acceder solo con el caption "ACCEDER" en mayúsculas.
 
 
 ## Prioridad Media
