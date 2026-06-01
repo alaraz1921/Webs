@@ -54,6 +54,12 @@
             </div>
         </div>
     </div>
+    <div id="monitorModalAlert" class="modal-background">
+        <div class="modal-box">
+            <p id="textoMonitorModalAlert">Aviso del sistema</p>
+            <button class="btn-modal-ok" onclick="cerrarAlertaMonitor()">Entendido</button>
+        </div>
+    </div>
     <script>
         // CONFIGURACIÓN DEL PIN (Puedes cambiar el "1234" por la clave que quieras)
         const PIN_CORRECTO = "2017";
@@ -118,7 +124,7 @@
         function sacarBola() {
             if (numerosDisponibles.length === 0) {
                 clearInterval(intervalo);
-                alert("Se han cantado los 90 n&uacute;meros. Fin de la partida.");
+                mostrarAlertaMonitor("Se han cantado los 90 n&uacute;meros. Fin de la partida.");
                 return;
             }
 
@@ -152,6 +158,16 @@
                 modal.style.display = 'none';
             };
         }
+
+        function mostrarAlertaMonitor(texto) {
+            document.getElementById('textoMonitorModalAlert').innerHTML = texto;
+            document.getElementById('monitorModalAlert').style.display = 'flex';
+        }
+
+        function cerrarAlertaMonitor() {
+            document.getElementById('monitorModalAlert').style.display = 'none';
+        }
+
         function reiniciarTodo() {
             mostrarConfirmacionMonitor("&iquest;Seguro que quieres reiniciar el monitor? Se borrar&aacute;n todos los n&uacute;meros cantados.", function() {
                 clearInterval(intervalo);
@@ -176,7 +192,7 @@
         function calcularContraclave() {
             let clave = parseInt(document.getElementById('claveJugador').value);
             if (isNaN(clave)) {
-                alert("Por favor, introduce los 4 n&uacute;meros de la clave.");
+                mostrarAlertaMonitor("Por favor, introduce los 4 n&uacute;meros de la clave.");
                 return;
             }
             let contraclave = ((clave * 3) + 7) % 10000;

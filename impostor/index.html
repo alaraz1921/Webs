@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Infiltrado</title>
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="impostor-page">
+
+    <h1 class="main-app-title">El Infiltrado</h1>
+
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modal-title">Aviso</h3>
+            <p id="modal-message">Mensaje del sistema.</p>
+            <div id="modal-buttons" class="modal-footer-buttons">
+                <button id="modal-default-btn" onclick="cerrarModal()">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-lock" class="screen active">
+        <h2>Acceso Restringido</h2>
+        <p>Introduce la clave para entrar:</p>
+        <input type="text" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0000">
+        <button onclick="verificarClave()">Acceder</button>
+    </div>
+
+    <div id="screen-config" class="screen">
+        <h2>Configuración</h2>
+        <label>¿Cuántos juegan?</label>
+        <select id="totalPlayers" onchange="guardarConfiguracionBase()"></select>
+        
+        <label>¿Cuántos infiltrados?</label>
+        <select id="totalImpostors" onchange="guardarConfiguracionBase()">
+            <option value="1">1 Infiltrado</option>
+            <option value="2">2 Infiltrados</option>
+        </select>
+        <button id="btn-continue" onclick="generarInputsNombres()">Continuar</button>
+        
+        <div id="container-names"></div>
+        <button id="btn-start" style="display:none;" onclick="iniciarSorteo()">Comenzar Sorteo</button>
+    </div>
+
+    <div id="screen-draw" class="screen">
+        <h2 id="player-turn-name">Turno de: </h2>
+        <p>Pasa el móvil a este jugador. Mantén pulsado el recuadro para ver tu rol:</p>
+        <div id="reveal-area" class="reveal-box" onmousedown="mostrarRol()" onmouseup="ocultarRol()" ontouchstart="mostrarRol()" ontouchend="ocultarRol()">
+            MANTÉN PULSADO PARA VER
+        </div>
+        <button id="btn-next-player" onclick="siguienteJugador()">Siguiente Jugador</button>
+    </div>
+
+    <div id="screen-game" class="screen">
+        <h2>Partida en Curso</h2>
+        <p>¡Debatid! Cuando creáis saber quiénes son los infiltrados, escribid sus nombres:</p>
+        <div id="impostor-inputs-evaluation"></div>
+        <button onclick="evaluarImpostores()">Resolver</button>
+        <button class="btn-danger" onclick="rendirse()">Rendirse / Revelar</button>
+    </div>
+
+    <a class="impostor-home-link btn-principal" href="../index.html">Volver a la p&aacute;gina principal</a>
+
+    <script>
+        const LUGARES = ["Banco", "Banda", "Cabo", "Planta", "Esposa", "Gato", "Cura", "Coche", "Estación", "Bisturí", 
+    "Gemelos", "Batería", "Carta", "Cuadro", "Corona", "Línea", "Marco", "Órgano", "Impresora", "Radio", 
+    "Sierra", "Escuela", "Policía", "Hospital", "Gimnasio", "Ratón", "Vela", "Hoja", "Pluma", "Teclado", 
+    "Terminal", "Sirena", "Espía", "Bolsa", "Paso", "Barrera", "Piquete", "Caja", "Campaña", "Fórmula", 
+    "Taller", "Prensa", "Corte", "Mesa", "Red", "Portero", "Frente", "Capital", "Asilo", "Canal", 
+    "Casco", "Maleta", "Militar", "Profesor", "Informático", "Nave", "Destilería", "Cámara", "Estudio", "Bazar", 
+    "Cerradura", "Palomita", "Minero", "Pala", "Gato hidráulico", "Balanza", "Espejo", "Estrella", "Granja", "Faro", 
+    "Teatro", "Circo", "Clínica", "Fábrica", "Puerto", "Aeropuerto", "Aduana", "Embajada", "Notaría", "Juzgado", 
+    "Prisión", "Laboratorio", "Archivo", "Almacén", "Biblioteca", "Museo", "Refugio", "Cabaña", "Palacio", "Fuerte", 
+    "Trinchera", "Frontera", "Peaje", "Taquilla", "Quiosco", "Grúa", "Andamio", "Tanque", "Cable", "Brújula"];
+        
+        let jugadores = [];
+        let roles = {}; 
+        let impostoresAsignados = [];
+        let jugadorActualIndex = 0;
+        let lugarSecreto = "";
+        let faseActual = "BLOQUEO";
+
+        // Inicializar desplegable de jugadores
+        const selectP = document.getElementById('totalPlayers');
+        for(let i=3; i<=20; i++) {
+            let opt = document.createElement('option');
+            opt.value = i; opt.textContent = i + " Jugadores";
+            selectP.appendChild(opt);
+        }
+
+        window.onload = function() {
+            comprobarExpiracionTiempo();
+            cargarEstadoJuego();
+        };
+
+        function comprobarExpiracionTiempo() {
+            const loginTimestamp = localStorage.getItem('impostor_login_time');
+            if (loginTimestamp) {
+                const cincoHorasEnMs = 5 * 60 * 60 * 1000;
+                if (Date.now() - parseInt(loginTimestamp) > cincoHorasEnMs) {
+                    reiniciarTodoSistema();
+                }
+            }
+        }
+
+        function guardarEstadoJuego() {
+            localStorage.setItem('impostor_fase', faseActual);
+            localStorage.setItem('impostor_jugadores', JSON.stringify(jugadores));
+            localStorage.setItem('impostor_roles', JSON.stringify(roles));
+            localStorage.setItem('impostor_impostoresAsignados', JSON.stringify(impostoresAsignados));
+            localStorage.setItem('impostor_jugadorActualIndex', jugadorActualIndex);
+            localStorage.setItem('impostor_lugarSecreto', lugarSecreto);
+            guardarConfiguracionBase();
+        }
+
+        function guardarConfiguracionBase() {
+            localStorage.setItem('impostor_config_total', document.getElementById('totalPlayers').value);
+            localStorage.setItem('impostor_config_imps', document.getElementById('totalImpostors').value);
+        }
+
+        function cargarEstadoJuego() {
+            const sesionActiva = localStorage.getItem('impostor_login_time');
+            if (!sesionActiva) return;
+
+            faseActual = localStorage.getItem('impostor_fase') || "CONFIGURACION";
+            
+            if(localStorage.getItem('impostor_config_total')) document.getElementById('totalPlayers').value = localStorage.getItem('impostor_config_total');
+            if(localStorage.getItem('impostor_config_imps')) document.getElementById('totalImpostors').value = localStorage.getItem('impostor_config_imps');
+
+            if (faseActual === "BLOQUEO") {
+                cambiarPantallaVisual('screen-lock');
+            } else if (faseActual === "CONFIGURACION") {
+                cambiarPantallaVisual('screen-config');
+            } else {
+                jugadores = JSON.parse(localStorage.getItem('impostor_jugadores')) || [];
+                roles = JSON.parse(localStorage.getItem('impostor_roles')) || {};
+                impostoresAsignados = JSON.parse(localStorage.getItem('impostor_impostoresAsignados')) || [];
+                jugadorActualIndex = parseInt(localStorage.getItem('impostor_jugadorActualIndex')) || 0;
+                lugarSecreto = localStorage.getItem('impostor_lugarSecreto') || "";
+
+                if (faseActual === "REPARTO") {
+                    prepararTurnoJugador();
+                    cambiarPantallaVisual('screen-draw');
+                } else if (faseActual === "PARTIDA") {
+                    prepararPantallaResolucion();
+                    cambiarPantallaVisual('screen-game');
+                }
+            }
+        }
+
+        // CONTROL DE MODALES
+        function abrirModal(titulo, mensaje, esFinPartida = false) {
+            document.getElementById('modal-title').textContent = titulo;
+            document.getElementById('modal-message').textContent = mensaje;
+            
+            const btnContenedor = document.getElementById('modal-buttons');
+            btnContenedor.innerHTML = ""; 
+
+            if (esFinPartida) {
+                const btnMismos = document.createElement('button');
+                btnMismos.textContent = "Repetir (Mismos Jugadores)";
+                btnMismos.onclick = function() {
+                    cerrarModal();
+                    reiniciarMismosJugadores();
+                };
+                
+                const btnTodo = document.createElement('button');
+                btnTodo.textContent = "Reiniciar todo desde cero";
+                btnTodo.className = "btn-danger";
+                btnTodo.onclick = function() {
+                    cerrarModal();
+                    reiniciarTodoSistema();
+                };
+
+                btnContenedor.appendChild(btnMismos);
+                btnContenedor.appendChild(btnTodo);
+            } else {
+                const btnCerrar = document.createElement('button');
+                btnCerrar.textContent = "Entendido";
+                btnCerrar.onclick = cerrarModal;
+                btnContenedor.appendChild(btnCerrar);
+            }
+
+            document.getElementById('custom-modal').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('custom-modal').style.display = 'none';
+        }
+
+        // ACCESO
+        function verificarClave() {
+            const input = document.getElementById('pinInput').value;
+            const hoy = new Date().getDate();
+            const claveCorrecta = hoy + 1021;
+
+            if (parseInt(input) === claveCorrecta) {
+                localStorage.setItem('impostor_login_time', Date.now()); 
+                faseActual = "CONFIGURACION";
+                guardarEstadoJuego();
+                cambiarPantallaVisual('screen-config');
+            } else {
+                abrirModal("⚠️ Acceso Denegado", "La clave introducida es incorrecta.");
+            }
+        }
+
+        function cambiarPantallaVisual(idPantalla) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(idPantalla).classList.add('active');
+        }
+
+        // CONFIGURACIÓN Y LÓGICA
+        function generarInputsNombres() {
+            const num = document.getElementById('totalPlayers').value;
+            const container = document.getElementById('container-names');
+            container.innerHTML = "<h3>Introduce los nombres:</h3>";
+            
+            for(let i=1; i<=num; i++) {
+                container.innerHTML += `<input type="text" class="player-name-input" placeholder="Jugador ${i}" required>`;
+            }
+            document.getElementById('btn-continue').style.display = 'none';
+            document.getElementById('btn-start').style.display = 'block';
+        }
+
+        function iniciarSorteo() {
+            const inputs = document.querySelectorAll('.player-name-input');
+            if (inputs.length > 0) {
+                jugadores = Array.from(inputs).map(inp => inp.value.trim() || inp.placeholder);
+            }
+            ejecutarMezclaYAsignacion();
+        }
+
+        function ejecutarMezclaYAsignacion() {
+            const numImpostores = parseInt(document.getElementById('totalImpostors').value);
+            
+            if (numImpostores >= jugadores.length) {
+                abrirModal("Configuración Errónea", "No puede haber igual o más infiltrados que jugadores.");
+                return;
+            }
+
+            lugarSecreto = LUGARES[Math.floor(Math.random() * LUGARES.length)];
+            let copiaJugadores = [...jugadores];
+            impostoresAsignados = [];
+            
+            for(let i=0; i<numImpostores; i++) {
+                let index = Math.floor(Math.random() * copiaJugadores.length);
+                impostoresAsignados.push(copiaJugadores.splice(index, 1)[0]);
+            }
+
+            roles = {};
+            jugadores.forEach(j => {
+                roles[j] = impostoresAsignados.includes(j) ? "Eres el INFILTRADO 🏴‍☠️" : `Lugar: ${lugarSecreto} 🏙️`;
+            });
+
+            jugadorActualIndex = 0;
+            faseActual = "REPARTO";
+            guardarEstadoJuego();
+            prepararTurnoJugador();
+            cambiarPantallaVisual('screen-draw');
+        }
+
+        function prepararTurnoJugador() {
+            document.getElementById('player-turn-name').textContent = "Turno de: " + jugadores[jugadorActualIndex];
+            document.getElementById('reveal-area').textContent = "MANTÉN PULSADO PARA VER";
+            
+            const btnNext = document.getElementById('btn-next-player');
+            if (jugadorActualIndex === jugadores.length - 1) {
+                btnNext.textContent = "Comenzar Partida";
+            } else {
+                btnNext.textContent = "Siguiente Jugador";
+            }
+        }
+
+        function mostrarRol() {
+            const nombre = jugadores[jugadorActualIndex];
+            document.getElementById('reveal-area').textContent = roles[nombre];
+        }
+
+        function ocultarRol() {
+            document.getElementById('reveal-area').textContent = "MANTÉN PULSADO PARA VER";
+        }
+
+        function siguienteJugador() {
+            if (jugadorActualIndex < jugadores.length - 1) {
+                jugadorActualIndex++;
+                localStorage.setItem('impostor_jugadorActualIndex', jugadorActualIndex);
+                prepararTurnoJugador();
+            } else {
+                faseActual = "PARTIDA";
+                guardarEstadoJuego();
+                prepararPantallaResolucion();
+                cambiarPantallaVisual('screen-game');
+            }
+        }
+
+        function prepararPantallaResolucion() {
+            const contenedorEval = document.getElementById('impostor-inputs-evaluation');
+            contenedorEval.innerHTML = "";
+            const numImpostores = impostoresAsignados.length;
+            for(let i=1; i<=numImpostores; i++) {
+                contenedorEval.innerHTML += `<input type="text" class="guess-impostor" placeholder="Nombre del Infiltrado ${i}">`;
+            }
+        }
+
+        function evaluarImpostores() {
+            const inputs = document.querySelectorAll('.guess-impostor');
+            const respuestas = Array.from(inputs).map(inp => inp.value.trim().toLowerCase());
+            const correctos = impostoresAsignados.map(imp => imp.toLowerCase());
+
+            const aciertoTotal = correctos.every(imp => respuestas.includes(imp)) && respuestas.length === correctos.length;
+
+            if (aciertoTotal) {
+                abrirModal("🎉 ¡VICTORIA TOTAL!", "¡Felicidades! Habéis descubierto a todos los infiltrados: " + impostoresAsignados.join(' y ') + ".", true);
+            } else {
+                abrirModal("❌ Fallo", "Esos no son los infiltrados (o falta alguno por escribir). ¡Seguid debatiendo!");
+            }
+        }
+
+        function rendirse() {
+            abrirModal("🏳️ Partida Terminada", "Os habéis rendido. Los infiltrados eran: " + impostoresAsignados.join(' y ') + `. El lugar secreto era: ${lugarSecreto}.`, true);
+        }
+
+        function reiniciarMismosJugadores() {
+            ejecutarMezclaYAsignacion();
+        }
+
+        function limpiarDatosImpostor() {
+            Object.keys(localStorage)
+                .filter(clave => clave.startsWith('impostor_'))
+                .forEach(clave => localStorage.removeItem(clave));
+        }
+
+        function reiniciarTodoSistema() {
+            limpiarDatosImpostor();
+            jugadores = [];
+            roles = {};
+            impostoresAsignados = [];
+            jugadorActualIndex = 0;
+            lugarSecreto = "";
+            faseActual = "BLOQUEO";
+            
+            document.getElementById('pinInput').value = "";
+            document.getElementById('container-names').innerHTML = "";
+            document.getElementById('btn-continue').style.display = 'block';
+            document.getElementById('btn-start').style.display = 'none';
+            
+            cambiarPantallaVisual('screen-lock');
+        }
+    </script>
+</body>
+</html>

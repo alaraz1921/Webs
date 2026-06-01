@@ -31,7 +31,7 @@ b2ca9cc Usar modal propio en monitor de bingo
 - HTML multipagina.
 - CSS compartido en `assets/styles.css`.
 - JavaScript inline dentro de cada HTML.
-- Tailwind CSS por CDN en las paginas de `ValentinaPlay` y en los HTML antiguos de Bingo.
+- Tailwind CSS por CDN en las paginas de `ValentinaPlay`.
 - Google Fonts por CDN en la portada y zona privada.
 - Persistencia local mediante `localStorage` en Bingo y El Impostor.
 
@@ -49,7 +49,6 @@ No se encontraron:
 .
 |-- index.html
 |-- 404.html
-|-- index_redireccion.html
 |-- Notas
 |-- assets/
 |   `-- styles.css
@@ -61,7 +60,7 @@ No se encontraron:
 |   |-- carton.html
 |   |-- monitor.html
 |-- impostor/
-|   `-- indeximpostor.html
+|   `-- index.html
 `-- ValentinaPlay/
     |-- index.html
     |-- tictactoe.html
@@ -88,7 +87,7 @@ Responsabilidades:
 
 Notas:
 
-- El formulario no envia datos reales. Hace `event.preventDefault()` y muestra un `alert`.
+- El formulario no envia datos reales. Hace `event.preventDefault()`, limpia el formulario y muestra un modal propio de confirmacion.
 - La codificacion de caracteres fue revisada y corregida en la pasada de mantenimiento del 2026-06-01.
 
 ### `assets/styles.css`
@@ -167,7 +166,7 @@ Notas importantes:
 - El monitor no persiste la partida si se recarga la pagina.
 
 
-### `impostor/indeximpostor.html`
+### `impostor/index.html`
 
 Juego "El Infiltrado/El Impostor".
 
@@ -221,10 +220,6 @@ Notas:
 ### `404.html`
 
 Pagina de error estatica con estilo coherente con Bingo.
-
-### `index_redireccion.html`
-
-Pagina simple de redireccion. Conviene confirmar si sigue siendo necesaria.
 
 ### `Notas`
 
@@ -291,7 +286,7 @@ Riesgos y deuda:
 - JavaScript inline dificulta reutilizacion, pruebas y mantenimiento.
 - CSS compartido muy grande y acoplado a muchas paginas.
 - Dependencia de CDN para Tailwind y fuentes.
-- No hay pruebas manuales documentadas ni tests automatizados.
+- Hay checklist manual en `TODO.md`; no hay tests automatizados.
 
 ## Convenciones Observadas
 

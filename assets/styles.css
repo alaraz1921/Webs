@@ -31,9 +31,9 @@
         }
 
         body.home-page .navbar.scrolled {
-            background-color: var(--azul-medio);
-            border-bottom: 2px solid var(--azul-borde);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            background-color: transparent;
+            border-bottom-color: transparent;
+            box-shadow: none;
         }
 
         body.home-page .nav-container {
@@ -42,17 +42,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
+            padding: 12px 20px;
             box-sizing: border-box;
         }
 
         body.home-page .nav-logo {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 400;
             color: #ffffff;
             text-transform: lowercase;
             letter-spacing: 1px;
             text-decoration: none;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.55);
         }
 
         body.home-page .nav-menu {
@@ -77,6 +78,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.55);
         }
 
         body.home-page .nav-menu a:hover {
@@ -389,8 +391,8 @@
                 /* RESPONSIVE (PANTALLAS MOVILES) */
         @media (max-width: 768px) {
             body.home-page .navbar {
-                background-color: var(--azul-medio);
-                border-bottom: 2px solid var(--azul-borde);
+                background-color: transparent;
+                border-bottom: 2px solid transparent;
             }
             
             body.home-page .menu-toggle {
@@ -481,7 +483,7 @@ body.error-page * { box-sizing: border-box; margin: 0; padding: 0; font-family: 
         body.error-page /* Zona de la imagen al final */
         .imagen-decorativa { margin-top: 30px; max-width: 150px; height: auto; border-radius: 8px; opacity: 0.8; }
 
-/* impostor/indeximpostor.html */
+/* impostor/index.html */
 /* ESTILO GENERAL MONITOR DE BINGO */
 body.impostor-page { 
             font-family: 'Segoe UI', Arial, sans-serif; 

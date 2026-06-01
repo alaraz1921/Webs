@@ -20,9 +20,20 @@
             
             <div class="modal-buttons-container">
                 <!-- Puedes cambiar estos enlaces de ejemplo por los tuyos propios -->
-                <a href="impostor/indeximpostor.html" class="btn-modal-link">El Impostor</a>
+                <a href="impostor/" class="btn-modal-link">El Impostor</a>
                 <a href="Bingo/carton.html" class="btn-modal-link">Bingo</a>
                 <a href="Bingo/monitor.html" class="btn-modal-link">Monitor</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="mensaje-modal">
+        <div class="modal-box">
+            <button class="close-modal-btn" onclick="cerrarMensajeModal()">&times;</button>
+            <h3>Mensaje enviado</h3>
+            <p>Gracias por contactar. He recibido tu mensaje correctamente.</p>
+            <div class="modal-buttons-container">
+                <button class="btn-modal-link" onclick="cerrarMensajeModal()">Entendido</button>
             </div>
         </div>
     </div>
@@ -48,7 +59,7 @@
                     <ul class="submenu" id="custom-submenu">
                         <li><a href="Bingo/carton.html">Bingo</a></li>
                         <li><a href="Bingo/monitor.html">Monitor</a></li>
-                        <li><a href="impostor/indeximpostor.html">El Impostor</a></li>
+                        <li><a href="impostor/">El Impostor</a></li>
                     </ul>
                 </li>
             </ul>
@@ -75,7 +86,7 @@
         <!-- FORMULARIO DE CONTACTO -->
         <section class="contact-form">
             <h2>Contacto</h2>
-            <form action="#" method="POST" onsubmit="event.preventDefault(); alert('Mensaje enviado con éxito');">
+            <form action="#" method="POST" onsubmit="enviarContacto(event)">
                 <div class="form-group">
                     <label for="name">Nombre</label>
                     <input type="text" id="name" name="name" required>
@@ -140,6 +151,7 @@
 
         // LÓGICA PARA CONTROLAR EL MODAL EMERGENTE (BOTÓN DE ABAJO)
         const modal = document.getElementById('otros-modal');
+        const mensajeModal = document.getElementById('mensaje-modal');
 
         function abrirModal() {
             modal.style.display = 'flex';
@@ -149,10 +161,26 @@
             modal.style.display = 'none';
         }
 
+        function enviarContacto(event) {
+            event.preventDefault();
+            event.target.reset();
+            mensajeModal.style.display = 'flex';
+        }
+
+        function cerrarMensajeModal() {
+            mensajeModal.style.display = 'none';
+        }
+
         // Cerrar el modal si se pulsa sobre la capa oscura del fondo
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 cerrarModal();
+            }
+        });
+
+        mensajeModal.addEventListener('click', (e) => {
+            if (e.target === mensajeModal) {
+                cerrarMensajeModal();
             }
         });
 
