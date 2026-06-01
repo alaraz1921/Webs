@@ -65,7 +65,7 @@
         }
 
         function mostrarAyudaBingo() {
-            mostrarAlerta("<strong>Cómo jugar al Bingo</strong><br><br>1. Pulsa Empezar Partida cuando el monitor empiece a cantar bolas.<br>2. Toca en tu cartón los números que vayan saliendo.<br>3. Usa Limpiar Tachados si necesitas desmarcar todo.<br>4. Para cambiar de cartón, pide una contraclave al monitor: el cartón muestra una clave y el monitor calcula la contraclave.<br>5. Solo se genera un cartón nuevo cuando la contraclave es correcta.");
+            mostrarAlerta("<strong>Cómo jugar al Bingo</strong><br><br>1. Pulsa Empezar Partida cuando el monitor empiece a cantar bolas.<br>2. Toca en tu cartón los números que vayan saliendo.<br>3. Usa Limpiar Tachados si necesitas desmarcar todo.<br>4. Si la partida ya ha empezado, para cambiar de cartón pide una contraclave al monitor.<br>5. Tras validar un cambio, podrás cambiar de cartón libremente hasta que vuelvas a pulsar Empezar Partida.");
         }
 
         // CONTROL DE MEMORIA PERMANENTE
@@ -223,7 +223,22 @@
 
         // FUNCI&Oacute;N DEL BOT&Oacute;N "CAMBIAR CART&Oacute;N"
         function solicitudCambioCarton() {
+            if (!bloqueadoPorSeguridad) {
+                cambiarCartonLibre();
+                return;
+            }
+
             mostrarZonaCambio();
+        }
+
+        function cambiarCartonLibre() {
+            document.getElementById('zonaCambio').style.display = 'none';
+            document.getElementById('inputContraclave').value = '';
+            document.getElementById('txtClave').textContent = '0000';
+            juegoEmpezado = false;
+            localStorage.setItem('bingo_perm_juegoEmpezado', 'false');
+            localStorage.setItem('bingo_perm_bloqueo', 'false');
+            generarNuevaEstructuraCarton();
         }
 
         function mostrarZonaCambio() {
@@ -242,19 +257,8 @@
             if (input === contraclaveCorrecta) {
                 mostrarAlerta("&iexcl;Contraclave v&aacute;lida! Se ha cambiado el cart&oacute;n.");
 
-                // El cambio validado cierra la partida actual y deja listo el nuevo carton.
-                juegoEmpezado = false;
                 bloqueadoPorSeguridad = false;
-                localStorage.setItem('bingo_perm_juegoEmpezado', 'false');
-                localStorage.setItem('bingo_perm_bloqueo', 'false');
-
-                // Resetear por completo la interfaz del panel de contraclaves
-                document.getElementById('zonaCambio').style.display = 'none';
-                inputElement.value = ''; 
-                document.getElementById('txtClave').textContent = '0000';
-                
-                // Generar el primer cambio de cart&oacute;n de esta nueva etapa de libertad
-                generarNuevaEstructuraCarton();
+                cambiarCartonLibre();
             } else {
                 mostrarAlerta("Contraclave incorrecta. P&iacute;desela al monitor.");
             }
