@@ -33,6 +33,7 @@ b2ca9cc Usar modal propio en monitor de bingo
 - JavaScript inline dentro de cada HTML.
 - Tailwind CSS por CDN en las paginas de `ValentinaPlay`.
 - Google Fonts por CDN en la portada y zona privada.
+- Supabase JS por CDN en `Privado/index.html`.
 - Persistencia local mediante `localStorage` en Bingo y El Impostor.
 
 No se encontraron:
@@ -56,6 +57,10 @@ No se encontraron:
 |   `-- IMG_1914.jpg
 |-- Privado/
 |   `-- index.html
+|-- supabase/
+|   |-- README.md
+|   `-- migrations/
+|       `-- 20260601110000_initial_private_schema.sql
 |-- Bingo/
 |   |-- carton.html
 |   |-- monitor.html
@@ -113,13 +118,27 @@ Notas:
 
 ### `Privado/index.html`
 
-Pantalla de acceso privado todavia sin autenticacion real.
+Pantalla de acceso privado conectada con Supabase Auth.
 
 Comportamiento actual:
 
-- Pide usuario y clave.
-- Al enviar, muestra "Acceso pendiente de configurar".
-- No valida credenciales ni protege contenido real.
+- Pide email y clave.
+- Usa `assets/supabase-client.js` y `assets/private-auth.js`.
+- Mantiene la sesion con Supabase Auth.
+- Muestra un panel privado basico cuando hay sesion activa.
+- Todavia no carga proyectos desde tablas privadas.
+
+### `supabase/`
+
+Contiene la primera migracion SQL y notas para aplicar el esquema desde el SQL Editor de Supabase.
+
+Tablas iniciales:
+
+- `profiles`.
+- `app_projects`.
+- `project_members`.
+
+Todas tienen RLS activado.
 
 ### `Bingo/carton.html`
 
@@ -281,7 +300,7 @@ Riesgos y deuda:
 
 - Codificacion de caracteres corregida en la pasada de mantenimiento del 2026-06-01.
 - Credenciales/PIN y algoritmos de acceso visibles en el cliente.
-- No hay autenticacion real en `Privado`.
+- `Privado` ya usa Supabase Auth, pero aun falta cargar permisos/proyectos reales desde la base de datos.
 - El formulario de contacto no envia mensajes.
 - JavaScript inline dificulta reutilizacion, pruebas y mantenimiento.
 - CSS compartido muy grande y acoplado a muchas paginas.

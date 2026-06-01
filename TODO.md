@@ -3,7 +3,7 @@
 ## Prioridad Alta
 
 - [x] Corregir la codificacion de caracteres en HTML/CSS para que acentos, eñes, simbolos e iconos se vean correctamente.
-- [ ] Definir si `Privado/index.html` sera una zona privada real o solo un placeholder; ahora no autentica ni protege contenido.
+- [x] Definir si `Privado/index.html` sera una zona privada real o solo un placeholder; ahora usa Supabase Auth.
 - [ ] Evitar publicar PINes o claves como seguridad real en cliente. `Bingo/monitor.html` contiene `PIN_CORRECTO = "2017"` y `impostor/index.html` calcula la clave en JavaScript.
 - [x] Cambiar `localStorage.clear()` en `impostor/index.html` por borrado selectivo de claves `impostor_*` para no eliminar estado de Bingo u otras paginas.
 - [x] Decidir que hacer con `Bingo/bingoOLD.html` y `Bingo/bingo_monitorOLD.html`: eliminados porque ya no se usan.
@@ -13,6 +13,9 @@
 - [ ] Crear un `README.md` con descripcion del sitio, estructura, como ejecutarlo localmente y rutas principales.
 - [ ] Documentar el flujo de Bingo: monitor, carton, PIN, clave/contraclave y comportamiento con `localStorage`.
 - [ ] Documentar el flujo de El Impostor: acceso, caducidad de sesion, configuracion, persistencia y reinicios.
+- [ ] Aplicar en Supabase la migracion `supabase/migrations/20260601110000_initial_private_schema.sql`.
+- [ ] Crear el primer usuario privado en Supabase Auth y asignarle rol `admin` en `profiles`.
+- [ ] Cargar en `Privado/index.html` los proyectos accesibles desde `app_projects` y `project_members`.
 - [x] Sustituir los `alert()` restantes por modales propios para mantener una UX consistente.
 - [ ] Hacer que el monitor de Bingo persista partida en `localStorage` si se recarga accidentalmente.
 - [ ] Revisar el formulario de contacto de `index.html`: conectar a un servicio real, usar `mailto:` o quitarlo si es decorativo.

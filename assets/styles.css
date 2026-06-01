@@ -973,10 +973,39 @@ body.private-page button {
     cursor: pointer;
 }
 
+body.private-page button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
 body.private-page .private-message {
     margin-bottom: 0;
     color: #ffb703;
     font-weight: 700;
+}
+
+body.private-page .private-message[data-type="error"] {
+    color: #f87171;
+}
+
+body.private-page .private-content h2 {
+    margin: 24px 0 8px;
+    color: #4cc9f0;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+body.private-page .private-user-email {
+    color: #ffb703;
+    font-weight: 800;
+    word-break: break-word;
+}
+
+body.private-page .private-project-list {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid #3a506b;
 }
 /* Mobile layout fixes */
 @media (max-width: 768px) {

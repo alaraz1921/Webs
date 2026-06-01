@@ -8,24 +8,39 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="private-page">
     <main class="private-login">
-        <section class="private-card">
+        <section class="private-card" id="private-auth-panel">
             <h1>Zona privada</h1>
-            <p>Acceso reservado</p>
-            <form onsubmit="event.preventDefault(); document.getElementById('private-message').hidden = false;">
-                <label for="private-user">Usuario</label>
-                <input id="private-user" name="user" type="text" autocomplete="username" required>
+            <p>Acceso reservado con Supabase</p>
+            <form id="private-login-form">
+                <label for="private-email">Email</label>
+                <input id="private-email" name="email" type="email" autocomplete="username" required>
 
                 <label for="private-password">Clave</label>
                 <input id="private-password" name="password" type="password" autocomplete="current-password" required>
 
                 <button type="submit">Entrar</button>
-                <p id="private-message" class="private-message" hidden>Acceso pendiente de configurar.</p>
+                <p id="private-message" class="private-message" hidden></p>
             </form>
         </section>
+
+        <section class="private-card private-content" id="private-content-panel" hidden>
+            <h1>Zona privada</h1>
+            <p>Sesion iniciada como:</p>
+            <p class="private-user-email" id="private-user-email"></p>
+            <div class="private-project-list">
+                <h2>Proyectos</h2>
+                <p>Este panel ya esta conectado a Supabase. El siguiente paso sera cargar aqui tus proyectos privados desde la base de datos.</p>
+            </div>
+            <button type="button" id="private-logout">Cerrar sesion</button>
+        </section>
+
         <a class="private-back-link btn-principal" href="../index.html">Volver a la pagina principal</a>
     </main>
+    <script src="../assets/supabase-client.js"></script>
+    <script src="../assets/private-auth.js"></script>
 </body>
 </html>
