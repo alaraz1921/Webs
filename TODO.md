@@ -53,3 +53,4 @@
 - [ ] IM-04 Añadir versionado visible o changelog si se usa en eventos/familia.
 - [x] IM-05 En el juego del impostor, cambiar las cajas de texto para indicar los impostores al resolver el juego, por desplegables que contengan los nombres de los participantes.
 - [ ] IM-06 Icono para el 404.
+- [ ] IM-07 En las pantallas de bingo e impostor, donde hemos añadido el icono de ayuda junto al titulo, mejor lo vamos a quitar de la parte superior y lo vamos a colocar en la parte inferior, aislado, bajo el boton de volver.
