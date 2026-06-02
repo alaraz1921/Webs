@@ -12,8 +12,9 @@
 </head>
 <body class="private-page">
     <main class="private-login">
+        <h1 class="login-page-title">ZONA PRIVADA</h1>
         <section class="private-card" id="private-auth-panel">
-            <h1>Zona privada</h1>
+            <h1>CONTROL DE ACCESO</h1>
             <p>Acceso reservado</p>
             <form id="private-login-form">
                 <label for="private-email">Email</label>
@@ -22,13 +23,13 @@
                 <label for="private-password">Clave</label>
                 <input id="private-password" name="password" type="password" autocomplete="current-password" required>
 
-                <button type="submit">Entrar</button>
+                <button type="submit">ENTRAR</button>
                 <p id="private-message" class="private-message" hidden></p>
             </form>
         </section>
 
         <section class="private-card private-content" id="private-content-panel" hidden>
-            <h1>Zona privada</h1>
+            <h1>ZONA PRIVADA</h1>
             <p>Sesion iniciada como:</p>
             <p class="private-user-email" id="private-user-email"></p>
             <div class="private-project-list">
@@ -42,7 +43,14 @@
             <button type="button" id="private-logout">Cerrar sesion</button>
         </section>
 
-        <a class="private-back-link btn-principal" href="../index.html">Volver a la pagina principal</a>
+        <a class="private-back-link btn-principal btn-home" href="../index.html">
+            <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 11.5 12 4l9 7.5"></path>
+                <path d="M5.5 10.5V20h13v-9.5"></path>
+                <path d="M9.5 20v-6h5v6"></path>
+            </svg>
+            <span>P&aacute;gina principal</span>
+        </a>
     </main>
     <script src="../assets/supabase-client.js"></script>
     <script src="../assets/private-auth.js"></script>

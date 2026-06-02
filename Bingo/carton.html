@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body class="bingo-carton-page">
+    <h1 class="login-page-title">BINGO</h1>
 
     <nav class="bingo-top-menu" aria-label="Menu de Bingo">
         <button class="bingo-menu-toggle" id="bingoMenuToggle" type="button" aria-label="Abrir menu de Bingo" aria-expanded="false">
@@ -20,17 +21,22 @@
         </div>
     </nav>
 
-    <h1>CARTÓN</h1>
-
     <div class="contenedor-tabla">
         <table id="tabla-carton"></table>
     </div>
 
     <div class="panel-botones">
-        <button class="btn-empezar" id="btnAccion" onclick="conmutarEstadoJuego()">Empezar Partida</button>
-        <button class="btn-limpiar" id="btnLimpiar" onclick="solicitarLimpieza()">Limpiar Tachados</button>
-        <button class="btn-cambiar" id="btnCambiar" onclick="solicitudCambioCarton()">Cambiar Cart&oacute;n</button>
-        <button class="btn-principal" type="button" onclick="solicitarVolverPrincipal()">Volver a la p&aacute;gina principal</button>
+        <button class="btn-empezar" id="btnAccion" onclick="conmutarEstadoJuego()">EMPEZAR PARTIDA</button>
+        <button class="btn-limpiar" id="btnLimpiar" onclick="solicitarLimpieza()">LIMPIAR</button>
+        <button class="btn-cambiar" id="btnCambiar" onclick="solicitudCambioCarton()">CAMBIAR CART&Oacute;N</button>
+        <button class="btn-principal btn-home" type="button" onclick="solicitarVolverPrincipal()">
+            <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 11.5 12 4l9 7.5"></path>
+                <path d="M5.5 10.5V20h13v-9.5"></path>
+                <path d="M9.5 20v-6h5v6"></path>
+            </svg>
+            <span>P&aacute;gina principal</span>
+        </button>
     </div>
 
     <div class="zona-validacion" id="zonaCambio">

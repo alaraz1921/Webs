@@ -19,7 +19,7 @@ function showMessage(text, type = 'info') {
 function setLoading(isLoading) {
     const submitButton = loginForm.querySelector('button[type="submit"]');
     submitButton.disabled = isLoading;
-    submitButton.textContent = isLoading ? 'Entrando...' : 'Entrar';
+    submitButton.textContent = isLoading ? 'ENTRANDO...' : 'ENTRAR';
 }
 
 function showPrivateContent(user) {

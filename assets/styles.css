@@ -757,7 +757,7 @@ body.infiltrado-page {
 
 /* Bingo/carton.html */
 body.bingo-carton-page * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body.bingo-carton-page { font-family: Arial, sans-serif; background-color: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; padding: 10px; min-height: 100vh; }
+        body.bingo-carton-page { font-family: Arial, sans-serif; background-color: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; padding: 76px 10px 10px; min-height: 100vh; }
         body.bingo-carton-page h1 { font-size: 1.8rem; margin: 8px 0 12px; color: #f59e0b; text-align: center; font-weight: 900; letter-spacing: 2px; }
 
         body.bingo-carton-page .bingo-top-menu {
@@ -842,7 +842,7 @@ body.bingo-carton-page * { box-sizing: border-box; margin: 0; padding: 0; font-f
         body.bingo-carton-page .btn-empezar { background-color: #2563eb; }
         body.bingo-carton-page .btn-terminar { background-color: #1e293b; }
         body.bingo-carton-page .btn-limpiar { background-color: #dc2626; }
-        body.bingo-carton-page .btn-cambiar { background-color: #d97706; }
+        body.bingo-carton-page .btn-cambiar { background-color: #22c55e; }
         body.bingo-carton-page .btn-principal { display: block; width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 6px; color: white; background: #475569; text-align: center; text-decoration: none; }
         body.bingo-carton-page .btn-principal:hover { background: #64748b; }
 
@@ -1114,8 +1114,22 @@ body.private-page .private-login {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 76px 24px 24px;
     box-sizing: border-box;
+}
+
+body.private-page .login-page-title {
+    position: absolute;
+    top: 24px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    color: #ffffff;
+    font-size: 1.65rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: center;
 }
 
 body.private-page .private-back-link {
@@ -1200,6 +1214,13 @@ body.private-page button {
     cursor: pointer;
 }
 
+body.private-page #private-auth-panel button[type="submit"] {
+    background: #22c55e;
+    color: white;
+    padding: 12px;
+    font-size: 1.1rem;
+}
+
 body.private-page button:disabled {
     opacity: 0.6;
     cursor: wait;
@@ -1233,6 +1254,24 @@ body.private-page .private-project-list {
     margin-top: 18px;
     padding-top: 16px;
     border-top: 1px solid #3a506b;
+}
+
+.btn-home {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.home-icon {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: 0 0 auto;
 }
 
 /* Tipografias globales */

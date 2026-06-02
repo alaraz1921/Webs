@@ -204,11 +204,11 @@
             const btnCambiar = document.getElementById('btnCambiar');
 
             if (juegoEmpezado) {
-                btnAccion.textContent = "Partida en curso";
+                btnAccion.textContent = "PARTIDA EN CURSO";
                 btnAccion.className = "btn-terminar";
                 btnAccion.disabled = true;
             } else {
-                btnAccion.textContent = "Empezar Partida";
+                btnAccion.textContent = "EMPEZAR PARTIDA";
                 btnAccion.className = "btn-empezar";
                 btnAccion.disabled = false;
             }
