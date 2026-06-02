@@ -285,8 +285,8 @@ insert into public.eventin_events (
     '11111111-1111-1111-1111-111111111111',
     'Mi Primera Comunion',
     'communion',
-    '2026-06-15 12:00:00+02',
-    'Parroquia por confirmar',
+    '2027-05-15 14:00:00+02',
+    'Por confirmar',
     'https://www.google.com/maps'
 ) on conflict (id) do nothing;
 
@@ -300,8 +300,8 @@ insert into public.eventin_event_settings (
 ) values (
     '11111111-1111-1111-1111-111111111111',
     'Gracias por formar parte de este dia tan importante.',
-    'Domingo, 15 de junio de 2026',
-    '12:00',
+    'Sábado, 15 de mayo de 2027',
+    '14:00',
     'Nos encantara compartir este dia contigo',
     'Un espacio sencillo para consultar la informacion del evento, confirmar asistencia y dejar mensajes bonitos.'
 ) on conflict (event_id) do nothing;
