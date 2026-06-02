@@ -1,8 +1,5 @@
 (function () {
-    const eventContext = window.eventContext;
     const client = window.eventSupabase;
-    const homePage = document.getElementById('home-page');
-    const eventPage = document.getElementById('event-page');
     const eventAccessForm = document.getElementById('event-access-form');
     const eventAccessStatus = document.getElementById('event-access-status');
     const contactForm = document.getElementById('contact-form');
@@ -13,16 +10,7 @@
         element.classList.toggle('error', Boolean(isError));
     }
 
-    function showCurrentView() {
-        const hasEvent = eventContext?.hasRequestedEvent();
-
-        homePage.hidden = Boolean(hasEvent);
-        eventPage.hidden = !hasEvent;
-
-        if (!hasEvent) {
-            document.body.dataset.palette = 'home';
-        }
-    }
+    document.body.dataset.palette = 'home';
 
     eventAccessForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -36,7 +24,7 @@
             return;
         }
 
-        window.location.href = eventContext.buildEventUrl('index.html', eventCode);
+        window.location.href = `evento.html?evento=${encodeURIComponent(eventCode)}`;
     });
 
     contactForm.addEventListener('submit', async (event) => {
@@ -64,6 +52,4 @@
             showStatus(contactStatus, 'No se pudo enviar el mensaje. Intentalo de nuevo mas tarde.', true);
         }
     });
-
-    showCurrentView();
 })();

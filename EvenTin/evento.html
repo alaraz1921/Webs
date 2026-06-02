@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evento | EvenTin</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/eventContext.js"></script>
+    <script src="js/countdown.js" defer></script>
+    <script src="js/messages.js" defer></script>
+</head>
+<body>
+    <a class="event-admin-link" href="admin.html">Admin</a>
+
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <p class="eyebrow">Una celebracion especial</p>
+            <h1 data-event-title>Mi Primera Comunion</h1>
+            <p data-event-subtitle>Gracias por formar parte de este dia tan importante.</p>
+
+            <div class="countdown" aria-label="Cuenta atras hasta el evento">
+                <div><strong id="count-days">00</strong><span>Dias</span></div>
+                <div><strong id="count-hours">00</strong><span>Horas</span></div>
+                <div><strong id="count-minutes">00</strong><span>Min</span></div>
+                <div><strong id="count-seconds">00</strong><span>Seg</span></div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="section intro-section">
+            <div class="section-text">
+                <p class="eyebrow">Bienvenidos</p>
+                <h2 data-presentation-title>Nos encantara compartir este dia contigo</h2>
+                <p data-presentation-text>
+                    Hemos preparado este espacio para reunir la informacion del evento,
+                    recibir mensajes bonitos y gestionar las invitaciones de forma sencilla.
+                </p>
+            </div>
+            <div class="image-panel" aria-hidden="true"></div>
+        </section>
+
+        <section class="section event-card" aria-labelledby="event-info-title">
+            <p class="eyebrow">Informacion del evento</p>
+            <h2 id="event-info-title">Detalles</h2>
+            <dl class="event-details">
+                <div>
+                    <dt>Fecha</dt>
+                    <dd data-event-date>Domingo, 15 de junio de 2026</dd>
+                </div>
+                <div>
+                    <dt>Hora</dt>
+                    <dd data-event-time>12:00</dd>
+                </div>
+                <div>
+                    <dt>Lugar</dt>
+                    <dd data-event-place>Parroquia por confirmar</dd>
+                </div>
+            </dl>
+            <a class="secondary-link" data-event-map href="#" target="_blank" rel="noopener">Ver en Google Maps</a>
+        </section>
+
+        <section class="section form-section" aria-labelledby="message-title">
+            <p class="eyebrow">Libro de recuerdos</p>
+            <h2 id="message-title">Enviar un mensaje</h2>
+            <form id="public-message-form" class="form-card">
+                <label>
+                    Tu nombre
+                    <input type="text" name="author_name" autocomplete="name" required>
+                </label>
+                <label>
+                    Mensaje
+                    <textarea name="message" rows="5" required></textarea>
+                </label>
+                <button type="submit">Enviar mensaje</button>
+                <p id="public-message-status" class="form-status" role="status"></p>
+            </form>
+        </section>
+    </main>
+
+    <footer class="event-footer">
+        <a class="page-link" href="index.html">Ir a EvenTin</a>
+    </footer>
+</body>
+</html>

@@ -48,6 +48,6 @@
     });
 
     if (eventLink && eventContext) {
-        eventLink.href = eventContext.buildEventUrl('index.html');
+        eventLink.href = eventContext.buildEventUrl('evento.html');
     }
 })();

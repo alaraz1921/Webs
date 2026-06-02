@@ -72,7 +72,7 @@
     }
 
     function getPublicEventUrl(slug) {
-        return new URL(`index.html?evento=${encodeURIComponent(slug)}`, window.location.href).href;
+        return new URL(`evento.html?evento=${encodeURIComponent(slug)}`, window.location.href).href;
     }
 
     async function showAdmin() {

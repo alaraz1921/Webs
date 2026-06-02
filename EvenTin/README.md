@@ -13,6 +13,7 @@ El nombre `EvenTin` se usa solo como directorio interno. La web no muestra esa m
 ```text
 EvenTin/
 |-- index.html
+|-- evento.html
 |-- invitacion.html
 |-- admin.html
 |-- css/style.css
@@ -70,8 +71,8 @@ on conflict (event_id, user_id) do nothing;
 ## Paginas
 
 - `index.html`: portada publica del servicio.
-- `index.html?evento=primera-comunion-demo`: pagina publica de un evento concreto.
-- `index.html?evento=100001`: pagina publica de un evento concreto por ID de 6 digitos.
+- `evento.html?evento=primera-comunion-demo`: pagina publica de un evento concreto.
+- `evento.html?evento=100001`: pagina publica de un evento concreto por ID de 6 digitos.
 - `invitacion.html?evento=primera-comunion-demo`: confirmacion publica de asistencia por telefono.
 - `admin.html`: panel privado con autenticacion Supabase.
 
