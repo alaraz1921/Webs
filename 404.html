@@ -8,16 +8,54 @@
 </head>
 <body class="error-page">
 
+    <h1 class="login-page-title">P&Aacute;GINA NO ENCONTRADA</h1>
+
     <div class="contenedor-error">
         <div class="numero-404">404</div>
-        
-        <h2>P&aacute;gina no encontrada</h2>
-        <p>El enlace que has seguido puede estar roto, haber cambiado de dirección o la partida ha terminado.</p>
-        
-        <a href="https://alaraz1921.github.io/Webs/" class="btn-regresar">Ir a la web principal</a>
-        
-        <img id="fotoError" class="imagen-decorativa" src="https://placehold.co/150x150/0f172a/f59e0b?text=alaraz1921" alt="alaraz1921">
+        <p>El enlace que has seguido puede estar roto, haber cambiado de direcci&oacute;n o la partida ha terminado.</p>
     </div>
 
+    <div class="error-actions">
+        <a href="https://alaraz1921.github.io/Webs/" class="btn-regresar btn-home">
+            <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 11.5 12 4l9 7.5"></path>
+                <path d="M5.5 10.5V20h13v-9.5"></path>
+                <path d="M9.5 20v-6h5v6"></path>
+            </svg>
+            <span>P&aacute;gina principal</span>
+        </a>
+        <button class="btn-regresar" type="button" onclick="abrirContactoModal(event)">Contacto</button>
+    </div>
+
+    <div class="modal-overlay" id="contacto-modal">
+        <div class="modal-box">
+            <button class="close-modal-btn" type="button" onclick="cerrarContactoModal()">&times;</button>
+            <h3>Contacto</h3>
+            <p>Quieres contarnos algo? Env&iacute;anos un email</p>
+            <div class="modal-buttons-container modal-buttons-row">
+                <a class="btn-modal-link" href="mailto:alaraz1921@gmail.com">ENVIAR</a>
+                <button class="btn-modal-link btn-modal-cancel" type="button" onclick="cerrarContactoModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const contactoModal = document.getElementById('contacto-modal');
+
+        function abrirContactoModal(event) {
+            event.preventDefault();
+            contactoModal.style.display = 'flex';
+        }
+
+        function cerrarContactoModal() {
+            contactoModal.style.display = 'none';
+        }
+
+        contactoModal.addEventListener('click', (event) => {
+            if (event.target === contactoModal) {
+                cerrarContactoModal();
+            }
+        });
+    </script>
 </body>
 </html>

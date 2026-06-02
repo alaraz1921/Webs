@@ -1289,6 +1289,176 @@ body.private-page .private-project-list {
     flex: 0 0 auto;
 }
 
+/* Unificacion de accesos y 404 */
+body.infiltrado-page #screen-lock.active,
+body.bingo-monitor-page #pantallaLogin {
+    padding: 76px 24px 24px;
+}
+
+body.infiltrado-page #screen-lock .login-box,
+body.bingo-monitor-page .login-box {
+    border: 2px solid #3a506b;
+    border-radius: 14px;
+    max-width: 420px;
+}
+
+body.infiltrado-page #screen-lock .btn-login-principal,
+body.bingo-monitor-page .btn-login-principal {
+    width: 100%;
+    max-width: 420px;
+    margin: 16px auto 0;
+}
+
+body.error-page {
+    background-color: #0b132b;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 76px 24px 24px;
+    min-height: 100vh;
+    text-align: center;
+}
+
+body.error-page .login-page-title {
+    position: absolute;
+    top: 24px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    color: #ffffff;
+    font-size: 1.65rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+body.error-page .contenedor-error {
+    width: 100%;
+    max-width: 420px;
+    background: #1c2541;
+    border: 2px solid #3a506b;
+    border-radius: 14px;
+    padding: 26px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.45);
+}
+
+body.error-page .numero-404 {
+    font-size: 5rem;
+    color: #f59e0b;
+    margin-bottom: 15px;
+}
+
+body.error-page p {
+    color: #cbd5e1;
+    margin-bottom: 0;
+}
+
+body.error-page .error-actions {
+    width: 100%;
+    max-width: 420px;
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+body.error-page .btn-regresar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 12px;
+    border: 0;
+    border-radius: 6px;
+    color: white;
+    background: #475569;
+    text-align: center;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: none;
+}
+
+body.error-page .btn-regresar:hover {
+    background: #64748b;
+}
+
+body.error-page .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(11, 19, 43, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+body.error-page .modal-box {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    background: #1c2541;
+    border: 2px solid #3a506b;
+    border-radius: 14px;
+    padding: 30px 25px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+}
+
+body.error-page .modal-box h3 {
+    margin: 0 0 20px;
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+body.error-page .modal-box p {
+    margin-bottom: 20px;
+}
+
+body.error-page .modal-buttons-container {
+    display: flex;
+    gap: 12px;
+}
+
+body.error-page .btn-modal-link {
+    flex: 1;
+    display: block;
+    padding: 14px;
+    border: 2px solid #3a506b;
+    border-radius: 10px;
+    background: #0b132b;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+body.error-page .btn-modal-cancel {
+    background: transparent;
+}
+
+body.error-page .close-modal-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: 0;
+    color: #cbd5e1;
+    font-size: 22px;
+    cursor: pointer;
+}
+
 /* Tipografias globales */
 body.valentina-page,
 body.valentina-page * {
