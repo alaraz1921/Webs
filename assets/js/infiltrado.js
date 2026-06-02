@@ -276,14 +276,14 @@
             const aciertoTotal = correctos.every(imp => respuestas.includes(imp)) && respuestas.length === correctos.length;
 
             if (aciertoTotal) {
-                abrirModal("🎉 ¡VICTORIA TOTAL!", "¡Felicidades! Habéis descubierto a todos los infiltrados: " + infiltradosAsignados.join(' y ') + ".", true);
+                abrirModal("🎉 ¡ENHORABUENA!", "Habéis descubierto a todos los infiltrados: " + infiltradosAsignados.join(' y ') + ".", true);
             } else {
                 abrirModal("❌ Fallo", "Esos no son los infiltrados (o falta alguno por escribir). ¡Seguid debatiendo!");
             }
         }
 
         function rendirse() {
-            abrirModal("🏳️ Partida Terminada", "Os habéis rendido. Los infiltrados eran: " + infiltradosAsignados.join(' y ') + `. El lugar secreto era: ${lugarSecreto}.`, true);
+            abrirModal("🏳️ Partida Terminada", "Os habéis rendido. Infiltrado/s: " + infiltradosAsignados.join(' y ') + `. Palabra secreta: ${lugarSecreto}.`, true);
         }
 
         function reiniciarMismosJugadores() {
