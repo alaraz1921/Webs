@@ -15,7 +15,7 @@
             });
 
             if (error) {
-                msgError.textContent = 'No se pudo validar la clave. Inténtalo de nuevo.';
+                msgError.textContent = 'CLAVE INCORRECTA';
                 msgError.style.display = 'block';
                 return;
             }
@@ -27,7 +27,7 @@
                 inicializarPanel();
             } else {
                 // Si falla, mostramos error y limpiamos el cuadro
-                msgError.textContent = 'Clave diaria incorrecta. Inténtalo de nuevo.';
+                msgError.textContent = 'CLAVE INCORRECTA';
                 msgError.style.display = 'block';
                 document.getElementById('pinAcceso').value = '';
                 document.getElementById('pinAcceso').focus();

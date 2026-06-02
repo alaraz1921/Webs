@@ -662,6 +662,14 @@ body.infiltrado-page {
             margin-top: 10px;
         }
 
+        body.infiltrado-page .error-login {
+            color: #ef4444;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
+
         body.infiltrado-page h2 { color: #4cc9f0; margin-top: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
         body.infiltrado-page p { color: #cbd5e1; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
 

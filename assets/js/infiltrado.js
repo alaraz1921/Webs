@@ -133,14 +133,19 @@
 
         // ACCESO
         async function verificarClave() {
-            const input = document.getElementById('pinInput').value;
+            const pinInput = document.getElementById('pinInput');
+            const msgError = document.getElementById('msgErrorInfiltrado');
+            const input = pinInput.value;
+            msgError.style.display = 'none';
+
             const { data, error } = await window.websSupabase.rpc('validate_daily_access_code', {
                 p_game_slug: 'infiltrado',
                 p_access_code: input
             });
 
             if (error) {
-                abrirModal("Error de conexión", "No se pudo validar la clave. Inténtalo de nuevo.");
+                msgError.textContent = 'CLAVE INCORRECTA';
+                msgError.style.display = 'block';
                 return;
             }
 
@@ -150,7 +155,10 @@
                 guardarEstadoJuego();
                 cambiarPantallaVisual('screen-config');
             } else {
-                abrirModal("⚠️ Acceso Denegado", "La clave introducida es incorrecta.");
+                msgError.textContent = 'CLAVE INCORRECTA';
+                msgError.style.display = 'block';
+                pinInput.value = '';
+                pinInput.focus();
             }
         }
 
