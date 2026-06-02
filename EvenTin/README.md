@@ -46,17 +46,17 @@ No guardar nunca la `service_role key` ni claves privadas en este proyecto.
 2. Ir a `SQL Editor`.
 3. Copiar y ejecutar el contenido de `sql/schema.sql`.
 4. Crear usuarios desde `Authentication`.
-5. Crear el perfil del usuario en `profiles`.
-6. Relacionar el usuario con el evento en `event_admins`.
+5. Crear el perfil del usuario en `eventin_profiles`.
+6. Relacionar el usuario con el evento en `eventin_event_admins`.
 
 Ejemplo para asignar un administrador:
 
 ```sql
-insert into public.profiles (id, display_name, role)
+insert into public.eventin_profiles (id, display_name, role)
 values ('UUID_DEL_USUARIO_AUTH', 'Administrador', 'admin')
 on conflict (id) do update set display_name = excluded.display_name;
 
-insert into public.event_admins (event_id, user_id)
+insert into public.eventin_event_admins (event_id, user_id)
 values ('11111111-1111-1111-1111-111111111111', 'UUID_DEL_USUARIO_AUTH')
 on conflict (event_id, user_id) do nothing;
 ```
@@ -71,5 +71,5 @@ on conflict (event_id, user_id) do nothing;
 
 - Los formularios publicos usan RLS para insertar mensajes y crear/actualizar respuestas.
 - El visitante nunca sabe si su telefono creo una respuesta nueva o actualizo una existente.
-- Los administradores solo pueden consultar eventos asignados mediante `event_admins`.
-- La arquitectura ya separa `profiles`, `event_admins` y `events` para una futura pagina de superadministrador.
+- Los administradores solo pueden consultar eventos asignados mediante `eventin_event_admins`.
+- La arquitectura ya separa `eventin_profiles`, `eventin_event_admins` y `eventin_events` para una futura pagina de superadministrador.

@@ -40,8 +40,8 @@
 
     async function loadEvents() {
         const { data, error } = await client
-            .from('event_admins')
-            .select('events(id,title,event_date)')
+            .from('eventin_event_admins')
+            .select('event:eventin_events(id,title,event_date)')
             .order('created_at', { ascending: true });
 
         if (error) {
@@ -49,7 +49,7 @@
             return;
         }
 
-        const events = data.map((item) => item.events).filter(Boolean);
+        const events = data.map((item) => item.event).filter(Boolean);
 
         eventSelect.innerHTML = events.map((item) => (
             `<option value="${item.id}">${escapeHtml(item.title)}</option>`
@@ -72,7 +72,7 @@
 
     async function loadResponses(eventId) {
         const { data, error } = await client
-            .from('guest_responses')
+            .from('eventin_guest_responses')
             .select('nombre,telefono,asistencia,mensaje,created_at,updated_at')
             .eq('event_id', eventId)
             .order('updated_at', { ascending: false });
@@ -96,7 +96,7 @@
 
     async function loadMessages(eventId) {
         const { data, error } = await client
-            .from('public_messages')
+            .from('eventin_public_messages')
             .select('author_name,message,created_at')
             .eq('event_id', eventId)
             .order('created_at', { ascending: false });

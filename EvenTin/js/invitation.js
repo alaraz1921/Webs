@@ -34,7 +34,7 @@
 
         try {
             await client
-                .from('guest_responses')
+                .from('eventin_guest_responses')
                 .upsert(payload, { onConflict: 'event_id,telefono' })
                 .throwOnError();
 

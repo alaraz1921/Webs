@@ -26,7 +26,7 @@
         };
 
         try {
-            await client.from('public_messages').insert(payload).throwOnError();
+            await client.from('eventin_public_messages').insert(payload).throwOnError();
             form.reset();
             showStatus('Mensaje enviado correctamente', false);
         } catch (error) {

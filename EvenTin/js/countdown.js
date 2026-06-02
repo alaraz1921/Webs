@@ -73,8 +73,8 @@
         }
 
         const [{ data: eventData }, { data: settings }] = await Promise.all([
-            client.from('events').select('title,event_date,location_name,maps_url').eq('id', eventId).maybeSingle(),
-            client.from('event_settings').select('subtitle,display_date,display_time,presentation_title,presentation_text').eq('event_id', eventId).maybeSingle()
+            client.from('eventin_events').select('title,event_date,location_name,maps_url').eq('id', eventId).maybeSingle(),
+            client.from('eventin_event_settings').select('subtitle,display_date,display_time,presentation_title,presentation_text').eq('event_id', eventId).maybeSingle()
         ]);
 
         applyEvent(eventData, settings);
