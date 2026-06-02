@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Manrope:wght@400;600;700;800&family=Montserrat:wght@600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Manrope:wght@400;600;700;800&family=Montserrat:wght@600;700;800;900&display=swap');
 
 /* index.html */
 :root {
@@ -505,12 +505,12 @@ body.infiltrado-page {
 
         body.infiltrado-page .main-app-title {
             font-size: 26px;
-            color: #ffb703;
+            color: #ffffff;
             text-transform: uppercase;
             letter-spacing: 2px;
             margin: 15px 0 5px 0;
             font-weight: 900;
-            text-shadow: 0 0 10px rgba(255, 183, 3, 0.4);
+            text-shadow: none;
         }
 
         .help-button {
@@ -670,7 +670,8 @@ body.infiltrado-page {
             display: none;
         }
 
-        body.infiltrado-page h2 { color: #4cc9f0; margin-top: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        body.infiltrado-page h2 { color: #ffffff; margin-top: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        body.infiltrado-page #container-names h3 { color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
         body.infiltrado-page p { color: #cbd5e1; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
 
         body.infiltrado-page input, body.infiltrado-page select, body.infiltrado-page button {
