@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de administracion</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/admin.js" defer></script>
+</head>
+<body class="simple-page admin-page">
+    <main class="admin-layout">
+        <section id="login-panel" class="access-layout">
+            <h1>Panel privado</h1>
+            <form id="admin-login-form" class="form-card">
+                <label>
+                    Email
+                    <input type="email" name="email" autocomplete="email" required>
+                </label>
+                <label>
+                    Contrasena
+                    <input type="password" name="password" autocomplete="current-password" required>
+                </label>
+                <button type="submit">Entrar</button>
+                <p id="admin-login-status" class="form-status" role="status"></p>
+            </form>
+        </section>
+
+        <section id="admin-panel" class="admin-content" hidden>
+            <div class="admin-header">
+                <div>
+                    <p class="eyebrow">Gestion del evento</p>
+                    <h1>Respuestas y mensajes</h1>
+                </div>
+                <button id="logout-button" type="button" class="secondary-button">Salir</button>
+            </div>
+
+            <label class="event-selector">
+                Evento
+                <select id="event-select"></select>
+            </label>
+
+            <div class="admin-grid">
+                <section class="data-panel">
+                    <h2>Respuestas recibidas</h2>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Telefono</th>
+                                    <th>Asistencia</th>
+                                    <th>Mensaje</th>
+                                    <th>Creacion</th>
+                                    <th>Actualizacion</th>
+                                </tr>
+                            </thead>
+                            <tbody id="responses-table"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="data-panel">
+                    <h2>Mensajes publicos</h2>
+                    <div id="messages-list" class="message-list"></div>
+                </section>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
