@@ -36,6 +36,7 @@ Incluye:
 - URL de Supabase.
 - `anon public key`.
 - `defaultEventId`.
+- `defaultEventSlug`.
 - Textos de respaldo por si la base de datos aun no esta creada.
 
 No guardar nunca la `service_role key` ni claves privadas en este proyecto.
@@ -56,6 +57,10 @@ insert into public.eventin_profiles (id, display_name, role)
 values ('UUID_DEL_USUARIO_AUTH', 'Administrador', 'admin')
 on conflict (id) do update set display_name = excluded.display_name;
 
+update public.eventin_profiles
+set email = 'admin@ejemplo.com'
+where id = 'UUID_DEL_USUARIO_AUTH';
+
 insert into public.eventin_event_admins (event_id, user_id)
 values ('11111111-1111-1111-1111-111111111111', 'UUID_DEL_USUARIO_AUTH')
 on conflict (event_id, user_id) do nothing;
@@ -63,9 +68,16 @@ on conflict (event_id, user_id) do nothing;
 
 ## Paginas
 
-- `index.html`: pagina publica del evento, cuenta atras, informacion y mensajes.
-- `invitacion.html`: confirmacion publica de asistencia por telefono.
+- `index.html`: pagina publica del evento por defecto.
+- `index.html?evento=primera-comunion-demo`: pagina publica de un evento concreto.
+- `invitacion.html?evento=primera-comunion-demo`: confirmacion publica de asistencia por telefono.
 - `admin.html`: panel privado con autenticacion Supabase.
+
+Eventos demo creados por `sql/schema.sql`:
+
+- `primera-comunion-demo`
+- `bautizo-sofia-demo`
+- `cumpleanos-martina-demo`
 
 ## Notas de seguridad
 

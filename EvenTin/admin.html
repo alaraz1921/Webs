@@ -42,6 +42,84 @@
                 <select id="event-select"></select>
             </label>
 
+            <section id="superadmin-panel" class="data-panel admin-tools" hidden>
+                <h2>Superadministrador</h2>
+                <form id="create-event-form" class="admin-form">
+                    <label>
+                        Nombre del evento
+                        <input type="text" name="title" required>
+                    </label>
+                    <label>
+                        Tipo
+                        <select id="create-event-type" name="event_type" required></select>
+                    </label>
+                    <label>
+                        Email del administrador
+                        <input type="email" name="admin_email" required>
+                    </label>
+                    <button type="submit">Crear evento</button>
+                </form>
+                <button id="delete-event-button" type="button" class="danger-button">Borrar evento seleccionado</button>
+                <p id="superadmin-status" class="form-status" role="status"></p>
+            </section>
+
+            <section class="data-panel admin-tools">
+                <h2>Editar evento</h2>
+                <p id="public-link" class="public-link"></p>
+                <form id="event-settings-form" class="admin-form">
+                    <label>
+                        Fecha y hora
+                        <input type="datetime-local" name="event_date" required>
+                    </label>
+                    <label>
+                        Lugar
+                        <input type="text" name="location_name">
+                    </label>
+                    <label>
+                        Google Maps
+                        <input type="url" name="maps_url">
+                    </label>
+                    <label>
+                        Subtitulo
+                        <input type="text" name="subtitle">
+                    </label>
+                    <label>
+                        Fecha visible
+                        <input type="text" name="display_date">
+                    </label>
+                    <label>
+                        Hora visible
+                        <input type="text" name="display_time">
+                    </label>
+                    <label>
+                        Titulo de presentacion
+                        <input type="text" name="presentation_title">
+                    </label>
+                    <label>
+                        Texto de presentacion
+                        <textarea name="presentation_text" rows="4"></textarea>
+                    </label>
+                    <label>
+                        Imagen principal
+                        <input type="url" name="hero_image_url">
+                    </label>
+                    <label>
+                        Imagen detalle
+                        <input type="url" name="detail_image_url">
+                    </label>
+                    <label>
+                        Paleta
+                        <select name="palette_key">
+                            <option value="earth">Ocres y verdes</option>
+                            <option value="pastel">Rosa y celeste pastel</option>
+                            <option value="marine">Marinos, azules y verdes</option>
+                        </select>
+                    </label>
+                    <button type="submit">Guardar cambios</button>
+                </form>
+                <p id="event-settings-status" class="form-status" role="status"></p>
+            </section>
+
             <div class="admin-grid">
                 <section class="data-panel">
                     <h2>Respuestas recibidas</h2>
