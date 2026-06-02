@@ -1170,6 +1170,13 @@ body.private-page h1 {
     letter-spacing: 1px;
 }
 
+body.private-page .access-panel-title {
+    font-size: 1.3rem;
+    color: #f59e0b;
+    margin-bottom: 10px;
+    font-family: 'Montserrat', sans-serif;
+}
+
 body.private-page p {
     color: #cbd5e1;
     line-height: 1.5;
