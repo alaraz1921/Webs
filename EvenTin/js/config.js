@@ -3,6 +3,7 @@ window.eventPlatformConfig = {
     supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dXFrdnV2bWxscWloYWVmamt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNDUxNDAsImV4cCI6MjA5NTgyMTE0MH0.j9_-XF_JbYD_ZV-J_JYakaJqi1jKGuD52T-EbdWVS6g',
     defaultEventId: '11111111-1111-1111-1111-111111111111',
     defaultEventSlug: 'primera-comunion-demo',
+    defaultEventCode: '100001',
     fallbackEvent: {
         title: 'Mi Primera Comunion',
         subtitle: 'Gracias por formar parte de este dia tan importante.',

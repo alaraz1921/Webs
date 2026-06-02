@@ -3,14 +3,18 @@
     const client = window.eventSupabase;
     let eventPromise = null;
 
-    function getRequestedSlug() {
+    function getRequestedEventKey() {
         const params = new URLSearchParams(window.location.search);
         return String(params.get('evento') || '').trim();
     }
 
-    function buildEventUrl(pageName, slug) {
-        const eventSlug = slug || getRequestedSlug();
-        const query = eventSlug ? `?evento=${encodeURIComponent(eventSlug)}` : '';
+    function hasRequestedEvent() {
+        return Boolean(getRequestedEventKey());
+    }
+
+    function buildEventUrl(pageName, eventKey) {
+        const activeEventKey = eventKey || getRequestedEventKey();
+        const query = activeEventKey ? `?evento=${encodeURIComponent(activeEventKey)}` : '';
         return `${pageName}${query}`;
     }
 
@@ -22,7 +26,8 @@
                 event_date: config.fallbackEvent.eventDate,
                 location_name: config.fallbackEvent.place,
                 maps_url: config.fallbackEvent.mapsUrl,
-                public_slug: config.defaultEventSlug
+                public_slug: config.defaultEventSlug,
+                event_code: config.defaultEventCode
             },
             settings: {
                 subtitle: config.fallbackEvent.subtitle,
@@ -38,30 +43,35 @@
     }
 
     async function loadEvent() {
+        const requestedKey = getRequestedEventKey();
+
+        if (!requestedKey) {
+            throw new Error('Evento no especificado');
+        }
+
         if (!client) {
             return getFallbackEvent();
         }
 
-        const requestedSlug = getRequestedSlug();
+        const isCodeLookup = /^\d{6}$/.test(requestedKey);
+        const eventColumns = isCodeLookup
+            ? 'id,title,event_date,location_name,maps_url,public_slug,event_code'
+            : 'id,title,event_date,location_name,maps_url,public_slug';
         let eventQuery = client
             .from('eventin_events')
-            .select('id,title,event_date,location_name,maps_url,public_slug')
+            .select(eventColumns)
             .eq('is_active', true);
 
-        if (requestedSlug) {
-            eventQuery = eventQuery.eq('public_slug', requestedSlug);
+        if (isCodeLookup) {
+            eventQuery = eventQuery.eq('event_code', requestedKey);
         } else {
-            eventQuery = eventQuery.eq('id', config.defaultEventId);
+            eventQuery = eventQuery.eq('public_slug', requestedKey);
         }
 
         const { data: eventData, error: eventError } = await eventQuery.maybeSingle();
 
         if (eventError || !eventData) {
-            if (requestedSlug) {
-                throw new Error('Evento no encontrado');
-            }
-
-            return getFallbackEvent();
+            throw new Error('Evento no encontrado');
         }
 
         const { data: settings } = await client
@@ -86,7 +96,8 @@
 
     window.eventContext = {
         getEvent,
-        getRequestedSlug,
+        getRequestedEventKey,
+        hasRequestedEvent,
         buildEventUrl
     };
 })();

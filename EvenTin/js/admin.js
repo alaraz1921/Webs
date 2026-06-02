@@ -67,6 +67,10 @@
         return `${cleanTitle || 'evento'}-${randomPart}`;
     }
 
+    function createEventCode() {
+        return String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
+    }
+
     function getPublicEventUrl(slug) {
         return new URL(`index.html?evento=${encodeURIComponent(slug)}`, window.location.href).href;
     }
@@ -123,11 +127,11 @@
         const { data, error } = isSuperadmin()
             ? await client
                 .from('eventin_events')
-                .select('id,title,event_date,public_slug,event_type,location_name,maps_url')
+                .select('id,title,event_date,public_slug,event_code,event_type,location_name,maps_url')
                 .order('created_at', { ascending: true })
             : await client
                 .from('eventin_event_admins')
-                .select('event:eventin_events(id,title,event_date,public_slug,event_type,location_name,maps_url)')
+                .select('event:eventin_events(id,title,event_date,public_slug,event_code,event_type,location_name,maps_url)')
                 .order('created_at', { ascending: true });
 
         if (error) {
@@ -183,7 +187,8 @@
 
         if (eventData?.public_slug) {
             const publicUrl = getPublicEventUrl(eventData.public_slug);
-            publicLink.innerHTML = `Enlace publico: <a href="${escapeHtml(publicUrl)}" target="_blank" rel="noopener">${escapeHtml(publicUrl)}</a>`;
+            const eventCode = eventData.event_code ? ` · Codigo: ${escapeHtml(eventData.event_code)}` : '';
+            publicLink.innerHTML = `Enlace publico: <a href="${escapeHtml(publicUrl)}" target="_blank" rel="noopener">${escapeHtml(publicUrl)}</a>${eventCode}`;
         } else {
             publicLink.textContent = 'Este evento todavia no tiene enlace publico.';
         }
@@ -336,6 +341,7 @@
                 .insert({
                     title,
                     public_slug: createSlug(title),
+                    event_code: createEventCode(),
                     event_type: String(formData.get('event_type')),
                     event_date: eventDate,
                     location_name: 'Por confirmar',

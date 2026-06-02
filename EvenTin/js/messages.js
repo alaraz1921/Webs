@@ -4,6 +4,10 @@
     const client = window.eventSupabase;
     const eventContext = window.eventContext;
 
+    if (!eventContext?.hasRequestedEvent()) {
+        return;
+    }
+
     function showStatus(message, isError) {
         status.textContent = message;
         status.classList.toggle('error', Boolean(isError));

@@ -80,8 +80,7 @@
     }
 
     async function loadEvent() {
-        if (!eventContext) {
-            applyEvent(null, null);
+        if (!eventContext || !eventContext.hasRequestedEvent()) {
             return;
         }
 
@@ -89,5 +88,8 @@
         applyEvent(eventData, settings);
     }
 
-    loadEvent().catch(() => applyEvent(null, null));
+    loadEvent().catch(() => {
+        setText('[data-event-title]', 'Evento no encontrado');
+        setText('[data-event-subtitle]', 'Revisa el enlace o el ID del evento.');
+    });
 })();

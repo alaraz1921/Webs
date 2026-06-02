@@ -14,6 +14,7 @@ create table if not exists public.eventin_events (
     id uuid primary key default gen_random_uuid(),
     title text not null,
     public_slug text not null unique,
+    event_code text not null unique check (event_code ~ '^[0-9]{6}$'),
     event_type text not null default 'communion' references public.eventin_event_types(key),
     event_date timestamptz not null,
     location_name text,
@@ -77,12 +78,23 @@ create table if not exists public.eventin_public_messages (
     updated_at timestamptz not null default now()
 );
 
+create table if not exists public.eventin_contact_requests (
+    id uuid primary key default gen_random_uuid(),
+    nombre text not null,
+    email text not null,
+    asunto text not null,
+    mensaje text not null,
+    created_at timestamptz not null default now()
+);
+
 alter table public.eventin_events add column if not exists public_slug text;
+alter table public.eventin_events add column if not exists event_code text;
 alter table public.eventin_event_settings add column if not exists palette_key text not null default 'earth';
 alter table public.eventin_profiles add column if not exists email text;
 
 create index if not exists idx_eventin_event_settings_event_id on public.eventin_event_settings(event_id);
 create index if not exists idx_eventin_events_public_slug on public.eventin_events(public_slug);
+create index if not exists idx_eventin_events_event_code on public.eventin_events(event_code);
 create index if not exists idx_eventin_events_event_type on public.eventin_events(event_type);
 create unique index if not exists idx_eventin_profiles_email_unique on public.eventin_profiles(email) where email is not null;
 create index if not exists idx_eventin_event_admins_event_id on public.eventin_event_admins(event_id);
@@ -90,6 +102,7 @@ create index if not exists idx_eventin_event_admins_user_id on public.eventin_ev
 create index if not exists idx_eventin_guest_responses_event_id on public.eventin_guest_responses(event_id);
 create index if not exists idx_eventin_guest_responses_event_phone on public.eventin_guest_responses(event_id, telefono);
 create index if not exists idx_eventin_public_messages_event_id on public.eventin_public_messages(event_id);
+create index if not exists idx_eventin_contact_requests_created_at on public.eventin_contact_requests(created_at);
 
 create or replace function public.eventin_set_updated_at()
 returns trigger
@@ -165,6 +178,29 @@ as $$
         );
 $$;
 
+create or replace function public.eventin_generate_event_code()
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    candidate text;
+begin
+    loop
+        candidate := lpad(floor(random() * 1000000)::int::text, 6, '0');
+
+        if not exists (
+            select 1
+            from public.eventin_events
+            where event_code = candidate
+        ) then
+            return candidate;
+        end if;
+    end loop;
+end;
+$$;
+
 alter table public.eventin_events enable row level security;
 alter table public.eventin_event_types enable row level security;
 alter table public.eventin_event_settings enable row level security;
@@ -172,6 +208,7 @@ alter table public.eventin_profiles enable row level security;
 alter table public.eventin_event_admins enable row level security;
 alter table public.eventin_guest_responses enable row level security;
 alter table public.eventin_public_messages enable row level security;
+alter table public.eventin_contact_requests enable row level security;
 
 drop policy if exists "Public can read event types" on public.eventin_event_types;
 create policy "Public can read event types"
@@ -309,7 +346,25 @@ to authenticated
 using (public.eventin_can_admin_event(event_id))
 with check (public.eventin_can_admin_event(event_id));
 
+drop policy if exists "Public can insert contact requests" on public.eventin_contact_requests;
+create policy "Public can insert contact requests"
+on public.eventin_contact_requests for insert
+to anon
+with check (
+    nombre <> ''
+    and email <> ''
+    and asunto <> ''
+    and mensaje <> ''
+);
+
+drop policy if exists "Superadmins can read contact requests" on public.eventin_contact_requests;
+create policy "Superadmins can read contact requests"
+on public.eventin_contact_requests for select
+to authenticated
+using (public.eventin_is_superadmin());
+
 alter table public.eventin_events add column if not exists public_slug text;
+alter table public.eventin_events add column if not exists event_code text;
 alter table public.eventin_event_settings add column if not exists palette_key text not null default 'earth';
 alter table public.eventin_profiles add column if not exists email text;
 
@@ -317,8 +372,55 @@ update public.eventin_events
 set public_slug = 'evento-' || substring(id::text from 1 for 8)
 where public_slug is null or public_slug = '';
 
+update public.eventin_events
+set event_code = '100001'
+where id = '11111111-1111-1111-1111-111111111111'
+  and (event_code is null or event_code = '');
+
+update public.eventin_events
+set event_code = '100002'
+where id = '22222222-2222-2222-2222-222222222222'
+  and (event_code is null or event_code = '');
+
+update public.eventin_events
+set event_code = '100003'
+where id = '33333333-3333-3333-3333-333333333333'
+  and (event_code is null or event_code = '');
+
+do $$
+declare
+    event_row record;
+begin
+    for event_row in
+        select id
+        from public.eventin_events
+        where event_code is null or event_code = ''
+    loop
+        update public.eventin_events
+        set event_code = public.eventin_generate_event_code()
+        where id = event_row.id;
+    end loop;
+end;
+$$;
+
 alter table public.eventin_events alter column public_slug set not null;
+alter table public.eventin_events alter column event_code set not null;
 create unique index if not exists idx_eventin_events_public_slug_unique on public.eventin_events(public_slug);
+create unique index if not exists idx_eventin_events_event_code_unique on public.eventin_events(event_code);
+
+do $$
+begin
+    if not exists (
+        select 1
+        from pg_constraint
+        where conname = 'eventin_events_event_code_format'
+    ) then
+        alter table public.eventin_events
+        add constraint eventin_events_event_code_format
+        check (event_code ~ '^[0-9]{6}$');
+    end if;
+end;
+$$;
 
 insert into public.eventin_event_types (key, name) values
     ('communion', 'Comunion'),
@@ -332,6 +434,7 @@ insert into public.eventin_events (
     id,
     title,
     public_slug,
+    event_code,
     event_type,
     event_date,
     location_name,
@@ -340,6 +443,7 @@ insert into public.eventin_events (
     '11111111-1111-1111-1111-111111111111',
     'Mi Primera Comunion',
     'primera-comunion-demo',
+    '100001',
     'communion',
     '2027-05-15 14:00:00+02',
     'Por confirmar',
@@ -366,6 +470,10 @@ update public.eventin_events
 set public_slug = 'primera-comunion-demo'
 where id = '11111111-1111-1111-1111-111111111111';
 
+update public.eventin_events
+set event_code = '100001'
+where id = '11111111-1111-1111-1111-111111111111';
+
 update public.eventin_event_settings
 set palette_key = 'earth'
 where event_id = '11111111-1111-1111-1111-111111111111';
@@ -374,6 +482,7 @@ insert into public.eventin_events (
     id,
     title,
     public_slug,
+    event_code,
     event_type,
     event_date,
     location_name,
@@ -383,6 +492,7 @@ insert into public.eventin_events (
         '22222222-2222-2222-2222-222222222222',
         'Bautizo de Sofia',
         'bautizo-sofia-demo',
+        '100002',
         'baptism',
         '2027-06-20 12:30:00+02',
         'Iglesia por confirmar',
@@ -392,6 +502,7 @@ insert into public.eventin_events (
         '33333333-3333-3333-3333-333333333333',
         'Cumpleanos de Martina',
         'cumpleanos-martina-demo',
+        '100003',
         'birthday',
         '2027-09-05 18:00:00+02',
         'Jardin familiar',
@@ -400,6 +511,7 @@ insert into public.eventin_events (
 on conflict (id) do update set
     title = excluded.title,
     public_slug = excluded.public_slug,
+    event_code = excluded.event_code,
     event_type = excluded.event_type,
     event_date = excluded.event_date,
     location_name = excluded.location_name,

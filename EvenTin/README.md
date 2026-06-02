@@ -37,6 +37,7 @@ Incluye:
 - `anon public key`.
 - `defaultEventId`.
 - `defaultEventSlug`.
+- `defaultEventCode`.
 - Textos de respaldo por si la base de datos aun no esta creada.
 
 No guardar nunca la `service_role key` ni claves privadas en este proyecto.
@@ -68,16 +69,17 @@ on conflict (event_id, user_id) do nothing;
 
 ## Paginas
 
-- `index.html`: pagina publica del evento por defecto.
+- `index.html`: portada publica del servicio.
 - `index.html?evento=primera-comunion-demo`: pagina publica de un evento concreto.
+- `index.html?evento=100001`: pagina publica de un evento concreto por ID de 6 digitos.
 - `invitacion.html?evento=primera-comunion-demo`: confirmacion publica de asistencia por telefono.
 - `admin.html`: panel privado con autenticacion Supabase.
 
 Eventos demo creados por `sql/schema.sql`:
 
-- `primera-comunion-demo`
-- `bautizo-sofia-demo`
-- `cumpleanos-martina-demo`
+- `primera-comunion-demo` / `100001`
+- `bautizo-sofia-demo` / `100002`
+- `cumpleanos-martina-demo` / `100003`
 
 ## Notas de seguridad
 
