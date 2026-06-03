@@ -216,6 +216,22 @@ as $$
         );
 $$;
 
+create or replace function public.eventin_can_access_event_code(target_event_code text)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+    select public.eventin_is_admin()
+        or exists (
+            select 1
+            from public.eventin_profiles
+            where eventin_profiles.id = auth.uid()
+              and eventin_profiles.role = 'user'
+              and eventin_profiles.event_code = target_event_code
+        );
+$$;
+
 create or replace function public.eventin_generate_event_code()
 returns text
 language plpgsql
@@ -296,6 +312,19 @@ end;
 $$;
 
 grant execute on function public.eventin_submit_guest_response(uuid, text, text, boolean, text) to anon;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+    'eventin-images',
+    'eventin-images',
+    true,
+    3145728,
+    array['image/webp', 'image/jpeg', 'image/png']::text[]
+)
+on conflict (id) do update set
+    public = excluded.public,
+    file_size_limit = excluded.file_size_limit,
+    allowed_mime_types = excluded.allowed_mime_types;
 
 alter table public.eventin_event_types enable row level security;
 alter table public.eventin_events enable row level security;
@@ -420,6 +449,46 @@ create policy "Admins can read contact requests"
 on public.eventin_contact_requests for select
 to authenticated
 using (public.eventin_is_admin());
+
+drop policy if exists "Public can read event images" on storage.objects;
+create policy "Public can read event images"
+on storage.objects for select
+using (bucket_id = 'eventin-images');
+
+drop policy if exists "Users can upload assigned event images" on storage.objects;
+create policy "Users can upload assigned event images"
+on storage.objects for insert
+to authenticated
+with check (
+    bucket_id = 'eventin-images'
+    and (storage.foldername(name))[1] = 'events'
+    and public.eventin_can_access_event_code((storage.foldername(name))[2])
+);
+
+drop policy if exists "Users can update assigned event images" on storage.objects;
+create policy "Users can update assigned event images"
+on storage.objects for update
+to authenticated
+using (
+    bucket_id = 'eventin-images'
+    and (storage.foldername(name))[1] = 'events'
+    and public.eventin_can_access_event_code((storage.foldername(name))[2])
+)
+with check (
+    bucket_id = 'eventin-images'
+    and (storage.foldername(name))[1] = 'events'
+    and public.eventin_can_access_event_code((storage.foldername(name))[2])
+);
+
+drop policy if exists "Users can delete assigned event images" on storage.objects;
+create policy "Users can delete assigned event images"
+on storage.objects for delete
+to authenticated
+using (
+    bucket_id = 'eventin-images'
+    and (storage.foldername(name))[1] = 'events'
+    and public.eventin_can_access_event_code((storage.foldername(name))[2])
+);
 
 update public.eventin_events
 set public_slug = 'evento-' || substring(id::text from 1 for 8)

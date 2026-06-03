@@ -34,6 +34,30 @@
     const showEventCodePanelButton = document.getElementById('show-event-code-panel');
     const eventCodePanel = document.getElementById('event-code-panel');
     const eventCodeStatus = document.getElementById('event-code-status');
+    const heroImageStatus = document.getElementById('hero-image-status');
+    const detailImageStatus = document.getElementById('detail-image-status');
+
+    const IMAGE_BUCKET = 'eventin-images';
+    const ORIGINAL_IMAGE_LIMIT_BYTES = 12 * 1024 * 1024;
+    const OPTIMIZED_IMAGE_LIMIT_BYTES = 2.5 * 1024 * 1024;
+    const IMAGE_UPLOADS = {
+        hero: {
+            fileField: 'hero_image_file',
+            urlField: 'hero_image_url',
+            statusElement: heroImageStatus,
+            maxWidth: 1600,
+            fileName: 'hero.webp',
+            label: 'principal'
+        },
+        detail: {
+            fileField: 'detail_image_file',
+            urlField: 'detail_image_url',
+            statusElement: detailImageStatus,
+            maxWidth: 1200,
+            fileName: 'detail.webp',
+            label: 'detalle'
+        }
+    };
 
     let currentProfile = null;
     let currentEvents = [];
@@ -156,6 +180,121 @@
         input.select();
         document.execCommand('copy');
         input.remove();
+    }
+
+    function updateImageStatus(kind, hasImage) {
+        const configItem = IMAGE_UPLOADS[kind];
+        if (!configItem?.statusElement) {
+            return;
+        }
+
+        configItem.statusElement.textContent = hasImage
+            ? 'Imagen guardada. Puedes elegir otra para sustituirla.'
+            : 'Se optimiza automaticamente al guardar.';
+    }
+
+    function loadImageFromFile(file) {
+        const imageUrl = URL.createObjectURL(file);
+
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => {
+                URL.revokeObjectURL(imageUrl);
+                resolve(image);
+            };
+            image.onerror = () => {
+                URL.revokeObjectURL(imageUrl);
+                reject(new Error('No se pudo leer la imagen.'));
+            };
+            image.src = imageUrl;
+        });
+    }
+
+    function canvasToWebpBlob(canvas, quality) {
+        return new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    reject(new Error('No se pudo optimizar la imagen.'));
+                    return;
+                }
+                resolve(blob);
+            }, 'image/webp', quality);
+        });
+    }
+
+    async function optimizeImageFile(file, maxWidth) {
+        if (!file?.size) {
+            return null;
+        }
+
+        if (file.size > ORIGINAL_IMAGE_LIMIT_BYTES) {
+            throw new Error('La imagen original supera 12 MB.');
+        }
+
+        const source = window.createImageBitmap
+            ? await createImageBitmap(file)
+            : await loadImageFromFile(file);
+        const scale = Math.min(1, maxWidth / source.width);
+        const width = Math.max(1, Math.round(source.width * scale));
+        const height = Math.max(1, Math.round(source.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const context = canvas.getContext('2d');
+        context.drawImage(source, 0, 0, width, height);
+
+        if (source.close) {
+            source.close();
+        }
+
+        for (const quality of [0.78, 0.68, 0.58]) {
+            const blob = await canvasToWebpBlob(canvas, quality);
+            if (blob.size <= OPTIMIZED_IMAGE_LIMIT_BYTES) {
+                return blob;
+            }
+        }
+
+        throw new Error('La imagen optimizada sigue siendo demasiado grande.');
+    }
+
+    async function uploadEventImage(eventData, kind, file) {
+        const configItem = IMAGE_UPLOADS[kind];
+        if (!file?.size || !configItem || !eventData?.event_code) {
+            return String(settingsForm.elements[configItem?.urlField]?.value || '').trim();
+        }
+
+        setStatus(settingsStatus, `Optimizando imagen ${configItem.label}...`, false);
+        const optimizedImage = await optimizeImageFile(file, configItem.maxWidth);
+        const imagePath = `events/${eventData.event_code}/${configItem.fileName}`;
+
+        setStatus(settingsStatus, `Subiendo imagen ${configItem.label}...`, false);
+        const { error } = await client.storage
+            .from(IMAGE_BUCKET)
+            .upload(imagePath, optimizedImage, {
+                contentType: 'image/webp',
+                upsert: true
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        const { data } = client.storage
+            .from(IMAGE_BUCKET)
+            .getPublicUrl(imagePath);
+
+        return `${data.publicUrl}?v=${Date.now()}`;
+    }
+
+    async function uploadPendingImages(eventData, formData) {
+        const heroFile = formData.get(IMAGE_UPLOADS.hero.fileField);
+        const detailFile = formData.get(IMAGE_UPLOADS.detail.fileField);
+
+        return {
+            hero_image_url: await uploadEventImage(eventData, 'hero', heroFile),
+            detail_image_url: await uploadEventImage(eventData, 'detail', detailFile)
+        };
     }
 
     function fillTypeSelect(selectElement, selectedValue) {
@@ -299,7 +438,11 @@
         settingsForm.elements.presentation_text.value = settings?.presentation_text || '';
         settingsForm.elements.hero_image_url.value = settings?.hero_image_url || '';
         settingsForm.elements.detail_image_url.value = settings?.detail_image_url || '';
+        settingsForm.elements.hero_image_file.value = '';
+        settingsForm.elements.detail_image_file.value = '';
         settingsForm.elements.palette_key.value = settings?.palette_key || 'earth';
+        updateImageStatus('hero', Boolean(settings?.hero_image_url));
+        updateImageStatus('detail', Boolean(settings?.detail_image_url));
         fillTypeSelect(settingsEventType, eventData?.event_type || 'communion');
 
         if (eventData) {
@@ -498,6 +641,7 @@
         setStatus(settingsStatus, '', false);
 
         const eventId = eventSelect.value;
+        const eventData = getCurrentEvent();
         const formData = new FormData(settingsForm);
         if (!eventId) {
             setStatus(settingsStatus, 'No hay evento seleccionado.', true);
@@ -521,6 +665,8 @@
                 .eq('id', eventId)
                 .throwOnError();
 
+            const imageUrls = await uploadPendingImages(eventData, formData);
+
             await client
                 .from('eventin_event_settings')
                 .upsert({
@@ -530,8 +676,8 @@
                     display_time: String(formData.get('display_time') || '').trim(),
                     presentation_title: String(formData.get('presentation_title') || '').trim(),
                     presentation_text: String(formData.get('presentation_text') || '').trim(),
-                    hero_image_url: String(formData.get('hero_image_url') || '').trim(),
-                    detail_image_url: String(formData.get('detail_image_url') || '').trim(),
+                    hero_image_url: imageUrls.hero_image_url,
+                    detail_image_url: imageUrls.detail_image_url,
                     palette_key: String(formData.get('palette_key') || 'earth')
                 }, { onConflict: 'event_id' })
                 .throwOnError();
@@ -541,7 +687,10 @@
             eventSelect.value = eventId;
             await loadEventData(eventId);
         } catch (error) {
-            setStatus(settingsStatus, 'No se pudieron guardar los cambios.', true);
+            const errorMessage = error?.message
+                ? `No se pudieron guardar los cambios: ${error.message}`
+                : 'No se pudieron guardar los cambios.';
+            setStatus(settingsStatus, errorMessage, true);
         }
     });
 

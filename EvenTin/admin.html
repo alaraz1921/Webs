@@ -136,13 +136,17 @@
                             Texto de presentacion
                             <textarea name="presentation_text" rows="4"></textarea>
                         </label>
-                        <label>
+                        <label class="image-upload-field">
                             Imagen principal
-                            <input type="url" name="hero_image_url">
+                            <input type="file" name="hero_image_file" accept="image/*">
+                            <input type="hidden" name="hero_image_url">
+                            <span id="hero-image-status" class="field-hint">Se optimiza automaticamente al guardar.</span>
                         </label>
-                        <label>
+                        <label class="image-upload-field">
                             Imagen detalle
-                            <input type="url" name="detail_image_url">
+                            <input type="file" name="detail_image_file" accept="image/*">
+                            <input type="hidden" name="detail_image_url">
+                            <span id="detail-image-status" class="field-hint">Se optimiza automaticamente al guardar.</span>
                         </label>
                         <label>
                             Paleta

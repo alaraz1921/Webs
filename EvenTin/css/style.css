@@ -1003,6 +1003,23 @@ fieldset {
     font-size: 0.86rem;
 }
 
+.image-upload-field {
+    display: grid;
+    gap: 8px;
+}
+
+.image-upload-field input[type="file"] {
+    margin-top: 8px;
+    padding: 10px;
+}
+
+.field-hint {
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
 .admin-tools .danger-button {
     margin-top: 16px;
 }
