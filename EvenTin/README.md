@@ -13,6 +13,7 @@ El nombre `EvenTin` se usa solo como directorio interno. La web no muestra esa m
 ```text
 EvenTin/
 |-- index.html
+|-- evento.html
 |-- invitacion.html
 |-- admin.html
 |-- css/style.css
@@ -36,6 +37,8 @@ Incluye:
 - URL del proyecto Supabase independiente de EvenTin.
 - `anon public key` del proyecto Supabase de EvenTin.
 - `defaultEventId`.
+- `defaultEventSlug`.
+- `defaultEventCode`.
 - Textos de respaldo por si la base de datos aun no esta creada.
 
 No guardar nunca la `service_role key` ni claves privadas en este proyecto.
@@ -59,6 +62,10 @@ insert into public.eventin_profiles (id, display_name, role)
 values ('UUID_DEL_USUARIO_AUTH', 'Administrador', 'admin')
 on conflict (id) do update set display_name = excluded.display_name;
 
+update public.eventin_profiles
+set email = 'admin@ejemplo.com'
+where id = 'UUID_DEL_USUARIO_AUTH';
+
 insert into public.eventin_event_admins (event_id, user_id)
 values ('11111111-1111-1111-1111-111111111111', 'UUID_DEL_USUARIO_AUTH')
 on conflict (event_id, user_id) do nothing;
@@ -66,9 +73,17 @@ on conflict (event_id, user_id) do nothing;
 
 ## Paginas
 
-- `index.html`: pagina publica del evento, cuenta atras, informacion y mensajes.
-- `invitacion.html`: confirmacion publica de asistencia por telefono.
+- `index.html`: portada publica del servicio.
+- `evento.html?evento=primera-comunion-demo`: pagina publica de un evento concreto.
+- `evento.html?evento=100001`: pagina publica de un evento concreto por ID de 6 digitos.
+- `invitacion.html?evento=primera-comunion-demo`: confirmacion publica de asistencia por telefono.
 - `admin.html`: panel privado con autenticacion Supabase.
+
+Eventos demo creados por `sql/schema.sql`:
+
+- `primera-comunion-demo` / `100001`
+- `bautizo-sofia-demo` / `100002`
+- `cumpleanos-martina-demo` / `100003`
 
 ## Notas de seguridad
 

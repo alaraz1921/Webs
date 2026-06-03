@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/supabaseClient.js"></script>
+    <script src="js/eventContext.js"></script>
     <script src="js/invitation.js" defer></script>
 </head>
 <body class="simple-page">
@@ -40,7 +41,7 @@
             <button type="submit">Enviar respuesta</button>
             <p id="invitation-status" class="form-status" role="status"></p>
         </form>
-        <a class="page-link" href="index.html">Volver</a>
+        <a id="event-link" class="page-link" href="index.html">Ir al evento</a>
     </main>
 </body>
 </html>

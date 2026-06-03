@@ -2,7 +2,11 @@
     const form = document.getElementById('public-message-form');
     const status = document.getElementById('public-message-status');
     const client = window.eventSupabase;
-    const eventId = window.eventPlatformConfig.defaultEventId;
+    const eventContext = window.eventContext;
+
+    if (!eventContext?.hasRequestedEvent()) {
+        return;
+    }
 
     function showStatus(message, isError) {
         status.textContent = message;
@@ -13,19 +17,20 @@
         event.preventDefault();
         showStatus('', false);
 
-        if (!client) {
+        if (!client || !eventContext) {
             showStatus('No se pudo conectar con el servicio. Intentalo de nuevo mas tarde.', true);
             return;
         }
 
-        const formData = new FormData(form);
-        const payload = {
-            event_id: eventId,
-            author_name: String(formData.get('author_name')).trim(),
-            message: String(formData.get('message')).trim()
-        };
-
         try {
+            const formData = new FormData(form);
+            const { event: eventData } = await eventContext.getEvent();
+            const payload = {
+                event_id: eventData.id,
+                author_name: String(formData.get('author_name')).trim(),
+                message: String(formData.get('message')).trim()
+            };
+
             await client.from('eventin_public_messages').insert(payload).throwOnError();
             form.reset();
             showStatus('Mensaje enviado correctamente', false);

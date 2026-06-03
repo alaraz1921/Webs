@@ -1,7 +1,6 @@
 (function () {
     const config = window.eventPlatformConfig;
-    const client = window.eventSupabase;
-    const eventId = config.defaultEventId;
+    const eventContext = window.eventContext;
     let countdownTimer = null;
 
     function applyEvent(eventData, settings) {
@@ -15,9 +14,13 @@
             place: eventData?.location_name || fallback.place,
             mapsUrl: eventData?.maps_url || fallback.mapsUrl,
             presentationTitle: settings?.presentation_title || fallback.presentationTitle,
-            presentationText: settings?.presentation_text || fallback.presentationText
+            presentationText: settings?.presentation_text || fallback.presentationText,
+            heroImageUrl: settings?.hero_image_url || '',
+            detailImageUrl: settings?.detail_image_url || '',
+            paletteKey: settings?.palette_key || fallback.paletteKey || 'earth'
         };
 
+        document.body.dataset.palette = data.paletteKey;
         setText('[data-event-title]', data.title);
         setText('[data-event-subtitle]', data.subtitle);
         setText('[data-presentation-title]', data.presentationTitle);
@@ -31,6 +34,8 @@
             mapLink.href = data.mapsUrl;
         }
 
+        setPanelImage('.hero', data.heroImageUrl);
+        setPanelImage('.image-panel', data.detailImageUrl);
         startCountdown(data.eventDate);
     }
 
@@ -66,19 +71,25 @@
         return String(value).padStart(2, '0');
     }
 
+    function setPanelImage(selector, imageUrl) {
+        const element = document.querySelector(selector);
+
+        if (element && imageUrl) {
+            element.style.setProperty('--event-image-url', `url("${imageUrl}")`);
+        }
+    }
+
     async function loadEvent() {
-        if (!client) {
-            applyEvent(null, null);
+        if (!eventContext || !eventContext.hasRequestedEvent()) {
             return;
         }
 
-        const [{ data: eventData }, { data: settings }] = await Promise.all([
-            client.from('eventin_events').select('title,event_date,location_name,maps_url').eq('id', eventId).maybeSingle(),
-            client.from('eventin_event_settings').select('subtitle,display_date,display_time,presentation_title,presentation_text').eq('event_id', eventId).maybeSingle()
-        ]);
-
+        const { event: eventData, settings } = await eventContext.getEvent();
         applyEvent(eventData, settings);
     }
 
-    loadEvent().catch(() => applyEvent(null, null));
+    loadEvent().catch(() => {
+        setText('[data-event-title]', 'Evento no encontrado');
+        setText('[data-event-subtitle]', 'Revisa el enlace o el ID del evento.');
+    });
 })();
