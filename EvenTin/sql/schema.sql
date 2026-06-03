@@ -457,9 +457,6 @@ to authenticated
 using (public.eventin_is_admin());
 
 drop policy if exists "Public can read event images" on storage.objects;
-create policy "Public can read event images"
-on storage.objects for select
-using (bucket_id = 'eventin-images');
 
 drop policy if exists "Users can upload assigned event images" on storage.objects;
 create policy "Users can upload assigned event images"
