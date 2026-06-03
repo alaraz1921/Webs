@@ -34,6 +34,7 @@ b2ca9cc Usar modal propio en monitor de bingo
 - Tailwind CSS por CDN en las paginas de `ValentinaPlay`.
 - Google Fonts por CDN en la portada y zona privada.
 - Supabase JS por CDN en `Privado/index.html`.
+- Supabase JS por CDN en `EvenTin`, usando un proyecto Supabase independiente del proyecto privado de `Webs`.
 - Supabase JS por CDN en `Bingo/monitor.html` e `infiltrado/index.html` para validar clave diaria por RPC.
 - Persistencia local mediante `localStorage` en Bingo y El Infiltrado.
 
@@ -61,6 +62,12 @@ No se encontraron:
 |   `-- IMG_1914.jpg
 |-- Privado/
 |   `-- index.html
+|-- EvenTin/
+|   |-- index.html
+|   |-- invitacion.html
+|   |-- admin.html
+|   |-- js/
+|   `-- sql/
 |-- supabase/
 |   |-- README.md
 |   `-- migrations/
@@ -149,6 +156,20 @@ Tambien contiene una migracion para validar claves diarias de Bingo Monitor e In
 
 - `validate_daily_access_code(text, text)`.
 - `get_daily_access_formula_note()`.
+
+### `EvenTin/`
+
+Proyecto estatico independiente dentro del mismo repositorio. Usa su propio proyecto Supabase, configurado en `EvenTin/js/config.js`, y no debe reutilizar la URL ni la `anon public key` del proyecto privado de `Webs`.
+
+Estructura de datos en `EvenTin/sql/schema.sql`:
+
+- `eventin_events`.
+- `eventin_event_settings`.
+- `eventin_profiles`.
+- `eventin_event_admins`.
+- `eventin_guest_responses`.
+- `eventin_public_messages`.
+- RPC publica `eventin_submit_guest_response(...)` para confirmar asistencia sin abrir permisos anonimos directos sobre la tabla de respuestas.
 
 ### `Bingo/carton.html`
 

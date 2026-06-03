@@ -33,21 +33,24 @@ js/config.js
 
 Incluye:
 
-- URL de Supabase.
-- `anon public key`.
+- URL del proyecto Supabase independiente de EvenTin.
+- `anon public key` del proyecto Supabase de EvenTin.
 - `defaultEventId`.
 - Textos de respaldo por si la base de datos aun no esta creada.
 
 No guardar nunca la `service_role key` ni claves privadas en este proyecto.
+No reutilizar aqui la URL ni la `anon public key` del proyecto Supabase privado de `Webs`.
 
 ## Base de datos
 
-1. Abrir el proyecto en Supabase.
+1. Abrir el proyecto nuevo de Supabase llamado `EvenTin`.
 2. Ir a `SQL Editor`.
 3. Copiar y ejecutar el contenido de `sql/schema.sql`.
-4. Crear usuarios desde `Authentication`.
-5. Crear el perfil del usuario en `eventin_profiles`.
-6. Relacionar el usuario con el evento en `eventin_event_admins`.
+4. Copiar la URL y la `anon public key` de `Project Settings` -> `API`.
+5. Pegar esos valores en `js/config.js`.
+6. Crear usuarios gestores desde `Authentication`.
+7. Crear el perfil del usuario en `eventin_profiles`.
+8. Relacionar el usuario con el evento en `eventin_event_admins`.
 
 Ejemplo para asignar un administrador:
 
@@ -69,7 +72,8 @@ on conflict (event_id, user_id) do nothing;
 
 ## Notas de seguridad
 
-- Los formularios publicos usan RLS para insertar mensajes y crear/actualizar respuestas.
+- Los mensajes publicos usan RLS para insertar registros anonimos en `eventin_public_messages`.
+- Las confirmaciones de asistencia se envian mediante la RPC `eventin_submit_guest_response`; los usuarios anonimos no tienen permiso directo de insercion/actualizacion sobre `eventin_guest_responses`.
 - El visitante nunca sabe si su telefono creo una respuesta nueva o actualizo una existente.
 - Los administradores solo pueden consultar eventos asignados mediante `eventin_event_admins`.
 - La arquitectura ya separa `eventin_profiles`, `eventin_event_admins` y `eventin_events` para una futura pagina de superadministrador.

@@ -1,6 +1,6 @@
-window.eventPlatformConfig = {
-    supabaseUrl: 'https://nxuqkvuvmllqihaefjky.supabase.co',
-    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dXFrdnV2bWxscWloYWVmamt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNDUxNDAsImV4cCI6MjA5NTgyMTE0MH0.j9_-XF_JbYD_ZV-J_JYakaJqi1jKGuD52T-EbdWVS6g',
+﻿window.eventPlatformConfig = {
+    supabaseUrl: 'https://tmnavlsptjhhdlypgtaa.supabase.co',
+    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtbmF2bHNwdGpoaGRseXBndGFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDg5MzcsImV4cCI6MjA5NjAyNDkzN30.r3mPtpC5WeJjY5UCTKYEF-s39H4cF2wOcrCnzyIJpNs',
     defaultEventId: '11111111-1111-1111-1111-111111111111',
     fallbackEvent: {
         title: 'Mi Primera Comunion',

@@ -143,6 +143,64 @@ as $$
         );
 $$;
 
+create or replace function public.eventin_submit_guest_response(
+    p_event_id uuid,
+    p_nombre text,
+    p_telefono text,
+    p_asistencia boolean,
+    p_mensaje text default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    response_id uuid;
+begin
+    if coalesce(trim(p_nombre), '') = '' then
+        raise exception 'Nombre obligatorio';
+    end if;
+
+    if coalesce(trim(p_telefono), '') = '' then
+        raise exception 'Telefono obligatorio';
+    end if;
+
+    if not exists (
+        select 1
+        from public.eventin_events
+        where id = p_event_id
+          and is_active = true
+    ) then
+        raise exception 'Evento no disponible';
+    end if;
+
+    insert into public.eventin_guest_responses (
+        event_id,
+        nombre,
+        telefono,
+        asistencia,
+        mensaje
+    ) values (
+        p_event_id,
+        trim(p_nombre),
+        trim(p_telefono),
+        p_asistencia,
+        nullif(trim(coalesce(p_mensaje, '')), '')
+    )
+    on conflict (event_id, telefono) do update set
+        nombre = excluded.nombre,
+        asistencia = excluded.asistencia,
+        mensaje = excluded.mensaje,
+        updated_at = now()
+    returning id into response_id;
+
+    return response_id;
+end;
+$$;
+
+grant execute on function public.eventin_submit_guest_response(uuid, text, text, boolean, text) to anon;
+
 alter table public.eventin_events enable row level security;
 alter table public.eventin_event_settings enable row level security;
 alter table public.eventin_profiles enable row level security;
@@ -207,39 +265,7 @@ using (public.eventin_is_superadmin())
 with check (public.eventin_is_superadmin());
 
 drop policy if exists "Public can insert guest responses" on public.eventin_guest_responses;
-create policy "Public can insert guest responses"
-on public.eventin_guest_responses for insert
-to anon
-with check (
-    nombre <> ''
-    and telefono <> ''
-    and exists (
-        select 1 from public.eventin_events
-        where eventin_events.id = eventin_guest_responses.event_id
-          and eventin_events.is_active = true
-    )
-);
-
 drop policy if exists "Public can update guest responses by event phone" on public.eventin_guest_responses;
-create policy "Public can update guest responses by event phone"
-on public.eventin_guest_responses for update
-to anon
-using (
-    exists (
-        select 1 from public.eventin_events
-        where eventin_events.id = eventin_guest_responses.event_id
-          and eventin_events.is_active = true
-    )
-)
-with check (
-    nombre <> ''
-    and telefono <> ''
-    and exists (
-        select 1 from public.eventin_events
-        where eventin_events.id = eventin_guest_responses.event_id
-          and eventin_events.is_active = true
-    )
-);
 
 drop policy if exists "Admins can read assigned guest responses" on public.eventin_guest_responses;
 create policy "Admins can read assigned guest responses"

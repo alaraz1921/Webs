@@ -2,6 +2,8 @@
 
 Este directorio contiene el esquema inicial para la base de datos de `Webs`.
 
+EvenTin usa un proyecto Supabase independiente. Su estructura de datos esta en `EvenTin/sql/schema.sql`.
+
 ## Proyecto
 
 ```text

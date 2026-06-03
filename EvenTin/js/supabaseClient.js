@@ -1,7 +1,12 @@
 (function () {
     const config = window.eventPlatformConfig;
 
-    if (!window.supabase || !config?.supabaseUrl || !config?.supabaseAnonKey) {
+    const hasConfig = config?.supabaseUrl
+        && config?.supabaseAnonKey
+        && !config.supabaseUrl.includes('TU-PROYECTO')
+        && !config.supabaseAnonKey.includes('TU_ANON_PUBLIC_KEY');
+
+    if (!window.supabase || !hasConfig) {
         window.eventSupabase = null;
         return;
     }

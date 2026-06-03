@@ -24,18 +24,16 @@
 
         const formData = new FormData(form);
         const payload = {
-            event_id: eventId,
-            nombre: String(formData.get('nombre')).trim(),
-            telefono: normalizePhone(String(formData.get('telefono'))),
-            asistencia: formData.get('asistencia') === 'true',
-            mensaje: String(formData.get('mensaje') || '').trim(),
-            updated_at: new Date().toISOString()
+            p_event_id: eventId,
+            p_nombre: String(formData.get('nombre')).trim(),
+            p_telefono: normalizePhone(String(formData.get('telefono'))),
+            p_asistencia: formData.get('asistencia') === 'true',
+            p_mensaje: String(formData.get('mensaje') || '').trim()
         };
 
         try {
             await client
-                .from('eventin_guest_responses')
-                .upsert(payload, { onConflict: 'event_id,telefono' })
+                .rpc('eventin_submit_guest_response', payload)
                 .throwOnError();
 
             form.reset();
