@@ -94,6 +94,25 @@ eventin_profiles.event_code = eventin_events.event_code
 
 El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear evento y es de solo lectura en el panel.
 
+## Cambios del 2026-06-03
+
+Commits relevantes de cierre de dia:
+
+```text
+07fc2b6 Add secure EvenTin event user creation
+c141177 Fix EvenTin storage image upload policies
+8cad01c Use storage helper for EvenTin image policies
+```
+
+Resumen:
+
+- Se sustituyo el alta de usuarios Auth desde frontend (`auth.signUp`) por la Edge Function `create-event-user`.
+- Ya no es necesario permitir registros publicos en Supabase para crear usuarios de evento desde el panel.
+- Se ajustaron las policies de Storage para subir imagenes al bucket `eventin-images`.
+- Se creo la funcion publica `public.eventin_can_manage_event_image(text)` como helper `SECURITY DEFINER` para que Storage pueda validar si el usuario autenticado puede gestionar imagenes de `events/<event_code>/...`.
+- Se anadio policy `select` sobre `storage.objects` para usuarios autenticados autorizados, porque la subida con `upsert: true` puede necesitar lectura del objeto existente ademas de `insert/update`.
+- Despues de estos cambios hay que ejecutar de nuevo `EvenTin/sql/schema.sql` completo en Supabase.
+
 ## Base de Datos
 
 Archivo principal:
@@ -161,6 +180,26 @@ El panel optimiza imagenes en navegador antes de subir:
 
 Se elimino la policy amplia `Public can read event images` porque en buckets publicos no hace falta para acceder por URL y Supabase la marcaba como warning.
 
+Policies actuales:
+
+- `Users can read assigned event images`: permite `select` a usuarios autenticados autorizados.
+- `Users can upload assigned event images`: permite `insert`.
+- `Users can update assigned event images`: permite `update`.
+- `Users can delete assigned event images`: permite `delete`.
+
+Todas validan:
+
+```text
+bucket_id = 'eventin-images'
+storage.foldername(name)[1] = 'events'
+public.eventin_can_manage_event_image(storage.foldername(name)[2])
+```
+
+El helper `public.eventin_can_manage_event_image(text)` permite:
+
+- cualquier perfil con `role = 'admin'`;
+- perfiles `user` cuyo `event_code` coincida con la carpeta del objeto.
+
 ## Panel Admin
 
 El panel `admin.html` tiene:
@@ -188,6 +227,7 @@ Usuarios:
 - Borrar perfil/asignacion.
 - El usuario Auth completo se borra desde Supabase si se quiere eliminar el acceso por completo.
 - El alta Auth se hace desde la Edge Function `create-event-user`, no con registros publicos de Supabase.
+- Si el panel muestra error al crear usuario Auth, comprobar que `create-event-user` esta desplegada en Supabase.
 
 Contactos:
 
@@ -277,6 +317,16 @@ supabase functions deploy notify-contact --project-ref tmnavlsptjhhdlypgtaa
 supabase functions deploy create-event-user --project-ref tmnavlsptjhhdlypgtaa
 ```
 
+Si no existe `supabase` en PowerShell, instalar Node.js LTS y usar:
+
+```powershell
+npx supabase login --token TU_TOKEN_SUPABASE
+npx supabase functions deploy notify-contact --project-ref tmnavlsptjhhdlypgtaa
+npx supabase functions deploy create-event-user --project-ref tmnavlsptjhhdlypgtaa
+```
+
+El warning `Docker is not running` no bloquea el deploy remoto de Edge Functions.
+
 Si `supabase login` falla, crear token manual en:
 
 ```text
@@ -298,6 +348,7 @@ Warnings resueltos en `schema.sql`:
 - `eventin_set_updated_at` sin `search_path`.
 - Policy amplia de lectura sobre bucket publico `eventin-images`.
 - Funciones `SECURITY DEFINER` expuestas en `public` como RPC.
+- Subida de imagenes bloqueada por RLS en Storage: se corrigio con `public.eventin_can_manage_event_image(text)` y policies de `select/insert/update/delete`.
 
 Warning restante de Auth:
 
@@ -326,6 +377,9 @@ No se pudo validar la Edge Function con `deno check` porque Deno no estaba insta
 ## Ultimos Commits Importantes
 
 ```text
+8cad01c Use storage helper for EvenTin image policies
+c141177 Fix EvenTin storage image upload policies
+07fc2b6 Add secure EvenTin event user creation
 fff0dba Add contact admin view and email notification
 69cb0d2 Remove broad public storage select policy
 730b991 Restrict internal helper function execution
@@ -336,8 +390,10 @@ d11bde9 Move EvenTin helper functions to private schema
 
 1. Ejecutar siempre el `EvenTin/sql/schema.sql` actualizado en Supabase tras cambios de schema.
 2. Activar `Leaked password protection` en Supabase Auth.
-3. Confirmar que `notify-contact` tiene secretos correctos y envia emails.
-4. Probar flujo completo:
+3. Confirmar que `create-event-user` esta desplegada y permite crear usuarios desde el panel.
+4. Confirmar que `notify-contact` tiene secretos correctos y envia emails.
+5. Confirmar que la subida de imagenes funciona tras ejecutar el `schema.sql` actualizado.
+6. Probar flujo completo:
    - crear evento;
    - subir imagen principal/detalle;
    - crear usuario de evento;
@@ -346,7 +402,7 @@ d11bde9 Move EvenTin helper functions to private schema
    - enviar mensaje publico;
    - enviar contacto desde portada;
    - ver contacto en admin y recibir email.
-5. Si se quiere enviar desde `contacto@alaraz1921.com`, verificar dominio/remitente en Resend y configurar `CONTACT_FROM_EMAIL`.
+7. Si se quiere enviar desde `contacto@alaraz1921.com`, verificar dominio/remitente en Resend y configurar `CONTACT_FROM_EMAIL`.
 
 ## Notas de Trabajo
 
