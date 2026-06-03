@@ -3,6 +3,10 @@
 
 create extension if not exists pgcrypto;
 
+create schema if not exists eventin_private;
+revoke all on schema eventin_private from public;
+grant usage on schema eventin_private to anon, authenticated;
+
 create table if not exists public.eventin_event_types (
     key text primary key,
     name text not null,
@@ -185,8 +189,16 @@ for each row execute function public.eventin_set_updated_at();
 
 drop function if exists public.eventin_can_admin_event(uuid) cascade;
 drop function if exists public.eventin_is_superadmin() cascade;
+drop function if exists public.eventin_is_admin() cascade;
+drop function if exists public.eventin_can_access_event(uuid) cascade;
+drop function if exists public.eventin_can_access_event_code(text) cascade;
+drop function if exists public.eventin_generate_event_code() cascade;
+drop function if exists eventin_private.is_admin() cascade;
+drop function if exists eventin_private.can_access_event(uuid) cascade;
+drop function if exists eventin_private.can_access_event_code(text) cascade;
+drop function if exists eventin_private.generate_event_code() cascade;
 
-create or replace function public.eventin_is_admin()
+create or replace function eventin_private.is_admin()
 returns boolean
 language sql
 security definer
@@ -200,13 +212,13 @@ as $$
     );
 $$;
 
-create or replace function public.eventin_can_access_event(target_event_id uuid)
+create or replace function eventin_private.can_access_event(target_event_id uuid)
 returns boolean
 language sql
 security definer
 set search_path = public
 as $$
-    select public.eventin_is_admin()
+    select eventin_private.is_admin()
         or exists (
             select 1
             from public.eventin_profiles
@@ -217,13 +229,13 @@ as $$
         );
 $$;
 
-create or replace function public.eventin_can_access_event_code(target_event_code text)
+create or replace function eventin_private.can_access_event_code(target_event_code text)
 returns boolean
 language sql
 security definer
 set search_path = public
 as $$
-    select public.eventin_is_admin()
+    select eventin_private.is_admin()
         or exists (
             select 1
             from public.eventin_profiles
@@ -233,7 +245,7 @@ as $$
         );
 $$;
 
-create or replace function public.eventin_generate_event_code()
+create or replace function eventin_private.generate_event_code()
 returns text
 language plpgsql
 security definer
@@ -256,7 +268,7 @@ begin
 end;
 $$;
 
-create or replace function public.eventin_submit_guest_response(
+create or replace function eventin_private.submit_guest_response(
     p_event_id uuid,
     p_nombre text,
     p_telefono text,
@@ -312,20 +324,44 @@ begin
 end;
 $$;
 
-grant execute on function public.eventin_submit_guest_response(uuid, text, text, boolean, text) to anon;
+create or replace function public.eventin_submit_guest_response(
+    p_event_id uuid,
+    p_nombre text,
+    p_telefono text,
+    p_asistencia boolean,
+    p_mensaje text default null
+)
+returns uuid
+language sql
+security invoker
+set search_path = public
+as $$
+    select eventin_private.submit_guest_response(
+        p_event_id,
+        p_nombre,
+        p_telefono,
+        p_asistencia,
+        p_mensaje
+    );
+$$;
+
+grant execute on function public.eventin_submit_guest_response(uuid, text, text, boolean, text) to anon, authenticated;
 
 revoke execute on function public.eventin_set_updated_at() from public, anon, authenticated;
 
-revoke execute on function public.eventin_is_admin() from public, anon;
-grant execute on function public.eventin_is_admin() to authenticated;
+revoke execute on function eventin_private.is_admin() from public;
+grant execute on function eventin_private.is_admin() to authenticated;
 
-revoke execute on function public.eventin_can_access_event(uuid) from public, anon;
-grant execute on function public.eventin_can_access_event(uuid) to authenticated;
+revoke execute on function eventin_private.can_access_event(uuid) from public;
+grant execute on function eventin_private.can_access_event(uuid) to authenticated;
 
-revoke execute on function public.eventin_can_access_event_code(text) from public, anon;
-grant execute on function public.eventin_can_access_event_code(text) to authenticated;
+revoke execute on function eventin_private.can_access_event_code(text) from public;
+grant execute on function eventin_private.can_access_event_code(text) to authenticated;
 
-revoke execute on function public.eventin_generate_event_code() from public, anon, authenticated;
+revoke execute on function eventin_private.generate_event_code() from public, anon, authenticated;
+
+revoke execute on function eventin_private.submit_guest_response(uuid, text, text, boolean, text) from public;
+grant execute on function eventin_private.submit_guest_response(uuid, text, text, boolean, text) to anon, authenticated;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
@@ -357,8 +393,8 @@ drop policy if exists "Admins can manage event types" on public.eventin_event_ty
 create policy "Admins can manage event types"
 on public.eventin_event_types for all
 to authenticated
-using (public.eventin_is_admin())
-with check (public.eventin_is_admin());
+using (eventin_private.is_admin())
+with check (eventin_private.is_admin());
 
 drop policy if exists "Public can read active events" on public.eventin_events;
 create policy "Public can read active events"
@@ -369,21 +405,21 @@ drop policy if exists "Admins can manage events" on public.eventin_events;
 create policy "Admins can manage events"
 on public.eventin_events for all
 to authenticated
-using (public.eventin_is_admin())
-with check (public.eventin_is_admin());
+using (eventin_private.is_admin())
+with check (eventin_private.is_admin());
 
 drop policy if exists "Users can read assigned events" on public.eventin_events;
 create policy "Users can read assigned events"
 on public.eventin_events for select
 to authenticated
-using (public.eventin_can_access_event(id));
+using (eventin_private.can_access_event(id));
 
 drop policy if exists "Users can update assigned events" on public.eventin_events;
 create policy "Users can update assigned events"
 on public.eventin_events for update
 to authenticated
-using (public.eventin_can_access_event(id))
-with check (public.eventin_can_access_event(id));
+using (eventin_private.can_access_event(id))
+with check (eventin_private.can_access_event(id));
 
 drop policy if exists "Public can read active event settings" on public.eventin_event_settings;
 create policy "Public can read active event settings"
@@ -400,28 +436,28 @@ drop policy if exists "Users can manage assigned event settings" on public.event
 create policy "Users can manage assigned event settings"
 on public.eventin_event_settings for all
 to authenticated
-using (public.eventin_can_access_event(event_id))
-with check (public.eventin_can_access_event(event_id));
+using (eventin_private.can_access_event(event_id))
+with check (eventin_private.can_access_event(event_id));
 
 drop policy if exists "Users can read own profile" on public.eventin_profiles;
 create policy "Users can read own profile"
 on public.eventin_profiles for select
 to authenticated
-using (id = auth.uid() or public.eventin_is_admin());
+using (id = auth.uid() or eventin_private.is_admin());
 
 drop policy if exists "Admins can manage profiles" on public.eventin_profiles;
 create policy "Admins can manage profiles"
 on public.eventin_profiles for all
 to authenticated
-using (public.eventin_is_admin())
-with check (public.eventin_is_admin());
+using (eventin_private.is_admin())
+with check (eventin_private.is_admin());
 
 drop policy if exists "Users can manage assigned guest responses" on public.eventin_guest_responses;
 create policy "Users can manage assigned guest responses"
 on public.eventin_guest_responses for all
 to authenticated
-using (public.eventin_can_access_event(event_id))
-with check (public.eventin_can_access_event(event_id));
+using (eventin_private.can_access_event(event_id))
+with check (eventin_private.can_access_event(event_id));
 
 drop policy if exists "Public can insert guest responses" on public.eventin_guest_responses;
 drop policy if exists "Public can update guest responses by event phone" on public.eventin_guest_responses;
@@ -444,8 +480,8 @@ drop policy if exists "Users can manage assigned messages" on public.eventin_pub
 create policy "Users can manage assigned messages"
 on public.eventin_public_messages for all
 to authenticated
-using (public.eventin_can_access_event(event_id))
-with check (public.eventin_can_access_event(event_id));
+using (eventin_private.can_access_event(event_id))
+with check (eventin_private.can_access_event(event_id));
 
 drop policy if exists "Public can insert contact requests" on public.eventin_contact_requests;
 create policy "Public can insert contact requests"
@@ -461,13 +497,13 @@ drop policy if exists "Admins can read contact requests" on public.eventin_conta
 create policy "Admins can read contact requests"
 on public.eventin_contact_requests for select
 to authenticated
-using (public.eventin_is_admin());
+using (eventin_private.is_admin());
 
 drop policy if exists "Admins can delete contact requests" on public.eventin_contact_requests;
 create policy "Admins can delete contact requests"
 on public.eventin_contact_requests for delete
 to authenticated
-using (public.eventin_is_admin());
+using (eventin_private.is_admin());
 
 drop policy if exists "Public can read event images" on storage.objects;
 
@@ -478,7 +514,7 @@ to authenticated
 with check (
     bucket_id = 'eventin-images'
     and (storage.foldername(name))[1] = 'events'
-    and public.eventin_can_access_event_code((storage.foldername(name))[2])
+    and eventin_private.can_access_event_code((storage.foldername(name))[2])
 );
 
 drop policy if exists "Users can update assigned event images" on storage.objects;
@@ -488,12 +524,12 @@ to authenticated
 using (
     bucket_id = 'eventin-images'
     and (storage.foldername(name))[1] = 'events'
-    and public.eventin_can_access_event_code((storage.foldername(name))[2])
+    and eventin_private.can_access_event_code((storage.foldername(name))[2])
 )
 with check (
     bucket_id = 'eventin-images'
     and (storage.foldername(name))[1] = 'events'
-    and public.eventin_can_access_event_code((storage.foldername(name))[2])
+    and eventin_private.can_access_event_code((storage.foldername(name))[2])
 );
 
 drop policy if exists "Users can delete assigned event images" on storage.objects;
@@ -503,7 +539,7 @@ to authenticated
 using (
     bucket_id = 'eventin-images'
     and (storage.foldername(name))[1] = 'events'
-    and public.eventin_can_access_event_code((storage.foldername(name))[2])
+    and eventin_private.can_access_event_code((storage.foldername(name))[2])
 );
 
 update public.eventin_events
@@ -511,7 +547,7 @@ set public_slug = 'evento-' || substring(id::text from 1 for 8)
 where public_slug is null or public_slug = '';
 
 update public.eventin_events
-set event_code = public.eventin_generate_event_code()
+set event_code = eventin_private.generate_event_code()
 where event_code is null or event_code = '';
 
 alter table public.eventin_events alter column public_slug set not null;
