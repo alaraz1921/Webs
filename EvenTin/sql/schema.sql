@@ -145,6 +145,7 @@ create index if not exists idx_eventin_contact_requests_created_at on public.eve
 create or replace function public.eventin_set_updated_at()
 returns trigger
 language plpgsql
+set search_path = public
 as $$
 begin
     new.updated_at = now();
