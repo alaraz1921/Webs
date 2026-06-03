@@ -3,6 +3,12 @@
     const eventContext = window.eventContext;
     let countdownTimer = null;
 
+    const validPalettes = new Set(['earth', 'pastel', 'marine']);
+
+    function normalizePalette(value) {
+        return validPalettes.has(value) ? value : 'earth';
+    }
+
     function applyEvent(eventData, settings) {
         const fallback = config.fallbackEvent;
         const data = {
@@ -17,7 +23,7 @@
             presentationText: settings?.presentation_text || fallback.presentationText,
             heroImageUrl: settings?.hero_image_url || '',
             detailImageUrl: settings?.detail_image_url || '',
-            paletteKey: settings?.palette_key || fallback.paletteKey || 'earth'
+            paletteKey: normalizePalette(settings?.palette_key || fallback.paletteKey || 'earth')
         };
 
         document.body.dataset.palette = data.paletteKey;
@@ -81,6 +87,19 @@
 
     async function loadEvent() {
         if (!eventContext || !eventContext.hasRequestedEvent()) {
+            applyEvent({
+                title: config.fallbackEvent.title,
+                event_date: config.fallbackEvent.eventDate,
+                location_name: config.fallbackEvent.place,
+                maps_url: config.fallbackEvent.mapsUrl
+            }, {
+                subtitle: config.fallbackEvent.subtitle,
+                display_date: config.fallbackEvent.displayDate,
+                display_time: config.fallbackEvent.displayTime,
+                presentation_title: config.fallbackEvent.presentationTitle,
+                presentation_text: config.fallbackEvent.presentationText,
+                palette_key: config.fallbackEvent.paletteKey || 'earth'
+            });
             return;
         }
 

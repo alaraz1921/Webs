@@ -107,9 +107,13 @@
         return String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
     }
 
-    function getPublicEventUrl(eventData) {
+    function getPublicEventUrl(eventData, bustCache) {
         const eventKey = eventData?.public_slug || eventData?.event_code || config.defaultEventSlug;
-        return new URL(`evento.html?evento=${encodeURIComponent(eventKey)}`, window.location.href).href;
+        const url = new URL(`evento.html?evento=${encodeURIComponent(eventKey)}`, window.location.href);
+        if (bustCache) {
+            url.searchParams.set('v', Date.now());
+        }
+        return url.href;
     }
 
     function getCurrentEvent() {
@@ -272,7 +276,7 @@
         fillTypeSelect(settingsEventType, eventData?.event_type || 'communion');
 
         if (eventData) {
-            const publicUrl = getPublicEventUrl(eventData);
+            const publicUrl = getPublicEventUrl(eventData, true);
             adminEventLink.href = publicUrl;
             publicLink.innerHTML = `Enlace publico: <a href="${escapeHtml(publicUrl)}" target="_blank" rel="noopener">${escapeHtml(publicUrl)}</a> · Codigo: ${escapeHtml(eventData.event_code)}`;
         } else {
