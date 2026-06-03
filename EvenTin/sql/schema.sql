@@ -514,7 +514,21 @@ to authenticated
 with check (
     bucket_id = 'eventin-images'
     and (storage.foldername(name))[1] = 'events'
-    and eventin_private.can_access_event_code((storage.foldername(name))[2])
+    and (
+        exists (
+            select 1
+            from public.eventin_profiles
+            where id = auth.uid()
+              and role = 'admin'
+        )
+        or exists (
+            select 1
+            from public.eventin_profiles
+            where id = auth.uid()
+              and role = 'user'
+              and event_code = (storage.foldername(name))[2]
+        )
+    )
 );
 
 drop policy if exists "Users can update assigned event images" on storage.objects;
@@ -524,12 +538,40 @@ to authenticated
 using (
     bucket_id = 'eventin-images'
     and (storage.foldername(name))[1] = 'events'
-    and eventin_private.can_access_event_code((storage.foldername(name))[2])
+    and (
+        exists (
+            select 1
+            from public.eventin_profiles
+            where id = auth.uid()
+              and role = 'admin'
+        )
+        or exists (
+            select 1
+            from public.eventin_profiles
+            where id = auth.uid()
+              and role = 'user'
+              and event_code = (storage.foldername(name))[2]
+        )
+    )
 )
 with check (
     bucket_id = 'eventin-images'
     and (storage.foldername(name))[1] = 'events'
-    and eventin_private.can_access_event_code((storage.foldername(name))[2])
+    and (
+        exists (
+            select 1
+            from public.eventin_profiles
+            where id = auth.uid()
+              and role = 'admin'
+        )
+        or exists (
+            select 1
+            from public.eventin_profiles
+            where id = auth.uid()
+              and role = 'user'
+              and event_code = (storage.foldername(name))[2]
+        )
+    )
 );
 
 drop policy if exists "Users can delete assigned event images" on storage.objects;
@@ -539,7 +581,21 @@ to authenticated
 using (
     bucket_id = 'eventin-images'
     and (storage.foldername(name))[1] = 'events'
-    and eventin_private.can_access_event_code((storage.foldername(name))[2])
+    and (
+        exists (
+            select 1
+            from public.eventin_profiles
+            where id = auth.uid()
+              and role = 'admin'
+        )
+        or exists (
+            select 1
+            from public.eventin_profiles
+            where id = auth.uid()
+              and role = 'user'
+              and event_code = (storage.foldername(name))[2]
+        )
+    )
 );
 
 update public.eventin_events
