@@ -3,92 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EvenTin</title>
+    <title>EvenTin - Tu evento, tu historia</title>
+    <meta name="description" content="EvenTin: crea y comparte paginas elegantes para comuniones, bautizos, bodas y celebraciones.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/supabaseClient.js"></script>
     <script src="js/home.js" defer></script>
 </head>
-<body>
+<body data-palette="home">
     <main class="home-page">
         <section class="home-hero" aria-labelledby="home-title">
-            <form id="event-access-form" class="event-access">
+            <form id="event-access-form" class="event-access" aria-label="Acceso a evento">
                 <label class="sr-only" for="event-code">ID de evento</label>
                 <input id="event-code" name="event_code" type="text" inputmode="numeric" autocomplete="off" maxlength="6" pattern="[0-9]{6}" placeholder="ID de evento (6 digitos)" required>
                 <button type="submit">Ir</button>
                 <p id="event-access-status" class="form-status" role="status"></p>
             </form>
 
-            <div class="leaf leaf-left" aria-hidden="true"></div>
-            <div class="brand-mark" aria-hidden="true">
-                <div class="brand-arc"></div>
-                <div class="brand-leaves">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+            <div class="home-bg home-bg-left" aria-hidden="true"></div>
+            <div class="home-bg home-bg-right" aria-hidden="true"></div>
+
+            <div class="home-hero-content">
+                <img id="home-title" src="assets/images/eventin-logo.png" alt="EvenTin" class="brand-logo">
+                <p class="home-tagline">tu evento, tu historia</p>
+
+                <div class="home-features" aria-label="Servicios">
+                    <article class="feature">
+                        <span class="feature-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M7 2v3M17 2v3M4 9h16M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm2 8h2m3 0h2m3 0h2M7 17h2m3 0h2m3 0h2"/></svg>
+                        </span>
+                        <strong>Celebra</strong>
+                    </article>
+                    <article class="feature">
+                        <span class="feature-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M12 21s7-5.33 7-11a7 7 0 1 0-14 0c0 5.67 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                        </span>
+                        <strong>Comparte</strong>
+                    </article>
+                    <article class="feature">
+                        <span class="feature-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM2.5 21a5.5 5.5 0 0 1 11 0M10.5 21a5.5 5.5 0 0 1 11 0"/></svg>
+                        </span>
+                        <strong>Disfruta</strong>
+                    </article>
+                    <article class="feature">
+                        <span class="feature-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 1 1 17 0Z"/><path d="M9 11.5 11 13l4-4"/></svg>
+                        </span>
+                        <strong>Recuerda</strong>
+                    </article>
                 </div>
-                <h1 id="home-title"><span>Even</span><em>Tin</em></h1>
-                <div class="brand-heart"><span></span></div>
             </div>
+        </section>
 
-            <p class="home-tagline">tu evento, tu historia</p>
-
-            <div class="home-features" aria-label="Servicios">
-                <div>
-                    <span class="feature-icon feature-calendar"></span>
-                    <strong>Celebra</strong>
-                </div>
-                <div>
-                    <span class="feature-icon feature-pin"></span>
-                    <strong>Comparte</strong>
-                </div>
-                <div>
-                    <span class="feature-icon feature-people"></span>
-                    <strong>Disfruta</strong>
-                </div>
-                <div>
-                    <span class="feature-icon feature-chat"></span>
-                    <strong>Recuerda</strong>
-                </div>
+        <section class="home-event-types" aria-label="Tipos de eventos">
+            <div class="home-event-types-content">
+                <p>Comuniones <span>-</span> Bautizos <span>-</span> Bodas <span>-</span> Celebraciones</p>
+                <div class="tiny-heart" aria-hidden="true"><span></span><b>♥</b><span></span></div>
             </div>
         </section>
 
         <section class="home-contact" aria-labelledby="contact-title">
-            <div class="leaf leaf-bottom-left" aria-hidden="true"></div>
-            <div class="leaf leaf-bottom-right" aria-hidden="true"></div>
-            <h2 id="contact-title">Contacto</h2>
-            <form id="contact-form" class="contact-form">
-                <label>
-                    <span class="sr-only">Nombre</span>
-                    <input type="text" name="nombre" autocomplete="name" placeholder="Nombre" required>
-                </label>
-                <label>
-                    <span class="sr-only">Email</span>
-                    <input type="email" name="email" autocomplete="email" placeholder="Email" required>
-                </label>
-                <label class="contact-wide">
-                    <span class="sr-only">Asunto</span>
-                    <input type="text" name="asunto" placeholder="Asunto" required>
-                </label>
-                <label class="contact-wide">
-                    <span class="sr-only">Mensaje</span>
-                    <textarea name="mensaje" rows="6" placeholder="Mensaje" required></textarea>
-                </label>
-                <button type="submit">Enviar</button>
-                <p id="contact-status" class="form-status contact-wide" role="status"></p>
-            </form>
+            <div class="contact-decoration contact-decoration-left" aria-hidden="true"></div>
+            <div class="contact-decoration contact-decoration-right" aria-hidden="true"></div>
+            <div class="contact-card">
+                <h2 id="contact-title">Contacto</h2>
+                <div class="title-line" aria-hidden="true"></div>
+                <form id="contact-form" class="contact-form">
+                    <div class="form-row">
+                        <label>
+                            <span class="sr-only">Nombre</span>
+                            <input type="text" name="nombre" autocomplete="name" placeholder="Nombre" required>
+                        </label>
+                        <label>
+                            <span class="sr-only">Email</span>
+                            <input type="email" name="email" autocomplete="email" placeholder="Email" required>
+                        </label>
+                    </div>
+                    <label class="contact-wide">
+                        <span class="sr-only">Asunto</span>
+                        <input type="text" name="asunto" placeholder="Asunto" required>
+                    </label>
+                    <label class="contact-wide">
+                        <span class="sr-only">Mensaje</span>
+                        <textarea name="mensaje" rows="5" placeholder="Mensaje" required></textarea>
+                    </label>
+                    <button type="submit">Enviar</button>
+                    <p id="contact-status" class="form-status contact-wide" role="status"></p>
+                </form>
+            </div>
         </section>
-
-        <footer class="home-footer">
-            <span>Comuniones</span>
-            <i></i>
-            <span>Bautizos</span>
-            <i></i>
-            <span>Bodas</span>
-            <i></i>
-            <span>Celebraciones</span>
-        </footer>
     </main>
 </body>
 </html>
