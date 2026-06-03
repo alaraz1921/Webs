@@ -1,4 +1,4 @@
-﻿# PROJECT_CONTEXT
+# PROJECT_CONTEXT
 
 ## Resumen
 
@@ -166,7 +166,7 @@ Estructura de datos en `EvenTin/sql/schema.sql`:
 - `eventin_events`.
 - `eventin_event_settings`.
 - `eventin_profiles`.
-- `eventin_event_admins`.
+- `eventin_profiles.event_code` como asignacion de usuarios a eventos.
 - `eventin_guest_responses`.
 - `eventin_public_messages`.
 - RPC publica `eventin_submit_guest_response(...)` para confirmar asistencia sin abrir permisos anonimos directos sobre la tabla de respuestas.

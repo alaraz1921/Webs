@@ -1,4 +1,4 @@
--- EvenTin: motor reutilizable para eventos familiares.
+-- EvenTin: estructura base para eventos y usuarios.
 -- Ejecutar desde Supabase SQL Editor. No guardar nunca service_role keys en frontend.
 
 create extension if not exists pgcrypto;
@@ -10,11 +10,19 @@ create table if not exists public.eventin_event_types (
     updated_at timestamptz not null default now()
 );
 
+insert into public.eventin_event_types (key, name) values
+    ('communion', 'Comunion'),
+    ('baptism', 'Bautizo'),
+    ('wedding', 'Boda'),
+    ('birthday', 'Cumpleanos'),
+    ('celebration', 'Celebracion')
+on conflict (key) do update set name = excluded.name;
+
 create table if not exists public.eventin_events (
     id uuid primary key default gen_random_uuid(),
     title text not null,
-    public_slug text not null unique,
-    event_code text not null unique check (event_code ~ '^[0-9]{6}$'),
+    public_slug text unique,
+    event_code text unique check (event_code ~ '^[0-9]{6}$'),
     event_type text not null default 'communion' references public.eventin_event_types(key),
     event_date timestamptz not null,
     location_name text,
@@ -42,19 +50,13 @@ create table if not exists public.eventin_profiles (
     id uuid primary key references auth.users(id) on delete cascade,
     email text unique,
     display_name text,
-    role text not null default 'admin' check (role in ('admin', 'superadmin')),
+    role text not null default 'user',
+    event_code text,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
 
-create table if not exists public.eventin_event_admins (
-    id uuid primary key default gen_random_uuid(),
-    event_id uuid not null references public.eventin_events(id) on delete cascade,
-    user_id uuid not null references public.eventin_profiles(id) on delete cascade,
-    created_at timestamptz not null default now(),
-    updated_at timestamptz not null default now(),
-    unique (event_id, user_id)
-);
+drop table if exists public.eventin_event_admins cascade;
 
 create table if not exists public.eventin_guest_responses (
     id uuid primary key default gen_random_uuid(),
@@ -89,16 +91,52 @@ create table if not exists public.eventin_contact_requests (
 
 alter table public.eventin_events add column if not exists public_slug text;
 alter table public.eventin_events add column if not exists event_code text;
+alter table public.eventin_events add column if not exists event_type text not null default 'communion';
 alter table public.eventin_event_settings add column if not exists palette_key text not null default 'earth';
 alter table public.eventin_profiles add column if not exists email text;
+alter table public.eventin_profiles add column if not exists event_code text;
 
-create index if not exists idx_eventin_event_settings_event_id on public.eventin_event_settings(event_id);
+update public.eventin_profiles
+set role = 'admin'
+where role = 'superadmin';
+
+update public.eventin_profiles
+set role = 'user'
+where role not in ('admin', 'user');
+
+do $$
+begin
+    if exists (
+        select 1 from pg_constraint where conname = 'eventin_profiles_role_check'
+    ) then
+        alter table public.eventin_profiles drop constraint eventin_profiles_role_check;
+    end if;
+
+    alter table public.eventin_profiles
+    add constraint eventin_profiles_role_check
+    check (role in ('admin', 'user'));
+end;
+$$;
+
+do $$
+begin
+    if exists (
+        select 1 from pg_constraint where conname = 'eventin_profiles_event_code_check'
+    ) then
+        alter table public.eventin_profiles drop constraint eventin_profiles_event_code_check;
+    end if;
+
+    alter table public.eventin_profiles
+    add constraint eventin_profiles_event_code_check
+    check (event_code is null or event_code ~ '^[0-9]{6}$');
+end;
+$$;
+
 create index if not exists idx_eventin_events_public_slug on public.eventin_events(public_slug);
 create index if not exists idx_eventin_events_event_code on public.eventin_events(event_code);
 create index if not exists idx_eventin_events_event_type on public.eventin_events(event_type);
 create unique index if not exists idx_eventin_profiles_email_unique on public.eventin_profiles(email) where email is not null;
-create index if not exists idx_eventin_event_admins_event_id on public.eventin_event_admins(event_id);
-create index if not exists idx_eventin_event_admins_user_id on public.eventin_event_admins(user_id);
+create index if not exists idx_eventin_profiles_event_code on public.eventin_profiles(event_code);
 create index if not exists idx_eventin_guest_responses_event_id on public.eventin_guest_responses(event_id);
 create index if not exists idx_eventin_guest_responses_event_phone on public.eventin_guest_responses(event_id, telefono);
 create index if not exists idx_eventin_public_messages_event_id on public.eventin_public_messages(event_id);
@@ -114,14 +152,14 @@ begin
 end;
 $$;
 
-drop trigger if exists trg_events_updated_at on public.eventin_events;
-create trigger trg_events_updated_at
-before update on public.eventin_events
-for each row execute function public.eventin_set_updated_at();
-
 drop trigger if exists trg_event_types_updated_at on public.eventin_event_types;
 create trigger trg_event_types_updated_at
 before update on public.eventin_event_types
+for each row execute function public.eventin_set_updated_at();
+
+drop trigger if exists trg_events_updated_at on public.eventin_events;
+create trigger trg_events_updated_at
+before update on public.eventin_events
 for each row execute function public.eventin_set_updated_at();
 
 drop trigger if exists trg_event_settings_updated_at on public.eventin_event_settings;
@@ -134,11 +172,6 @@ create trigger trg_profiles_updated_at
 before update on public.eventin_profiles
 for each row execute function public.eventin_set_updated_at();
 
-drop trigger if exists trg_event_admins_updated_at on public.eventin_event_admins;
-create trigger trg_event_admins_updated_at
-before update on public.eventin_event_admins
-for each row execute function public.eventin_set_updated_at();
-
 drop trigger if exists trg_guest_responses_updated_at on public.eventin_guest_responses;
 create trigger trg_guest_responses_updated_at
 before update on public.eventin_guest_responses
@@ -149,7 +182,10 @@ create trigger trg_public_messages_updated_at
 before update on public.eventin_public_messages
 for each row execute function public.eventin_set_updated_at();
 
-create or replace function public.eventin_is_superadmin()
+drop function if exists public.eventin_can_admin_event(uuid) cascade;
+drop function if exists public.eventin_is_superadmin() cascade;
+
+create or replace function public.eventin_is_admin()
 returns boolean
 language sql
 security definer
@@ -159,22 +195,24 @@ as $$
         select 1
         from public.eventin_profiles
         where id = auth.uid()
-          and role = 'superadmin'
+          and role = 'admin'
     );
 $$;
 
-create or replace function public.eventin_can_admin_event(target_event_id uuid)
+create or replace function public.eventin_can_access_event(target_event_id uuid)
 returns boolean
 language sql
 security definer
 set search_path = public
 as $$
-    select public.eventin_is_superadmin()
+    select public.eventin_is_admin()
         or exists (
             select 1
-            from public.eventin_event_admins
-            where event_id = target_event_id
-              and user_id = auth.uid()
+            from public.eventin_profiles
+            join public.eventin_events on eventin_events.event_code = eventin_profiles.event_code
+            where eventin_profiles.id = auth.uid()
+              and eventin_profiles.role = 'user'
+              and eventin_events.id = target_event_id
         );
 $$;
 
@@ -259,11 +297,10 @@ $$;
 
 grant execute on function public.eventin_submit_guest_response(uuid, text, text, boolean, text) to anon;
 
-alter table public.eventin_events enable row level security;
 alter table public.eventin_event_types enable row level security;
+alter table public.eventin_events enable row level security;
 alter table public.eventin_event_settings enable row level security;
 alter table public.eventin_profiles enable row level security;
-alter table public.eventin_event_admins enable row level security;
 alter table public.eventin_guest_responses enable row level security;
 alter table public.eventin_public_messages enable row level security;
 alter table public.eventin_contact_requests enable row level security;
@@ -273,24 +310,37 @@ create policy "Public can read event types"
 on public.eventin_event_types for select
 using (true);
 
-drop policy if exists "Superadmins can manage event types" on public.eventin_event_types;
-create policy "Superadmins can manage event types"
+drop policy if exists "Admins can manage event types" on public.eventin_event_types;
+create policy "Admins can manage event types"
 on public.eventin_event_types for all
 to authenticated
-using (public.eventin_is_superadmin())
-with check (public.eventin_is_superadmin());
+using (public.eventin_is_admin())
+with check (public.eventin_is_admin());
 
 drop policy if exists "Public can read active events" on public.eventin_events;
 create policy "Public can read active events"
 on public.eventin_events for select
 using (is_active = true);
 
-drop policy if exists "Admins can manage assigned events" on public.eventin_events;
-create policy "Admins can manage assigned events"
+drop policy if exists "Admins can manage events" on public.eventin_events;
+create policy "Admins can manage events"
 on public.eventin_events for all
 to authenticated
-using (public.eventin_can_admin_event(id))
-with check (public.eventin_can_admin_event(id));
+using (public.eventin_is_admin())
+with check (public.eventin_is_admin());
+
+drop policy if exists "Users can read assigned events" on public.eventin_events;
+create policy "Users can read assigned events"
+on public.eventin_events for select
+to authenticated
+using (public.eventin_can_access_event(id));
+
+drop policy if exists "Users can update assigned events" on public.eventin_events;
+create policy "Users can update assigned events"
+on public.eventin_events for update
+to authenticated
+using (public.eventin_can_access_event(id))
+with check (public.eventin_can_access_event(id));
 
 drop policy if exists "Public can read active event settings" on public.eventin_event_settings;
 create policy "Public can read active event settings"
@@ -303,47 +353,35 @@ using (
     )
 );
 
-drop policy if exists "Admins can manage assigned event settings" on public.eventin_event_settings;
-create policy "Admins can manage assigned event settings"
+drop policy if exists "Users can manage assigned event settings" on public.eventin_event_settings;
+create policy "Users can manage assigned event settings"
 on public.eventin_event_settings for all
 to authenticated
-using (public.eventin_can_admin_event(event_id))
-with check (public.eventin_can_admin_event(event_id));
+using (public.eventin_can_access_event(event_id))
+with check (public.eventin_can_access_event(event_id));
 
 drop policy if exists "Users can read own profile" on public.eventin_profiles;
 create policy "Users can read own profile"
 on public.eventin_profiles for select
 to authenticated
-using (id = auth.uid() or public.eventin_is_superadmin());
+using (id = auth.uid() or public.eventin_is_admin());
 
-drop policy if exists "Superadmins can manage eventin_profiles" on public.eventin_profiles;
-create policy "Superadmins can manage eventin_profiles"
+drop policy if exists "Admins can manage profiles" on public.eventin_profiles;
+create policy "Admins can manage profiles"
 on public.eventin_profiles for all
 to authenticated
-using (public.eventin_is_superadmin())
-with check (public.eventin_is_superadmin());
+using (public.eventin_is_admin())
+with check (public.eventin_is_admin());
 
-drop policy if exists "Admins can read own assignments" on public.eventin_event_admins;
-create policy "Admins can read own assignments"
-on public.eventin_event_admins for select
+drop policy if exists "Users can manage assigned guest responses" on public.eventin_guest_responses;
+create policy "Users can manage assigned guest responses"
+on public.eventin_guest_responses for all
 to authenticated
-using (user_id = auth.uid() or public.eventin_is_superadmin());
-
-drop policy if exists "Superadmins can manage event admins" on public.eventin_event_admins;
-create policy "Superadmins can manage event admins"
-on public.eventin_event_admins for all
-to authenticated
-using (public.eventin_is_superadmin())
-with check (public.eventin_is_superadmin());
+using (public.eventin_can_access_event(event_id))
+with check (public.eventin_can_access_event(event_id));
 
 drop policy if exists "Public can insert guest responses" on public.eventin_guest_responses;
 drop policy if exists "Public can update guest responses by event phone" on public.eventin_guest_responses;
-
-drop policy if exists "Admins can read assigned guest responses" on public.eventin_guest_responses;
-create policy "Admins can read assigned guest responses"
-on public.eventin_guest_responses for select
-to authenticated
-using (public.eventin_can_admin_event(event_id));
 
 drop policy if exists "Public can insert messages" on public.eventin_public_messages;
 create policy "Public can insert messages"
@@ -359,18 +397,12 @@ with check (
     )
 );
 
-drop policy if exists "Admins can read assigned messages" on public.eventin_public_messages;
-create policy "Admins can read assigned messages"
-on public.eventin_public_messages for select
+drop policy if exists "Users can manage assigned messages" on public.eventin_public_messages;
+create policy "Users can manage assigned messages"
+on public.eventin_public_messages for all
 to authenticated
-using (public.eventin_can_admin_event(event_id));
-
-drop policy if exists "Admins can manage assigned messages" on public.eventin_public_messages;
-create policy "Admins can manage assigned messages"
-on public.eventin_public_messages for update
-to authenticated
-using (public.eventin_can_admin_event(event_id))
-with check (public.eventin_can_admin_event(event_id));
+using (public.eventin_can_access_event(event_id))
+with check (public.eventin_can_access_event(event_id));
 
 drop policy if exists "Public can insert contact requests" on public.eventin_contact_requests;
 create policy "Public can insert contact requests"
@@ -383,78 +415,22 @@ with check (
     and mensaje <> ''
 );
 
-drop policy if exists "Superadmins can read contact requests" on public.eventin_contact_requests;
-create policy "Superadmins can read contact requests"
+drop policy if exists "Admins can read contact requests" on public.eventin_contact_requests;
+create policy "Admins can read contact requests"
 on public.eventin_contact_requests for select
 to authenticated
-using (public.eventin_is_superadmin());
-
-alter table public.eventin_events add column if not exists public_slug text;
-alter table public.eventin_events add column if not exists event_code text;
-alter table public.eventin_event_settings add column if not exists palette_key text not null default 'earth';
-alter table public.eventin_profiles add column if not exists email text;
+using (public.eventin_is_admin());
 
 update public.eventin_events
 set public_slug = 'evento-' || substring(id::text from 1 for 8)
 where public_slug is null or public_slug = '';
 
 update public.eventin_events
-set event_code = '100001'
-where id = '11111111-1111-1111-1111-111111111111'
-  and (event_code is null or event_code = '');
-
-update public.eventin_events
-set event_code = '100002'
-where id = '22222222-2222-2222-2222-222222222222'
-  and (event_code is null or event_code = '');
-
-update public.eventin_events
-set event_code = '100003'
-where id = '33333333-3333-3333-3333-333333333333'
-  and (event_code is null or event_code = '');
-
-do $$
-declare
-    event_row record;
-begin
-    for event_row in
-        select id
-        from public.eventin_events
-        where event_code is null or event_code = ''
-    loop
-        update public.eventin_events
-        set event_code = public.eventin_generate_event_code()
-        where id = event_row.id;
-    end loop;
-end;
-$$;
+set event_code = public.eventin_generate_event_code()
+where event_code is null or event_code = '';
 
 alter table public.eventin_events alter column public_slug set not null;
 alter table public.eventin_events alter column event_code set not null;
-create unique index if not exists idx_eventin_events_public_slug_unique on public.eventin_events(public_slug);
-create unique index if not exists idx_eventin_events_event_code_unique on public.eventin_events(event_code);
-
-do $$
-begin
-    if not exists (
-        select 1
-        from pg_constraint
-        where conname = 'eventin_events_event_code_format'
-    ) then
-        alter table public.eventin_events
-        add constraint eventin_events_event_code_format
-        check (event_code ~ '^[0-9]{6}$');
-    end if;
-end;
-$$;
-
-insert into public.eventin_event_types (key, name) values
-    ('communion', 'Comunion'),
-    ('baptism', 'Bautizo'),
-    ('wedding', 'Boda'),
-    ('birthday', 'Cumpleanos'),
-    ('celebration', 'Celebracion')
-on conflict (key) do update set name = excluded.name;
 
 insert into public.eventin_events (
     id,
@@ -474,67 +450,7 @@ insert into public.eventin_events (
     '2027-05-15 14:00:00+02',
     'Por confirmar',
     'https://www.google.com/maps'
-) on conflict (id) do nothing;
-
-insert into public.eventin_event_settings (
-    event_id,
-    subtitle,
-    display_date,
-    display_time,
-    presentation_title,
-    presentation_text
-) values (
-    '11111111-1111-1111-1111-111111111111',
-    'Gracias por formar parte de este dia tan importante.',
-    'Sábado, 15 de mayo de 2027',
-    '14:00',
-    'Nos encantara compartir este dia contigo',
-    'Un espacio sencillo para consultar la informacion del evento, confirmar asistencia y dejar mensajes bonitos.'
-) on conflict (event_id) do nothing;
-
-update public.eventin_events
-set public_slug = 'primera-comunion-demo'
-where id = '11111111-1111-1111-1111-111111111111';
-
-update public.eventin_events
-set event_code = '100001'
-where id = '11111111-1111-1111-1111-111111111111';
-
-update public.eventin_event_settings
-set palette_key = 'earth'
-where event_id = '11111111-1111-1111-1111-111111111111';
-
-insert into public.eventin_events (
-    id,
-    title,
-    public_slug,
-    event_code,
-    event_type,
-    event_date,
-    location_name,
-    maps_url
-) values
-    (
-        '22222222-2222-2222-2222-222222222222',
-        'Bautizo de Sofia',
-        'bautizo-sofia-demo',
-        '100002',
-        'baptism',
-        '2027-06-20 12:30:00+02',
-        'Iglesia por confirmar',
-        'https://www.google.com/maps'
-    ),
-    (
-        '33333333-3333-3333-3333-333333333333',
-        'Cumpleanos de Martina',
-        'cumpleanos-martina-demo',
-        '100003',
-        'birthday',
-        '2027-09-05 18:00:00+02',
-        'Jardin familiar',
-        'https://www.google.com/maps'
-    )
-on conflict (id) do update set
+) on conflict (id) do update set
     title = excluded.title,
     public_slug = excluded.public_slug,
     event_code = excluded.event_code,
@@ -551,26 +467,15 @@ insert into public.eventin_event_settings (
     presentation_title,
     presentation_text,
     palette_key
-) values
-    (
-        '22222222-2222-2222-2222-222222222222',
-        'Nos hara mucha ilusion compartir este dia contigo.',
-        'Domingo, 20 de junio de 2027',
-        '12:30',
-        'Celebramos un dia muy especial',
-        'Aqui encontraras los detalles del bautizo y podras dejar tu mensaje.',
-        'pastel'
-    ),
-    (
-        '33333333-3333-3333-3333-333333333333',
-        'Una tarde para celebrar, reir y brindar juntos.',
-        'Domingo, 5 de septiembre de 2027',
-        '18:00',
-        'Te esperamos para celebrar',
-        'Consulta la informacion de la fiesta y deja un mensaje bonito.',
-        'marine'
-    )
-on conflict (event_id) do update set
+) values (
+    '11111111-1111-1111-1111-111111111111',
+    'Gracias por formar parte de este dia tan importante.',
+    'Sabado, 15 de mayo de 2027',
+    '14:00',
+    'Nos encantara compartir este dia contigo',
+    'Un espacio sencillo para consultar la informacion del evento, confirmar asistencia y dejar mensajes bonitos.',
+    'earth'
+) on conflict (event_id) do update set
     subtitle = excluded.subtitle,
     display_date = excluded.display_date,
     display_time = excluded.display_time,

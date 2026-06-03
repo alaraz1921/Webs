@@ -26,125 +26,200 @@
                 <button type="submit">Entrar</button>
                 <p id="admin-login-status" class="form-status" role="status"></p>
             </form>
+            <a id="login-event-link" class="page-link" href="index.html">Volver al evento</a>
+            <button id="show-event-code-panel" type="button" class="secondary-button page-link">Buscar evento por codigo</button>
+            <form id="event-code-panel" class="form-card access-event-code" hidden>
+                <label>
+                    Codigo del evento
+                    <input type="text" name="event_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off">
+                </label>
+                <button type="submit">Ir al evento</button>
+                <p id="event-code-status" class="form-status" role="status"></p>
+            </form>
         </section>
 
         <section id="admin-panel" class="admin-content" hidden>
             <div class="admin-header">
                 <div>
-                    <p class="eyebrow">Gestion del evento</p>
-                    <h1>Respuestas y mensajes</h1>
+                    <p id="admin-role-label" class="eyebrow">Gestion</p>
+                    <h1>Panel de EvenTin</h1>
                 </div>
                 <button id="logout-button" type="button" class="secondary-button">Salir</button>
             </div>
 
-            <label class="event-selector">
-                Evento
-                <select id="event-select"></select>
-            </label>
+            <nav id="admin-menu" class="admin-menu" hidden>
+                <button id="show-events-view" type="button">Administracion de eventos</button>
+                <button id="show-users-view" type="button" class="secondary-button">Administracion de usuarios</button>
+            </nav>
 
-            <section id="superadmin-panel" class="data-panel admin-tools" hidden>
-                <h2>Superadministrador</h2>
-                <form id="create-event-form" class="admin-form">
-                    <label>
-                        Nombre del evento
-                        <input type="text" name="title" required>
+            <section id="events-view" class="admin-view">
+                <div class="admin-view-header">
+                    <label class="event-selector">
+                        Evento
+                        <select id="event-select"></select>
                     </label>
-                    <label>
-                        Tipo
-                        <select id="create-event-type" name="event_type" required></select>
-                    </label>
-                    <label>
-                        Email del administrador
-                        <input type="email" name="admin_email" required>
-                    </label>
-                    <button type="submit">Crear evento</button>
-                </form>
-                <button id="delete-event-button" type="button" class="danger-button">Borrar evento seleccionado</button>
-                <p id="superadmin-status" class="form-status" role="status"></p>
+                    <a id="admin-event-link" class="secondary-button" href="index.html">Ir a la pagina del evento</a>
+                </div>
+
+                <section id="admin-events-panel" class="data-panel admin-tools" hidden>
+                    <h2>Crear evento</h2>
+                    <form id="create-event-form" class="admin-form">
+                        <label>
+                            Nombre del evento
+                            <input type="text" name="title" required>
+                        </label>
+                        <label>
+                            Tipo
+                            <select id="create-event-type" name="event_type" required></select>
+                        </label>
+                        <button type="submit">Crear evento</button>
+                    </form>
+                    <button id="delete-event-button" type="button" class="danger-button">Borrar evento seleccionado</button>
+                    <p id="event-admin-status" class="form-status" role="status"></p>
+                </section>
+
+                <section class="data-panel admin-tools">
+                    <h2>Editar evento</h2>
+                    <p id="public-link" class="public-link"></p>
+                    <form id="event-settings-form" class="admin-form">
+                        <label>
+                            Nombre del evento
+                            <input type="text" name="title" required>
+                        </label>
+                        <label>
+                            Codigo numerico
+                            <input type="text" name="event_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required>
+                        </label>
+                        <label>
+                            Tipo
+                            <select id="settings-event-type" name="event_type" required></select>
+                        </label>
+                        <label>
+                            Fecha y hora
+                            <input type="datetime-local" name="event_date" required>
+                        </label>
+                        <label>
+                            Lugar
+                            <input type="text" name="location_name">
+                        </label>
+                        <label>
+                            Google Maps
+                            <input type="url" name="maps_url">
+                        </label>
+                        <label>
+                            Subtitulo
+                            <input type="text" name="subtitle">
+                        </label>
+                        <label>
+                            Fecha visible
+                            <input type="text" name="display_date">
+                        </label>
+                        <label>
+                            Hora visible
+                            <input type="text" name="display_time">
+                        </label>
+                        <label>
+                            Titulo de presentacion
+                            <input type="text" name="presentation_title">
+                        </label>
+                        <label>
+                            Texto de presentacion
+                            <textarea name="presentation_text" rows="4"></textarea>
+                        </label>
+                        <label>
+                            Imagen principal
+                            <input type="url" name="hero_image_url">
+                        </label>
+                        <label>
+                            Imagen detalle
+                            <input type="url" name="detail_image_url">
+                        </label>
+                        <label>
+                            Paleta
+                            <select name="palette_key">
+                                <option value="earth">Ocres y verdes</option>
+                                <option value="pastel">Rosa y celeste pastel</option>
+                                <option value="marine">Marinos, azules y verdes</option>
+                            </select>
+                        </label>
+                        <button type="submit">Guardar cambios</button>
+                    </form>
+                    <p id="event-settings-status" class="form-status" role="status"></p>
+                </section>
+
+                <div class="admin-grid">
+                    <section class="data-panel">
+                        <h2>Respuestas recibidas</h2>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Telefono</th>
+                                        <th>Asistencia</th>
+                                        <th>Mensaje</th>
+                                        <th>Creacion</th>
+                                        <th>Actualizacion</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="responses-table"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="data-panel">
+                        <h2>Mensajes publicos</h2>
+                        <div id="messages-list" class="message-list"></div>
+                    </section>
+                </div>
             </section>
 
-            <section class="data-panel admin-tools">
-                <h2>Editar evento</h2>
-                <p id="public-link" class="public-link"></p>
-                <form id="event-settings-form" class="admin-form">
-                    <label>
-                        Fecha y hora
-                        <input type="datetime-local" name="event_date" required>
-                    </label>
-                    <label>
-                        Lugar
-                        <input type="text" name="location_name">
-                    </label>
-                    <label>
-                        Google Maps
-                        <input type="url" name="maps_url">
-                    </label>
-                    <label>
-                        Subtitulo
-                        <input type="text" name="subtitle">
-                    </label>
-                    <label>
-                        Fecha visible
-                        <input type="text" name="display_date">
-                    </label>
-                    <label>
-                        Hora visible
-                        <input type="text" name="display_time">
-                    </label>
-                    <label>
-                        Titulo de presentacion
-                        <input type="text" name="presentation_title">
-                    </label>
-                    <label>
-                        Texto de presentacion
-                        <textarea name="presentation_text" rows="4"></textarea>
-                    </label>
-                    <label>
-                        Imagen principal
-                        <input type="url" name="hero_image_url">
-                    </label>
-                    <label>
-                        Imagen detalle
-                        <input type="url" name="detail_image_url">
-                    </label>
-                    <label>
-                        Paleta
-                        <select name="palette_key">
-                            <option value="earth">Ocres y verdes</option>
-                            <option value="pastel">Rosa y celeste pastel</option>
-                            <option value="marine">Marinos, azules y verdes</option>
-                        </select>
-                    </label>
-                    <button type="submit">Guardar cambios</button>
-                </form>
-                <p id="event-settings-status" class="form-status" role="status"></p>
-            </section>
+            <section id="users-view" class="admin-view" hidden>
+                <section class="data-panel admin-tools">
+                    <h2>Usuarios de evento</h2>
+                    <form id="user-form" class="admin-form">
+                        <input type="hidden" name="profile_id">
+                        <label>
+                            Nombre
+                            <input type="text" name="display_name" required>
+                        </label>
+                        <label>
+                            Email
+                            <input type="email" name="email" required>
+                        </label>
+                        <label>
+                            Contrasena
+                            <input type="password" name="password" autocomplete="new-password">
+                        </label>
+                        <label>
+                            Codigo numerico del evento
+                            <input type="text" name="event_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required>
+                        </label>
+                        <button type="submit">Guardar usuario</button>
+                        <button id="clear-user-form" type="button" class="secondary-button">Limpiar formulario</button>
+                    </form>
+                    <p id="user-status" class="form-status" role="status"></p>
+                </section>
 
-            <div class="admin-grid">
                 <section class="data-panel">
-                    <h2>Respuestas recibidas</h2>
+                    <h2>Listado de usuarios</h2>
                     <div class="table-wrap">
                         <table>
                             <thead>
                                 <tr>
                                     <th>Nombre</th>
-                                    <th>Telefono</th>
-                                    <th>Asistencia</th>
-                                    <th>Mensaje</th>
-                                    <th>Creacion</th>
-                                    <th>Actualizacion</th>
+                                    <th>Email</th>
+                                    <th>Codigo</th>
+                                    <th>Evento</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="responses-table"></tbody>
+                            <tbody id="users-table"></tbody>
                         </table>
                     </div>
                 </section>
-
-                <section class="data-panel">
-                    <h2>Mensajes publicos</h2>
-                    <div id="messages-list" class="message-list"></div>
-                </section>
-            </div>
+            </section>
         </section>
     </main>
 </body>

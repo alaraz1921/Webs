@@ -51,44 +51,71 @@ No reutilizar aqui la URL ni la `anon public key` del proyecto Supabase privado 
 3. Copiar y ejecutar el contenido de `sql/schema.sql`.
 4. Copiar la URL y la `anon public key` de `Project Settings` -> `API`.
 5. Pegar esos valores en `js/config.js`.
-6. Crear usuarios gestores desde `Authentication`.
-7. Crear el perfil del usuario en `eventin_profiles`.
-8. Relacionar el usuario con el evento en `eventin_event_admins`.
 
-Ejemplo para asignar un administrador:
+## Roles
+
+EvenTin usa dos roles en `eventin_profiles`:
+
+- `admin`: puede crear, editar y borrar eventos; gestionar usuarios de evento; y ver/editar/borrar mensajes y respuestas de cualquier evento.
+- `user`: pertenece a un evento por el campo `event_code`; puede ver y editar ese evento, sus mensajes y sus respuestas.
+
+El enlace entre un usuario de evento y su evento es el codigo numerico de 6 digitos:
+
+```text
+eventin_profiles.event_code = eventin_events.event_code
+```
+
+## Crear el primer admin
+
+1. Crear el usuario desde `Authentication` -> `Users` en Supabase.
+2. Copiar su UUID.
+3. Ejecutar este SQL cambiando los valores:
 
 ```sql
-insert into public.eventin_profiles (id, display_name, role)
-values ('UUID_DEL_USUARIO_AUTH', 'Administrador', 'admin')
-on conflict (id) do update set display_name = excluded.display_name;
-
-update public.eventin_profiles
-set email = 'admin@ejemplo.com'
-where id = 'UUID_DEL_USUARIO_AUTH';
-
-insert into public.eventin_event_admins (event_id, user_id)
-values ('11111111-1111-1111-1111-111111111111', 'UUID_DEL_USUARIO_AUTH')
-on conflict (event_id, user_id) do nothing;
+insert into public.eventin_profiles (id, email, display_name, role, event_code)
+values (
+    'UUID_DEL_USUARIO_AUTH',
+    'admin@ejemplo.com',
+    'Administrador',
+    'admin',
+    null
+)
+on conflict (id) do update set
+    email = excluded.email,
+    display_name = excluded.display_name,
+    role = excluded.role,
+    event_code = excluded.event_code;
 ```
+
+Una vez creado ese admin, los usuarios de evento se gestionan desde `admin.html`.
+
+## Usuarios de evento
+
+Desde el panel de administracion se puede crear un usuario de evento indicando:
+
+- Nombre.
+- Email.
+- Contrasena.
+- Codigo numerico de 6 digitos del evento.
+
+La creacion de usuarios usa Supabase Auth con la `anon public key`; por eso debe estar permitido el alta de usuarios en `Authentication` -> `Sign In / Providers`. El borrado desde el panel elimina el perfil/asignacion de EvenTin; si quieres eliminar tambien el usuario Auth, hazlo desde Supabase.
 
 ## Paginas
 
 - `index.html`: portada publica del servicio.
 - `evento.html?evento=primera-comunion-demo`: pagina publica de un evento concreto.
-- `evento.html?evento=100001`: pagina publica de un evento concreto por ID de 6 digitos.
+- `evento.html?evento=100001`: pagina publica de un evento concreto por codigo de 6 digitos.
 - `invitacion.html?evento=primera-comunion-demo`: confirmacion publica de asistencia por telefono.
 - `admin.html`: panel privado con autenticacion Supabase.
 
-Eventos demo creados por `sql/schema.sql`:
+Evento demo creado por `sql/schema.sql`:
 
 - `primera-comunion-demo` / `100001`
-- `bautizo-sofia-demo` / `100002`
-- `cumpleanos-martina-demo` / `100003`
 
 ## Notas de seguridad
 
 - Los mensajes publicos usan RLS para insertar registros anonimos en `eventin_public_messages`.
 - Las confirmaciones de asistencia se envian mediante la RPC `eventin_submit_guest_response`; los usuarios anonimos no tienen permiso directo de insercion/actualizacion sobre `eventin_guest_responses`.
-- El visitante nunca sabe si su telefono creo una respuesta nueva o actualizo una existente.
-- Los administradores solo pueden consultar eventos asignados mediante `eventin_event_admins`.
-- La arquitectura ya separa `eventin_profiles`, `eventin_event_admins` y `eventin_events` para una futura pagina de superadministrador.
+- Los admins tienen acceso global mediante RLS.
+- Los usuarios de evento solo acceden a eventos cuyo codigo coincida con su `event_code`.
+- La `service_role key` no debe estar nunca en GitHub Pages ni en JavaScript de frontend.
