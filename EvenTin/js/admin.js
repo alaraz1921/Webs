@@ -257,7 +257,7 @@
 
         settingsForm.elements.title.value = eventData?.title || '';
         settingsForm.elements.event_code.value = eventData?.event_code || '';
-        settingsForm.elements.event_code.disabled = !isAdmin();
+        settingsForm.elements.event_code.readOnly = true;
         settingsForm.elements.event_date.value = toInputDateTime(eventData?.event_date);
         settingsForm.elements.location_name.value = eventData?.location_name || '';
         settingsForm.elements.maps_url.value = eventData?.maps_url || '';
@@ -418,7 +418,6 @@
         event.preventDefault();
         const formData = new FormData(eventCodePanel);
         const eventCode = normalizeCode(formData.get('event_code'));
-
         if (!validateCode(eventCode)) {
             setStatus(eventCodeStatus, 'Introduce un codigo de 6 digitos.', true);
             return;
@@ -440,17 +439,11 @@
 
         const eventId = eventSelect.value;
         const formData = new FormData(settingsForm);
-        const eventCode = normalizeCode(formData.get('event_code'));
-
         if (!eventId) {
             setStatus(settingsStatus, 'No hay evento seleccionado.', true);
             return;
         }
 
-        if (isAdmin() && !validateCode(eventCode)) {
-            setStatus(settingsStatus, 'El codigo numerico debe tener 6 digitos.', true);
-            return;
-        }
 
         try {
             const eventPayload = {
@@ -461,9 +454,6 @@
                 maps_url: String(formData.get('maps_url') || '').trim()
             };
 
-            if (isAdmin()) {
-                eventPayload.event_code = eventCode;
-            }
 
             await client
                 .from('eventin_events')
@@ -667,7 +657,6 @@
         const email = String(formData.get('email') || '').trim().toLowerCase();
         const password = String(formData.get('password') || '');
         const eventCode = normalizeCode(formData.get('event_code'));
-
         if (!validateCode(eventCode)) {
             setStatus(userStatus, 'El codigo numerico debe tener 6 digitos.', true);
             return;
