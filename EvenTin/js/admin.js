@@ -160,17 +160,6 @@
         return currentEvents.find((item) => item.id === eventSelect.value) || null;
     }
 
-    function createSignupClient() {
-        return window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
-            auth: {
-                persistSession: false,
-                autoRefreshToken: false,
-                detectSessionInUrl: false,
-                storageKey: `eventin-user-create-${Date.now()}`
-            }
-        });
-    }
-
     async function copyText(value) {
         if (navigator.clipboard?.writeText) {
             await navigator.clipboard.writeText(value);
@@ -966,33 +955,36 @@
                 return;
             }
 
-            let userId = profileId;
-
-            if (!userId) {
+            if (!profileId) {
                 if (!password) {
                     setStatus(userStatus, 'La contrasena es obligatoria al crear un usuario.', true);
                     return;
                 }
 
-                const signupClient = createSignupClient();
-                const { data: signupData, error: signupError } = await signupClient.auth.signUp({
-                    email,
-                    password,
-                    options: { data: { display_name: displayName } }
+                const { data: functionData, error: functionError } = await client.functions.invoke('create-event-user', {
+                    body: {
+                        email,
+                        password,
+                        display_name: displayName,
+                        event_code: eventCode
+                    }
                 });
 
-                if (signupError || !signupData.user) {
-                    setStatus(userStatus, 'No se pudo crear el usuario Auth. Revisa que las altas esten permitidas en Supabase.', true);
+                if (functionError || !functionData?.user_id) {
+                    setStatus(userStatus, 'No se pudo crear el usuario Auth desde la funcion segura.', true);
                     return;
                 }
 
-                userId = signupData.user.id;
+                resetUserForm();
+                setStatus(userStatus, 'Usuario creado', false);
+                await loadUsers();
+                return;
             }
 
             await client
                 .from('eventin_profiles')
                 .upsert({
-                    id: userId,
+                    id: profileId,
                     email,
                     display_name: displayName,
                     role: 'user',

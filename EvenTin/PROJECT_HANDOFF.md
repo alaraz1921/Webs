@@ -67,7 +67,9 @@ EvenTin/
 |   `-- supabaseClient.js
 |-- sql/schema.sql
 |-- assets/images/
-`-- supabase/functions/notify-contact/index.ts
+`-- supabase/functions/
+    |-- notify-contact/index.ts
+    `-- create-event-user/index.ts
 ```
 
 ## Paginas
@@ -185,6 +187,7 @@ Usuarios:
 - Editar perfil de usuario de evento.
 - Borrar perfil/asignacion.
 - El usuario Auth completo se borra desde Supabase si se quiere eliminar el acceso por completo.
+- El alta Auth se hace desde la Edge Function `create-event-user`, no con registros publicos de Supabase.
 
 Contactos:
 
@@ -236,12 +239,42 @@ CONTACT_FROM_EMAIL
 EvenTin <onboarding@resend.dev>
 ```
 
+## Edge Function de Usuarios
+
+Archivo:
+
+```text
+EvenTin/supabase/functions/create-event-user/index.ts
+```
+
+Responsabilidad:
+
+- Verificar que la sesion que llama pertenece a un perfil `admin`.
+- Crear el usuario en Supabase Auth con Admin API.
+- Crear el perfil `eventin_profiles` con rol `user` y `event_code`.
+
+Usa los secretos automaticos de Supabase Edge Functions:
+
+```text
+SUPABASE_URL
+SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+Deploy:
+
+```powershell
+cd V:\Proyectos\Git\Webs\EvenTin
+supabase functions deploy create-event-user --project-ref tmnavlsptjhhdlypgtaa
+```
+
 Comandos habituales:
 
 ```powershell
 cd V:\Proyectos\Git\Webs\EvenTin
 supabase secrets set RESEND_API_KEY=TU_NUEVA_KEY CONTACT_TO_EMAIL=tu_email@gmail.com --project-ref tmnavlsptjhhdlypgtaa
 supabase functions deploy notify-contact --project-ref tmnavlsptjhhdlypgtaa
+supabase functions deploy create-event-user --project-ref tmnavlsptjhhdlypgtaa
 ```
 
 Si `supabase login` falla, crear token manual en:

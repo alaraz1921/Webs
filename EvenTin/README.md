@@ -22,6 +22,7 @@ EvenTin/
 |-- assets/icons/
 |-- sql/schema.sql
 |-- supabase/functions/notify-contact/
+|-- supabase/functions/create-event-user/
 `-- README.md
 ```
 
@@ -73,6 +74,25 @@ supabase functions deploy notify-contact --project-ref tmnavlsptjhhdlypgtaa
 
 `CONTACT_FROM_EMAIL` debe pertenecer a un dominio/remitente verificado en Resend. Si no se configura, la funcion usa `EvenTin <onboarding@resend.dev>`, valido solo para pruebas limitadas de Resend.
 
+## Alta segura de usuarios
+
+El panel de administracion crea usuarios Auth mediante la Edge Function `create-event-user`. No es necesario permitir registros publicos en Supabase.
+
+Desplegar la funcion:
+
+```powershell
+cd V:\Proyectos\Git\Webs\EvenTin
+supabase functions deploy create-event-user --project-ref tmnavlsptjhhdlypgtaa
+```
+
+La funcion usa los secretos automaticos de Supabase Edge Functions:
+
+```text
+SUPABASE_URL
+SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+```
+
 ## Roles
 
 EvenTin usa dos roles en `eventin_profiles`:
@@ -119,7 +139,7 @@ Desde el panel de administracion se puede crear un usuario de evento indicando:
 - Contrasena.
 - Codigo numerico de 6 digitos del evento.
 
-La creacion de usuarios usa Supabase Auth con la `anon public key`; por eso debe estar permitido el alta de usuarios en `Authentication` -> `Sign In / Providers`. El borrado desde el panel elimina el perfil/asignacion de EvenTin; si quieres eliminar tambien el usuario Auth, hazlo desde Supabase.
+La creacion de usuarios usa la Edge Function `create-event-user`, que verifica que la sesion actual sea de rol `admin` antes de usar la Admin API de Supabase. El borrado desde el panel elimina el perfil/asignacion de EvenTin; si quieres eliminar tambien el usuario Auth, hazlo desde Supabase.
 
 ## Paginas
 
