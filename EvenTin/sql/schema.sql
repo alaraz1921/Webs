@@ -314,6 +314,19 @@ $$;
 
 grant execute on function public.eventin_submit_guest_response(uuid, text, text, boolean, text) to anon;
 
+revoke execute on function public.eventin_set_updated_at() from public, anon, authenticated;
+
+revoke execute on function public.eventin_is_admin() from public, anon;
+grant execute on function public.eventin_is_admin() to authenticated;
+
+revoke execute on function public.eventin_can_access_event(uuid) from public, anon;
+grant execute on function public.eventin_can_access_event(uuid) to authenticated;
+
+revoke execute on function public.eventin_can_access_event_code(text) from public, anon;
+grant execute on function public.eventin_can_access_event_code(text) to authenticated;
+
+revoke execute on function public.eventin_generate_event_code() from public, anon, authenticated;
+
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
     'eventin-images',
