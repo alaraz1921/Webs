@@ -23,6 +23,7 @@
     const settingsEventType = document.getElementById('settings-event-type');
     const settingsStatus = document.getElementById('event-settings-status');
     const publicLink = document.getElementById('public-link');
+    const eventLinks = document.getElementById('event-links');
     const responsesTable = document.getElementById('responses-table');
     const messagesList = document.getElementById('messages-list');
     const userForm = document.getElementById('user-form');
@@ -107,13 +108,22 @@
         return String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
     }
 
-    function getPublicEventUrl(eventData, bustCache) {
+    function getEventUrl(pageName, eventData, bustCache) {
         const eventKey = eventData?.public_slug || eventData?.event_code || config.defaultEventSlug;
-        const url = new URL(`evento.html?evento=${encodeURIComponent(eventKey)}`, window.location.href);
+        const url = new URL(pageName, window.location.href);
+        url.searchParams.set('evento', eventKey);
         if (bustCache) {
             url.searchParams.set('v', Date.now());
         }
         return url.href;
+    }
+
+    function getPublicEventUrl(eventData, bustCache) {
+        return getEventUrl('evento.html', eventData, bustCache);
+    }
+
+    function getInvitationEventUrl(eventData) {
+        return getEventUrl('invitacion.html', eventData, false);
     }
 
     function getCurrentEvent() {
@@ -129,6 +139,23 @@
                 storageKey: `eventin-user-create-${Date.now()}`
             }
         });
+    }
+
+    async function copyText(value) {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(value);
+            return;
+        }
+
+        const input = document.createElement('textarea');
+        input.value = value;
+        input.setAttribute('readonly', '');
+        input.style.position = 'fixed';
+        input.style.opacity = '0';
+        document.body.append(input);
+        input.select();
+        document.execCommand('copy');
+        input.remove();
     }
 
     function fillTypeSelect(selectElement, selectedValue) {
@@ -278,8 +305,14 @@
         if (eventData) {
             const publicUrl = getPublicEventUrl(eventData, true);
             adminEventLink.href = publicUrl;
-            publicLink.innerHTML = `Enlace publico: <a href="${escapeHtml(publicUrl)}" target="_blank" rel="noopener">${escapeHtml(publicUrl)}</a> · Codigo: ${escapeHtml(eventData.event_code)}`;
+            eventLinks.hidden = false;
+            eventLinks.dataset.publicUrl = publicUrl;
+            eventLinks.dataset.invitationUrl = getInvitationEventUrl(eventData);
+            publicLink.textContent = `Codigo: ${eventData.event_code}`;
         } else {
+            eventLinks.hidden = true;
+            delete eventLinks.dataset.publicUrl;
+            delete eventLinks.dataset.invitationUrl;
             publicLink.textContent = 'Este evento todavia no tiene enlace publico.';
         }
         setStatus(settingsStatus, '', false);
@@ -435,6 +468,29 @@
 
     eventSelect.addEventListener('change', () => {
         loadEventData(eventSelect.value);
+    });
+
+    eventLinks.addEventListener('click', async (event) => {
+        const button = event.target.closest('button[data-copy-link]');
+        if (!button) {
+            return;
+        }
+
+        const url = button.dataset.copyLink === 'invitation'
+            ? eventLinks.dataset.invitationUrl
+            : eventLinks.dataset.publicUrl;
+
+        if (!url) {
+            setStatus(settingsStatus, 'No hay enlace disponible para copiar.', true);
+            return;
+        }
+
+        try {
+            await copyText(url);
+            setStatus(settingsStatus, 'Enlace copiado al portapapeles', false);
+        } catch (error) {
+            setStatus(settingsStatus, 'No se pudo copiar el enlace.', true);
+        }
     });
 
     settingsForm.addEventListener('submit', async (event) => {

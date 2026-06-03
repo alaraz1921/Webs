@@ -942,6 +942,35 @@ fieldset {
     font-weight: 800;
 }
 
+.event-links {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.event-link-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.52);
+}
+
+.event-link-row span {
+    color: var(--muted);
+    font-weight: 800;
+}
+
+.event-link-row button {
+    min-height: 34px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.86rem;
+}
+
 .admin-tools .danger-button {
     margin-top: 16px;
 }
