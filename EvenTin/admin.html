@@ -50,6 +50,7 @@
             <nav id="admin-menu" class="admin-menu" hidden>
                 <button id="show-events-view" type="button">Administracion de eventos</button>
                 <button id="show-users-view" type="button" class="secondary-button">Administracion de usuarios</button>
+                <button id="show-contacts-view" type="button" class="secondary-button">Mensajes de contacto</button>
             </nav>
 
             <section id="events-view" class="admin-view">
@@ -232,6 +233,17 @@
                             <tbody id="users-table"></tbody>
                         </table>
                     </div>
+                </section>
+            </section>
+
+            <section id="contacts-view" class="admin-view" hidden>
+                <section class="data-panel">
+                    <div class="admin-view-header">
+                        <h2>Mensajes de contacto</h2>
+                        <button id="refresh-contact-requests" type="button" class="secondary-button">Actualizar</button>
+                    </div>
+                    <div id="contact-requests-list" class="message-list"></div>
+                    <p id="contact-requests-status" class="form-status" role="status"></p>
                 </section>
             </section>
         </section>

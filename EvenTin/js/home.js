@@ -41,11 +41,27 @@
             nombre: String(formData.get('nombre')).trim(),
             email: String(formData.get('email')).trim(),
             asunto: String(formData.get('asunto')).trim(),
-            mensaje: String(formData.get('mensaje')).trim()
+            mensaje: String(formData.get('mensaje')).trim(),
+            page_url: window.location.href
         };
 
         try {
-            await client.from('eventin_contact_requests').insert(payload).throwOnError();
+            await client
+                .from('eventin_contact_requests')
+                .insert({
+                    nombre: payload.nombre,
+                    email: payload.email,
+                    asunto: payload.asunto,
+                    mensaje: payload.mensaje
+                })
+                .throwOnError();
+
+            try {
+                await client.functions.invoke('notify-contact', { body: payload });
+            } catch (error) {
+                console.warn('No se pudo enviar la notificacion de contacto.', error);
+            }
+
             contactForm.reset();
             showStatus(contactStatus, 'Mensaje enviado correctamente', false);
         } catch (error) {

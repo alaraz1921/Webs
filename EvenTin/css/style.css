@@ -1072,6 +1072,33 @@ th {
     font-size: 0.82rem;
 }
 
+.message-item h3 {
+    margin: 10px 0 6px;
+    font-family: "Manrope", "Segoe UI", Arial, sans-serif;
+    font-size: 1rem;
+}
+
+.contact-request-header {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.contact-request-header a {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.contact-request-header time {
+    margin-top: 0;
+    text-align: right;
+}
+
 @media (min-width: 760px) {
     .intro-section {
         grid-template-columns: 1fr 0.9fr;

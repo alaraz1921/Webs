@@ -21,6 +21,7 @@ EvenTin/
 |-- assets/images/
 |-- assets/icons/
 |-- sql/schema.sql
+|-- supabase/functions/notify-contact/
 `-- README.md
 ```
 
@@ -51,6 +52,26 @@ No reutilizar aqui la URL ni la `anon public key` del proyecto Supabase privado 
 3. Copiar y ejecutar el contenido de `sql/schema.sql`.
 4. Copiar la URL y la `anon public key` de `Project Settings` -> `API`.
 5. Pegar esos valores en `js/config.js`.
+
+## Mensajes de contacto y aviso por email
+
+El formulario de contacto de la portada guarda los mensajes en:
+
+```text
+public.eventin_contact_requests
+```
+
+El panel de administracion muestra esos mensajes en la seccion `Mensajes de contacto`.
+
+Para recibir aviso por email, desplegar la Edge Function `notify-contact` y configurar secretos en Supabase. La funcion esta preparada para Resend:
+
+```powershell
+cd V:\Proyectos\Git\Webs\EvenTin
+supabase secrets set RESEND_API_KEY=TU_RESEND_API_KEY CONTACT_TO_EMAIL=tu-email@ejemplo.com CONTACT_FROM_EMAIL="EvenTin <contacto@tu-dominio.com>" --project-ref tmnavlsptjhhdlypgtaa
+supabase functions deploy notify-contact --project-ref tmnavlsptjhhdlypgtaa
+```
+
+`CONTACT_FROM_EMAIL` debe pertenecer a un dominio/remitente verificado en Resend. Si no se configura, la funcion usa `EvenTin <onboarding@resend.dev>`, valido solo para pruebas limitadas de Resend.
 
 ## Roles
 

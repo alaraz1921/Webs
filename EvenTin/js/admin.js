@@ -10,8 +10,10 @@
     const adminMenu = document.getElementById('admin-menu');
     const showEventsViewButton = document.getElementById('show-events-view');
     const showUsersViewButton = document.getElementById('show-users-view');
+    const showContactsViewButton = document.getElementById('show-contacts-view');
     const eventsView = document.getElementById('events-view');
     const usersView = document.getElementById('users-view');
+    const contactsView = document.getElementById('contacts-view');
     const eventSelect = document.getElementById('event-select');
     const adminEventLink = document.getElementById('admin-event-link');
     const adminEventsPanel = document.getElementById('admin-events-panel');
@@ -36,6 +38,9 @@
     const eventCodeStatus = document.getElementById('event-code-status');
     const heroImageStatus = document.getElementById('hero-image-status');
     const detailImageStatus = document.getElementById('detail-image-status');
+    const refreshContactRequestsButton = document.getElementById('refresh-contact-requests');
+    const contactRequestsList = document.getElementById('contact-requests-list');
+    const contactRequestsStatus = document.getElementById('contact-requests-status');
 
     const IMAGE_BUCKET = 'eventin-images';
     const ORIGINAL_IMAGE_LIMIT_BYTES = 12 * 1024 * 1024;
@@ -63,6 +68,7 @@
     let currentEvents = [];
     let currentEventTypes = [];
     let currentUsers = [];
+    let currentContactRequests = [];
 
     function setStatus(element, message, isError) {
         if (!element) {
@@ -312,11 +318,17 @@
         const usersAllowed = isAdmin();
         eventsView.hidden = viewName !== 'events';
         usersView.hidden = viewName !== 'users' || !usersAllowed;
+        contactsView.hidden = viewName !== 'contacts' || !usersAllowed;
         showEventsViewButton.classList.toggle('active', viewName === 'events');
         showUsersViewButton.classList.toggle('active', viewName === 'users');
+        showContactsViewButton.classList.toggle('active', viewName === 'contacts');
 
         if (viewName === 'users' && usersAllowed) {
             loadUsers();
+        }
+
+        if (viewName === 'contacts' && usersAllowed) {
+            loadContactRequests();
         }
     }
 
@@ -554,6 +566,45 @@
             : '<tr><td colspan="5">No hay usuarios de evento.</td></tr>';
     }
 
+    async function loadContactRequests() {
+        if (!isAdmin()) {
+            return;
+        }
+
+        setStatus(contactRequestsStatus, '', false);
+
+        const { data, error } = await client
+            .from('eventin_contact_requests')
+            .select('id,nombre,email,asunto,mensaje,created_at')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            contactRequestsList.innerHTML = '<p>No se pudieron cargar los mensajes de contacto.</p>';
+            return;
+        }
+
+        currentContactRequests = data || [];
+        contactRequestsList.innerHTML = currentContactRequests.length
+            ? currentContactRequests.map((row) => `
+                <article class="message-item contact-request-item">
+                    <div class="contact-request-header">
+                        <div>
+                            <strong>${escapeHtml(row.nombre)}</strong>
+                            <a href="mailto:${escapeHtml(row.email)}">${escapeHtml(row.email)}</a>
+                        </div>
+                        <time>${formatDate(row.created_at)}</time>
+                    </div>
+                    <h3>${escapeHtml(row.asunto)}</h3>
+                    <p>${escapeHtml(row.mensaje)}</p>
+                    <div class="table-actions">
+                        <a class="secondary-button" href="mailto:${escapeHtml(row.email)}?subject=${encodeURIComponent(`Re: ${row.asunto || 'Contacto EvenTin'}`)}">Responder</a>
+                        <button type="button" data-action="delete-contact-request" data-id="${row.id}" class="danger-button">Borrar</button>
+                    </div>
+                </article>
+            `).join('')
+            : '<p>No hay mensajes de contacto.</p>';
+    }
+
     function resetUserForm() {
         userForm.reset();
         userForm.elements.profile_id.value = '';
@@ -608,6 +659,8 @@
 
     showEventsViewButton.addEventListener('click', () => showView('events'));
     showUsersViewButton.addEventListener('click', () => showView('users'));
+    showContactsViewButton.addEventListener('click', () => showView('contacts'));
+    refreshContactRequestsButton.addEventListener('click', loadContactRequests);
 
     eventSelect.addEventListener('change', () => {
         loadEventData(eventSelect.value);
@@ -848,6 +901,35 @@
             await loadMessages(eventId);
         } catch (error) {
             setStatus(settingsStatus, 'No se pudo actualizar el mensaje.', true);
+        }
+    });
+
+    contactRequestsList.addEventListener('click', async (event) => {
+        const button = event.target.closest('button[data-action="delete-contact-request"]');
+        if (!button) {
+            return;
+        }
+
+        const contactRequest = currentContactRequests.find((item) => item.id === button.dataset.id);
+        if (!contactRequest) {
+            return;
+        }
+
+        if (!window.confirm(`Borrar el mensaje de ${contactRequest.email}?`)) {
+            return;
+        }
+
+        try {
+            await client
+                .from('eventin_contact_requests')
+                .delete()
+                .eq('id', contactRequest.id)
+                .throwOnError();
+
+            setStatus(contactRequestsStatus, 'Mensaje borrado', false);
+            await loadContactRequests();
+        } catch (error) {
+            setStatus(contactRequestsStatus, 'No se pudo borrar el mensaje.', true);
         }
     });
 

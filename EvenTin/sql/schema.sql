@@ -437,7 +437,6 @@ with check (public.eventin_can_access_event(event_id));
 drop policy if exists "Public can insert contact requests" on public.eventin_contact_requests;
 create policy "Public can insert contact requests"
 on public.eventin_contact_requests for insert
-to anon
 with check (
     nombre <> ''
     and email <> ''
@@ -448,6 +447,12 @@ with check (
 drop policy if exists "Admins can read contact requests" on public.eventin_contact_requests;
 create policy "Admins can read contact requests"
 on public.eventin_contact_requests for select
+to authenticated
+using (public.eventin_is_admin());
+
+drop policy if exists "Admins can delete contact requests" on public.eventin_contact_requests;
+create policy "Admins can delete contact requests"
+on public.eventin_contact_requests for delete
 to authenticated
 using (public.eventin_is_admin());
 
