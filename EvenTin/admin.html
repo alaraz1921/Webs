@@ -48,7 +48,6 @@
                         <h1>Administracion de evento</h1>
                     </div>
                 </div>
-                <button id="logout-button" type="button" class="secondary-button">Salir</button>
             </div>
 
             <nav id="admin-menu" class="admin-menu" hidden>
@@ -64,7 +63,6 @@
                         <select id="event-select"></select>
                     </label>
                     <div id="event-user-title" class="event-user-title" hidden></div>
-                    <a id="admin-event-link" class="secondary-button" href="index.html">Ir a la pagina del evento</a>
                 </div>
 
                 <section id="admin-events-panel" class="data-panel admin-tools" hidden>
@@ -89,11 +87,17 @@
                     <div id="event-links" class="event-links" hidden>
                         <div class="event-link-row">
                             <span>Enlace publico</span>
-                            <button type="button" class="secondary-button" data-copy-link="public">Copiar</button>
+                            <span class="event-link-actions">
+                                <a id="public-link-go" class="secondary-button" href="index.html">Ir</a>
+                                <button type="button" class="secondary-button" data-copy-link="public">Copiar</button>
+                            </span>
                         </div>
                         <div class="event-link-row">
                             <span>Enlace invitacion</span>
-                            <button type="button" class="secondary-button" data-copy-link="invitation">Copiar</button>
+                            <span class="event-link-actions">
+                                <a id="invitation-link-go" class="secondary-button" href="invitacion.html">Ir</a>
+                                <button type="button" class="secondary-button" data-copy-link="invitation">Copiar</button>
+                            </span>
                         </div>
                     </div>
                     <p id="public-link" class="public-link"></p>
@@ -252,6 +256,9 @@
                     <p id="contact-requests-status" class="form-status" role="status"></p>
                 </section>
             </section>
+            <div class="admin-footer-actions">
+                <button id="logout-button" type="button" class="secondary-button">Salir</button>
+            </div>
         </section>
     </main>
 </body>

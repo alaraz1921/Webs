@@ -17,7 +17,8 @@
     const eventSelect = document.getElementById('event-select');
     const eventSelector = document.querySelector('.event-selector');
     const eventUserTitle = document.getElementById('event-user-title');
-    const adminEventLink = document.getElementById('admin-event-link');
+    const publicLinkGo = document.getElementById('public-link-go');
+    const invitationLinkGo = document.getElementById('invitation-link-go');
     const adminEventsPanel = document.getElementById('admin-events-panel');
     const eventAdminStatus = document.getElementById('event-admin-status');
     const createEventForm = document.getElementById('create-event-form');
@@ -434,7 +435,6 @@
         )).join('');
 
         settingsForm.hidden = currentEvents.length === 0;
-        adminEventLink.hidden = currentEvents.length === 0;
 
         if (currentEvents.length > 0) {
             await loadEventData(currentEvents[0].id);
@@ -487,15 +487,18 @@
 
         if (eventData) {
             const publicUrl = getPublicEventUrl(eventData, true);
-            adminEventLink.href = publicUrl;
+            publicLinkGo.href = publicUrl;
+            invitationLinkGo.href = getInvitationEventUrl(eventData);
             eventLinks.hidden = false;
             eventLinks.dataset.publicUrl = publicUrl;
-            eventLinks.dataset.invitationUrl = getInvitationEventUrl(eventData);
+            eventLinks.dataset.invitationUrl = invitationLinkGo.href;
             publicLink.textContent = `Codigo: ${eventData.event_code}`;
         } else {
             eventLinks.hidden = true;
             delete eventLinks.dataset.publicUrl;
             delete eventLinks.dataset.invitationUrl;
+            publicLinkGo.removeAttribute('href');
+            invitationLinkGo.removeAttribute('href');
             publicLink.textContent = 'Este evento todavia no tiene enlace publico.';
         }
         setStatus(settingsStatus, '', false);

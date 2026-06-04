@@ -1023,6 +1023,13 @@ fieldset {
 .admin-tools {
     margin-bottom: 20px;
 }
+.admin-footer-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+}
 
 .admin-form {
     display: grid;
@@ -1062,7 +1069,16 @@ fieldset {
     font-weight: 800;
 }
 
-.event-link-row button {
+.event-link-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.event-link-row button,
+.event-link-row a {
     min-height: 34px;
     padding: 8px 12px;
     border-radius: 8px;
