@@ -6,14 +6,14 @@
     defaultEventCode: '100001',
     fallbackEvent: {
         title: 'Mi Primera Comunion',
-        subtitle: 'Gracias por formar parte de este dia tan importante.',
+        subtitle: 'Un día para compartir',
         eventDate: '2026-06-15T12:00:00+02:00',
         displayDate: 'Domingo, 15 de junio de 2026',
         displayTime: '12:00',
         place: 'Parroquia por confirmar',
         mapsUrl: 'https://www.google.com/maps',
-        presentationTitle: 'Nos encantara compartir este dia contigo',
-        presentationText: 'Un espacio sencillo para consultar la informacion del evento, confirmar asistencia y dejar mensajes bonitos.',
+        presentationTitle: 'Un recuerdo para siempre',
+        presentationText: 'Hay momentos que quedan grabados en el corazón para toda la vida. Nos gustaría celebrarlo contigo y guardar juntos este hermoso recuerdo.',
         paletteKey: 'earth'
     }
 };

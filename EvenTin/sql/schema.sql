@@ -624,11 +624,11 @@ insert into public.eventin_event_settings (
     palette_key
 ) values (
     '11111111-1111-1111-1111-111111111111',
-    'Gracias por formar parte de este dia tan importante.',
+    'Un día para compartir',
     'Sabado, 15 de mayo de 2027',
     '14:00',
-    'Nos encantara compartir este dia contigo',
-    'Un espacio sencillo para consultar la informacion del evento, confirmar asistencia y dejar mensajes bonitos.',
+    'Un recuerdo para siempre',
+    'Hay momentos que quedan grabados en el corazón para toda la vida. Nos gustaría celebrarlo contigo y guardar juntos este hermoso recuerdo.',
     'earth'
 ) on conflict (event_id) do update set
     subtitle = excluded.subtitle,

@@ -788,11 +788,11 @@
                 .from('eventin_event_settings')
                 .insert({
                     event_id: newEvent.id,
-                    subtitle: '',
+                    subtitle: 'Un día para compartir',
                     display_date: '',
                     display_time: '',
-                    presentation_title: '',
-                    presentation_text: '',
+                    presentation_title: 'Un recuerdo para siempre',
+                    presentation_text: 'Hay momentos que quedan grabados en el corazón para toda la vida. Nos gustaría celebrarlo contigo y guardar juntos este hermoso recuerdo.',
                     palette_key: 'earth'
                 })
                 .throwOnError();
