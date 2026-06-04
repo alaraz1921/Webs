@@ -1,6 +1,6 @@
 # EvenTin Project Handoff
 
-Ultima actualizacion: 2026-06-03
+Ultima actualizacion: 2026-06-04
 
 ## Resumen
 
@@ -53,6 +53,7 @@ EvenTin/
 |-- index.html
 |-- evento.html
 |-- invitacion.html
+|-- debug.html
 |-- admin.html
 |-- reset-password.html
 |-- README.md
@@ -65,6 +66,7 @@ EvenTin/
 |   |-- home.js
 |   |-- invitation.js
 |   |-- messages.js
+|   |-- password-reset.js
 |   `-- supabaseClient.js
 |-- sql/schema.sql
 |-- assets/images/
@@ -77,9 +79,10 @@ EvenTin/
 
 - `index.html`: portada de EvenTin, con acceso por codigo de evento y formulario de contacto.
 - `evento.html?evento=CODIGO_O_SLUG`: pagina publica de evento.
-- `invitacion.html?evento=CODIGO_O_SLUG`: formulario publico de confirmacion de asistencia.
+- `invitacion.html?evento=CODIGO_O_SLUG`: formulario publico de confirmacion de asistencia. Muestra logo, `eventin_events.title` y fecha/hora real de `eventin_events.event_date`.
+- `debug.html`: pagina no enlazada con accesos rapidos a portada, admin, eventos e invitaciones de prueba.
 - `admin.html`: panel privado con login Supabase Auth.
-- `reset-password.html`: restauracion de contrasena mediante email de Supabase Auth.
+- `reset-password.html`: restauracion de clave mediante email de Supabase Auth.
 
 ## Roles
 
@@ -95,6 +98,39 @@ eventin_profiles.event_code = eventin_events.event_code
 ```
 
 El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear evento y es de solo lectura en el panel.
+
+## Cambios del 2026-06-04
+
+Commits relevantes del dia:
+
+```text
+a9984d6 Add EvenTin password reset flow
+047fc41 Update EvenTin event default copy and typography
+4b54f01 Adjust EvenTin mobile layout and debug links
+5eab85d Update EvenTin event admin header
+5a7612d Fix EvenTin admin mobile header typography
+75cf7ce Update EvenTin admin event link actions
+f2e8a16 Respect empty event fields and update invitation header
+0761067 Fix EvenTin invitation event header details
+5285309 Use event title on EvenTin invitation page
+```
+
+Resumen:
+
+- Se anadio el flujo de restauracion de clave en `reset-password.html` y `js/password-reset.js`.
+- Se ajustaron tipografias de la pagina de evento: `Rouge Script` para titulos principales y `Caveat` para textos/titulos de presentacion y bloques solicitados.
+- Se eliminaron eyebrows innecesarios en `evento.html` y se cambio el bloque de detalles a `Informacion del evento`.
+- Se definieron textos por defecto al crear eventos nuevos: subtitulo, titulo de presentacion y texto de presentacion.
+- Se creo `debug.html` con enlaces directos a portada, admin, eventos e invitaciones de prueba. No esta enlazado desde la web.
+- Se actualizo el header del panel admin: logo transparente, email del usuario logado y titulo `Administracion de evento`.
+- En usuarios de evento se oculta el selector de eventos y se muestra el nombre del evento con `Rouge Script`.
+- Se movio el boton `Salir` al final del panel.
+- Se sustituyo el boton grande `Ir a la pagina del evento` por botones `Ir` y `Copiar` junto a `Enlace publico` y `Enlace invitacion`.
+- Se anadio `main_title` en `eventin_event_settings` como titulo principal configurable para la pagina publica del evento.
+- Se cambio la logica de fallback para respetar campos vacios guardados por el administrador. Solo se usa fallback cuando el valor es `null` o `undefined`.
+- La pagina de invitacion ahora muestra cabecera con logo, `eventin_events.title`, y fecha/hora real de `eventin_events.event_date`.
+- El titulo de la invitacion respeta mayusculas/minusculas tal como esta guardado.
+- Despues de estos cambios hay que ejecutar de nuevo `EvenTin/sql/schema.sql` completo en Supabase por la columna `main_title`.
 
 ## Cambios del 2026-06-03
 
@@ -154,6 +190,36 @@ public.eventin_submit_guest_response(...)
 ```
 
 Esta RPC es `SECURITY INVOKER`; llama internamente a `eventin_private.submit_guest_response(...)`.
+
+### Campos importantes de eventos
+
+`public.eventin_events` contiene el nombre obligatorio y datos estructurales del evento:
+
+- `title`: nombre interno/real del evento. Es obligatorio. En invitacion se muestra este valor.
+- `event_date`: fecha/hora real. En invitacion se muestra este valor formateado.
+- `location_name`, `maps_url`, `public_slug`, `event_code`, `event_type`.
+
+`public.eventin_event_settings` contiene textos y visuales editables:
+
+- `main_title`: titulo principal visible en `evento.html`. Puede estar vacio si el admin no quiere titulo en la pagina publica.
+- `subtitle`, `display_date`, `display_time`, `presentation_title`, `presentation_text`.
+- `hero_image_url`, `detail_image_url`, `palette_key`.
+
+Valores por defecto al crear evento desde admin:
+
+```text
+main_title = title del evento
+subtitle = Un día para compartir
+display_date = ''
+display_time = ''
+presentation_title = Un recuerdo para siempre
+presentation_text = Hay momentos que quedan grabados en el corazón para toda la vida. Nos gustaría celebrarlo contigo y guardar juntos este hermoso recuerdo.
+palette_key = earth
+location_name = Por confirmar
+maps_url = https://www.google.com/maps
+```
+
+`fallbackEvent` en `EvenTin/js/config.js` se usa solo cuando no hay evento real o un campo viene `null/undefined`. Los campos vacios (`''`) se respetan como decision del administrador.
 
 ## Storage
 
@@ -215,10 +281,11 @@ Eventos:
 - Crear, editar y borrar eventos.
 - Cambiar tipo de evento.
 - Ver codigo numerico de 6 digitos en solo lectura.
-- Copiar enlace publico.
-- Copiar enlace de invitacion.
+- Copiar e ir al enlace publico.
+- Copiar e ir al enlace de invitacion.
 - Subir imagen principal y detalle optimizadas.
 - Cambiar paleta del evento.
+- Editar `Titulo principal` (`main_title`), subtitulo, fecha/hora visible y textos de presentacion.
 - Ver respuestas recibidas.
 - Ver mensajes publicos.
 
@@ -237,7 +304,7 @@ Contactos:
 - Responder por email con `mailto:`.
 - Borrar mensajes.
 
-Restaurar contrasena:
+Restaurar clave:
 
 - Desde el login de `admin.html` hay enlace a `reset-password.html`.
 - Desde la seccion de usuarios del admin hay enlace a `reset-password.html`.
@@ -389,6 +456,15 @@ No se pudo validar la Edge Function con `deno check` porque Deno no estaba insta
 ## Ultimos Commits Importantes
 
 ```text
+5285309 Use event title on EvenTin invitation page
+0761067 Fix EvenTin invitation event header details
+f2e8a16 Respect empty event fields and update invitation header
+75cf7ce Update EvenTin admin event link actions
+5a7612d Fix EvenTin admin mobile header typography
+5eab85d Update EvenTin event admin header
+4b54f01 Adjust EvenTin mobile layout and debug links
+047fc41 Update EvenTin event default copy and typography
+a9984d6 Add EvenTin password reset flow
 8cad01c Use storage helper for EvenTin image policies
 c141177 Fix EvenTin storage image upload policies
 07fc2b6 Add secure EvenTin event user creation
