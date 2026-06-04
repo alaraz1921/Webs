@@ -2,7 +2,7 @@ const menuBtn = document.getElementById('mobile-menu-btn');
 const menuList = document.getElementById('nav-menu-list');
 const navbar = document.getElementById('main-navbar');
 const contactStatus = document.getElementById('contact-status');
-const contactClient = window.eventSupabase;
+const contactClient = window.websSupabase;
 
 function cerrarMenuMovil() {
     menuBtn.classList.remove('open');
@@ -44,17 +44,18 @@ async function enviarContacto(event) {
 
     try {
         await contactClient
-            .from('eventin_contact_requests')
+            .from('webs_contact_messages')
             .insert({
                 nombre: payload.nombre,
                 email: payload.email,
                 asunto: payload.asunto,
-                mensaje: payload.mensaje
+                mensaje: payload.mensaje,
+                page_url: payload.page_url
             })
             .throwOnError();
 
         try {
-            await contactClient.functions.invoke('notify-contact', { body: payload });
+            await contactClient.functions.invoke('notify-webs-contact', { body: payload });
         } catch (error) {
             console.warn('No se pudo enviar la notificacion de contacto.', error);
         }
