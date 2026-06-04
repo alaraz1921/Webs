@@ -117,7 +117,7 @@
             }
 
             requestForm.reset();
-            setStatus(requestStatus, 'Si el email existe, recibira un enlace para restaurar la contrasena.', false);
+            setStatus(requestStatus, 'Si el email existe, recibira un enlace para restaurar la clave.', false);
         } catch (error) {
             setStatus(requestStatus, 'No se pudo enviar el email de restauracion.', true);
         }
@@ -137,12 +137,12 @@
         const passwordConfirm = String(formData.get('password_confirm') || '');
 
         if (password.length < 8) {
-            setStatus(updateStatus, 'La contrasena debe tener al menos 8 caracteres.', true);
+            setStatus(updateStatus, 'La clave debe tener al menos 8 caracteres.', true);
             return;
         }
 
         if (password !== passwordConfirm) {
-            setStatus(updateStatus, 'Las contrasenas no coinciden.', true);
+            setStatus(updateStatus, 'Las claves no coinciden.', true);
             return;
         }
 
@@ -155,9 +155,9 @@
 
             await client.auth.signOut();
             updateForm.reset();
-            setStatus(updateStatus, 'Contrasena actualizada. Ya puedes iniciar sesion.', false);
+            setStatus(updateStatus, 'Clave actualizada. Ya puedes iniciar sesion.', false);
         } catch (error) {
-            setStatus(updateStatus, 'No se pudo actualizar la contrasena.', true);
+            setStatus(updateStatus, 'No se pudo actualizar la clave.', true);
         }
     });
 

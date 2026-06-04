@@ -976,7 +976,7 @@
 
             if (!profileId) {
                 if (!password) {
-                    setStatus(userStatus, 'La contrasena es obligatoria al crear un usuario.', true);
+                    setStatus(userStatus, 'La clave es obligatoria al crear un usuario.', true);
                     return;
                 }
 
@@ -1044,7 +1044,7 @@
             userForm.elements.password.required = false;
             userForm.elements.event_code.value = profile.event_code || '';
             userResetLink.href = getResetPasswordUrl(profile.email || '');
-            setStatus(userStatus, 'Editando usuario. La contrasena no se modifica desde este panel.', false);
+            setStatus(userStatus, 'Editando usuario. La clave no se modifica desde este panel.', false);
         }
 
         if (action === 'delete-user') {

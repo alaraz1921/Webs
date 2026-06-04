@@ -668,6 +668,14 @@ a {
     line-height: 1.25;
 }
 
+#event-info-title,
+#message-title {
+    font-family: "Caveat", "Manrope", cursive;
+    font-size: clamp(2.3rem, 5vw, 3.3rem);
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
 .hero p {
     font-size: 1.1rem;
 }
@@ -1205,6 +1213,38 @@ th {
     color: var(--muted);
 }
 
+.debug-layout {
+    display: grid;
+    gap: 20px;
+}
+
+.debug-panel h1 {
+    margin-bottom: 18px;
+    color: var(--accent-dark);
+}
+
+.debug-links,
+.debug-card {
+    display: grid;
+    gap: 12px;
+}
+
+.debug-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.debug-card h2 {
+    margin-bottom: 8px;
+}
+
+.debug-card .secondary-button,
+.debug-links .secondary-button {
+    width: 100%;
+    border-radius: 8px;
+}
+
 @media (max-width: 760px) {
     .admin-view-header {
         align-items: stretch;
@@ -1214,6 +1254,10 @@ th {
     .admin-view-header .secondary-button,
     .admin-menu button {
         width: 100%;
+    }
+
+    .debug-grid {
+        grid-template-columns: 1fr;
     }
 }
 /* Home v2 */
@@ -1633,6 +1677,7 @@ body[data-palette="home"] .contact-decoration-right {
 
     body[data-palette="home"] .brand-logo {
         width: min(470px, 92vw);
+        transform: translateX(-1.5%);
     }
 
     body[data-palette="home"] .home-tagline {
@@ -1680,6 +1725,7 @@ body[data-palette="home"] .contact-decoration-right {
 
     body[data-palette="home"] .brand-logo {
         width: 96vw;
+        transform: translateX(-2%);
     }
 
     body[data-palette="home"] .home-features {
