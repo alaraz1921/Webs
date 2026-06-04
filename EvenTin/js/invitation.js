@@ -12,6 +12,31 @@
         return value === null || value === undefined ? fallback : value;
     }
 
+
+    function formatEventDateTime(value) {
+        if (!value) {
+            return { date: '', time: '' };
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return { date: '', time: '' };
+        }
+
+        return {
+            date: date.toLocaleDateString('es-ES', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            }),
+            time: date.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+        };
+    }
+
     function setText(selector, value) {
         const element = document.querySelector(selector);
         if (element) {
@@ -27,13 +52,15 @@
         const { event: eventData, settings } = await eventContext.getEvent();
         const fallback = window.eventPlatformConfig?.fallbackEvent || {};
         const title = valueOrFallback(settings?.main_title, valueOrFallback(eventData?.title, fallback.title || ''));
-        const displayDate = valueOrFallback(settings?.display_date, fallback.displayDate || '');
-        const displayTime = valueOrFallback(settings?.display_time, fallback.displayTime || '');
+        const eventDateTime = formatEventDateTime(valueOrFallback(eventData?.event_date, fallback.eventDate || ''));
+        const displayDate = eventDateTime.date;
+        const displayTime = eventDateTime.time;
 
         setText('[data-invitation-title]', title);
         setText('[data-invitation-date]', displayDate);
         setText('[data-invitation-time]', displayTime ? ` · ${displayTime}` : '');
     }
+
     function normalizePhone(value) {
         return value.replace(/[^\d+]/g, '').replace(/^00/, '+');
     }
