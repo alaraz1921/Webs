@@ -268,8 +268,8 @@
         }
 
         function solicitarVolverPrincipal() {
-            mostrarConfirmacion("&iquest;Quieres volver a la p&aacute;gina principal?", function() {
-                window.location.href = "../index.html";
+            mostrarConfirmacion("&iquest;Quieres volver a Games?", function() {
+                window.location.href = "../games.html";
             });
         }
 
