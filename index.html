@@ -13,42 +13,6 @@
 </head>
 <body class="home-page">
 
-    <!-- VENTANA MODAL (ABIERTA POR EL BOTON "GAMES" DE ABAJO) -->
-    <div class="modal-overlay" id="otros-modal">
-        <div class="modal-box">
-            <button class="close-modal-btn" onclick="cerrarModal()">&times;</button>
-            <h3>Games</h3>
-
-            <div class="modal-buttons-container">
-                <a href="Bingo/carton.html" class="btn-modal-link">BINGO</a>
-                <a href="infiltrado/" class="btn-modal-link">INFILTRADO</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="mensaje-modal">
-        <div class="modal-box">
-            <button class="close-modal-btn" onclick="cerrarMensajeModal()">&times;</button>
-            <h3>Mensaje enviado</h3>
-            <p>Gracias por contactar. He recibido tu mensaje correctamente.</p>
-            <div class="modal-buttons-container">
-                <button class="btn-modal-link" onclick="cerrarMensajeModal()">Entendido</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="contacto-modal">
-        <div class="modal-box">
-            <button class="close-modal-btn" onclick="cerrarContactoModal()">&times;</button>
-            <h3>Contacto</h3>
-            <p>Quieres contarnos algo? Envíanos un email</p>
-            <div class="modal-buttons-container modal-buttons-row">
-                <a class="btn-modal-link" href="mailto:alaraz1921@gmail.com">ENVIAR</a>
-                <button class="btn-modal-link btn-modal-cancel" type="button" onclick="cerrarContactoModal()">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
     <!-- MENÚ DE NAVEGACIÓN SUPERIOR -->
     <nav class="navbar" id="main-navbar">
         <div class="nav-container">
@@ -61,21 +25,19 @@
             </button>
 
             <ul class="nav-menu" id="nav-menu-list">
-                <li class="nav-item"><a href="Privado/">Privado</a></li>
-                <li class="nav-item"><a href="ValentinaPlay">Valentina's PlayTime</a></li>
-
-                <!-- MENÚ DESPLEGABLE TRADICIONAL (ABRE CON UN CLIC) -->
-                <li class="nav-item has-submenu">
-                    <a href="#" id="dropdown-trigger">Games <span class="arrow">▼</span></a>
-                    <ul class="submenu" id="custom-submenu">
-                        <li><a href="Bingo/carton.html">BINGO</a></li>
-                        <li><a href="infiltrado/">INFILTRADO</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item"><a href="#" onclick="abrirContactoModal(event)">Contacto</a></li>
+                <li class="nav-item"><a href="games.html">Games</a></li>
+                <li class="nav-item"><a href="#contacto">Contacto</a></li>
             </ul>
         </div>
     </nav>
+
+    <a class="private-quick-link" href="Privado/" aria-label="Acceder a la zona privada">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 11V8a5 5 0 0 1 10 0v3"></path>
+            <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+            <path d="M12 15v2"></path>
+        </svg>
+    </a>
 
     <!-- HERO / PORTADA -->
     <header class="hero">
@@ -86,17 +48,8 @@
     <!-- CUERPO DE LA PÁGINA -->
     <main class="content-section">
 
-        <!-- GRID DE BOTONES ADAPTATIVOS -->
-        <div class="buttons-grid">
-            <button class="btn-section" onclick="location.href='Privado/'">Privado</button>
-            <button class="btn-section" onclick="location.href='ValentinaPlay'">Valentina's PlayTime</button>
-            <!-- Este botón abre el Modal Emergente -->
-            <button class="btn-section" onclick="abrirModal()">Games</button>
-            <button class="btn-section" onclick="abrirContactoModal(event)">Contacto</button>
-        </div>
-
         <!-- FORMULARIO DE CONTACTO -->
-        <section class="contact-form" id="contacto" hidden>
+        <section class="contact-form" id="contacto">
             <h2>Contacto</h2>
             <form action="#" method="POST" onsubmit="enviarContacto(event)">
                 <div class="form-group">

@@ -194,8 +194,44 @@
         .content-section {
             max-width: 900px;
             margin: 0 auto;
-            padding: 50px 20px;
+            padding: 70px 20px;
             box-sizing: border-box;
+        }
+
+        body.home-page .private-quick-link {
+            position: fixed;
+            left: 18px;
+            bottom: 18px;
+            z-index: 1200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            border-radius: 50%;
+            background: rgba(11, 19, 43, 0.42);
+            color: #ffffff;
+            text-decoration: none;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.28);
+            transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+        }
+
+        body.home-page .private-quick-link:hover {
+            border-color: var(--azul-neon);
+            color: var(--azul-neon);
+            background: rgba(11, 19, 43, 0.62);
+        }
+
+        body.home-page .private-quick-link svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         body.home-page .buttons-grid {
@@ -470,6 +506,98 @@
                 width: 100%;
             }
         }
+
+/* games.html */
+body.games-page {
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 18px;
+    box-sizing: border-box;
+    background:
+        linear-gradient(rgba(11, 19, 43, 0.72), rgba(11, 19, 43, 0.9)),
+        url('../images/IMG_1914.jpg') center/cover no-repeat;
+    color: #ffffff;
+    font-family: 'Manrope', sans-serif;
+}
+
+body.games-page .games-layout {
+    width: 100%;
+    max-width: 520px;
+    text-align: center;
+}
+
+body.games-page .games-kicker {
+    margin: 0 0 10px;
+    color: #4cc9f0;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+body.games-page h1 {
+    margin: 0 0 26px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2.4rem, 12vw, 4.8rem);
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+body.games-page .games-list {
+    display: grid;
+    gap: 14px;
+}
+
+body.games-page .games-list a {
+    display: block;
+    padding: 18px;
+    border: 2px solid rgba(58, 80, 107, 0.86);
+    border-radius: 14px;
+    background: rgba(28, 37, 65, 0.84);
+    color: #ffffff;
+    text-decoration: none;
+    text-align: left;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.34);
+    transition: border-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+body.games-page .games-list a:hover {
+    border-color: #4cc9f0;
+    color: #4cc9f0;
+    transform: translateY(-2px);
+}
+
+body.games-page .games-list span {
+    display: block;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+body.games-page .games-list small {
+    display: block;
+    margin-top: 5px;
+    color: #cbd5e1;
+    font-size: 0.92rem;
+}
+
+body.games-page .games-home-link {
+    width: 100%;
+    margin-top: 18px;
+    padding: 12px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    background: #475569;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 800;
+}
+
+body.games-page .games-home-link:hover {
+    background: #64748b;
+}
 
 /* 404.html */
 body.error-page * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
@@ -1471,6 +1599,8 @@ body.home-page button,
 body.home-page input,
 body.home-page textarea,
 body.home-page a,
+body.games-page,
+body.games-page *,
 body.error-page,
 body.error-page *,
 body.bingo-carton-page,
@@ -1487,6 +1617,9 @@ body.private-page * {
 body.home-page h1,
 body.home-page h2,
 body.home-page h3,
+body.games-page h1,
+body.games-page h2,
+body.games-page h3,
 body.error-page h1,
 body.error-page h2,
 body.error-page h3,

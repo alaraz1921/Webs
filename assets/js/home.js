@@ -1,117 +1,49 @@
-        // LÓGICA DEL MENÚ HAMBURGUESA EN MÓVILES
-        const menuBtn = document.getElementById('mobile-menu-btn');
-        const menuList = document.getElementById('nav-menu-list');
+const menuBtn = document.getElementById('mobile-menu-btn');
+const menuList = document.getElementById('nav-menu-list');
+const navbar = document.getElementById('main-navbar');
+const contactEmail = 'alaraz1921@gmail.com';
 
-        function cerrarMenuMovil() {
-            menuBtn.classList.remove('open');
-            menuList.classList.remove('mobile-open');
-            customSubmenu.classList.remove('open');
-            parentItem.classList.remove('active');
+function cerrarMenuMovil() {
+    menuBtn.classList.remove('open');
+    menuList.classList.remove('mobile-open');
+}
+
+menuBtn.addEventListener('click', () => {
+    menuBtn.classList.toggle('open');
+    menuList.classList.toggle('mobile-open');
+});
+
+menuList.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', cerrarMenuMovil);
+});
+
+function enviarContacto(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const nombre = String(formData.get('name')).trim();
+    const email = String(formData.get('email')).trim();
+    const asunto = String(formData.get('subject')).trim();
+    const mensaje = String(formData.get('message')).trim();
+    const body = [
+        `Nombre: ${nombre}`,
+        `Email: ${email}`,
+        '',
+        mensaje
+    ].join('\n');
+
+    const mailtoUrl = `mailto:${contactEmail}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
+    form.reset();
+}
+
+window.addEventListener('scroll', () => {
+    if (window.innerWidth > 768) {
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
         }
-
-        menuBtn.addEventListener('click', () => {
-            menuBtn.classList.toggle('open');
-            menuList.classList.toggle('mobile-open');
-        });
-
-        // CONTROL DEL DESPLEGABLE "GAMES" (FUNCIONA CON CLIC EN ESCRITORIO Y MÓVIL)
-        const dropdownTrigger = document.getElementById('dropdown-trigger');
-        const customSubmenu = document.getElementById('custom-submenu');
-        const parentItem = dropdownTrigger.parentElement;
-
-        menuList.querySelectorAll('a').forEach((link) => {
-            if (link !== dropdownTrigger) {
-                link.addEventListener('click', cerrarMenuMovil);
-            }
-        });
-
-        dropdownTrigger.addEventListener('click', (e) => {
-            e.preventDefault(); // Evita que la página salte al inicio al pulsar '#'
-            e.stopPropagation(); // Evita que el evento 'click' se propague al documento
-            
-            if (window.innerWidth > 768) {
-                // Modo Escritorio: Activa/Desactiva el desplegable flotante
-                customSubmenu.classList.toggle('desktop-open');
-            } else {
-                // Modo Móvil: Activa/Desactiva el menú colapsable vertical
-                customSubmenu.classList.toggle('open');
-            }
-            parentItem.classList.toggle('active');
-        });
-
-        // DETECTAR CLICS FUERA DEL MENÚ PARA CERRARLO AUTOMÁTICAMENTE
-        document.addEventListener('click', (e) => {
-            // Si hacemos clic fuera del botón "Games" y de su menú desplegable, lo cerramos
-            if (!parentItem.contains(e.target)) {
-                customSubmenu.classList.remove('desktop-open');
-                customSubmenu.classList.remove('open');
-                parentItem.classList.remove('active');
-            }
-        });
-
-        // LÓGICA PARA CONTROLAR EL MODAL EMERGENTE (BOTÓN DE ABAJO)
-        const modal = document.getElementById('otros-modal');
-        const mensajeModal = document.getElementById('mensaje-modal');
-        const contactoModal = document.getElementById('contacto-modal');
-
-        function abrirModal() {
-            modal.style.display = 'flex';
-        }
-
-        function cerrarModal() {
-            modal.style.display = 'none';
-        }
-
-        function enviarContacto(event) {
-            event.preventDefault();
-            event.target.reset();
-            mensajeModal.style.display = 'flex';
-        }
-
-        function cerrarMensajeModal() {
-            mensajeModal.style.display = 'none';
-        }
-
-        function abrirContactoModal(event) {
-            if (event) {
-                event.preventDefault();
-            }
-            cerrarMenuMovil();
-            contactoModal.style.display = 'flex';
-        }
-
-        function cerrarContactoModal() {
-            contactoModal.style.display = 'none';
-        }
-
-        // Cerrar el modal si se pulsa sobre la capa oscura del fondo
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                cerrarModal();
-            }
-        });
-
-        mensajeModal.addEventListener('click', (e) => {
-            if (e.target === mensajeModal) {
-                cerrarMensajeModal();
-            }
-        });
-
-        contactoModal.addEventListener('click', (e) => {
-            if (e.target === contactoModal) {
-                cerrarContactoModal();
-            }
-        });
-
-        // CAMBIAR COLOR DEL NAVBAR AL HACER SCROLL (SÓLO ESCRITORIO)
-        const navbar = document.getElementById('main-navbar');
-        
-        window.addEventListener('scroll', () => {
-            if (window.innerWidth > 768) {
-                if (window.scrollY > 50) {
-                    navbar.classList.add('scrolled');
-                } else {
-                    navbar.classList.remove('scrolled');
-                }
-            }
-        });
+    }
+});
