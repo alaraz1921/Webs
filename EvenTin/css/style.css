@@ -970,10 +970,40 @@ fieldset {
     margin-bottom: 24px;
 }
 
+.admin-brand {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    min-width: 0;
+}
+
+.admin-logo {
+    width: 74px;
+    height: auto;
+    flex: 0 0 auto;
+}
+
+.admin-brand h1 {
+    margin: 0;
+}
+
+.admin-brand .eyebrow {
+    margin-bottom: 4px;
+    overflow-wrap: anywhere;
+}
+
 .event-selector {
     display: block;
     max-width: 420px;
     margin-bottom: 24px;
+}
+
+.event-user-title {
+    color: var(--accent-dark);
+    font-family: "Rouge Script", "Georgia", cursive;
+    font-size: clamp(2.6rem, 6vw, 4.4rem);
+    line-height: 0.95;
+    letter-spacing: 0;
 }
 
 .admin-grid {
@@ -1251,6 +1281,7 @@ th {
     }
 
     .admin-view-header .event-selector,
+    .admin-view-header .event-user-title,
     .admin-view-header .secondary-button,
     .admin-menu button {
         width: 100%;

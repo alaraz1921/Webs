@@ -15,6 +15,8 @@
     const usersView = document.getElementById('users-view');
     const contactsView = document.getElementById('contacts-view');
     const eventSelect = document.getElementById('event-select');
+    const eventSelector = document.querySelector('.event-selector');
+    const eventUserTitle = document.getElementById('event-user-title');
     const adminEventLink = document.getElementById('admin-event-link');
     const adminEventsPanel = document.getElementById('admin-events-panel');
     const eventAdminStatus = document.getElementById('event-admin-status');
@@ -354,10 +356,28 @@
         await loadEvents();
         adminMenu.hidden = !isAdmin();
         adminEventsPanel.hidden = !isAdmin();
-        adminRoleLabel.textContent = isAdmin() ? 'Administrador' : 'Usuario de evento';
+        updateAdminHeader();
         showView('events');
     }
 
+
+    function updateAdminHeader(eventData = null) {
+        const email = currentProfile?.email || '';
+        adminRoleLabel.textContent = email ? `Usuario: ${email}` : 'Usuario:';
+
+        if (eventSelector) {
+            eventSelector.hidden = isEventUser();
+        }
+
+        if (!eventUserTitle) {
+            return;
+        }
+
+        eventUserTitle.hidden = !isEventUser();
+        eventUserTitle.textContent = isEventUser()
+            ? eventData?.title || currentEvents[0]?.title || 'Evento asignado'
+            : '';
+    }
     async function loadProfile() {
         const { data: userData } = await client.auth.getUser();
 
@@ -438,6 +458,7 @@
 
     async function loadEventSettings(eventId) {
         const eventData = currentEvents.find((item) => item.id === eventId);
+        updateAdminHeader(eventData);
         const { data: settings } = await client
             .from('eventin_event_settings')
             .select('subtitle,display_date,display_time,presentation_title,presentation_text,hero_image_url,detail_image_url,palette_key')

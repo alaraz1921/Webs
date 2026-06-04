@@ -41,9 +41,12 @@
 
         <section id="admin-panel" class="admin-content" hidden>
             <div class="admin-header">
-                <div>
-                    <p id="admin-role-label" class="eyebrow">Gestion</p>
-                    <h1>Panel de EvenTin</h1>
+                <div class="admin-brand">
+                    <img src="assets/images/eventin-logo-transparent.png" alt="EvenTin" class="admin-logo">
+                    <div>
+                        <p id="admin-role-label" class="eyebrow">Usuario:</p>
+                        <h1>Administracion de evento</h1>
+                    </div>
                 </div>
                 <button id="logout-button" type="button" class="secondary-button">Salir</button>
             </div>
@@ -60,6 +63,7 @@
                         Evento
                         <select id="event-select"></select>
                     </label>
+                    <div id="event-user-title" class="event-user-title" hidden></div>
                     <a id="admin-event-link" class="secondary-button" href="index.html">Ir a la pagina del evento</a>
                 </div>
 
