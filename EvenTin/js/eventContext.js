@@ -30,6 +30,7 @@
                 event_code: config.defaultEventCode
             },
             settings: {
+                main_title: config.fallbackEvent.title,
                 subtitle: config.fallbackEvent.subtitle,
                 display_date: config.fallbackEvent.displayDate,
                 display_time: config.fallbackEvent.displayTime,
@@ -76,7 +77,7 @@
 
         const { data: settings } = await client
             .from('eventin_event_settings')
-            .select('subtitle,display_date,display_time,presentation_title,presentation_text,hero_image_url,detail_image_url,palette_key')
+            .select('main_title,subtitle,display_date,display_time,presentation_title,presentation_text,hero_image_url,detail_image_url,palette_key')
             .eq('event_id', eventData.id)
             .maybeSingle();
 

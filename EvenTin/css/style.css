@@ -916,6 +916,44 @@ fieldset {
     margin-top: 16px;
 }
 
+
+.invitation-layout {
+    gap: 18px;
+}
+
+.invitation-header {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    text-align: center;
+}
+
+.invitation-header h1 {
+    margin: 0;
+    color: var(--accent-dark);
+    font-family: "Rouge Script", "Georgia", cursive;
+    font-size: clamp(2.7rem, 8vw, 4.3rem);
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: 0;
+}
+
+.invitation-heading {
+    text-align: center;
+}
+
+.invitation-heading h2 {
+    margin: 0 0 8px;
+    color: var(--accent-dark);
+    font-size: clamp(1.35rem, 5vw, 2rem);
+    text-transform: uppercase;
+}
+
+.invitation-heading p {
+    margin: 0;
+    color: var(--muted);
+    font-weight: 800;
+}
 .modal-backdrop {
     position: fixed;
     inset: 0;

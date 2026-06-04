@@ -38,6 +38,7 @@ create table if not exists public.eventin_events (
 
 create table if not exists public.eventin_event_settings (
     event_id uuid primary key references public.eventin_events(id) on delete cascade,
+    main_title text,
     subtitle text,
     display_date text,
     display_time text,
@@ -96,6 +97,7 @@ create table if not exists public.eventin_contact_requests (
 alter table public.eventin_events add column if not exists public_slug text;
 alter table public.eventin_events add column if not exists event_code text;
 alter table public.eventin_events add column if not exists event_type text not null default 'communion';
+alter table public.eventin_event_settings add column if not exists main_title text;
 alter table public.eventin_event_settings add column if not exists palette_key text not null default 'earth';
 alter table public.eventin_profiles add column if not exists email text;
 alter table public.eventin_profiles add column if not exists event_code text;
@@ -616,6 +618,7 @@ insert into public.eventin_events (
 
 insert into public.eventin_event_settings (
     event_id,
+    main_title,
     subtitle,
     display_date,
     display_time,
@@ -624,6 +627,7 @@ insert into public.eventin_event_settings (
     palette_key
 ) values (
     '11111111-1111-1111-1111-111111111111',
+    'Mi Primera Comunion',
     'Un día para compartir',
     'Sabado, 15 de mayo de 2027',
     '14:00',
@@ -631,6 +635,7 @@ insert into public.eventin_event_settings (
     'Hay momentos que quedan grabados en el corazón para toda la vida. Nos gustaría celebrarlo contigo y guardar juntos este hermoso recuerdo.',
     'earth'
 ) on conflict (event_id) do update set
+    main_title = excluded.main_title,
     subtitle = excluded.subtitle,
     display_date = excluded.display_date,
     display_time = excluded.display_time,

@@ -9,21 +9,25 @@
         return validPalettes.has(value) ? value : 'earth';
     }
 
+    function valueOrFallback(value, fallback) {
+        return value === null || value === undefined ? fallback : value;
+    }
+
     function applyEvent(eventData, settings) {
         const fallback = config.fallbackEvent;
         const data = {
-            title: eventData?.title || fallback.title,
-            subtitle: settings?.subtitle || fallback.subtitle,
-            eventDate: eventData?.event_date || fallback.eventDate,
-            displayDate: settings?.display_date || fallback.displayDate,
-            displayTime: settings?.display_time || fallback.displayTime,
-            place: eventData?.location_name || fallback.place,
-            mapsUrl: eventData?.maps_url || fallback.mapsUrl,
-            presentationTitle: settings?.presentation_title || fallback.presentationTitle,
-            presentationText: settings?.presentation_text || fallback.presentationText,
-            heroImageUrl: settings?.hero_image_url || '',
-            detailImageUrl: settings?.detail_image_url || '',
-            paletteKey: normalizePalette(settings?.palette_key || fallback.paletteKey || 'earth')
+            title: valueOrFallback(settings?.main_title, valueOrFallback(eventData?.title, fallback.title)),
+            subtitle: valueOrFallback(settings?.subtitle, fallback.subtitle),
+            eventDate: valueOrFallback(eventData?.event_date, fallback.eventDate),
+            displayDate: valueOrFallback(settings?.display_date, fallback.displayDate),
+            displayTime: valueOrFallback(settings?.display_time, fallback.displayTime),
+            place: valueOrFallback(eventData?.location_name, fallback.place),
+            mapsUrl: valueOrFallback(eventData?.maps_url, fallback.mapsUrl),
+            presentationTitle: valueOrFallback(settings?.presentation_title, fallback.presentationTitle),
+            presentationText: valueOrFallback(settings?.presentation_text, fallback.presentationText),
+            heroImageUrl: valueOrFallback(settings?.hero_image_url, ''),
+            detailImageUrl: valueOrFallback(settings?.detail_image_url, ''),
+            paletteKey: normalizePalette(valueOrFallback(settings?.palette_key, fallback.paletteKey || 'earth'))
         };
 
         document.body.dataset.palette = data.paletteKey;
@@ -93,6 +97,7 @@
                 location_name: config.fallbackEvent.place,
                 maps_url: config.fallbackEvent.mapsUrl
             }, {
+                main_title: config.fallbackEvent.title,
                 subtitle: config.fallbackEvent.subtitle,
                 display_date: config.fallbackEvent.displayDate,
                 display_time: config.fallbackEvent.displayTime,

@@ -461,7 +461,7 @@
         updateAdminHeader(eventData);
         const { data: settings } = await client
             .from('eventin_event_settings')
-            .select('subtitle,display_date,display_time,presentation_title,presentation_text,hero_image_url,detail_image_url,palette_key')
+            .select('main_title,subtitle,display_date,display_time,presentation_title,presentation_text,hero_image_url,detail_image_url,palette_key')
             .eq('event_id', eventId)
             .maybeSingle();
 
@@ -471,11 +471,12 @@
         settingsForm.elements.event_date.value = toInputDateTime(eventData?.event_date);
         settingsForm.elements.location_name.value = eventData?.location_name || '';
         settingsForm.elements.maps_url.value = eventData?.maps_url || '';
-        settingsForm.elements.subtitle.value = settings?.subtitle || '';
-        settingsForm.elements.display_date.value = settings?.display_date || '';
-        settingsForm.elements.display_time.value = settings?.display_time || '';
-        settingsForm.elements.presentation_title.value = settings?.presentation_title || '';
-        settingsForm.elements.presentation_text.value = settings?.presentation_text || '';
+        settingsForm.elements.main_title.value = settings?.main_title ?? eventData?.title ?? '';
+        settingsForm.elements.subtitle.value = settings?.subtitle ?? '';
+        settingsForm.elements.display_date.value = settings?.display_date ?? '';
+        settingsForm.elements.display_time.value = settings?.display_time ?? '';
+        settingsForm.elements.presentation_title.value = settings?.presentation_title ?? '';
+        settingsForm.elements.presentation_text.value = settings?.presentation_text ?? '';
         settingsForm.elements.hero_image_url.value = settings?.hero_image_url || '';
         settingsForm.elements.detail_image_url.value = settings?.detail_image_url || '';
         settingsForm.elements.hero_image_file.value = '';
@@ -756,11 +757,12 @@
                 .from('eventin_event_settings')
                 .upsert({
                     event_id: eventId,
-                    subtitle: String(formData.get('subtitle') || '').trim(),
-                    display_date: String(formData.get('display_date') || '').trim(),
-                    display_time: String(formData.get('display_time') || '').trim(),
-                    presentation_title: String(formData.get('presentation_title') || '').trim(),
-                    presentation_text: String(formData.get('presentation_text') || '').trim(),
+                    main_title: String(formData.get('main_title') ?? '').trim(),
+                    subtitle: String(formData.get('subtitle') ?? '').trim(),
+                    display_date: String(formData.get('display_date') ?? '').trim(),
+                    display_time: String(formData.get('display_time') ?? '').trim(),
+                    presentation_title: String(formData.get('presentation_title') ?? '').trim(),
+                    presentation_text: String(formData.get('presentation_text') ?? '').trim(),
                     hero_image_url: imageUrls.hero_image_url,
                     detail_image_url: imageUrls.detail_image_url,
                     palette_key: String(formData.get('palette_key') || 'earth')
@@ -812,6 +814,7 @@
                 .from('eventin_event_settings')
                 .insert({
                     event_id: newEvent.id,
+                    main_title: title,
                     subtitle: 'Un día para compartir',
                     display_date: '',
                     display_time: '',

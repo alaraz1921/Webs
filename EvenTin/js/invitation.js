@@ -7,6 +7,33 @@
     const modal = document.getElementById('invitation-success-modal');
     const modalEventLink = document.getElementById('modal-event-link');
 
+
+    function valueOrFallback(value, fallback) {
+        return value === null || value === undefined ? fallback : value;
+    }
+
+    function setText(selector, value) {
+        const element = document.querySelector(selector);
+        if (element) {
+            element.textContent = value;
+        }
+    }
+
+    async function loadInvitationHeader() {
+        if (!eventContext) {
+            return;
+        }
+
+        const { event: eventData, settings } = await eventContext.getEvent();
+        const fallback = window.eventPlatformConfig?.fallbackEvent || {};
+        const title = valueOrFallback(settings?.main_title, valueOrFallback(eventData?.title, fallback.title || ''));
+        const displayDate = valueOrFallback(settings?.display_date, fallback.displayDate || '');
+        const displayTime = valueOrFallback(settings?.display_time, fallback.displayTime || '');
+
+        setText('[data-invitation-title]', title);
+        setText('[data-invitation-date]', displayDate);
+        setText('[data-invitation-time]', displayTime ? ` · ${displayTime}` : '');
+    }
     function normalizePhone(value) {
         return value.replace(/[^\d+]/g, '').replace(/^00/, '+');
     }
@@ -51,6 +78,10 @@
         } catch (error) {
             showStatus('No se pudo enviar la respuesta. Intentalo de nuevo mas tarde.', true);
         }
+    });
+
+    loadInvitationHeader().catch(() => {
+        setText('[data-invitation-title]', 'Evento no encontrado');
     });
 
     if (eventLink && eventContext) {
