@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Montserrat:wght@700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Manrope:wght@400;600;700;800&family=Montserrat:wght@700;800;900&family=Rouge+Script&display=swap');
 
 :root {
     --bg: #fbf7f0;
@@ -1289,6 +1289,31 @@ th {
 
     .debug-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .admin-header {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .admin-brand {
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        text-align: center;
+    }
+
+    .admin-logo {
+        width: 88px;
+        order: -1;
+    }
+
+    .admin-brand h1 {
+        font-size: 0.78rem;
+        line-height: 1.2;
     }
 }
 /* Home v2 */
