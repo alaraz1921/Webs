@@ -1472,11 +1472,11 @@ body.bingo-monitor-page #pantallaLogin {
 
 .app-page-header .app-page-kicker {
     display: inline-block;
-    margin: 0 0 8px;
+    margin: 0 0 14px;
     padding: 5px 11px;
-    border: 1px solid rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.56);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.84);
+    background: rgba(255, 255, 255, 0.68);
     color: #c72c43;
     font-size: 0.78rem;
     font-weight: 800;
