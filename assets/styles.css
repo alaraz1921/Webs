@@ -337,6 +337,18 @@
             color: white;
         }
 
+        body.home-page .form-status {
+            min-height: 22px;
+            margin: 12px 0 0;
+            color: #4ade80;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        body.home-page .form-status.error {
+            color: #f87171;
+        }
+
         body.home-page /* ─────────────── VENTANA MODAL (SOLO PARA EL BOTÓN INFERIOR) ─────────────── */
         .modal-overlay {
             display: none;

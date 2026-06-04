@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="EvenTin/js/config.js"></script>
+    <script src="EvenTin/js/supabaseClient.js"></script>
 </head>
 <body class="home-page">
 
@@ -69,6 +72,7 @@
                     <textarea id="message" name="message" rows="4" required></textarea>
                 </div>
                 <button type="submit" class="btn-submit">Enviar</button>
+                <p id="contact-status" class="form-status" role="status"></p>
             </form>
         </section>
 
