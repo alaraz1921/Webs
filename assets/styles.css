@@ -541,9 +541,10 @@ body.games-page .games-layout {
     text-align: center;
 }
 
-body.games-page .games-kicker {
+body.games-page .games-kicker,
+body.games-page .app-page-kicker {
     margin: 0 0 10px;
-    color: #4cc9f0;
+    color: #c72c43;
     font-size: 0.78rem;
     font-weight: 800;
     letter-spacing: 0.16em;
@@ -1430,10 +1431,103 @@ body.private-page .private-project-list {
     flex: 0 0 auto;
 }
 
+/* Cabeceras y fondos comunes */
+body.games-page,
+body.bingo-carton-page,
+body.bingo-monitor-page,
+body.infiltrado-page,
+body.private-page {
+    background:
+        linear-gradient(rgba(11, 19, 43, 0.72), rgba(11, 19, 43, 0.9)),
+        url('../images/IMG_1914.jpg') center/cover no-repeat fixed;
+    color: #ffffff;
+}
+
+body.bingo-carton-page,
+body.bingo-monitor-page,
+body.infiltrado-page {
+    padding-top: 28px;
+}
+
+body.private-page .private-login {
+    background:
+        linear-gradient(rgba(11, 19, 43, 0.72), rgba(11, 19, 43, 0.9)),
+        url('../images/IMG_1914.jpg') center/cover no-repeat fixed;
+    padding: 142px 24px 24px;
+}
+
+body.infiltrado-page #screen-lock.active,
+body.bingo-monitor-page #pantallaLogin {
+    background:
+        linear-gradient(rgba(11, 19, 43, 0.72), rgba(11, 19, 43, 0.9)),
+        url('../images/IMG_1914.jpg') center/cover no-repeat fixed;
+}
+
+.app-page-header {
+    width: 100%;
+    max-width: 620px;
+    margin: 0 auto 24px;
+    text-align: center;
+}
+
+.app-page-header .app-page-kicker {
+    margin: 0 0 8px;
+    color: #c72c43;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.app-page-header h1,
+body.games-page .app-page-header h1,
+body.bingo-carton-page .app-page-header h1,
+body.bingo-monitor-page .app-page-header h1,
+body.infiltrado-page .app-page-header h1,
+body.private-page .app-page-header h1 {
+    margin: 0;
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2.4rem, 12vw, 4.8rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    text-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+body.bingo-carton-page .app-page-header {
+    margin-bottom: 16px;
+}
+
+body.bingo-monitor-page > .app-page-header,
+body.infiltrado-page > .app-page-header {
+    margin-top: 0;
+    margin-bottom: 18px;
+}
+
+body.infiltrado-page .main-app-title {
+    color: inherit;
+    font-size: inherit;
+    letter-spacing: 0;
+    text-shadow: none;
+}
+
+body.private-page .login-page-title,
+body.bingo-monitor-page .login-page-title,
+body.infiltrado-page #screen-lock .login-page-title {
+    position: absolute;
+    top: 24px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    color: inherit;
+}
+
 /* Unificacion de accesos y 404 */
 body.infiltrado-page #screen-lock.active,
 body.bingo-monitor-page #pantallaLogin {
-    padding: 76px 24px 24px;
+    padding: 142px 24px 24px;
 }
 
 body.infiltrado-page #screen-lock .login-box,
