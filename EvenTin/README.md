@@ -16,6 +16,7 @@ EvenTin/
 |-- evento.html
 |-- invitacion.html
 |-- admin.html
+|-- reset-password.html
 |-- css/style.css
 |-- js/
 |-- assets/images/
@@ -148,6 +149,7 @@ La creacion de usuarios usa la Edge Function `create-event-user`, que verifica q
 - `evento.html?evento=100001`: pagina publica de un evento concreto por codigo de 6 digitos.
 - `invitacion.html?evento=primera-comunion-demo`: confirmacion publica de asistencia por telefono.
 - `admin.html`: panel privado con autenticacion Supabase.
+- `reset-password.html`: solicita email de restauracion y permite guardar una nueva contrasena desde el enlace de Supabase.
 
 Evento demo creado por `sql/schema.sql`:
 
@@ -160,3 +162,17 @@ Evento demo creado por `sql/schema.sql`:
 - Los admins tienen acceso global mediante RLS.
 - Los usuarios de evento solo acceden a eventos cuyo codigo coincida con su `event_code`.
 - La `service_role key` no debe estar nunca en GitHub Pages ni en JavaScript de frontend.
+
+## Restaurar contrasena
+
+El enlace `reset-password.html` usa Supabase Auth:
+
+- `resetPasswordForEmail(email)` para enviar el email de restauracion.
+- `updateUser({ password })` para guardar la nueva contrasena cuando el usuario abre el enlace de recuperacion.
+
+En Supabase Auth debe estar permitido como redirect URL:
+
+```text
+https://alaraz1921.com/EvenTin/reset-password.html
+https://alaraz1921.github.io/Webs/EvenTin/reset-password.html
+```

@@ -41,6 +41,8 @@
     const refreshContactRequestsButton = document.getElementById('refresh-contact-requests');
     const contactRequestsList = document.getElementById('contact-requests-list');
     const contactRequestsStatus = document.getElementById('contact-requests-status');
+    const loginResetLink = document.getElementById('login-reset-link');
+    const userResetLink = document.getElementById('user-reset-link');
 
     const IMAGE_BUCKET = 'eventin-images';
     const ORIGINAL_IMAGE_LIMIT_BYTES = 12 * 1024 * 1024;
@@ -158,6 +160,22 @@
 
     function getCurrentEvent() {
         return currentEvents.find((item) => item.id === eventSelect.value) || null;
+    }
+
+    function getResetPasswordUrl(email) {
+        const params = new URLSearchParams(window.location.search);
+        const eventKey = params.get('evento');
+        const url = new URL('reset-password.html', window.location.href);
+
+        if (eventKey) {
+            url.searchParams.set('evento', eventKey);
+        }
+
+        if (email) {
+            url.searchParams.set('email', email);
+        }
+
+        return url.href;
     }
 
     async function copyText(value) {
@@ -599,6 +617,7 @@
         userForm.elements.profile_id.value = '';
         userForm.elements.email.readOnly = false;
         userForm.elements.password.required = true;
+        userResetLink.href = getResetPasswordUrl();
         setStatus(userStatus, '', false);
     }
 
@@ -1024,6 +1043,7 @@
             userForm.elements.password.value = '';
             userForm.elements.password.required = false;
             userForm.elements.event_code.value = profile.event_code || '';
+            userResetLink.href = getResetPasswordUrl(profile.email || '');
             setStatus(userStatus, 'Editando usuario. La contrasena no se modifica desde este panel.', false);
         }
 
@@ -1061,6 +1081,8 @@
 
         const params = new URLSearchParams(window.location.search);
         const eventKey = params.get('evento');
+        loginResetLink.href = getResetPasswordUrl();
+        userResetLink.href = getResetPasswordUrl();
         if (eventKey) {
             loginEventLink.href = `evento.html?evento=${encodeURIComponent(eventKey)}`;
         }

@@ -54,6 +54,7 @@ EvenTin/
 |-- evento.html
 |-- invitacion.html
 |-- admin.html
+|-- reset-password.html
 |-- README.md
 |-- PROJECT_HANDOFF.md
 |-- css/style.css
@@ -78,6 +79,7 @@ EvenTin/
 - `evento.html?evento=CODIGO_O_SLUG`: pagina publica de evento.
 - `invitacion.html?evento=CODIGO_O_SLUG`: formulario publico de confirmacion de asistencia.
 - `admin.html`: panel privado con login Supabase Auth.
+- `reset-password.html`: restauracion de contrasena mediante email de Supabase Auth.
 
 ## Roles
 
@@ -234,6 +236,16 @@ Contactos:
 - Ver mensajes enviados desde la portada.
 - Responder por email con `mailto:`.
 - Borrar mensajes.
+
+Restaurar contrasena:
+
+- Desde el login de `admin.html` hay enlace a `reset-password.html`.
+- Desde la seccion de usuarios del admin hay enlace a `reset-password.html`.
+- Si se esta editando un usuario, el enlace lleva su email precargado.
+- La pagina usa `resetPasswordForEmail(email)` para enviar el email y `updateUser({ password })` cuando el usuario abre el enlace de recuperacion.
+- En Supabase Auth deben estar permitidas como redirect URLs:
+  - `https://alaraz1921.com/EvenTin/reset-password.html`
+  - `https://alaraz1921.github.io/Webs/EvenTin/reset-password.html`
 
 ## Formulario de Contacto
 
