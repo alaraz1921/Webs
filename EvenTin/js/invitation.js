@@ -51,7 +51,7 @@
 
         const { event: eventData, settings } = await eventContext.getEvent();
         const fallback = window.eventPlatformConfig?.fallbackEvent || {};
-        const title = valueOrFallback(settings?.main_title, valueOrFallback(eventData?.title, fallback.title || ''));
+        const title = valueOrFallback(eventData?.title, fallback.title || '');
         const eventDateTime = formatEventDateTime(valueOrFallback(eventData?.event_date, fallback.eventDate || ''));
         const displayDate = eventDateTime.date;
         const displayTime = eventDateTime.time;
