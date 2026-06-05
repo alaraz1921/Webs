@@ -88,6 +88,7 @@
     const PAGE_SIZE = 20;
     const ORIGINAL_IMAGE_LIMIT_BYTES = 12 * 1024 * 1024;
     const OPTIMIZED_IMAGE_LIMIT_BYTES = 2.5 * 1024 * 1024;
+    const TARGET_IMAGE_SIZE_BYTES = 800 * 1024;
     const IMAGE_UPLOADS = {
         hero: {
             fileField: 'hero_image_file',
@@ -463,9 +464,10 @@
         const source = window.createImageBitmap
             ? await createImageBitmap(file)
             : await loadImageFromFile(file);
-        const targetWidths = [maxWidth, 1400, 1200, 1000, 800, 640]
+        const targetWidths = [maxWidth, 1400, 1200, 1000, 800, 640, 560]
             .filter((value, index, values) => value <= maxWidth && values.indexOf(value) === index);
-        const qualities = [0.78, 0.68, 0.58, 0.48, 0.38];
+        const qualities = [0.78, 0.68, 0.58, 0.48, 0.38, 0.3];
+        let fallbackBlob = null;
 
         try {
             for (const targetWidth of targetWidths) {
@@ -476,8 +478,15 @@
 
                 for (const quality of qualities) {
                     const blob = await canvasToWebpBlob(canvas, quality);
-                    if (blob.size <= OPTIMIZED_IMAGE_LIMIT_BYTES) {
+                    if (blob.size <= TARGET_IMAGE_SIZE_BYTES) {
                         return blob;
+                    }
+
+                    if (
+                        blob.size <= OPTIMIZED_IMAGE_LIMIT_BYTES
+                        && (!fallbackBlob || blob.size < fallbackBlob.size)
+                    ) {
+                        fallbackBlob = blob;
                     }
                 }
             }
@@ -485,6 +494,10 @@
             if (source.close) {
                 source.close();
             }
+        }
+
+        if (fallbackBlob) {
+            return fallbackBlob;
         }
 
         throw new Error('La imagen optimizada sigue siendo demasiado grande.');

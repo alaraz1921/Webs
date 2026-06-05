@@ -145,7 +145,7 @@ Resumen:
 - Las vistas completas de respuestas y mensajes publicos muestran estados de carga/error/no hay datos dentro de la tabla para evitar pantallas vacias.
 - En respuestas y mensajes publicos las acciones usan iconos; editar respuesta solo cambia asistencia y borrar siempre usa modal de confirmacion.
 - El titulo del evento activo (`event-user-title`) queda visible en el panel general tambien para admin.
-- La optimizacion de imagenes del panel ahora prueba varias anchuras y calidades para evitar que fotos tomadas desde movil queden por encima del limite de 2.5 MB aunque en escritorio si funcionen.
+- La optimizacion de imagenes del panel ahora prueba varias anchuras y calidades. Busca primero un resultado de 800 KB o menos para que movil y escritorio generen tamanos mas parecidos, y solo usa el limite de 2.5 MB como fallback tecnico.
 - Tras estos cambios hay que ejecutar de nuevo `EvenTin/sql/schema.sql` completo en Supabase.
 
 ## Cambios del 2026-06-04
@@ -327,7 +327,8 @@ El panel optimiza imagenes en navegador antes de subir:
 - Hero: max width 1600 px.
 - Detail: max width 1200 px.
 - Original max: 12 MB.
-- Optimizada objetivo: menos de 2.5 MB.
+- Optimizada objetivo: 800 KB o menos.
+- Optimizada limite: menos de 2.5 MB.
 - Bucket limit: 3 MB.
 
 Se elimino la policy amplia `Public can read event images` porque en buckets publicos no hace falta para acceder por URL y Supabase la marcaba como warning.
