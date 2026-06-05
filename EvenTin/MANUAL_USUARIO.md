@@ -59,9 +59,10 @@ Las imagenes se optimizan en el navegador antes de subirlas a Supabase:
 
 - Imagen principal: ancho maximo 1600 px.
 - Imagen detalle: ancho maximo 1200 px.
-- Si el archivo ya pesa 800 KB o menos y es JPEG/PNG/WebP, se conserva sin reprocesar.
-- Archivo optimizado objetivo: 800 KB o menos.
+- Si el archivo ya pesa 500 KB o menos y es JPEG/PNG/WebP, se conserva sin reprocesar.
+- Archivo optimizado objetivo: 500 KB o menos.
 - Archivo optimizado limite: menos de 2.5 MB.
+- Al subir una imagen nueva se borra la variante anterior aunque tuviera otra extension.
 
 ## Gestion de usuarios
 

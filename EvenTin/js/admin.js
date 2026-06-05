@@ -88,7 +88,7 @@
     const PAGE_SIZE = 20;
     const ORIGINAL_IMAGE_LIMIT_BYTES = 12 * 1024 * 1024;
     const OPTIMIZED_IMAGE_LIMIT_BYTES = 2.5 * 1024 * 1024;
-    const TARGET_IMAGE_SIZE_BYTES = 800 * 1024;
+    const TARGET_IMAGE_SIZE_BYTES = 500 * 1024;
     const IMAGE_EXTENSION_BY_TYPE = {
         'image/jpeg': 'jpg',
         'image/png': 'png',
@@ -438,6 +438,10 @@
         return IMAGE_EXTENSION_BY_TYPE[contentType] || 'jpg';
     }
 
+    function getImageExtensions() {
+        return Object.values(IMAGE_EXTENSION_BY_TYPE);
+    }
+
     function canReuseOriginalImage(file) {
         return Boolean(
             file?.size
@@ -543,6 +547,24 @@
         throw new Error('La imagen optimizada sigue siendo demasiado grande.');
     }
 
+    async function removeStaleEventImages(eventData, configItem, activePath) {
+        const stalePaths = getImageExtensions()
+            .map((extension) => `events/${eventData.event_code}/${configItem.fileBaseName}.${extension}`)
+            .filter((path) => path !== activePath);
+
+        if (!stalePaths.length) {
+            return;
+        }
+
+        const { error } = await client.storage
+            .from(IMAGE_BUCKET)
+            .remove(stalePaths);
+
+        if (error) {
+            console.warn('No se pudieron limpiar imagenes anteriores.', error);
+        }
+    }
+
     async function uploadEventImage(eventData, kind, file) {
         const configItem = IMAGE_UPLOADS[kind];
         if (!file?.size || !configItem || !eventData?.event_code) {
@@ -564,6 +586,8 @@
         if (error) {
             throw error;
         }
+
+        await removeStaleEventImages(eventData, configItem, imagePath);
 
         const { data } = client.storage
             .from(IMAGE_BUCKET)
