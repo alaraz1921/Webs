@@ -145,7 +145,7 @@ Resumen:
 - Las vistas completas de respuestas y mensajes publicos muestran estados de carga/error/no hay datos dentro de la tabla para evitar pantallas vacias.
 - En respuestas y mensajes publicos las acciones usan iconos; editar respuesta solo cambia asistencia y borrar siempre usa modal de confirmacion.
 - El titulo del evento activo (`event-user-title`) queda visible en el panel general tambien para admin.
-- La optimizacion de imagenes del panel ahora prueba varias anchuras y calidades. Busca primero un resultado de 800 KB o menos para que movil y escritorio generen tamanos mas parecidos, y solo usa el limite de 2.5 MB como fallback tecnico.
+- La optimizacion de imagenes del panel conserva el archivo original si ya pesa 800 KB o menos y es JPEG/PNG/WebP. Si necesita optimizar, prueba WebP y despues JPEG, porque algunos navegadores moviles no codifican WebP de forma fiable desde canvas. Busca primero un resultado de 800 KB o menos y solo usa el limite de 2.5 MB como fallback tecnico.
 - Tras estos cambios hay que ejecutar de nuevo `EvenTin/sql/schema.sql` completo en Supabase.
 
 ## Cambios del 2026-06-04
@@ -319,7 +319,11 @@ Rutas usadas:
 
 ```text
 events/<event_code>/hero.webp
+events/<event_code>/hero.jpg
+events/<event_code>/hero.png
 events/<event_code>/detail.webp
+events/<event_code>/detail.jpg
+events/<event_code>/detail.png
 ```
 
 El panel optimiza imagenes en navegador antes de subir:
@@ -327,8 +331,10 @@ El panel optimiza imagenes en navegador antes de subir:
 - Hero: max width 1600 px.
 - Detail: max width 1200 px.
 - Original max: 12 MB.
+- Si el original ya pesa 800 KB o menos y es JPEG/PNG/WebP, se sube sin reprocesarlo.
 - Optimizada objetivo: 800 KB o menos.
 - Optimizada limite: menos de 2.5 MB.
+- Formatos de salida: WebP cuando el navegador lo codifica bien; JPEG como alternativa; PNG solo si se conserva original pequeno.
 - Bucket limit: 3 MB.
 
 Se elimino la policy amplia `Public can read event images` porque en buckets publicos no hace falta para acceder por URL y Supabase la marcaba como warning.

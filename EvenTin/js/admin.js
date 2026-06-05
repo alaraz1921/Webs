@@ -89,13 +89,18 @@
     const ORIGINAL_IMAGE_LIMIT_BYTES = 12 * 1024 * 1024;
     const OPTIMIZED_IMAGE_LIMIT_BYTES = 2.5 * 1024 * 1024;
     const TARGET_IMAGE_SIZE_BYTES = 800 * 1024;
+    const IMAGE_EXTENSION_BY_TYPE = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp'
+    };
     const IMAGE_UPLOADS = {
         hero: {
             fileField: 'hero_image_file',
             urlField: 'hero_image_url',
             statusElement: heroImageStatus,
             maxWidth: 1600,
-            fileName: 'hero.webp',
+            fileBaseName: 'hero',
             label: 'principal'
         },
         detail: {
@@ -103,7 +108,7 @@
             urlField: 'detail_image_url',
             statusElement: detailImageStatus,
             maxWidth: 1200,
-            fileName: 'detail.webp',
+            fileBaseName: 'detail',
             label: 'detalle'
         }
     };
@@ -429,7 +434,19 @@
         });
     }
 
-    function canvasToWebpBlob(canvas, quality) {
+    function getImageExtension(contentType) {
+        return IMAGE_EXTENSION_BY_TYPE[contentType] || 'jpg';
+    }
+
+    function canReuseOriginalImage(file) {
+        return Boolean(
+            file?.size
+            && file.size <= TARGET_IMAGE_SIZE_BYTES
+            && IMAGE_EXTENSION_BY_TYPE[file.type]
+        );
+    }
+
+    function canvasToImageBlob(canvas, contentType, quality) {
         return new Promise((resolve, reject) => {
             canvas.toBlob((blob) => {
                 if (!blob) {
@@ -437,7 +454,7 @@
                     return;
                 }
                 resolve(blob);
-            }, 'image/webp', quality);
+            }, contentType, quality);
         });
     }
 
@@ -461,32 +478,55 @@
             throw new Error('La imagen original supera 12 MB.');
         }
 
+        if (canReuseOriginalImage(file)) {
+            return {
+                blob: file,
+                contentType: file.type,
+                extension: getImageExtension(file.type)
+            };
+        }
+
         const source = window.createImageBitmap
             ? await createImageBitmap(file)
             : await loadImageFromFile(file);
         const targetWidths = [maxWidth, 1400, 1200, 1000, 800, 640, 560]
             .filter((value, index, values) => value <= maxWidth && values.indexOf(value) === index);
         const qualities = [0.78, 0.68, 0.58, 0.48, 0.38, 0.3];
-        let fallbackBlob = null;
+        const outputTypes = ['image/webp', 'image/jpeg'];
+        let fallbackImage = null;
 
         try {
-            for (const targetWidth of targetWidths) {
-                const scale = Math.min(1, targetWidth / source.width);
-                const width = Math.max(1, Math.round(source.width * scale));
-                const height = Math.max(1, Math.round(source.height * scale));
-                const canvas = drawImageToCanvas(source, width, height);
+            for (const contentType of outputTypes) {
+                for (const targetWidth of targetWidths) {
+                    const scale = Math.min(1, targetWidth / source.width);
+                    const width = Math.max(1, Math.round(source.width * scale));
+                    const height = Math.max(1, Math.round(source.height * scale));
+                    const canvas = drawImageToCanvas(source, width, height);
 
-                for (const quality of qualities) {
-                    const blob = await canvasToWebpBlob(canvas, quality);
-                    if (blob.size <= TARGET_IMAGE_SIZE_BYTES) {
-                        return blob;
-                    }
+                    for (const quality of qualities) {
+                        const blob = await canvasToImageBlob(canvas, contentType, quality);
+                        const actualType = blob.type || contentType;
 
-                    if (
-                        blob.size <= OPTIMIZED_IMAGE_LIMIT_BYTES
-                        && (!fallbackBlob || blob.size < fallbackBlob.size)
-                    ) {
-                        fallbackBlob = blob;
+                        if (contentType === 'image/webp' && actualType !== 'image/webp') {
+                            continue;
+                        }
+
+                        const imageResult = {
+                            blob,
+                            contentType: actualType,
+                            extension: getImageExtension(actualType)
+                        };
+
+                        if (blob.size <= TARGET_IMAGE_SIZE_BYTES) {
+                            return imageResult;
+                        }
+
+                        if (
+                            blob.size <= OPTIMIZED_IMAGE_LIMIT_BYTES
+                            && (!fallbackImage || blob.size < fallbackImage.blob.size)
+                        ) {
+                            fallbackImage = imageResult;
+                        }
                     }
                 }
             }
@@ -496,8 +536,8 @@
             }
         }
 
-        if (fallbackBlob) {
-            return fallbackBlob;
+        if (fallbackImage) {
+            return fallbackImage;
         }
 
         throw new Error('La imagen optimizada sigue siendo demasiado grande.');
@@ -511,13 +551,13 @@
 
         setStatus(settingsStatus, `Optimizando imagen ${configItem.label}...`, false);
         const optimizedImage = await optimizeImageFile(file, configItem.maxWidth);
-        const imagePath = `events/${eventData.event_code}/${configItem.fileName}`;
+        const imagePath = `events/${eventData.event_code}/${configItem.fileBaseName}.${optimizedImage.extension}`;
 
         setStatus(settingsStatus, `Subiendo imagen ${configItem.label}...`, false);
         const { error } = await client.storage
             .from(IMAGE_BUCKET)
-            .upload(imagePath, optimizedImage, {
-                contentType: 'image/webp',
+            .upload(imagePath, optimizedImage.blob, {
+                contentType: optimizedImage.contentType,
                 upsert: true
             });
 
