@@ -59,7 +59,6 @@
     const allResponsesStatus = document.getElementById('all-responses-status');
     const backFromResponsesButton = document.getElementById('back-from-responses');
     const backFromResponsesBottomButton = document.getElementById('back-from-responses-bottom');
-    const responsesEventTitle = document.getElementById('responses-event-title');
     const messagesList = document.getElementById('messages-list');
     const showAllMessagesButton = document.getElementById('show-all-messages');
     const allMessagesList = document.getElementById('all-messages-list');
@@ -67,7 +66,6 @@
     const allMessagesStatus = document.getElementById('all-messages-status');
     const backFromMessagesButton = document.getElementById('back-from-messages');
     const backFromMessagesBottomButton = document.getElementById('back-from-messages-bottom');
-    const messagesEventTitle = document.getElementById('messages-event-title');
     const userForm = document.getElementById('user-form');
     const clearUserFormButton = document.getElementById('clear-user-form');
     const userStatus = document.getElementById('user-status');
@@ -540,11 +538,6 @@
         showUsersViewButton.classList.toggle('active', viewName === 'users');
         showContactsViewButton.classList.toggle('active', viewName === 'contacts');
 
-        const eventData = getCurrentEvent();
-        const eventTitleText = eventData?.title ? `Evento: ${eventData.title}` : '';
-        responsesEventTitle.textContent = eventTitleText;
-        messagesEventTitle.textContent = eventTitleText;
-
         if (viewName === 'users' && usersAllowed) {
             loadUsers();
         }
@@ -595,10 +588,9 @@
             return;
         }
 
-        eventUserTitle.hidden = !isEventUser();
-        eventUserTitle.textContent = isEventUser()
-            ? eventData?.title || currentEvents[0]?.title || 'Evento asignado'
-            : '';
+        const activeEventTitle = eventData?.title || currentEvents[0]?.title || '';
+        eventUserTitle.hidden = !activeEventTitle;
+        eventUserTitle.textContent = activeEventTitle;
     }
     async function loadProfile() {
         const { data: userData } = await client.auth.getUser();

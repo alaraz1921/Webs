@@ -1126,13 +1126,6 @@ fieldset {
     margin-top: 20px;
 }
 
-.event-view-title {
-    margin: -6px 0 16px;
-    color: var(--accent-dark);
-    font-size: 1.05rem;
-    font-weight: 900;
-}
-
 .admin-form {
     display: grid;
     gap: 16px;
