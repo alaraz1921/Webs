@@ -68,7 +68,7 @@ create table if not exists public.eventin_guest_responses (
     event_id uuid not null references public.eventin_events(id) on delete cascade,
     guest_id uuid,
     nombre text not null,
-    telefono text not null,
+    telefono text,
     asistencia boolean not null,
     adults_count integer not null default 1,
     children_count integer not null default 0,
@@ -123,6 +123,7 @@ alter table public.eventin_profiles add column if not exists event_code text;
 alter table public.eventin_guest_responses add column if not exists guest_id uuid;
 alter table public.eventin_guest_responses add column if not exists adults_count integer not null default 1;
 alter table public.eventin_guest_responses add column if not exists children_count integer not null default 0;
+alter table public.eventin_guest_responses alter column telefono drop not null;
 
 update public.eventin_profiles
 set role = 'admin'
@@ -223,6 +224,7 @@ create index if not exists idx_eventin_guest_responses_event_id on public.eventi
 create index if not exists idx_eventin_guest_responses_event_phone on public.eventin_guest_responses(event_id, telefono);
 create index if not exists idx_eventin_guest_responses_guest_id on public.eventin_guest_responses(guest_id);
 create index if not exists idx_eventin_guests_event_id on public.eventin_guests(event_id);
+create index if not exists idx_eventin_guests_event_phone on public.eventin_guests(event_id, phone);
 create unique index if not exists idx_eventin_guests_invitation_token on public.eventin_guests(invitation_token);
 create index if not exists idx_eventin_public_messages_event_id on public.eventin_public_messages(event_id);
 create index if not exists idx_eventin_contact_requests_created_at on public.eventin_contact_requests(created_at);
@@ -279,6 +281,8 @@ drop function if exists public.eventin_is_admin() cascade;
 drop function if exists public.eventin_can_access_event(uuid) cascade;
 drop function if exists public.eventin_can_access_event_code(text) cascade;
 drop function if exists public.eventin_can_manage_event_image(text) cascade;
+drop function if exists public.eventin_submit_guest_response(uuid, text, text, boolean, text) cascade;
+drop function if exists public.eventin_submit_guest_response(uuid, text, text, boolean, text, integer, integer) cascade;
 drop function if exists public.eventin_get_guest_invitation(text) cascade;
 drop function if exists public.eventin_submit_guest_token_response(text, boolean, integer, integer, text) cascade;
 drop function if exists public.eventin_generate_event_code() cascade;
@@ -286,6 +290,8 @@ drop function if exists eventin_private.is_admin() cascade;
 drop function if exists eventin_private.can_access_event(uuid) cascade;
 drop function if exists eventin_private.can_access_event_code(text) cascade;
 drop function if exists eventin_private.generate_event_code() cascade;
+drop function if exists eventin_private.submit_guest_response(uuid, text, text, boolean, text) cascade;
+drop function if exists eventin_private.submit_guest_response(uuid, text, text, boolean, text, integer, integer) cascade;
 
 create or replace function eventin_private.is_admin()
 returns boolean
@@ -362,7 +368,9 @@ create or replace function eventin_private.submit_guest_response(
     p_nombre text,
     p_telefono text,
     p_asistencia boolean,
-    p_mensaje text default null
+    p_mensaje text default null,
+    p_adults_count integer default 1,
+    p_children_count integer default 0
 )
 returns uuid
 language plpgsql
@@ -370,14 +378,22 @@ security definer
 set search_path = public
 as $$
 declare
+    guest_record public.eventin_guests%rowtype;
     response_id uuid;
+    normalized_phone text;
 begin
     if coalesce(trim(p_nombre), '') = '' then
         raise exception 'Nombre obligatorio';
     end if;
 
+    normalized_phone := nullif(trim(coalesce(p_telefono, '')), '');
+
     if coalesce(trim(p_telefono), '') = '' then
         raise exception 'Telefono obligatorio';
+    end if;
+
+    if p_adults_count < 0 or p_children_count < 0 then
+        raise exception 'Numero de invitados no valido';
     end if;
 
     if not exists (
@@ -389,22 +405,69 @@ begin
         raise exception 'Evento no disponible';
     end if;
 
+    select *
+    into guest_record
+    from public.eventin_guests
+    where event_id = p_event_id
+      and (
+          phone = normalized_phone
+          or nullif(regexp_replace(coalesce(phone, ''), '[^\d+]', '', 'g'), '') = normalized_phone
+      )
+    limit 1;
+
+    if not found then
+        insert into public.eventin_guests (
+            event_id,
+            name,
+            phone,
+            adults_count,
+            children_count,
+            invitation_status
+        ) values (
+            p_event_id,
+            trim(p_nombre),
+            normalized_phone,
+            coalesce(p_adults_count, 0),
+            coalesce(p_children_count, 0),
+            case when p_asistencia then 'confirmed' else 'declined' end
+        )
+        returning * into guest_record;
+    else
+        update public.eventin_guests
+        set name = trim(p_nombre),
+            phone = normalized_phone,
+            adults_count = coalesce(p_adults_count, 0),
+            children_count = coalesce(p_children_count, 0),
+            invitation_status = case when p_asistencia then 'confirmed' else 'declined' end
+        where id = guest_record.id
+        returning * into guest_record;
+    end if;
+
     insert into public.eventin_guest_responses (
         event_id,
+        guest_id,
         nombre,
         telefono,
         asistencia,
+        adults_count,
+        children_count,
         mensaje
     ) values (
         p_event_id,
+        guest_record.id,
         trim(p_nombre),
-        trim(p_telefono),
+        normalized_phone,
         p_asistencia,
+        coalesce(p_adults_count, 0),
+        coalesce(p_children_count, 0),
         nullif(trim(coalesce(p_mensaje, '')), '')
     )
     on conflict (event_id, telefono) do update set
+        guest_id = excluded.guest_id,
         nombre = excluded.nombre,
         asistencia = excluded.asistencia,
+        adults_count = excluded.adults_count,
+        children_count = excluded.children_count,
         mensaje = excluded.mensaje,
         updated_at = now()
     returning id into response_id;
@@ -418,7 +481,9 @@ create or replace function public.eventin_submit_guest_response(
     p_nombre text,
     p_telefono text,
     p_asistencia boolean,
-    p_mensaje text default null
+    p_mensaje text default null,
+    p_adults_count integer default 1,
+    p_children_count integer default 0
 )
 returns uuid
 language sql
@@ -430,11 +495,13 @@ as $$
         p_nombre,
         p_telefono,
         p_asistencia,
-        p_mensaje
+        p_mensaje,
+        p_adults_count,
+        p_children_count
     );
 $$;
 
-grant execute on function public.eventin_submit_guest_response(uuid, text, text, boolean, text) to anon, authenticated;
+grant execute on function public.eventin_submit_guest_response(uuid, text, text, boolean, text, integer, integer) to anon, authenticated;
 
 create or replace function public.eventin_get_guest_invitation(p_token text)
 returns jsonb
@@ -547,7 +614,7 @@ begin
         children_count = coalesce(p_children_count, 0)
     where id = guest_record.id;
 
-    response_phone := coalesce(nullif(trim(guest_record.phone), ''), 'guest-' || guest_record.id::text);
+    response_phone := nullif(trim(coalesce(guest_record.phone, '')), '');
 
     update public.eventin_guest_responses
     set nombre = guest_record.name,
@@ -636,8 +703,8 @@ grant execute on function eventin_private.can_access_event_code(text) to authent
 
 revoke execute on function eventin_private.generate_event_code() from public, anon, authenticated;
 
-revoke execute on function eventin_private.submit_guest_response(uuid, text, text, boolean, text) from public;
-grant execute on function eventin_private.submit_guest_response(uuid, text, text, boolean, text) to anon, authenticated;
+revoke execute on function eventin_private.submit_guest_response(uuid, text, text, boolean, text, integer, integer) from public;
+grant execute on function eventin_private.submit_guest_response(uuid, text, text, boolean, text, integer, integer) to anon, authenticated;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

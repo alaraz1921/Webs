@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de invitados</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/guests.js" defer></script>
+</head>
+<body class="simple-page admin-page">
+    <main class="admin-layout guests-layout">
+        <section id="guests-login-panel" class="access-layout" hidden>
+            <h1>Gestion de invitados</h1>
+            <p>Inicia sesion desde el panel de administracion para gestionar invitados.</p>
+            <a class="page-link" href="admin.html">Ir al panel</a>
+        </section>
+
+        <section id="guests-panel" class="admin-content" hidden>
+            <div class="admin-header">
+                <div class="admin-brand">
+                    <img src="assets/images/eventin-logo-transparent.png" alt="EvenTin" class="admin-logo">
+                    <div>
+                        <p id="guests-user-label" class="eyebrow">Usuario:</p>
+                        <h1>Gestion de invitados</h1>
+                    </div>
+                </div>
+                <a id="back-admin-link" class="secondary-button" href="admin.html">Volver</a>
+            </div>
+
+            <section class="data-panel admin-tools">
+                <div class="admin-view-header">
+                    <label id="guest-event-selector" class="event-selector">
+                        Evento
+                        <select id="guest-event-select"></select>
+                    </label>
+                    <div id="guest-event-title" class="event-user-title" hidden></div>
+                </div>
+            </section>
+
+            <section class="data-panel admin-tools">
+                <div class="admin-view-header">
+                    <h2 id="guests-list-title">Invitados</h2>
+                    <button id="new-guest-button" type="button" class="secondary-button">Nuevo</button>
+                </div>
+                <p id="guest-status" class="form-status" role="status"></p>
+                <div class="table-wrap">
+                    <table class="guests-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Telefono</th>
+                                <th>Email</th>
+                                <th>Adultos</th>
+                                <th>Ninos</th>
+                                <th>Estado</th>
+                                <th>Apertura</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guests-table"></tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <div id="guest-form-modal" class="modal-backdrop" hidden>
+        <section class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-labelledby="guest-form-title">
+            <h2 id="guest-form-title">Nuevo invitado</h2>
+            <form id="guest-form" class="admin-form modal-form">
+                <input type="hidden" name="guest_id">
+                <label>
+                    Nombre
+                    <input type="text" name="name" required>
+                </label>
+                <label>
+                    Telefono
+                    <input type="tel" name="phone" inputmode="tel">
+                </label>
+                <label>
+                    Email
+                    <input type="email" name="email">
+                </label>
+                <label>
+                    Adultos
+                    <input type="number" name="adults_count" min="0" value="1">
+                </label>
+                <label>
+                    Ninos
+                    <input type="number" name="children_count" min="0" value="0">
+                </label>
+                <label>
+                    Notas
+                    <textarea name="notes" rows="3"></textarea>
+                </label>
+                <div class="modal-actions">
+                    <button id="cancel-guest-form" type="button" class="secondary-button">Cancelar</button>
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <div id="delete-guest-modal" class="modal-backdrop" hidden>
+        <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-guest-title">
+            <h2 id="delete-guest-title">Borrar invitado</h2>
+            <p id="delete-guest-message">Esta accion no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button id="cancel-delete-guest" type="button" class="secondary-button">Cancelar</button>
+                <button id="confirm-delete-guest" type="button" class="danger-button">Borrar</button>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

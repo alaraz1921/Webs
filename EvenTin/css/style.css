@@ -981,6 +981,14 @@ fieldset {
     text-align: center;
 }
 
+.modal-card-wide {
+    width: min(680px, 100%);
+}
+
+.modal-form {
+    text-align: left;
+}
+
 .modal-card h2 {
     margin-bottom: 10px;
     color: var(--accent-dark);
@@ -1332,9 +1340,58 @@ th {
     min-width: 170px;
 }
 
+.admin-shortcut-panel {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.admin-shortcut-panel p {
+    margin: 6px 0 0;
+    color: var(--muted);
+}
+
+.guests-layout {
+    width: min(1240px, calc(100% - 28px));
+}
+
 .disabled-link {
     opacity: 0.45;
     pointer-events: none;
+}
+
+.icon-actions {
+    min-width: 150px;
+}
+
+.icon-button,
+.table-actions .icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+    padding: 0;
+    border-radius: 8px;
+}
+
+.whatsapp-button {
+    background: #1f9d55;
+    color: var(--white);
+    text-decoration: none;
+}
+
+.icon-button svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .table-actions button,
@@ -1440,6 +1497,15 @@ th {
 
     .guests-table .table-actions {
         justify-content: flex-start;
+    }
+
+    .admin-shortcut-panel {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-shortcut-panel .secondary-button {
+        width: 100%;
     }
 }
 

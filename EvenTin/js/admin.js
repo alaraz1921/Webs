@@ -41,15 +41,17 @@
     const editResponseMessage = document.getElementById('edit-response-message');
     const cancelEditResponseButton = document.getElementById('cancel-edit-response');
     const confirmEditResponseButton = document.getElementById('confirm-edit-response');
+    const confirmActionModal = document.getElementById('confirm-action-modal');
+    const confirmActionTitle = document.getElementById('confirm-action-title');
+    const confirmActionMessage = document.getElementById('confirm-action-message');
+    const cancelConfirmActionButton = document.getElementById('cancel-confirm-action');
+    const acceptConfirmActionButton = document.getElementById('accept-confirm-action');
     const settingsForm = document.getElementById('event-settings-form');
     const settingsEventType = document.getElementById('settings-event-type');
     const settingsStatus = document.getElementById('event-settings-status');
     const publicLink = document.getElementById('public-link');
     const eventLinks = document.getElementById('event-links');
-    const guestForm = document.getElementById('guest-form');
-    const clearGuestFormButton = document.getElementById('clear-guest-form');
-    const guestStatus = document.getElementById('guest-status');
-    const guestsTable = document.getElementById('guests-table');
+    const manageGuestsLink = document.getElementById('manage-guests-link');
     const responsesTable = document.getElementById('responses-table');
     const showAllResponsesButton = document.getElementById('show-all-responses');
     const allResponsesTable = document.getElementById('all-responses-table');
@@ -105,7 +107,6 @@
     let currentProfile = null;
     let currentEvents = [];
     let currentEventTypes = [];
-    let currentGuests = [];
     let currentResponses = [];
     let loadedResponses = 0;
     let totalResponses = 0;
@@ -263,6 +264,45 @@
         });
     }
 
+    function confirmAction({ title = 'Confirmar accion', message = 'Esta accion no se puede deshacer.', confirmText = 'Confirmar' } = {}) {
+        if (!confirmActionModal) {
+            return Promise.resolve(false);
+        }
+
+        confirmActionTitle.textContent = title;
+        confirmActionMessage.textContent = message;
+        acceptConfirmActionButton.textContent = confirmText;
+        confirmActionModal.hidden = false;
+
+        return new Promise((resolve) => {
+            function close(result) {
+                confirmActionModal.hidden = true;
+                cancelConfirmActionButton.removeEventListener('click', onCancel);
+                acceptConfirmActionButton.removeEventListener('click', onConfirm);
+                confirmActionModal.removeEventListener('click', onBackdrop);
+                resolve(result);
+            }
+
+            function onCancel() {
+                close(false);
+            }
+
+            function onConfirm() {
+                close(true);
+            }
+
+            function onBackdrop(event) {
+                if (event.target === confirmActionModal) {
+                    close(false);
+                }
+            }
+
+            cancelConfirmActionButton.addEventListener('click', onCancel);
+            acceptConfirmActionButton.addEventListener('click', onConfirm);
+            confirmActionModal.addEventListener('click', onBackdrop);
+        });
+    }
+
     function normalizeCode(value) {
         return String(value || '').replace(/\D/g, '').slice(0, 6);
     }
@@ -313,41 +353,6 @@
 
     function getInvitationEventUrl(eventData) {
         return getEventUrl('invitacion.html', eventData, false);
-    }
-
-    function createInvitationToken() {
-        const bytes = new Uint8Array(24);
-        window.crypto.getRandomValues(bytes);
-        return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
-    }
-
-    function getGuestInvitationUrl(guest) {
-        const url = new URL('invitacion.html', window.location.href);
-        url.searchParams.set('token', guest.invitation_token);
-        return url.href;
-    }
-
-    function getGuestInvitationMessage(guest) {
-        return [
-            `Hola ${guest.name}.`,
-            '',
-            'Nos encantaria compartir contigo un dia muy especial.',
-            '',
-            'Puedes ver todos los detalles y confirmar tu asistencia aqui:',
-            '',
-            getGuestInvitationUrl(guest),
-            '',
-            'Un abrazo.'
-        ].join('\n');
-    }
-
-    function normalizeWhatsappPhone(value) {
-        const digits = String(value || '').replace(/\D/g, '');
-        if (!digits) {
-            return '';
-        }
-
-        return digits.startsWith('34') ? digits : `34${digits}`;
     }
 
     function getCurrentEvent() {
@@ -639,7 +644,14 @@
         deleteEventButton.disabled = currentEvents.length === 0;
 
         if (currentEvents.length > 0) {
-            await loadEventData(currentEvents[0].id);
+            const requestedEvent = new URLSearchParams(window.location.search).get('evento');
+            const selectedEvent = currentEvents.find((item) => (
+                item.id === requestedEvent
+                || item.public_slug === requestedEvent
+                || item.event_code === requestedEvent
+            )) || currentEvents[0];
+            eventSelect.value = selectedEvent.id;
+            await loadEventData(selectedEvent.id);
         } else {
             responsesTable.innerHTML = '<tr><td colspan="7">No hay eventos disponibles.</td></tr>';
             messagesList.innerHTML = '<tr><td colspan="4">No hay eventos disponibles.</td></tr>';
@@ -649,8 +661,7 @@
             showAllMessagesButton.hidden = true;
             allResponsesTable.innerHTML = '';
             allMessagesList.innerHTML = '';
-            currentGuests = [];
-            guestsTable.innerHTML = '<tr><td colspan="8">No hay eventos disponibles.</td></tr>';
+            manageGuestsLink.href = 'invitados.html';
             publicLink.textContent = isEventUser()
                 ? 'No hay ningun evento con el codigo asignado a tu usuario.'
                 : 'Todavia no hay eventos creados.';
@@ -660,7 +671,6 @@
     async function loadEventData(eventId) {
         await Promise.all([
             loadEventSettings(eventId),
-            loadGuests(eventId),
             loadResponses(eventId),
             loadMessages(eventId)
         ]);
@@ -703,6 +713,7 @@
             const publicUrl = getPublicEventUrl(eventData, true);
             publicLinkGo.href = publicUrl;
             invitationLinkGo.href = getInvitationEventUrl(eventData);
+            manageGuestsLink.href = `invitados.html?evento=${encodeURIComponent(eventData.id)}`;
             eventLinks.hidden = false;
             eventLinks.dataset.publicUrl = publicUrl;
             eventLinks.dataset.invitationUrl = invitationLinkGo.href;
@@ -713,76 +724,10 @@
             delete eventLinks.dataset.invitationUrl;
             publicLinkGo.removeAttribute('href');
             invitationLinkGo.removeAttribute('href');
+            manageGuestsLink.href = 'invitados.html';
             publicLink.textContent = 'Este evento todavia no tiene enlace publico.';
         }
         setStatus(settingsStatus, '', false);
-    }
-
-    function resetGuestForm() {
-        guestForm.reset();
-        guestForm.elements.guest_id.value = '';
-        guestForm.elements.adults_count.value = '1';
-        guestForm.elements.children_count.value = '0';
-        setStatus(guestStatus, '', false);
-    }
-
-    function renderGuestStatus(value) {
-        const labels = {
-            pending: 'Pendiente',
-            opened: 'Abierta',
-            confirmed: 'Confirmada',
-            declined: 'Rechazada'
-        };
-        return labels[value] || value || 'Pendiente';
-    }
-
-    function renderGuests() {
-        if (!currentGuests.length) {
-            guestsTable.innerHTML = '<tr><td colspan="8">No hay invitados.</td></tr>';
-            return;
-        }
-
-        guestsTable.innerHTML = currentGuests.map((guest) => {
-            const phone = normalizeWhatsappPhone(guest.phone);
-            const whatsappUrl = phone
-                ? `https://wa.me/${phone}?text=${encodeURIComponent(getGuestInvitationMessage(guest))}`
-                : '';
-
-            return `
-                <tr>
-                    <td data-label="Nombre">${escapeHtml(guest.name)}</td>
-                    <td data-label="Telefono">${escapeHtml(guest.phone)}</td>
-                    <td data-label="Email">${escapeHtml(guest.email)}</td>
-                    <td data-label="Adultos">${guest.adults_count ?? 0}</td>
-                    <td data-label="Ninos">${guest.children_count ?? 0}</td>
-                    <td data-label="Estado">${renderGuestStatus(guest.invitation_status)}</td>
-                    <td data-label="Apertura">${formatDate(guest.opened_at)}</td>
-                    <td data-label="Acciones" class="table-actions">
-                        <button type="button" data-action="edit-guest" data-id="${guest.id}" class="secondary-button">Editar</button>
-                        <button type="button" data-action="copy-guest-invitation" data-id="${guest.id}" class="secondary-button">Copiar invitacion</button>
-                        <a class="secondary-button${phone ? '' : ' disabled-link'}" href="${whatsappUrl || '#'}" target="_blank" rel="noopener" aria-disabled="${phone ? 'false' : 'true'}">WhatsApp</a>
-                        <button type="button" data-action="delete-guest" data-id="${guest.id}" class="danger-button">Borrar</button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    }
-
-    async function loadGuests(eventId) {
-        const { data, error } = await client
-            .from('eventin_guests')
-            .select('id,event_id,name,phone,email,adults_count,children_count,notes,invitation_token,invitation_status,opened_at,created_at,updated_at')
-            .eq('event_id', eventId)
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            currentGuests = [];
-            guestsTable.innerHTML = '<tr><td colspan="8">No se pudieron cargar invitados.</td></tr>';
-            return;
-        }
-
-        currentGuests = data || [];
-        renderGuests();
     }
 
     function rememberResponses(rows) {
@@ -1090,103 +1035,6 @@
         createEventForm.elements.title?.focus();
     });
 
-    clearGuestFormButton.addEventListener('click', resetGuestForm);
-
-    guestForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const eventId = eventSelect.value;
-        const formData = new FormData(guestForm);
-        const guestId = String(formData.get('guest_id') || '');
-        const payload = {
-            event_id: eventId,
-            name: String(formData.get('name') || '').trim(),
-            phone: String(formData.get('phone') || '').trim(),
-            email: String(formData.get('email') || '').trim().toLowerCase(),
-            adults_count: Number(formData.get('adults_count') || 0),
-            children_count: Number(formData.get('children_count') || 0),
-            notes: String(formData.get('notes') || '').trim()
-        };
-
-        if (!eventId || !payload.name) {
-            setStatus(guestStatus, 'El nombre del invitado es obligatorio.', true);
-            return;
-        }
-
-        if (!guestId) {
-            payload.invitation_token = createInvitationToken();
-            payload.invitation_status = 'pending';
-        }
-
-        try {
-            if (guestId) {
-                await client
-                    .from('eventin_guests')
-                    .update(payload)
-                    .eq('id', guestId)
-                    .throwOnError();
-            } else {
-                await client
-                    .from('eventin_guests')
-                    .insert(payload)
-                    .throwOnError();
-            }
-
-            resetGuestForm();
-            setStatus(guestStatus, 'Invitado guardado correctamente.', false);
-            await loadGuests(eventId);
-        } catch (error) {
-            setStatus(guestStatus, 'No se pudo guardar el invitado.', true);
-        }
-    });
-
-    guestsTable.addEventListener('click', async (event) => {
-        const actionButton = event.target.closest('button[data-action]');
-        if (!actionButton) {
-            return;
-        }
-
-        const guest = currentGuests.find((item) => item.id === actionButton.dataset.id);
-        if (!guest) {
-            return;
-        }
-
-        if (actionButton.dataset.action === 'edit-guest') {
-            guestForm.elements.guest_id.value = guest.id;
-            guestForm.elements['name'].value = guest.name || '';
-            guestForm.elements.phone.value = guest.phone || '';
-            guestForm.elements.email.value = guest.email || '';
-            guestForm.elements.adults_count.value = guest.adults_count ?? 1;
-            guestForm.elements.children_count.value = guest.children_count ?? 0;
-            guestForm.elements.notes.value = guest.notes || '';
-            guestForm.elements['name'].focus();
-            return;
-        }
-
-        if (actionButton.dataset.action === 'copy-guest-invitation') {
-            try {
-                await copyText(getGuestInvitationMessage(guest));
-                setStatus(guestStatus, 'Invitacion copiada al portapapeles.', false);
-            } catch (error) {
-                setStatus(guestStatus, 'No se pudo copiar la invitacion.', true);
-            }
-            return;
-        }
-
-        if (actionButton.dataset.action === 'delete-guest') {
-            if (!window.confirm(`Borrar el invitado ${guest.name}?`)) {
-                return;
-            }
-
-            try {
-                await client.from('eventin_guests').delete().eq('id', guest.id).throwOnError();
-                setStatus(guestStatus, 'Invitado borrado.', false);
-                await loadGuests(eventSelect.value);
-            } catch (error) {
-                setStatus(guestStatus, 'No se pudo borrar el invitado.', true);
-            }
-        }
-    });
-
     eventLinks.addEventListener('click', async (event) => {
         const button = event.target.closest('button[data-copy-link]');
         if (!button) {
@@ -1410,7 +1258,12 @@
 
         try {
             if (action === 'delete-message') {
-                if (!window.confirm('Borrar este mensaje?')) {
+                const confirmed = await confirmAction({
+                    title: 'Borrar mensaje',
+                    message: 'Vas a borrar este mensaje publico. Esta accion no se puede deshacer.',
+                    confirmText: 'Borrar'
+                });
+                if (!confirmed) {
                     return;
                 }
 
@@ -1440,7 +1293,12 @@
             return;
         }
 
-        if (!window.confirm(`Borrar el mensaje de ${contactRequest.email}?`)) {
+        const confirmed = await confirmAction({
+            title: 'Borrar contacto',
+            message: `Vas a borrar el mensaje de ${contactRequest.email}. Esta accion no se puede deshacer.`,
+            confirmText: 'Borrar'
+        });
+        if (!confirmed) {
             return;
         }
 
@@ -1565,7 +1423,12 @@
         }
 
         if (action === 'delete-user') {
-            if (!window.confirm(`Borrar el perfil de ${profile.email}? El usuario Auth se debe borrar desde Supabase si quieres eliminar el acceso por completo.`)) {
+            const confirmed = await confirmAction({
+                title: 'Borrar usuario',
+                message: `Vas a borrar el perfil de ${profile.email}. El usuario Auth se debe borrar desde Supabase si quieres eliminar el acceso por completo.`,
+                confirmText: 'Borrar'
+            });
+            if (!confirmed) {
                 return;
             }
 

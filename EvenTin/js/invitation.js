@@ -165,7 +165,9 @@
                     p_nombre: String(formData.get('nombre')).trim(),
                     p_telefono: normalizePhone(String(formData.get('telefono'))),
                     p_asistencia: asistencia,
-                    p_mensaje: mensaje
+                    p_mensaje: mensaje,
+                    p_adults_count: adultsCount,
+                    p_children_count: childrenCount
                 }).throwOnError();
             }
 

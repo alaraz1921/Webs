@@ -53,6 +53,7 @@ EvenTin/
 |-- index.html
 |-- evento.html
 |-- invitacion.html
+|-- invitados.html
 |-- debug.html
 |-- admin.html
 |-- reset-password.html
@@ -63,6 +64,7 @@ EvenTin/
 |   |-- admin.js
 |   |-- config.js
 |   |-- countdown.js
+|   |-- guests.js
 |   |-- home.js
 |   |-- invitation.js
 |   |-- messages.js
@@ -81,6 +83,7 @@ EvenTin/
 - `evento.html?evento=CODIGO_O_SLUG`: pagina publica de evento.
 - `invitacion.html?evento=CODIGO_O_SLUG`: formulario publico legacy de confirmacion de asistencia. Muestra logo, `eventin_events.title` y fecha/hora real de `eventin_events.event_date`.
 - `invitacion.html?token=TOKEN`: invitacion individual por invitado. No usa telefono en URL.
+- `invitados.html?evento=EVENT_ID`: gestion privada de invitados del evento seleccionado.
 - `debug.html`: pagina no enlazada con accesos rapidos a portada, admin, eventos e invitaciones de prueba.
 - `admin.html`: panel privado con login Supabase Auth.
 - `reset-password.html`: restauracion de clave mediante email de Supabase Auth.
@@ -120,8 +123,11 @@ Resumen:
 - Los mensajes publicos se listan por lineas y ya no tienen edicion.
 - `debug.html` abre enlaces en pestana nueva.
 - Se inicio la gestion de invitados con tabla `eventin_guests`, tokens individuales y enlaces `invitacion.html?token=TOKEN`.
-- El panel admin permite crear, editar, borrar, copiar mensaje de invitacion y abrir WhatsApp para cada invitado.
+- El panel admin enlaza a `invitados.html`, donde se puede crear, editar, borrar, copiar mensaje de invitacion y abrir WhatsApp para cada invitado.
+- Alta, edicion y borrado de invitados se hacen mediante modales. Las acciones usan botones compactos de icono.
 - La invitacion por token muestra saludo personalizado, marca apertura y guarda confirmacion/rechazo contra el invitado.
+- Si una invitacion por token no tiene telefono en la ficha del invitado, la respuesta se guarda sin telefono.
+- La invitacion generica intenta localizar invitado por telefono; si no existe, lo crea y vincula la respuesta.
 - Tras estos cambios hay que ejecutar de nuevo `EvenTin/sql/schema.sql` completo en Supabase.
 
 ## Cambios del 2026-06-04
@@ -240,6 +246,8 @@ Son `SECURITY DEFINER` de forma intencionada para permitir el flujo publico por 
 - `guest_id`
 - `adults_count`
 - `children_count`
+
+El campo `telefono` puede quedar vacio (`null`) cuando la respuesta viene de una invitacion individual por token y el invitado no tenia telefono en su ficha.
 
 ### Campos importantes de eventos
 

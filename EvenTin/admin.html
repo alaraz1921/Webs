@@ -178,57 +178,12 @@
                     <p id="event-settings-status" class="form-status" role="status"></p>
                 </section>
 
-                <section class="data-panel admin-tools">
-                    <div class="admin-view-header">
+                <section class="data-panel admin-tools admin-shortcut-panel">
+                    <div>
                         <h2>Invitados</h2>
-                        <button id="clear-guest-form" type="button" class="secondary-button">Nuevo invitado</button>
+                        <p>Gestiona invitados, enlaces individuales y envio por WhatsApp.</p>
                     </div>
-                    <form id="guest-form" class="admin-form">
-                        <input type="hidden" name="guest_id">
-                        <label>
-                            Nombre
-                            <input type="text" name="name" required>
-                        </label>
-                        <label>
-                            Telefono
-                            <input type="tel" name="phone" inputmode="tel">
-                        </label>
-                        <label>
-                            Email
-                            <input type="email" name="email">
-                        </label>
-                        <label>
-                            Adultos
-                            <input type="number" name="adults_count" min="0" value="1">
-                        </label>
-                        <label>
-                            Ninos
-                            <input type="number" name="children_count" min="0" value="0">
-                        </label>
-                        <label>
-                            Notas
-                            <textarea name="notes" rows="3"></textarea>
-                        </label>
-                        <button type="submit">Guardar invitado</button>
-                    </form>
-                    <p id="guest-status" class="form-status" role="status"></p>
-                    <div class="table-wrap">
-                        <table class="guests-table">
-                            <thead>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>Telefono</th>
-                                    <th>Email</th>
-                                    <th>Adultos</th>
-                                    <th>Ninos</th>
-                                    <th>Estado</th>
-                                    <th>Apertura</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="guests-table"></tbody>
-                        </table>
-                    </div>
+                    <a id="manage-guests-link" class="secondary-button" href="invitados.html">Gestion Invitados</a>
                 </section>
 
                 <div class="admin-grid">
@@ -430,6 +385,17 @@
             <div class="modal-actions">
                 <button id="cancel-edit-response" type="button" class="secondary-button">Cancelar</button>
                 <button id="confirm-edit-response" type="button">Guardar</button>
+            </div>
+        </section>
+    </div>
+
+    <div id="confirm-action-modal" class="modal-backdrop" hidden>
+        <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirm-action-title">
+            <h2 id="confirm-action-title">Confirmar accion</h2>
+            <p id="confirm-action-message">Esta accion no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button id="cancel-confirm-action" type="button" class="secondary-button">Cancelar</button>
+                <button id="accept-confirm-action" type="button" class="danger-button">Confirmar</button>
             </div>
         </section>
     </div>
