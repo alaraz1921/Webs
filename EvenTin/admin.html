@@ -62,6 +62,10 @@
                         Evento
                         <select id="event-select"></select>
                     </label>
+                    <div id="event-admin-actions" class="event-admin-actions" hidden>
+                        <button id="show-create-event-button" type="button" class="secondary-button">Nuevo</button>
+                        <button id="delete-event-button" type="button" class="danger-button">Borrar Evento</button>
+                    </div>
                     <div id="event-user-title" class="event-user-title" hidden></div>
                 </div>
 
@@ -78,12 +82,11 @@
                         </label>
                         <button type="submit">Crear evento</button>
                     </form>
-                    <button id="delete-event-button" type="button" class="danger-button">Borrar evento seleccionado</button>
                     <p id="event-admin-status" class="form-status" role="status"></p>
                 </section>
 
                 <section class="data-panel admin-tools">
-                    <h2>Editar evento</h2>
+                    <h2 id="event-settings-title">Editar evento</h2>
                     <div id="event-links" class="event-links" hidden>
                         <div class="event-link-row">
                             <span>Enlace publico</span>
@@ -265,5 +268,16 @@
             </div>
         </section>
     </main>
+
+    <div id="delete-event-modal" class="modal-backdrop" hidden>
+        <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-event-title">
+            <h2 id="delete-event-title">Borrar evento</h2>
+            <p id="delete-event-message">Esta accion no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button id="cancel-delete-event" type="button" class="secondary-button">Cancelar</button>
+                <button id="confirm-delete-event" type="button" class="danger-button">Borrar Evento</button>
+            </div>
+        </section>
+    </div>
 </body>
 </html>

@@ -17,6 +17,8 @@
     const eventSelect = document.getElementById('event-select');
     const eventSelector = document.querySelector('.event-selector');
     const eventUserTitle = document.getElementById('event-user-title');
+    const eventAdminActions = document.getElementById('event-admin-actions');
+    const showCreateEventButton = document.getElementById('show-create-event-button');
     const publicLinkGo = document.getElementById('public-link-go');
     const invitationLinkGo = document.getElementById('invitation-link-go');
     const adminEventsPanel = document.getElementById('admin-events-panel');
@@ -24,6 +26,11 @@
     const createEventForm = document.getElementById('create-event-form');
     const createEventType = document.getElementById('create-event-type');
     const deleteEventButton = document.getElementById('delete-event-button');
+    const eventSettingsTitle = document.getElementById('event-settings-title');
+    const deleteEventModal = document.getElementById('delete-event-modal');
+    const deleteEventMessage = document.getElementById('delete-event-message');
+    const cancelDeleteEventButton = document.getElementById('cancel-delete-event');
+    const confirmDeleteEventButton = document.getElementById('confirm-delete-event');
     const settingsForm = document.getElementById('event-settings-form');
     const settingsEventType = document.getElementById('settings-event-type');
     const settingsStatus = document.getElementById('event-settings-status');
@@ -107,6 +114,43 @@
 
     function isEventUser() {
         return currentProfile?.role === 'user';
+    }
+
+    function confirmDeleteEvent(eventTitle) {
+        if (!deleteEventModal) {
+            return Promise.resolve(false);
+        }
+
+        deleteEventMessage.textContent = `Vas a borrar "${eventTitle || 'este evento'}". Esta accion no se puede deshacer.`;
+        deleteEventModal.hidden = false;
+
+        return new Promise((resolve) => {
+            function close(result) {
+                deleteEventModal.hidden = true;
+                cancelDeleteEventButton.removeEventListener('click', onCancel);
+                confirmDeleteEventButton.removeEventListener('click', onConfirm);
+                deleteEventModal.removeEventListener('click', onBackdrop);
+                resolve(result);
+            }
+
+            function onCancel() {
+                close(false);
+            }
+
+            function onConfirm() {
+                close(true);
+            }
+
+            function onBackdrop(event) {
+                if (event.target === deleteEventModal) {
+                    close(false);
+                }
+            }
+
+            cancelDeleteEventButton.addEventListener('click', onCancel);
+            confirmDeleteEventButton.addEventListener('click', onConfirm);
+            deleteEventModal.addEventListener('click', onBackdrop);
+        });
     }
 
     function normalizeCode(value) {
@@ -356,7 +400,8 @@
         await loadEventTypes();
         await loadEvents();
         adminMenu.hidden = !isAdmin();
-        adminEventsPanel.hidden = !isAdmin();
+        adminEventsPanel.hidden = true;
+        eventAdminActions.hidden = !isAdmin();
         updateAdminHeader();
         showView('events');
     }
@@ -435,6 +480,8 @@
         )).join('');
 
         settingsForm.hidden = currentEvents.length === 0;
+        eventAdminActions.hidden = !isAdmin();
+        deleteEventButton.disabled = currentEvents.length === 0;
 
         if (currentEvents.length > 0) {
             await loadEventData(currentEvents[0].id);
@@ -442,6 +489,7 @@
             responsesTable.innerHTML = '<tr><td colspan="7">No hay eventos disponibles.</td></tr>';
             messagesList.innerHTML = '<p>No hay eventos disponibles.</p>';
             settingsForm.reset();
+            eventSettingsTitle.textContent = 'Editar evento';
             publicLink.textContent = isEventUser()
                 ? 'No hay ningun evento con el codigo asignado a tu usuario.'
                 : 'Todavia no hay eventos creados.';
@@ -459,6 +507,9 @@
     async function loadEventSettings(eventId) {
         const eventData = currentEvents.find((item) => item.id === eventId);
         updateAdminHeader(eventData);
+        eventSettingsTitle.textContent = isAdmin() && eventData?.title
+            ? `Editar evento: ${eventData.title}`
+            : 'Editar evento';
         const { data: settings } = await client
             .from('eventin_event_settings')
             .select('main_title,subtitle,display_date,display_time,presentation_title,presentation_text,hero_image_url,detail_image_url,palette_key')
@@ -699,6 +750,11 @@
         loadEventData(eventSelect.value);
     });
 
+    showCreateEventButton.addEventListener('click', () => {
+        adminEventsPanel.hidden = false;
+        createEventForm.elements.title?.focus();
+    });
+
     eventLinks.addEventListener('click', async (event) => {
         const button = event.target.closest('button[data-copy-link]');
         if (!button) {
@@ -826,6 +882,7 @@
 
             createEventForm.reset();
             fillTypeSelect(createEventType);
+            adminEventsPanel.hidden = true;
             setStatus(eventAdminStatus, 'Evento creado correctamente', false);
             await loadEvents();
             eventSelect.value = newEvent.id;
@@ -840,11 +897,12 @@
         const eventData = getCurrentEvent();
 
         if (!isAdmin() || !eventId) {
-            setStatus(eventAdminStatus, 'Solo el administrador puede borrar eventos.', true);
+            setStatus(settingsStatus, 'Solo el administrador puede borrar eventos.', true);
             return;
         }
 
-        if (!window.confirm(`Borrar "${eventData?.title || 'este evento'}"?`)) {
+        const confirmed = await confirmDeleteEvent(eventData?.title || 'este evento');
+        if (!confirmed) {
             return;
         }
 
@@ -855,10 +913,10 @@
                 .eq('id', eventId)
                 .throwOnError();
 
-            setStatus(eventAdminStatus, 'Evento borrado', false);
             await loadEvents();
+            setStatus(settingsStatus, 'Evento borrado', false);
         } catch (error) {
-            setStatus(eventAdminStatus, 'No se pudo borrar el evento.', true);
+            setStatus(settingsStatus, 'No se pudo borrar el evento.', true);
         }
     });
 

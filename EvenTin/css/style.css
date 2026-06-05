@@ -987,6 +987,13 @@ fieldset {
     line-height: 1.5;
 }
 
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
 .admin-page {
     display: block;
 }
@@ -1035,6 +1042,13 @@ fieldset {
     display: block;
     max-width: 420px;
     margin-bottom: 24px;
+}
+
+.event-admin-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .event-user-title {
@@ -1336,6 +1350,7 @@ th {
     }
 
     .admin-view-header .event-selector,
+    .admin-view-header .event-admin-actions,
     .admin-view-header .event-user-title,
     .admin-view-header .secondary-button,
     .admin-menu button {
