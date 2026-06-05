@@ -434,9 +434,7 @@ begin
         returning * into guest_record;
     else
         update public.eventin_guests
-        set name = trim(p_nombre),
-            phone = normalized_phone,
-            adults_count = coalesce(p_adults_count, 0),
+        set adults_count = coalesce(p_adults_count, 0),
             children_count = coalesce(p_children_count, 0),
             invitation_status = case when p_asistencia then 'confirmed' else 'declined' end
         where id = guest_record.id
@@ -455,7 +453,7 @@ begin
     ) values (
         p_event_id,
         guest_record.id,
-        trim(p_nombre),
+        guest_record.name,
         normalized_phone,
         p_asistencia,
         coalesce(p_adults_count, 0),
@@ -464,7 +462,6 @@ begin
     )
     on conflict (event_id, telefono) do update set
         guest_id = excluded.guest_id,
-        nombre = excluded.nombre,
         asistencia = excluded.asistencia,
         adults_count = excluded.adults_count,
         children_count = excluded.children_count,

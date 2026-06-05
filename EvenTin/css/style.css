@@ -834,7 +834,7 @@ button,
 
 .developer-credit {
     color: var(--muted);
-    font-size: 0.86rem;
+    font-size: 0.98rem;
     font-weight: 700;
     text-decoration: none;
 }
@@ -1406,8 +1406,8 @@ th {
     stroke-linejoin: round;
 }
 
-.table-actions button,
-.message-item .table-actions button {
+.table-actions button:not(.icon-button),
+.message-item .table-actions button:not(.icon-button) {
     min-height: 34px;
     padding: 8px 12px;
     border-radius: 8px;
@@ -1469,46 +1469,99 @@ th {
         grid-template-columns: 1fr;
     }
 
-    .guests-table,
-    .guests-table thead,
-    .guests-table tbody,
-    .guests-table tr,
-    .guests-table td {
-        display: block;
+    .guests-table {
+        min-width: 0;
+        border-collapse: separate;
+        border-spacing: 0 12px;
     }
 
-    .guests-table thead {
+    .guests-table,
+    .guests-table tbody,
+    .guests-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .guests-table thead,
+    .guests-table td:empty,
+    .guests-table td[data-label="Email"]:empty,
+    .guests-table td[data-label="Apertura"]:empty {
         display: none;
     }
 
     .guests-table tr {
         margin-bottom: 14px;
-        padding: 12px;
+        padding: 14px;
         border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.45);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.62);
+        box-shadow: 0 10px 26px rgba(70, 47, 30, 0.08);
     }
 
     .guests-table td {
-        display: flex;
-        gap: 12px;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--line);
-        padding: 9px 0;
+        display: grid;
+        grid-template-columns: 90px minmax(0, 1fr);
+        gap: 10px;
+        align-items: baseline;
+        border-bottom: 0;
+        padding: 5px 0;
+        overflow-wrap: anywhere;
     }
 
     .guests-table td::before {
         content: attr(data-label);
         color: var(--muted);
+        font-size: 0.74rem;
         font-weight: 800;
+        text-transform: uppercase;
     }
 
-    .guests-table td:last-child {
-        border-bottom: 0;
+    .guests-table td[data-label="Nombre"] {
+        display: block;
+        padding: 0 0 8px;
+        color: var(--accent-dark);
+        font-size: 1.08rem;
+        font-weight: 900;
+    }
+
+    .guests-table td[data-label="Nombre"]::before {
+        content: none;
+    }
+
+    .guests-table td[data-label="Estado"] {
+        display: inline-flex;
+        width: fit-content;
+        margin: 2px 0 8px;
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: rgba(111, 128, 105, 0.14);
+        color: var(--sage);
+        font-size: 0.84rem;
+        font-weight: 900;
+    }
+
+    .guests-table td[data-label="Estado"]::before {
+        content: none;
     }
 
     .guests-table .table-actions {
-        justify-content: flex-start;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+    }
+
+    .guests-table .table-actions::before {
+        content: none;
+    }
+
+    .guests-table .icon-button {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+        min-height: 36px;
     }
 
     .admin-shortcut-panel {
