@@ -59,6 +59,7 @@ EvenTin/
 |-- reset-password.html
 |-- README.md
 |-- PROJECT_HANDOFF.md
+|-- MANUAL_USUARIO.md
 |-- css/style.css
 |-- js/
 |   |-- admin.js
@@ -87,6 +88,7 @@ EvenTin/
 - `debug.html`: pagina no enlazada con accesos rapidos a portada, admin, eventos e invitaciones de prueba.
 - `admin.html`: panel privado con login Supabase Auth.
 - `reset-password.html`: restauracion de clave mediante email de Supabase Auth.
+- Todas las pantallas HTML muestran el enlace discreto `Desarrollado por alaraz1921 - VJG`.
 
 ## Roles
 
@@ -111,8 +113,17 @@ Commits relevantes del dia:
 be51789 Improve EvenTin admin event controls
 556e26c Improve EvenTin event image framing on desktop
 cf6b668 Use modals for EvenTin response admin actions
+a4109c0 Open EvenTin debug links in new tabs
 e6b9624 Add paged admin views for EvenTin responses and messages
 802d7d5 Render EvenTin public messages as admin tables
+a80c05f Add EvenTin guest invitation management
+26225df Move EvenTin guest management to dedicated page
+604d6cc Update EvenTin event footer credit
+d1087a5 Refine EvenTin guest mobile view and generic responses
+cb753ae Improve EvenTin admin list navigation
+4fd79e1 Keep EvenTin admin event title visible
+b314595 Fix EvenTin admin list views
+bde7e93 Align EvenTin guest action icons
 ```
 
 Resumen:
@@ -128,6 +139,12 @@ Resumen:
 - La invitacion por token muestra saludo personalizado, marca apertura y guarda confirmacion/rechazo contra el invitado.
 - Si una invitacion por token no tiene telefono en la ficha del invitado, la respuesta se guarda sin telefono.
 - La invitacion generica intenta localizar invitado por telefono; si no existe, lo crea y vincula la respuesta.
+- Si la invitacion generica localiza un invitado por telefono, no actualiza su nombre ni telefono; solo asistencia, adultos, ninos, estado y mensaje/respuesta.
+- La gestion de invitados quedo en `invitados.html` con login propio de respaldo, filtro por nombre/telefono, orden por nombre/telefono/estado y paginacion de 10 invitados.
+- En escritorio y movil se ajustaron las acciones de invitados como iconos compactos alineados: editar, copiar invitacion, WhatsApp y borrar.
+- Las vistas completas de respuestas y mensajes publicos muestran estados de carga/error/no hay datos dentro de la tabla para evitar pantallas vacias.
+- En respuestas y mensajes publicos las acciones usan iconos; editar respuesta solo cambia asistencia y borrar siempre usa modal de confirmacion.
+- El titulo del evento activo (`event-user-title`) queda visible en el panel general tambien para admin.
 - Tras estos cambios hay que ejecutar de nuevo `EvenTin/sql/schema.sql` completo en Supabase.
 
 ## Cambios del 2026-06-04
@@ -249,6 +266,14 @@ Son `SECURITY DEFINER` de forma intencionada para permitir el flujo publico por 
 
 El campo `telefono` puede quedar vacio (`null`) cuando la respuesta viene de una invitacion individual por token y el invitado no tenia telefono en su ficha.
 
+Reglas actuales de respuestas:
+
+- Invitacion individual por token: busca el invitado por `invitation_token`, marca `opened_at` si procede y guarda/actualiza una respuesta asociada por `guest_id`.
+- Si el invitado por token no tiene telefono, `eventin_guest_responses.telefono` queda `null`.
+- Invitacion generica por `evento`: exige nombre y telefono, busca invitado por telefono dentro del evento y crea uno si no existe.
+- Si la invitacion generica encuentra invitado, no sobreescribe `name` ni `phone` en `eventin_guests`; actualiza asistencia, adultos, ninos y estado.
+- Las respuestas genericas se guardan con el nombre de la ficha del invitado si el telefono coincide con un invitado existente.
+
 ### Campos importantes de eventos
 
 `public.eventin_events` contiene el nombre obligatorio y datos estructurales del evento:
@@ -346,6 +371,14 @@ Eventos:
 - Editar `Titulo principal` (`main_title`), subtitulo, fecha/hora visible y textos de presentacion.
 - Ver respuestas recibidas.
 - Ver mensajes publicos.
+
+Invitados:
+
+- Se gestionan desde `invitados.html`, enlazado desde el panel de eventos.
+- Tiene formulario de login propio si no detecta sesion activa.
+- Permite crear, editar y borrar invitados mediante modales.
+- Permite copiar el mensaje de invitacion individual y abrir WhatsApp si hay telefono.
+- La lista se puede filtrar por nombre/telefono, ordenar por nombre/telefono/estado y pagina cada 10 invitados.
 
 Usuarios:
 
@@ -503,6 +536,7 @@ Supabase Dashboard -> Authentication -> Security -> Leaked password protection -
 
 ```powershell
 node --check V:\Proyectos\Git\Webs\EvenTin\js\admin.js
+node --check V:\Proyectos\Git\Webs\EvenTin\js\guests.js
 node --check V:\Proyectos\Git\Webs\EvenTin\js\home.js
 node --check V:\Proyectos\Git\Webs\EvenTin\js\invitation.js
 git -C V:\Proyectos\Git\Webs diff --check
