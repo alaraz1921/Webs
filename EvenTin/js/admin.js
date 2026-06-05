@@ -440,6 +440,17 @@
         });
     }
 
+    function drawImageToCanvas(source, width, height) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const context = canvas.getContext('2d');
+        context.drawImage(source, 0, 0, width, height);
+
+        return canvas;
+    }
+
     async function optimizeImageFile(file, maxWidth) {
         if (!file?.size) {
             return null;
@@ -452,24 +463,27 @@
         const source = window.createImageBitmap
             ? await createImageBitmap(file)
             : await loadImageFromFile(file);
-        const scale = Math.min(1, maxWidth / source.width);
-        const width = Math.max(1, Math.round(source.width * scale));
-        const height = Math.max(1, Math.round(source.height * scale));
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
+        const targetWidths = [maxWidth, 1400, 1200, 1000, 800, 640]
+            .filter((value, index, values) => value <= maxWidth && values.indexOf(value) === index);
+        const qualities = [0.78, 0.68, 0.58, 0.48, 0.38];
 
-        const context = canvas.getContext('2d');
-        context.drawImage(source, 0, 0, width, height);
+        try {
+            for (const targetWidth of targetWidths) {
+                const scale = Math.min(1, targetWidth / source.width);
+                const width = Math.max(1, Math.round(source.width * scale));
+                const height = Math.max(1, Math.round(source.height * scale));
+                const canvas = drawImageToCanvas(source, width, height);
 
-        if (source.close) {
-            source.close();
-        }
-
-        for (const quality of [0.78, 0.68, 0.58]) {
-            const blob = await canvasToWebpBlob(canvas, quality);
-            if (blob.size <= OPTIMIZED_IMAGE_LIMIT_BYTES) {
-                return blob;
+                for (const quality of qualities) {
+                    const blob = await canvasToWebpBlob(canvas, quality);
+                    if (blob.size <= OPTIMIZED_IMAGE_LIMIT_BYTES) {
+                        return blob;
+                    }
+                }
+            }
+        } finally {
+            if (source.close) {
+                source.close();
             }
         }
 

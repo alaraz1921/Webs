@@ -145,6 +145,7 @@ Resumen:
 - Las vistas completas de respuestas y mensajes publicos muestran estados de carga/error/no hay datos dentro de la tabla para evitar pantallas vacias.
 - En respuestas y mensajes publicos las acciones usan iconos; editar respuesta solo cambia asistencia y borrar siempre usa modal de confirmacion.
 - El titulo del evento activo (`event-user-title`) queda visible en el panel general tambien para admin.
+- La optimizacion de imagenes del panel ahora prueba varias anchuras y calidades para evitar que fotos tomadas desde movil queden por encima del limite de 2.5 MB aunque en escritorio si funcionen.
 - Tras estos cambios hay que ejecutar de nuevo `EvenTin/sql/schema.sql` completo en Supabase.
 
 ## Cambios del 2026-06-04
