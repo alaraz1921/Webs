@@ -1,6 +1,8 @@
 (function () {
     const client = window.eventSupabase;
     const loginPanel = document.getElementById('guests-login-panel');
+    const loginForm = document.getElementById('guests-login-form');
+    const loginStatus = document.getElementById('guests-login-status');
     const guestsPanel = document.getElementById('guests-panel');
     const userLabel = document.getElementById('guests-user-label');
     const eventSelect = document.getElementById('guest-event-select');
@@ -44,6 +46,21 @@
     function setStatus(message, isError) {
         guestStatus.textContent = message;
         guestStatus.classList.toggle('error', Boolean(isError));
+    }
+
+    function setLoginStatus(message, isError) {
+        loginStatus.textContent = message;
+        loginStatus.classList.toggle('error', Boolean(isError));
+    }
+
+    function showLogin() {
+        loginPanel.hidden = false;
+        guestsPanel.hidden = true;
+    }
+
+    function showGuestsPanel() {
+        loginPanel.hidden = true;
+        guestsPanel.hidden = false;
     }
 
     function escapeHtml(value) {
@@ -408,6 +425,37 @@
         renderGuests();
     });
 
+    loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setLoginStatus('', false);
+
+        if (!client) {
+            setLoginStatus('No se pudo conectar con Supabase.', true);
+            return;
+        }
+
+        const formData = new FormData(loginForm);
+        const { error } = await client.auth.signInWithPassword({
+            email: String(formData.get('email')).trim().toLowerCase(),
+            password: String(formData.get('password'))
+        });
+
+        if (error) {
+            setLoginStatus('Acceso no valido', true);
+            return;
+        }
+
+        const profile = await loadProfile();
+        if (!profile) {
+            setLoginStatus('El usuario no tiene perfil de administracion configurado.', true);
+            await client.auth.signOut();
+            return;
+        }
+
+        showGuestsPanel();
+        await loadEvents();
+    });
+
     guestForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const eventId = eventSelect.value;
@@ -499,23 +547,23 @@
 
     async function init() {
         if (!client) {
-            loginPanel.hidden = false;
+            showLogin();
             return;
         }
 
         const { data } = await client.auth.getSession();
         if (!data.session) {
-            loginPanel.hidden = false;
+            showLogin();
             return;
         }
 
         const profile = await loadProfile();
         if (!profile) {
-            loginPanel.hidden = false;
+            showLogin();
             return;
         }
 
-        guestsPanel.hidden = false;
+        showGuestsPanel();
         await loadEvents();
     }
 

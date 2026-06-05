@@ -14,8 +14,19 @@
     <main class="admin-layout guests-layout">
         <section id="guests-login-panel" class="access-layout" hidden>
             <h1>Gestion de invitados</h1>
-            <p>Inicia sesion desde el panel de administracion para gestionar invitados.</p>
-            <a class="page-link" href="admin.html">Ir al panel</a>
+            <form id="guests-login-form" class="form-card">
+                <label>
+                    Email
+                    <input type="email" name="email" autocomplete="email" required>
+                </label>
+                <label>
+                    Clave
+                    <input type="password" name="password" autocomplete="current-password" required>
+                </label>
+                <button type="submit">Entrar</button>
+                <p id="guests-login-status" class="form-status" role="status"></p>
+            </form>
+            <a class="page-link secondary-button" href="admin.html">Volver al panel</a>
         </section>
 
         <section id="guests-panel" class="admin-content" hidden>

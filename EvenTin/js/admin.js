@@ -787,12 +787,14 @@
     async function loadAllResponses(reset = false) {
         const eventId = eventSelect.value;
         if (!eventId) {
+            allResponsesTable.innerHTML = '<tr><td colspan="7">Selecciona un evento para ver sus respuestas.</td></tr>';
+            loadMoreResponsesButton.hidden = true;
             return;
         }
 
         if (reset) {
             loadedResponses = 0;
-            allResponsesTable.innerHTML = '';
+            allResponsesTable.innerHTML = '<tr><td colspan="7">Cargando respuestas...</td></tr>';
             setStatus(allResponsesStatus, '', false);
         }
 
@@ -806,6 +808,8 @@
             .range(from, to);
 
         if (error) {
+            allResponsesTable.innerHTML = '<tr><td colspan="7">No se pudieron cargar las respuestas.</td></tr>';
+            loadMoreResponsesButton.hidden = true;
             setStatus(allResponsesStatus, 'No se pudieron cargar las respuestas.', true);
             return;
         }
@@ -814,6 +818,9 @@
         const rows = data || [];
         rememberResponses(rows);
         loadedResponses += rows.length;
+        if (reset) {
+            allResponsesTable.innerHTML = '';
+        }
         allResponsesTable.insertAdjacentHTML('beforeend', rows.length
             ? renderResponseRows(rows)
             : '<tr><td colspan="7">No hay respuestas.</td></tr>');
@@ -858,12 +865,14 @@
     async function loadAllMessages(reset = false) {
         const eventId = eventSelect.value;
         if (!eventId) {
+            allMessagesList.innerHTML = '<tr><td colspan="4">Selecciona un evento para ver sus mensajes.</td></tr>';
+            loadMoreMessagesButton.hidden = true;
             return;
         }
 
         if (reset) {
             loadedMessages = 0;
-            allMessagesList.innerHTML = '';
+            allMessagesList.innerHTML = '<tr><td colspan="4">Cargando mensajes...</td></tr>';
             setStatus(allMessagesStatus, '', false);
         }
 
@@ -877,6 +886,8 @@
             .range(from, to);
 
         if (error) {
+            allMessagesList.innerHTML = '<tr><td colspan="4">No se pudieron cargar los mensajes.</td></tr>';
+            loadMoreMessagesButton.hidden = true;
             setStatus(allMessagesStatus, 'No se pudieron cargar los mensajes.', true);
             return;
         }
@@ -884,6 +895,9 @@
         totalMessages = count || 0;
         const rows = data || [];
         loadedMessages += rows.length;
+        if (reset) {
+            allMessagesList.innerHTML = '';
+        }
         allMessagesList.insertAdjacentHTML('beforeend', rows.length
             ? renderMessages(rows)
             : '<tr><td colspan="4">No hay mensajes publicos.</td></tr>');
