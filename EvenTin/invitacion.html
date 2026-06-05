@@ -19,14 +19,18 @@
         </header>
         <section class="invitation-heading" aria-labelledby="invitation-title">
             <h2 id="invitation-title">Confirmar asistencia</h2>
+            <p id="guest-greeting" class="guest-greeting" hidden></p>
             <p><span data-invitation-date></span><span data-invitation-time></span></p>
         </section>
+        <section id="invitation-not-found" class="form-card" hidden>
+            <p>No hemos encontrado esta invitacion. Revisa el enlace o contacta con la persona que te lo envio.</p>
+        </section>
         <form id="invitation-form" class="form-card">
-            <label>
+            <label data-legacy-field>
                 Nombre
                 <input type="text" name="nombre" autocomplete="name" required>
             </label>
-            <label>
+            <label data-legacy-field>
                 Telefono
                 <input type="tel" name="telefono" autocomplete="tel" inputmode="tel" required>
             </label>
@@ -42,6 +46,14 @@
                 </label>
             </fieldset>
             <label>
+                Adultos confirmados
+                <input type="number" name="adults_count" min="0" value="1">
+            </label>
+            <label>
+                Ninos confirmados
+                <input type="number" name="children_count" min="0" value="0">
+            </label>
+            <label>
                 Mensaje
                 <textarea name="mensaje" rows="4"></textarea>
             </label>
@@ -53,7 +65,7 @@
 
     <div id="invitation-success-modal" class="modal-backdrop" hidden>
         <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="invitation-success-title">
-            <h2 id="invitation-success-title">Respuesta enviada</h2>
+            <h2 id="invitation-success-title">Respuesta enviada correctamente</h2>
             <p>Hemos recibido tu confirmacion correctamente.</p>
             <a id="modal-event-link" class="page-link" href="index.html">Volver al evento</a>
         </section>

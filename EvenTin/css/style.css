@@ -955,6 +955,11 @@ fieldset {
     color: var(--muted);
     font-weight: 800;
 }
+
+.guest-greeting {
+    color: var(--accent-dark);
+    font-size: 1.1rem;
+}
 .modal-backdrop {
     position: fixed;
     inset: 0;
@@ -1327,6 +1332,11 @@ th {
     min-width: 170px;
 }
 
+.disabled-link {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
 .table-actions button,
 .message-item .table-actions button {
     min-height: 34px;
@@ -1388,6 +1398,48 @@ th {
 
     .debug-grid {
         grid-template-columns: 1fr;
+    }
+
+    .guests-table,
+    .guests-table thead,
+    .guests-table tbody,
+    .guests-table tr,
+    .guests-table td {
+        display: block;
+    }
+
+    .guests-table thead {
+        display: none;
+    }
+
+    .guests-table tr {
+        margin-bottom: 14px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.45);
+    }
+
+    .guests-table td {
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--line);
+        padding: 9px 0;
+    }
+
+    .guests-table td::before {
+        content: attr(data-label);
+        color: var(--muted);
+        font-weight: 800;
+    }
+
+    .guests-table td:last-child {
+        border-bottom: 0;
+    }
+
+    .guests-table .table-actions {
+        justify-content: flex-start;
     }
 }
 

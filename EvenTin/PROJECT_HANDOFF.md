@@ -1,6 +1,6 @@
 # EvenTin Project Handoff
 
-Ultima actualizacion: 2026-06-04
+Ultima actualizacion: 2026-06-05
 
 ## Resumen
 
@@ -79,7 +79,8 @@ EvenTin/
 
 - `index.html`: portada de EvenTin, con acceso por codigo de evento y formulario de contacto.
 - `evento.html?evento=CODIGO_O_SLUG`: pagina publica de evento.
-- `invitacion.html?evento=CODIGO_O_SLUG`: formulario publico de confirmacion de asistencia. Muestra logo, `eventin_events.title` y fecha/hora real de `eventin_events.event_date`.
+- `invitacion.html?evento=CODIGO_O_SLUG`: formulario publico legacy de confirmacion de asistencia. Muestra logo, `eventin_events.title` y fecha/hora real de `eventin_events.event_date`.
+- `invitacion.html?token=TOKEN`: invitacion individual por invitado. No usa telefono en URL.
 - `debug.html`: pagina no enlazada con accesos rapidos a portada, admin, eventos e invitaciones de prueba.
 - `admin.html`: panel privado con login Supabase Auth.
 - `reset-password.html`: restauracion de clave mediante email de Supabase Auth.
@@ -98,6 +99,30 @@ eventin_profiles.event_code = eventin_events.event_code
 ```
 
 El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear evento y es de solo lectura en el panel.
+
+## Cambios del 2026-06-05
+
+Commits relevantes del dia:
+
+```text
+be51789 Improve EvenTin admin event controls
+556e26c Improve EvenTin event image framing on desktop
+cf6b668 Use modals for EvenTin response admin actions
+e6b9624 Add paged admin views for EvenTin responses and messages
+802d7d5 Render EvenTin public messages as admin tables
+```
+
+Resumen:
+
+- Se ajusto el hero y la imagen de detalle para que en escritorio grande se vea mas imagen completa sin deformarla.
+- Se anadieron vistas dedicadas en admin para `Respuestas Invitaciones` y `Mensajes publicos`, con carga incremental tipo `Cargar mas`.
+- Las respuestas del panel permiten editar solo la asistencia y borrar mediante modal.
+- Los mensajes publicos se listan por lineas y ya no tienen edicion.
+- `debug.html` abre enlaces en pestana nueva.
+- Se inicio la gestion de invitados con tabla `eventin_guests`, tokens individuales y enlaces `invitacion.html?token=TOKEN`.
+- El panel admin permite crear, editar, borrar, copiar mensaje de invitacion y abrir WhatsApp para cada invitado.
+- La invitacion por token muestra saludo personalizado, marca apertura y guarda confirmacion/rechazo contra el invitado.
+- Tras estos cambios hay que ejecutar de nuevo `EvenTin/sql/schema.sql` completo en Supabase.
 
 ## Cambios del 2026-06-04
 
@@ -165,6 +190,7 @@ Tablas principales:
 - `public.eventin_events`
 - `public.eventin_event_settings`
 - `public.eventin_profiles`
+- `public.eventin_guests`
 - `public.eventin_guest_responses`
 - `public.eventin_public_messages`
 - `public.eventin_contact_requests`
@@ -191,6 +217,30 @@ public.eventin_submit_guest_response(...)
 
 Esta RPC es `SECURITY INVOKER`; llama internamente a `eventin_private.submit_guest_response(...)`.
 
+RPC publicas para invitacion individual por token:
+
+```text
+public.eventin_get_guest_invitation(text)
+public.eventin_submit_guest_token_response(text, boolean, integer, integer, text)
+```
+
+Son `SECURITY DEFINER` de forma intencionada para permitir el flujo publico por token sin exponer la tabla completa. Devuelven solo datos minimos del invitado y validan que el evento este activo.
+
+### Invitados
+
+`public.eventin_guests` contiene:
+
+- `event_id`, `name`, `phone`, `email`, `adults_count`, `children_count`, `notes`.
+- `invitation_token`: token aleatorio unico. Es lo unico que se usa en la URL publica.
+- `invitation_status`: `pending`, `opened`, `confirmed`, `declined`.
+- `opened_at`, `created_at`, `updated_at`.
+
+`public.eventin_guest_responses` mantiene compatibilidad con respuestas antiguas y ahora tambien puede guardar:
+
+- `guest_id`
+- `adults_count`
+- `children_count`
+
 ### Campos importantes de eventos
 
 `public.eventin_events` contiene el nombre obligatorio y datos estructurales del evento:
@@ -209,11 +259,11 @@ Valores por defecto al crear evento desde admin:
 
 ```text
 main_title = title del evento
-subtitle = Un día para compartir
+subtitle = Un dia para compartir
 display_date = ''
 display_time = ''
 presentation_title = Un recuerdo para siempre
-presentation_text = Hay momentos que quedan grabados en el corazón para toda la vida. Nos gustaría celebrarlo contigo y guardar juntos este hermoso recuerdo.
+presentation_text = Hay momentos que quedan grabados en el corazon para toda la vida. Nos gustaria celebrarlo contigo y guardar juntos este hermoso recuerdo.
 palette_key = earth
 location_name = Por confirmar
 maps_url = https://www.google.com/maps

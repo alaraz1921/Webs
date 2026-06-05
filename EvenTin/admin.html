@@ -178,6 +178,59 @@
                     <p id="event-settings-status" class="form-status" role="status"></p>
                 </section>
 
+                <section class="data-panel admin-tools">
+                    <div class="admin-view-header">
+                        <h2>Invitados</h2>
+                        <button id="clear-guest-form" type="button" class="secondary-button">Nuevo invitado</button>
+                    </div>
+                    <form id="guest-form" class="admin-form">
+                        <input type="hidden" name="guest_id">
+                        <label>
+                            Nombre
+                            <input type="text" name="name" required>
+                        </label>
+                        <label>
+                            Telefono
+                            <input type="tel" name="phone" inputmode="tel">
+                        </label>
+                        <label>
+                            Email
+                            <input type="email" name="email">
+                        </label>
+                        <label>
+                            Adultos
+                            <input type="number" name="adults_count" min="0" value="1">
+                        </label>
+                        <label>
+                            Ninos
+                            <input type="number" name="children_count" min="0" value="0">
+                        </label>
+                        <label>
+                            Notas
+                            <textarea name="notes" rows="3"></textarea>
+                        </label>
+                        <button type="submit">Guardar invitado</button>
+                    </form>
+                    <p id="guest-status" class="form-status" role="status"></p>
+                    <div class="table-wrap">
+                        <table class="guests-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Telefono</th>
+                                    <th>Email</th>
+                                    <th>Adultos</th>
+                                    <th>Ninos</th>
+                                    <th>Estado</th>
+                                    <th>Apertura</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="guests-table"></tbody>
+                        </table>
+                    </div>
+                </section>
+
                 <div class="admin-grid">
                     <section class="data-panel">
                         <div class="admin-view-header">
