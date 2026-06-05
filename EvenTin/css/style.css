@@ -1264,6 +1264,30 @@ th {
     }
 }
 
+@media (min-width: 1024px) {
+    .hero {
+        min-height: 100vh;
+        background-color: #f4eee6;
+        background-image:
+            linear-gradient(rgba(47, 42, 37, 0.18), rgba(47, 42, 37, 0.46)),
+            var(--event-image-url, var(--hero-image));
+        background-position: center center;
+        background-size: contain;
+        background-repeat: no-repeat;
+    }
+
+    .image-panel {
+        min-height: 460px;
+        background-color: #f4eee6;
+        background-image:
+            linear-gradient(rgba(255, 250, 244, 0.08), rgba(255, 250, 244, 0.08)),
+            var(--event-image-url, var(--detail-image));
+        background-position: center center;
+        background-size: contain;
+        background-repeat: no-repeat;
+    }
+}
+
 .access-event-code {
     margin-top: 16px;
 }
