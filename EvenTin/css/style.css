@@ -832,6 +832,18 @@ button,
     text-align: center;
 }
 
+.developer-credit {
+    color: var(--muted);
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.developer-credit:hover {
+    color: var(--accent-dark);
+    text-decoration: underline;
+}
+
 .form-card {
     display: grid;
     gap: 18px;
