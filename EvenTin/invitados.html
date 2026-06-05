@@ -45,6 +45,20 @@
                     <h2 id="guests-list-title">Invitados</h2>
                     <button id="new-guest-button" type="button" class="secondary-button">Nuevo</button>
                 </div>
+                <div class="guest-list-controls">
+                    <label>
+                        Filtrar
+                        <input id="guest-filter" type="search" placeholder="Nombre o telefono" autocomplete="off">
+                    </label>
+                    <label>
+                        Ordenar por
+                        <select id="guest-sort">
+                            <option value="name">Nombre</option>
+                            <option value="phone">Telefono</option>
+                            <option value="status">Estado</option>
+                        </select>
+                    </label>
+                </div>
                 <p id="guest-status" class="form-status" role="status"></p>
                 <div class="table-wrap">
                     <table class="guests-table">
@@ -63,8 +77,19 @@
                         <tbody id="guests-table"></tbody>
                     </table>
                 </div>
+                <div class="pagination-controls">
+                    <button id="guest-prev-page" type="button" class="secondary-button">Anterior</button>
+                    <span id="guest-page-status"></span>
+                    <button id="guest-next-page" type="button" class="secondary-button">Siguiente</button>
+                </div>
+                <div class="bottom-view-actions">
+                    <a id="back-admin-link-bottom" class="secondary-button" href="admin.html">Volver</a>
+                </div>
             </section>
         </section>
+        <footer class="app-credit">
+            <a class="developer-credit" href="index.html">Desarrollado por alaraz1921 - VJG</a>
+        </footer>
     </main>
 
     <div id="guest-form-modal" class="modal-backdrop" hidden>

@@ -832,6 +832,12 @@ button,
     text-align: center;
 }
 
+.app-credit {
+    width: 100%;
+    margin-top: 24px;
+    text-align: center;
+}
+
 .developer-credit {
     color: var(--muted);
     font-size: 0.98rem;
@@ -1114,6 +1120,19 @@ fieldset {
     border-top: 1px solid var(--line);
 }
 
+.bottom-view-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.event-view-title {
+    margin: -6px 0 16px;
+    color: var(--accent-dark);
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
 .admin-form {
     display: grid;
     gap: 16px;
@@ -1382,12 +1401,15 @@ th {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 auto;
     width: 38px;
     min-width: 38px;
     height: 38px;
     min-height: 38px;
     padding: 0;
     border-radius: 8px;
+    line-height: 0;
+    vertical-align: middle;
 }
 
 .whatsapp-button {
@@ -1397,6 +1419,7 @@ th {
 }
 
 .icon-button svg {
+    display: block;
     width: 19px;
     height: 19px;
     fill: none;
@@ -1404,6 +1427,40 @@ th {
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+.guest-list-controls {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(180px, 260px);
+    gap: 14px;
+    align-items: end;
+    margin-bottom: 12px;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 18px;
+    flex-wrap: wrap;
+}
+
+.pagination-controls button {
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.pagination-controls button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.pagination-controls span {
+    color: var(--muted);
+    font-weight: 800;
 }
 
 .table-actions button:not(.icon-button),
@@ -1467,6 +1524,23 @@ th {
 
     .debug-grid {
         grid-template-columns: 1fr;
+    }
+
+    .guest-list-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .pagination-controls {
+        align-items: stretch;
+    }
+
+    .pagination-controls button {
+        flex: 1 1 110px;
+    }
+
+    .pagination-controls span {
+        width: 100%;
+        text-align: center;
     }
 
     .guests-table {

@@ -58,12 +58,16 @@
     const loadMoreResponsesButton = document.getElementById('load-more-responses');
     const allResponsesStatus = document.getElementById('all-responses-status');
     const backFromResponsesButton = document.getElementById('back-from-responses');
+    const backFromResponsesBottomButton = document.getElementById('back-from-responses-bottom');
+    const responsesEventTitle = document.getElementById('responses-event-title');
     const messagesList = document.getElementById('messages-list');
     const showAllMessagesButton = document.getElementById('show-all-messages');
     const allMessagesList = document.getElementById('all-messages-list');
     const loadMoreMessagesButton = document.getElementById('load-more-messages');
     const allMessagesStatus = document.getElementById('all-messages-status');
     const backFromMessagesButton = document.getElementById('back-from-messages');
+    const backFromMessagesBottomButton = document.getElementById('back-from-messages-bottom');
+    const messagesEventTitle = document.getElementById('messages-event-title');
     const userForm = document.getElementById('user-form');
     const clearUserFormButton = document.getElementById('clear-user-form');
     const userStatus = document.getElementById('user-status');
@@ -79,6 +83,7 @@
     const contactRequestsStatus = document.getElementById('contact-requests-status');
     const loginResetLink = document.getElementById('login-reset-link');
     const userResetLink = document.getElementById('user-reset-link');
+    const adminFooterActions = document.querySelector('.admin-footer-actions');
 
     const IMAGE_BUCKET = 'eventin-images';
     const PREVIEW_LIMIT = 3;
@@ -102,6 +107,11 @@
             fileName: 'detail.webp',
             label: 'detalle'
         }
+    };
+
+    const ICONS = {
+        edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>',
+        trash: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m6 6 1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>'
     };
 
     let currentProfile = null;
@@ -525,9 +535,15 @@
         messagesView.hidden = viewName !== 'messages';
         usersView.hidden = viewName !== 'users' || !usersAllowed;
         contactsView.hidden = viewName !== 'contacts' || !usersAllowed;
+        adminFooterActions.hidden = viewName === 'responses' || viewName === 'messages';
         showEventsViewButton.classList.toggle('active', viewName === 'events');
         showUsersViewButton.classList.toggle('active', viewName === 'users');
         showContactsViewButton.classList.toggle('active', viewName === 'contacts');
+
+        const eventData = getCurrentEvent();
+        const eventTitleText = eventData?.title ? `Evento: ${eventData.title}` : '';
+        responsesEventTitle.textContent = eventTitleText;
+        messagesEventTitle.textContent = eventTitleText;
 
         if (viewName === 'users' && usersAllowed) {
             loadUsers();
@@ -745,9 +761,9 @@
                 <td>${escapeHtml(row.mensaje)}</td>
                 <td>${formatDate(row.created_at)}</td>
                 <td>${formatDate(row.updated_at)}</td>
-                <td class="table-actions">
-                    <button type="button" data-action="edit-response" data-id="${row.id}" class="secondary-button">Editar</button>
-                    <button type="button" data-action="delete-response" data-id="${row.id}" class="danger-button">Borrar</button>
+                <td class="table-actions icon-actions">
+                    <button type="button" data-action="edit-response" data-id="${row.id}" class="icon-button secondary-button" aria-label="Editar asistencia" title="Editar asistencia">${ICONS.edit}</button>
+                    <button type="button" data-action="delete-response" data-id="${row.id}" class="icon-button danger-button" aria-label="Borrar respuesta" title="Borrar respuesta">${ICONS.trash}</button>
                 </td>
             </tr>
         `).join('');
@@ -840,8 +856,8 @@
                 <td>${escapeHtml(row.author_name)}</td>
                 <td>${escapeHtml(row.message)}</td>
                 <td>${formatDate(row.created_at)}</td>
-                <td class="table-actions">
-                    <button type="button" data-action="delete-message" data-id="${row.id}" class="danger-button">Borrar</button>
+                <td class="table-actions icon-actions">
+                    <button type="button" data-action="delete-message" data-id="${row.id}" class="icon-button danger-button" aria-label="Borrar mensaje" title="Borrar mensaje">${ICONS.trash}</button>
                 </td>
             </tr>
         `).join('');
@@ -1022,7 +1038,9 @@
     showAllResponsesButton.addEventListener('click', () => showView('responses'));
     showAllMessagesButton.addEventListener('click', () => showView('messages'));
     backFromResponsesButton.addEventListener('click', () => showView('events'));
+    backFromResponsesBottomButton.addEventListener('click', () => showView('events'));
     backFromMessagesButton.addEventListener('click', () => showView('events'));
+    backFromMessagesBottomButton.addEventListener('click', () => showView('events'));
     loadMoreResponsesButton.addEventListener('click', () => loadAllResponses(false));
     loadMoreMessagesButton.addEventListener('click', () => loadAllMessages(false));
 

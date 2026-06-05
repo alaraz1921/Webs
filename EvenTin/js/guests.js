@@ -8,8 +8,13 @@
     const eventTitle = document.getElementById('guest-event-title');
     const guestsListTitle = document.getElementById('guests-list-title');
     const newGuestButton = document.getElementById('new-guest-button');
+    const guestFilter = document.getElementById('guest-filter');
+    const guestSort = document.getElementById('guest-sort');
     const guestsTable = document.getElementById('guests-table');
     const guestStatus = document.getElementById('guest-status');
+    const guestPrevPageButton = document.getElementById('guest-prev-page');
+    const guestNextPageButton = document.getElementById('guest-next-page');
+    const guestPageStatus = document.getElementById('guest-page-status');
     const formModal = document.getElementById('guest-form-modal');
     const formTitle = document.getElementById('guest-form-title');
     const guestForm = document.getElementById('guest-form');
@@ -19,10 +24,15 @@
     const cancelDeleteGuestButton = document.getElementById('cancel-delete-guest');
     const confirmDeleteGuestButton = document.getElementById('confirm-delete-guest');
     const backAdminLink = document.getElementById('back-admin-link');
+    const backAdminLinkBottom = document.getElementById('back-admin-link-bottom');
 
     let currentProfile = null;
     let currentEvents = [];
     let currentGuests = [];
+    let filteredGuests = [];
+    let currentPage = 1;
+
+    const PAGE_SIZE = 10;
 
     const icons = {
         edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>',
@@ -123,6 +133,58 @@
         return labels[value] || value || 'Pendiente';
     }
 
+    function getComparableGuestValue(guest, field) {
+        if (field === 'phone') {
+            return String(guest.phone || '');
+        }
+
+        if (field === 'status') {
+            return renderGuestStatus(guest.invitation_status);
+        }
+
+        return String(guest.name || '');
+    }
+
+    function applyGuestListState(resetPage = false) {
+        const filter = String(guestFilter.value || '').trim().toLowerCase();
+        const sortKey = guestSort.value || 'name';
+
+        filteredGuests = currentGuests
+            .filter((guest) => {
+                if (!filter) {
+                    return true;
+                }
+
+                return String(guest.name || '').toLowerCase().includes(filter)
+                    || String(guest.phone || '').toLowerCase().includes(filter);
+            })
+            .sort((left, right) => (
+                getComparableGuestValue(left, sortKey)
+                    .localeCompare(getComparableGuestValue(right, sortKey), 'es', { sensitivity: 'base', numeric: true })
+            ));
+
+        if (resetPage) {
+            currentPage = 1;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(filteredGuests.length / PAGE_SIZE));
+        currentPage = Math.min(Math.max(1, currentPage), totalPages);
+    }
+
+    function getVisibleGuests() {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return filteredGuests.slice(start, start + PAGE_SIZE);
+    }
+
+    function renderPagination() {
+        const totalPages = Math.max(1, Math.ceil(filteredGuests.length / PAGE_SIZE));
+        guestPrevPageButton.disabled = currentPage <= 1;
+        guestNextPageButton.disabled = currentPage >= totalPages;
+        guestPageStatus.textContent = filteredGuests.length
+            ? `Pagina ${currentPage} de ${totalPages} - ${filteredGuests.length} invitados`
+            : 'Sin invitados';
+    }
+
     function resetGuestForm() {
         guestForm.reset();
         guestForm.elements.guest_id.value = '';
@@ -193,15 +255,20 @@
         eventTitle.textContent = eventData?.title || 'Evento asignado';
         guestsListTitle.textContent = eventData?.title ? `Invitados: ${eventData.title}` : 'Invitados';
         backAdminLink.href = eventData?.id ? `admin.html?evento=${encodeURIComponent(eventData.public_slug || eventData.event_code || '')}` : 'admin.html';
+        backAdminLinkBottom.href = backAdminLink.href;
     }
 
     function renderGuests() {
-        if (!currentGuests.length) {
+        applyGuestListState();
+        const visibleGuests = getVisibleGuests();
+
+        if (!filteredGuests.length) {
             guestsTable.innerHTML = '<tr><td colspan="8">No hay invitados.</td></tr>';
+            renderPagination();
             return;
         }
 
-        guestsTable.innerHTML = currentGuests.map((guest) => {
+        guestsTable.innerHTML = visibleGuests.map((guest) => {
             const phone = normalizeWhatsappPhone(guest.phone);
             const whatsappUrl = phone
                 ? `https://wa.me/${phone}?text=${encodeURIComponent(getGuestInvitationMessage(guest))}`
@@ -225,6 +292,7 @@
                 </tr>
             `;
         }).join('');
+        renderPagination();
     }
 
     async function loadProfile() {
@@ -303,6 +371,7 @@
         }
 
         currentGuests = data || [];
+        applyGuestListState(true);
         renderGuests();
     }
 
@@ -317,6 +386,26 @@
     eventSelect.addEventListener('change', async () => {
         updateHeader();
         await loadGuests();
+    });
+
+    guestFilter.addEventListener('input', () => {
+        applyGuestListState(true);
+        renderGuests();
+    });
+
+    guestSort.addEventListener('change', () => {
+        applyGuestListState(true);
+        renderGuests();
+    });
+
+    guestPrevPageButton.addEventListener('click', () => {
+        currentPage -= 1;
+        renderGuests();
+    });
+
+    guestNextPageButton.addEventListener('click', () => {
+        currentPage += 1;
+        renderGuests();
     });
 
     guestForm.addEventListener('submit', async (event) => {
