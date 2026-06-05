@@ -31,6 +31,14 @@
     const deleteEventMessage = document.getElementById('delete-event-message');
     const cancelDeleteEventButton = document.getElementById('cancel-delete-event');
     const confirmDeleteEventButton = document.getElementById('confirm-delete-event');
+    const deleteResponseModal = document.getElementById('delete-response-modal');
+    const deleteResponseMessage = document.getElementById('delete-response-message');
+    const cancelDeleteResponseButton = document.getElementById('cancel-delete-response');
+    const confirmDeleteResponseButton = document.getElementById('confirm-delete-response');
+    const editResponseModal = document.getElementById('edit-response-modal');
+    const editResponseMessage = document.getElementById('edit-response-message');
+    const cancelEditResponseButton = document.getElementById('cancel-edit-response');
+    const confirmEditResponseButton = document.getElementById('confirm-edit-response');
     const settingsForm = document.getElementById('event-settings-form');
     const settingsEventType = document.getElementById('settings-event-type');
     const settingsStatus = document.getElementById('event-settings-status');
@@ -79,6 +87,7 @@
     let currentProfile = null;
     let currentEvents = [];
     let currentEventTypes = [];
+    let currentResponses = [];
     let currentUsers = [];
     let currentContactRequests = [];
 
@@ -150,6 +159,84 @@
             cancelDeleteEventButton.addEventListener('click', onCancel);
             confirmDeleteEventButton.addEventListener('click', onConfirm);
             deleteEventModal.addEventListener('click', onBackdrop);
+        });
+    }
+
+    function confirmDeleteResponse(responseName) {
+        if (!deleteResponseModal) {
+            return Promise.resolve(false);
+        }
+
+        deleteResponseMessage.textContent = `Vas a borrar la respuesta de ${responseName || 'este invitado'}. Esta accion no se puede deshacer.`;
+        deleteResponseModal.hidden = false;
+
+        return new Promise((resolve) => {
+            function close(result) {
+                deleteResponseModal.hidden = true;
+                cancelDeleteResponseButton.removeEventListener('click', onCancel);
+                confirmDeleteResponseButton.removeEventListener('click', onConfirm);
+                deleteResponseModal.removeEventListener('click', onBackdrop);
+                resolve(result);
+            }
+
+            function onCancel() {
+                close(false);
+            }
+
+            function onConfirm() {
+                close(true);
+            }
+
+            function onBackdrop(event) {
+                if (event.target === deleteResponseModal) {
+                    close(false);
+                }
+            }
+
+            cancelDeleteResponseButton.addEventListener('click', onCancel);
+            confirmDeleteResponseButton.addEventListener('click', onConfirm);
+            deleteResponseModal.addEventListener('click', onBackdrop);
+        });
+    }
+
+    function editResponseAttendance(response) {
+        if (!editResponseModal) {
+            return Promise.resolve(null);
+        }
+
+        editResponseMessage.textContent = `Asistencia de ${response?.nombre || 'este invitado'}.`;
+        editResponseModal.querySelectorAll('input[name="response_attendance"]').forEach((input) => {
+            input.checked = input.value === String(Boolean(response?.asistencia));
+        });
+        editResponseModal.hidden = false;
+
+        return new Promise((resolve) => {
+            function close(result) {
+                editResponseModal.hidden = true;
+                cancelEditResponseButton.removeEventListener('click', onCancel);
+                confirmEditResponseButton.removeEventListener('click', onConfirm);
+                editResponseModal.removeEventListener('click', onBackdrop);
+                resolve(result);
+            }
+
+            function onCancel() {
+                close(null);
+            }
+
+            function onConfirm() {
+                const selected = editResponseModal.querySelector('input[name="response_attendance"]:checked');
+                close(selected ? selected.value === 'true' : null);
+            }
+
+            function onBackdrop(event) {
+                if (event.target === editResponseModal) {
+                    close(null);
+                }
+            }
+
+            cancelEditResponseButton.addEventListener('click', onCancel);
+            confirmEditResponseButton.addEventListener('click', onConfirm);
+            editResponseModal.addEventListener('click', onBackdrop);
         });
     }
 
@@ -564,11 +651,13 @@
             .order('updated_at', { ascending: false });
 
         if (error || !data?.length) {
+            currentResponses = [];
             responsesTable.innerHTML = '<tr><td colspan="7">Sin respuestas recibidas.</td></tr>';
             return;
         }
 
-        responsesTable.innerHTML = data.map((row) => `
+        currentResponses = data;
+        responsesTable.innerHTML = currentResponses.map((row) => `
             <tr>
                 <td>${escapeHtml(row.nombre)}</td>
                 <td>${escapeHtml(row.telefono)}</td>
@@ -602,7 +691,6 @@
                 <p>${escapeHtml(row.message)}</p>
                 <time>${formatDate(row.created_at)}</time>
                 <div class="table-actions">
-                    <button type="button" data-action="edit-message" data-id="${row.id}" class="secondary-button">Editar</button>
                     <button type="button" data-action="delete-message" data-id="${row.id}" class="danger-button">Borrar</button>
                 </div>
             </article>
@@ -929,10 +1017,12 @@
         const action = button.dataset.action;
         const id = button.dataset.id;
         const eventId = eventSelect.value;
+        const response = currentResponses.find((item) => item.id === id);
 
         try {
             if (action === 'delete-response') {
-                if (!window.confirm('Borrar esta respuesta?')) {
+                const confirmed = await confirmDeleteResponse(response?.nombre);
+                if (!confirmed) {
                     return;
                 }
 
@@ -940,15 +1030,14 @@
             }
 
             if (action === 'edit-response') {
-                const message = window.prompt('Nuevo mensaje de la respuesta');
-                if (message === null) {
+                const asistencia = await editResponseAttendance(response);
+                if (asistencia === null) {
                     return;
                 }
 
-                const asistencia = window.confirm('Aceptar para marcar asistencia como Si. Cancelar para marcar No.');
                 await client
                     .from('eventin_guest_responses')
-                    .update({ mensaje: message.trim(), asistencia })
+                    .update({ asistencia })
                     .eq('id', id)
                     .throwOnError();
             }
@@ -976,19 +1065,6 @@
                 }
 
                 await client.from('eventin_public_messages').delete().eq('id', id).throwOnError();
-            }
-
-            if (action === 'edit-message') {
-                const message = window.prompt('Nuevo texto del mensaje');
-                if (message === null || !message.trim()) {
-                    return;
-                }
-
-                await client
-                    .from('eventin_public_messages')
-                    .update({ message: message.trim() })
-                    .eq('id', id)
-                    .throwOnError();
             }
 
             await loadMessages(eventId);

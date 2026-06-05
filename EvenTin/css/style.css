@@ -994,6 +994,11 @@ fieldset {
     flex-wrap: wrap;
 }
 
+.modal-radio-group {
+    margin: 0 0 18px;
+    text-align: left;
+}
+
 .admin-page {
     display: block;
 }
