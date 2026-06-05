@@ -602,7 +602,7 @@
             await loadEventData(currentEvents[0].id);
         } else {
             responsesTable.innerHTML = '<tr><td colspan="7">No hay eventos disponibles.</td></tr>';
-            messagesList.innerHTML = '<p>No hay eventos disponibles.</p>';
+            messagesList.innerHTML = '<tr><td colspan="4">No hay eventos disponibles.</td></tr>';
             settingsForm.reset();
             eventSettingsTitle.textContent = 'Editar evento';
             showAllResponsesButton.hidden = true;
@@ -767,7 +767,7 @@
             .range(0, PREVIEW_LIMIT - 1);
 
         if (error || !data?.length) {
-            messagesList.innerHTML = '<p>Sin mensajes publicos.</p>';
+            messagesList.innerHTML = '<tr><td colspan="4">Sin mensajes publicos.</td></tr>';
             totalMessages = 0;
             showAllMessagesButton.hidden = true;
             return;
@@ -781,14 +781,14 @@
 
     function renderMessages(rows) {
         return rows.map((row) => `
-            <article class="message-item">
-                <strong>${escapeHtml(row.author_name)}</strong>
-                <p>${escapeHtml(row.message)}</p>
-                <time>${formatDate(row.created_at)}</time>
-                <div class="table-actions">
+            <tr>
+                <td>${escapeHtml(row.author_name)}</td>
+                <td>${escapeHtml(row.message)}</td>
+                <td>${formatDate(row.created_at)}</td>
+                <td class="table-actions">
                     <button type="button" data-action="delete-message" data-id="${row.id}" class="danger-button">Borrar</button>
-                </div>
-            </article>
+                </td>
+            </tr>
         `).join('');
     }
 
@@ -823,7 +823,7 @@
         loadedMessages += rows.length;
         allMessagesList.insertAdjacentHTML('beforeend', rows.length
             ? renderMessages(rows)
-            : '<p>No hay mensajes publicos.</p>');
+            : '<tr><td colspan="4">No hay mensajes publicos.</td></tr>');
         loadMoreMessagesButton.hidden = loadedMessages >= totalMessages;
         setStatus(allMessagesStatus, totalMessages ? `${loadedMessages} de ${totalMessages} mensajes cargados.` : '', false);
     }

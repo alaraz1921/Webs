@@ -207,7 +207,19 @@
                             <h2>Mensajes publicos</h2>
                             <button id="show-all-messages" type="button" class="secondary-button" hidden>Ver todos</button>
                         </div>
-                        <div id="messages-list" class="message-list"></div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Mensaje</th>
+                                        <th>Creacion</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="messages-list"></tbody>
+                            </table>
+                        </div>
                     </section>
                 </div>
             </section>
@@ -245,7 +257,19 @@
                         <h2>Mensajes publicos</h2>
                         <button id="back-from-messages" type="button" class="secondary-button">Volver</button>
                     </div>
-                    <div id="all-messages-list" class="message-list"></div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Mensaje</th>
+                                    <th>Creacion</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-messages-list"></tbody>
+                        </table>
+                    </div>
                     <button id="load-more-messages" type="button" class="secondary-button" hidden>Cargar mas</button>
                     <p id="all-messages-status" class="form-status" role="status"></p>
                 </section>
