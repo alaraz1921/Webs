@@ -12,6 +12,8 @@
     const showUsersViewButton = document.getElementById('show-users-view');
     const showContactsViewButton = document.getElementById('show-contacts-view');
     const eventsView = document.getElementById('events-view');
+    const responsesView = document.getElementById('responses-view');
+    const messagesView = document.getElementById('messages-view');
     const usersView = document.getElementById('users-view');
     const contactsView = document.getElementById('contacts-view');
     const eventSelect = document.getElementById('event-select');
@@ -45,7 +47,17 @@
     const publicLink = document.getElementById('public-link');
     const eventLinks = document.getElementById('event-links');
     const responsesTable = document.getElementById('responses-table');
+    const showAllResponsesButton = document.getElementById('show-all-responses');
+    const allResponsesTable = document.getElementById('all-responses-table');
+    const loadMoreResponsesButton = document.getElementById('load-more-responses');
+    const allResponsesStatus = document.getElementById('all-responses-status');
+    const backFromResponsesButton = document.getElementById('back-from-responses');
     const messagesList = document.getElementById('messages-list');
+    const showAllMessagesButton = document.getElementById('show-all-messages');
+    const allMessagesList = document.getElementById('all-messages-list');
+    const loadMoreMessagesButton = document.getElementById('load-more-messages');
+    const allMessagesStatus = document.getElementById('all-messages-status');
+    const backFromMessagesButton = document.getElementById('back-from-messages');
     const userForm = document.getElementById('user-form');
     const clearUserFormButton = document.getElementById('clear-user-form');
     const userStatus = document.getElementById('user-status');
@@ -63,6 +75,8 @@
     const userResetLink = document.getElementById('user-reset-link');
 
     const IMAGE_BUCKET = 'eventin-images';
+    const PREVIEW_LIMIT = 3;
+    const PAGE_SIZE = 20;
     const ORIGINAL_IMAGE_LIMIT_BYTES = 12 * 1024 * 1024;
     const OPTIMIZED_IMAGE_LIMIT_BYTES = 2.5 * 1024 * 1024;
     const IMAGE_UPLOADS = {
@@ -88,6 +102,10 @@
     let currentEvents = [];
     let currentEventTypes = [];
     let currentResponses = [];
+    let loadedResponses = 0;
+    let totalResponses = 0;
+    let loadedMessages = 0;
+    let totalMessages = 0;
     let currentUsers = [];
     let currentContactRequests = [];
 
@@ -458,6 +476,8 @@
     function showView(viewName) {
         const usersAllowed = isAdmin();
         eventsView.hidden = viewName !== 'events';
+        responsesView.hidden = viewName !== 'responses';
+        messagesView.hidden = viewName !== 'messages';
         usersView.hidden = viewName !== 'users' || !usersAllowed;
         contactsView.hidden = viewName !== 'contacts' || !usersAllowed;
         showEventsViewButton.classList.toggle('active', viewName === 'events');
@@ -470,6 +490,14 @@
 
         if (viewName === 'contacts' && usersAllowed) {
             loadContactRequests();
+        }
+
+        if (viewName === 'responses') {
+            loadAllResponses(true);
+        }
+
+        if (viewName === 'messages') {
+            loadAllMessages(true);
         }
     }
 
@@ -577,6 +605,10 @@
             messagesList.innerHTML = '<p>No hay eventos disponibles.</p>';
             settingsForm.reset();
             eventSettingsTitle.textContent = 'Editar evento';
+            showAllResponsesButton.hidden = true;
+            showAllMessagesButton.hidden = true;
+            allResponsesTable.innerHTML = '';
+            allMessagesList.innerHTML = '';
             publicLink.textContent = isEventUser()
                 ? 'No hay ningun evento con el codigo asignado a tu usuario.'
                 : 'Todavia no hay eventos creados.';
@@ -643,21 +675,14 @@
         setStatus(settingsStatus, '', false);
     }
 
-    async function loadResponses(eventId) {
-        const { data, error } = await client
-            .from('eventin_guest_responses')
-            .select('id,nombre,telefono,asistencia,mensaje,created_at,updated_at')
-            .eq('event_id', eventId)
-            .order('updated_at', { ascending: false });
+    function rememberResponses(rows) {
+        const byId = new Map(currentResponses.map((item) => [item.id, item]));
+        rows.forEach((item) => byId.set(item.id, item));
+        currentResponses = Array.from(byId.values());
+    }
 
-        if (error || !data?.length) {
-            currentResponses = [];
-            responsesTable.innerHTML = '<tr><td colspan="7">Sin respuestas recibidas.</td></tr>';
-            return;
-        }
-
-        currentResponses = data;
-        responsesTable.innerHTML = currentResponses.map((row) => `
+    function renderResponseRows(rows) {
+        return rows.map((row) => `
             <tr>
                 <td>${escapeHtml(row.nombre)}</td>
                 <td>${escapeHtml(row.telefono)}</td>
@@ -673,19 +698,89 @@
         `).join('');
     }
 
-    async function loadMessages(eventId) {
-        const { data, error } = await client
-            .from('eventin_public_messages')
-            .select('id,author_name,message,created_at')
+    async function loadResponses(eventId) {
+        const { data, error, count } = await client
+            .from('eventin_guest_responses')
+            .select('id,nombre,telefono,asistencia,mensaje,created_at,updated_at', { count: 'exact' })
             .eq('event_id', eventId)
-            .order('created_at', { ascending: false });
+            .order('updated_at', { ascending: false })
+            .range(0, PREVIEW_LIMIT - 1);
 
         if (error || !data?.length) {
-            messagesList.innerHTML = '<p>Sin mensajes publicos.</p>';
+            currentResponses = [];
+            totalResponses = 0;
+            responsesTable.innerHTML = '<tr><td colspan="7">Sin respuestas recibidas.</td></tr>';
+            showAllResponsesButton.hidden = true;
             return;
         }
 
-        messagesList.innerHTML = data.map((row) => `
+        currentResponses = data;
+        totalResponses = count || data.length;
+        responsesTable.innerHTML = renderResponseRows(data);
+        showAllResponsesButton.hidden = totalResponses <= PREVIEW_LIMIT;
+        showAllResponsesButton.textContent = `Ver todas (${totalResponses})`;
+    }
+
+    async function loadAllResponses(reset = false) {
+        const eventId = eventSelect.value;
+        if (!eventId) {
+            return;
+        }
+
+        if (reset) {
+            loadedResponses = 0;
+            allResponsesTable.innerHTML = '';
+            setStatus(allResponsesStatus, '', false);
+        }
+
+        const from = loadedResponses;
+        const to = from + PAGE_SIZE - 1;
+        const { data, error, count } = await client
+            .from('eventin_guest_responses')
+            .select('id,nombre,telefono,asistencia,mensaje,created_at,updated_at', { count: 'exact' })
+            .eq('event_id', eventId)
+            .order('updated_at', { ascending: false })
+            .range(from, to);
+
+        if (error) {
+            setStatus(allResponsesStatus, 'No se pudieron cargar las respuestas.', true);
+            return;
+        }
+
+        totalResponses = count || 0;
+        const rows = data || [];
+        rememberResponses(rows);
+        loadedResponses += rows.length;
+        allResponsesTable.insertAdjacentHTML('beforeend', rows.length
+            ? renderResponseRows(rows)
+            : '<tr><td colspan="7">No hay respuestas.</td></tr>');
+        loadMoreResponsesButton.hidden = loadedResponses >= totalResponses;
+        setStatus(allResponsesStatus, totalResponses ? `${loadedResponses} de ${totalResponses} respuestas cargadas.` : '', false);
+    }
+
+    async function loadMessages(eventId) {
+        const { data, error, count } = await client
+            .from('eventin_public_messages')
+            .select('id,author_name,message,created_at', { count: 'exact' })
+            .eq('event_id', eventId)
+            .order('created_at', { ascending: false })
+            .range(0, PREVIEW_LIMIT - 1);
+
+        if (error || !data?.length) {
+            messagesList.innerHTML = '<p>Sin mensajes publicos.</p>';
+            totalMessages = 0;
+            showAllMessagesButton.hidden = true;
+            return;
+        }
+
+        totalMessages = count || data.length;
+        messagesList.innerHTML = renderMessages(data);
+        showAllMessagesButton.hidden = totalMessages <= PREVIEW_LIMIT;
+        showAllMessagesButton.textContent = `Ver todos (${totalMessages})`;
+    }
+
+    function renderMessages(rows) {
+        return rows.map((row) => `
             <article class="message-item">
                 <strong>${escapeHtml(row.author_name)}</strong>
                 <p>${escapeHtml(row.message)}</p>
@@ -695,6 +790,42 @@
                 </div>
             </article>
         `).join('');
+    }
+
+    async function loadAllMessages(reset = false) {
+        const eventId = eventSelect.value;
+        if (!eventId) {
+            return;
+        }
+
+        if (reset) {
+            loadedMessages = 0;
+            allMessagesList.innerHTML = '';
+            setStatus(allMessagesStatus, '', false);
+        }
+
+        const from = loadedMessages;
+        const to = from + PAGE_SIZE - 1;
+        const { data, error, count } = await client
+            .from('eventin_public_messages')
+            .select('id,author_name,message,created_at', { count: 'exact' })
+            .eq('event_id', eventId)
+            .order('created_at', { ascending: false })
+            .range(from, to);
+
+        if (error) {
+            setStatus(allMessagesStatus, 'No se pudieron cargar los mensajes.', true);
+            return;
+        }
+
+        totalMessages = count || 0;
+        const rows = data || [];
+        loadedMessages += rows.length;
+        allMessagesList.insertAdjacentHTML('beforeend', rows.length
+            ? renderMessages(rows)
+            : '<p>No hay mensajes publicos.</p>');
+        loadMoreMessagesButton.hidden = loadedMessages >= totalMessages;
+        setStatus(allMessagesStatus, totalMessages ? `${loadedMessages} de ${totalMessages} mensajes cargados.` : '', false);
     }
 
     async function loadUsers() {
@@ -833,6 +964,12 @@
     showUsersViewButton.addEventListener('click', () => showView('users'));
     showContactsViewButton.addEventListener('click', () => showView('contacts'));
     refreshContactRequestsButton.addEventListener('click', loadContactRequests);
+    showAllResponsesButton.addEventListener('click', () => showView('responses'));
+    showAllMessagesButton.addEventListener('click', () => showView('messages'));
+    backFromResponsesButton.addEventListener('click', () => showView('events'));
+    backFromMessagesButton.addEventListener('click', () => showView('events'));
+    loadMoreResponsesButton.addEventListener('click', () => loadAllResponses(false));
+    loadMoreMessagesButton.addEventListener('click', () => loadAllMessages(false));
 
     eventSelect.addEventListener('change', () => {
         loadEventData(eventSelect.value);
@@ -1008,7 +1145,7 @@
         }
     });
 
-    responsesTable.addEventListener('click', async (event) => {
+    async function handleResponseAction(event) {
         const button = event.target.closest('button[data-action]');
         if (!button) {
             return;
@@ -1043,12 +1180,18 @@
             }
 
             await loadResponses(eventId);
+            if (!responsesView.hidden) {
+                await loadAllResponses(true);
+            }
         } catch (error) {
-            setStatus(settingsStatus, 'No se pudo actualizar la respuesta.', true);
+            setStatus(responsesView.hidden ? settingsStatus : allResponsesStatus, 'No se pudo actualizar la respuesta.', true);
         }
-    });
+    }
 
-    messagesList.addEventListener('click', async (event) => {
+    responsesTable.addEventListener('click', handleResponseAction);
+    allResponsesTable.addEventListener('click', handleResponseAction);
+
+    async function handleMessageAction(event) {
         const button = event.target.closest('button[data-action]');
         if (!button) {
             return;
@@ -1068,10 +1211,16 @@
             }
 
             await loadMessages(eventId);
+            if (!messagesView.hidden) {
+                await loadAllMessages(true);
+            }
         } catch (error) {
-            setStatus(settingsStatus, 'No se pudo actualizar el mensaje.', true);
+            setStatus(messagesView.hidden ? settingsStatus : allMessagesStatus, 'No se pudo actualizar el mensaje.', true);
         }
-    });
+    }
+
+    messagesList.addEventListener('click', handleMessageAction);
+    allMessagesList.addEventListener('click', handleMessageAction);
 
     contactRequestsList.addEventListener('click', async (event) => {
         const button = event.target.closest('button[data-action="delete-contact-request"]');

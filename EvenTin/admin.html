@@ -180,7 +180,10 @@
 
                 <div class="admin-grid">
                     <section class="data-panel">
-                        <h2>Respuestas recibidas</h2>
+                        <div class="admin-view-header">
+                            <h2>Respuestas Invitaciones</h2>
+                            <button id="show-all-responses" type="button" class="secondary-button" hidden>Ver todas</button>
+                        </div>
                         <div class="table-wrap">
                             <table>
                                 <thead>
@@ -200,10 +203,52 @@
                     </section>
 
                     <section class="data-panel">
-                        <h2>Mensajes publicos</h2>
+                        <div class="admin-view-header">
+                            <h2>Mensajes publicos</h2>
+                            <button id="show-all-messages" type="button" class="secondary-button" hidden>Ver todos</button>
+                        </div>
                         <div id="messages-list" class="message-list"></div>
                     </section>
                 </div>
+            </section>
+
+            <section id="responses-view" class="admin-view" hidden>
+                <section class="data-panel">
+                    <div class="admin-view-header">
+                        <h2>Respuestas Invitaciones</h2>
+                        <button id="back-from-responses" type="button" class="secondary-button">Volver</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Telefono</th>
+                                    <th>Asistencia</th>
+                                    <th>Mensaje</th>
+                                    <th>Creacion</th>
+                                    <th>Actualizacion</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-responses-table"></tbody>
+                        </table>
+                    </div>
+                    <button id="load-more-responses" type="button" class="secondary-button" hidden>Cargar mas</button>
+                    <p id="all-responses-status" class="form-status" role="status"></p>
+                </section>
+            </section>
+
+            <section id="messages-view" class="admin-view" hidden>
+                <section class="data-panel">
+                    <div class="admin-view-header">
+                        <h2>Mensajes publicos</h2>
+                        <button id="back-from-messages" type="button" class="secondary-button">Volver</button>
+                    </div>
+                    <div id="all-messages-list" class="message-list"></div>
+                    <button id="load-more-messages" type="button" class="secondary-button" hidden>Cargar mas</button>
+                    <p id="all-messages-status" class="form-status" role="status"></p>
+                </section>
             </section>
 
             <section id="users-view" class="admin-view" hidden>
