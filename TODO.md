@@ -1,60 +1,83 @@
-﻿# TODO
+# TODO
+
+Ultima revision: 2026-06-08
 
 ## Prioridad Alta
 
-- [x] PA-01 Corregir la codificacion de caracteres en HTML/CSS para que acentos, eñes, simbolos e iconos se vean correctamente.
-- [x] PA-02 Definir si `Privado/index.html` sera una zona privada real o solo un placeholder; ahora usa Supabase Auth.
-- [x] PA-03 Evitar publicar PINes o claves como seguridad real en cliente. Bingo Monitor e Infiltrado validan la clave diaria con RPC en Supabase.
-- [x] PA-04 Cambiar `localStorage.clear()` en `infiltrado/index.html` por borrado selectivo de claves `infiltrado_*` para no eliminar estado de Bingo u otras paginas.
-- [x] PA-05 Decidir que hacer con `Bingo/bingoOLD.html` y `Bingo/bingo_monitorOLD.html`: eliminados porque ya no se usan.
-- [x] PA-06 Al desplegar el menú hamburguesa el fondo de este no debe ser opaco, que tenga transparencia. Y parece que hay un error cuando desde el menu se pulsa en contacto, que a pesar de desplazarse a esta sección, no se cierra el menu.
-- [x] PA-07 En el panel de acceso de el infiltrado en la caja de la clave deben aparecer asteriscos y poner titulo a la pagina "INFILTRADO" y al label "CONTROL DE ACCESO" le falta el icono del candado. Ademas poner un poco de margen al panel de acceso, igual que tiene el panel de acceso al bingo.
-- [x] PA-08 en el panel de accesor al monitor de bingo tambien añadir el titulo "MONITOR BINGO" y el label "CONTROL DE ACCESO" en mayusculas y el boton verde de acceder solo con el caption "ACCEDER" en mayúsculas.
-
+- [x] PA-01 Corregir la codificacion visible de caracteres en las paginas principales.
+- [x] PA-02 Convertir `Privado/index.html` en una zona privada real con Supabase Auth.
+- [x] PA-03 Validar las claves diarias de Monitor Bingo e Infiltrado mediante RPC en Supabase, sin exponer la formula como validacion cliente.
+- [x] PA-04 Sustituir `localStorage.clear()` de Infiltrado por borrado selectivo de claves `infiltrado_*`.
+- [x] PA-05 Eliminar `Bingo/bingoOLD.html` y `Bingo/bingo_monitorOLD.html`.
+- [x] PA-06 Hacer transparente el menu hamburguesa y cerrarlo al navegar.
+- [x] PA-07 Unificar el acceso de Infiltrado: clave oculta, titulo independiente, `CONTROL DE ACCESO`, margen y error `CLAVE INCORRECTA`.
+- [x] PA-08 Unificar el acceso de Monitor Bingo: titulo independiente, `CONTROL DE ACCESO`, boton `ENTRAR` y error `CLAVE INCORRECTA`.
+- [x] PA-09 Separar Webs y EvenTin en proyectos Supabase independientes.
+- [x] PA-10 Conectar el formulario de contacto de Webs a `webs_contact_messages` y `notify-webs-contact`.
 
 ## Prioridad Media
 
-- [ ] PM-01 Crear un `README.md` con descripcion del sitio, estructura, como ejecutarlo localmente y rutas principales.
-- [ ] PM-02 Documentar el flujo de Bingo: monitor, carton, PIN, clave/contraclave y comportamiento con `localStorage`.
-- [ ] PM-03 Documentar el flujo de El Infiltrado: acceso, caducidad de sesion, configuracion, persistencia y reinicios.
-- [ ] PM-04 Aplicar en Supabase la migracion `supabase/migrations/20260601110000_initial_private_schema.sql`.
-- [ ] PM-05 Aplicar en Supabase la migracion `supabase/migrations/20260601113000_daily_access_codes.sql`.
-- [ ] PM-06 Crear el primer usuario privado en Supabase Auth y asignarle rol `admin` en `profiles`.
+- [ ] PM-01 Crear un `README.md` raiz con descripcion del sitio, estructura, ejecucion local y rutas principales.
+- [ ] PM-02 Documentar el flujo de Bingo: monitor, carton, clave/contraclave y `localStorage`.
+- [ ] PM-03 Documentar el flujo de Infiltrado: acceso, caducidad, configuracion, persistencia y reinicio.
+- [x] PM-04 Aplicar en Supabase Webs la migracion inicial de zona privada.
+- [x] PM-05 Aplicar en Supabase Webs las funciones de clave diaria.
+- [x] PM-06 Crear usuario privado en Supabase Auth y configurar acceso administrativo.
 - [ ] PM-07 Cargar en `Privado/index.html` los proyectos accesibles desde `app_projects` y `project_members`.
-- [x] PM-08 Sustituir los `alert()` restantes por modales propios para mantener una UX consistente.
-- [ ] PM-09 Hacer que el monitor de Bingo persista partida en `localStorage` si se recarga accidentalmente.
-- [x] PM-10 Revisar el formulario de contacto de `index.html`: conectar a un servicio real, usar `mailto:` o quitarlo si es decorativo.
-- [ ] PM-11 Fijar o reemplazar dependencias CDN, especialmente Tailwind, para evitar cambios inesperados o fallos sin conexion.
-- [x] PM-12 Separar JavaScript inline en archivos por pagina cuando el mantenimiento empiece a crecer.
-- [ ] PM-13 Dividir `assets/styles.css` en secciones o archivos mas manejables si se siguen añadiendo paginas.
+- [x] PM-08 Sustituir los `alert()` principales por modales propios.
+- [ ] PM-09 Persistir la partida del Monitor Bingo en `localStorage` ante recargas accidentales.
+- [x] PM-10 Conectar el formulario de contacto de `index.html` a Supabase y aviso por email.
+- [ ] PM-11 Fijar o reemplazar dependencias CDN, especialmente Tailwind.
+- [x] PM-12 Separar la logica JavaScript principal en archivos por pagina.
+- [ ] PM-13 Dividir `assets/styles.css` en archivos mas manejables.
+- [ ] PM-14 Añadir una vista privada para consultar y borrar `webs_contact_messages`.
+- [ ] PM-15 Revisar y eliminar del Supabase de Webs tablas antiguas `eventin_*` o tablas de eventos sin prefijo, solo si estan vacias.
 
 ## Prioridad Baja
 
-- [x] PB-01 Revisar `index_redireccion.html` y confirmar si todavia tiene uso: eliminado porque ya no se usa.
+- [x] PB-01 Eliminar `index_redireccion.html`.
 - [ ] PB-02 Añadir favicon y metadatos sociales basicos.
-- [ ] PB-03 Añadir atributos de accesibilidad a modales: foco inicial, cierre con Escape y roles ARIA.
-- [ ] PB-04 Revisar contraste y tamaños tactiles en moviles.
-- [x] PB-05 Crear una checklist manual de pruebas para portada, ValentinaPlay, Bingo, Infiltrado, Privado y 404.
-- [x] PB-06 Normalizar nombres de archivos y titulos visibles: El Infiltrado usa `infiltrado/index.html`.
+- [ ] PB-03 Mejorar accesibilidad de modales: foco inicial, cierre con Escape y roles ARIA.
+- [ ] PB-04 Revisar contraste y tamanos tactiles en movil.
+- [x] PB-05 Mantener una checklist manual de pruebas.
+- [x] PB-06 Normalizar nombres visibles y rutas de Infiltrado.
 - [ ] PB-07 Considerar mover imagenes y assets por dominio funcional si crecen.
+- [ ] PB-08 Revisar y corregir comentarios/textos mojibake restantes en CSS y documentacion.
+
+## EvenTin
+
+La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
+
+- [ ] ET-01 Ejecutar `EvenTin/sql/schema.sql` actualizado en Supabase tras cambios de esquema.
+- [ ] ET-02 Activar `Leaked password protection` en Supabase Auth.
+- [ ] ET-03 Confirmar que `create-event-user` esta desplegada y crea usuarios correctamente.
+- [ ] ET-04 Confirmar que `notify-contact` tiene secretos correctos y envia emails.
+- [ ] ET-05 Probar subida y sustitucion de imagenes tras aplicar el esquema actualizado.
+- [ ] ET-06 Probar flujo completo de evento, invitaciones, invitados, respuestas, mensajes y contactos.
+- [ ] ET-07 Verificar dominio/remitente propio en Resend si se quiere usar `contacto@alaraz1921.com`.
 
 ## Pruebas Manuales Recomendadas
 
-- [ ] PR-01 Abrir `index.html` en escritorio y movil; comprobar navbar, submenu y modal "Otros".
-- [ ] PR-02 Probar enlaces a `Privado`, `ValentinaPlay`, `Bingo/carton.html`, `Bingo/monitor.html` e `infiltrado/index.html`.
-- [ ] PR-03 En Bingo carton: generar carton, empezar partida, marcar numeros, recargar y verificar persistencia.
-- [ ] PR-04 En Bingo carton: terminar partida, solicitar cambio, generar clave y validar con contraclave del monitor.
-- [ ] PR-05 En Bingo monitor: entrar con PIN, comenzar, pausar, reanudar, reiniciar y calcular contraclave.
-- [ ] PR-06 En El Infiltrado: entrar con clave del dia, configurar jugadores, revelar roles, recargar a mitad de partida y finalizar.
-- [ ] PR-07 En ValentinaPlay: abrir cada juego y validar reinicio/victoria/flujo principal.
-- [ ] PR-08 Abrir una ruta inexistente para validar `404.html` en el entorno de despliegue real.
+- [ ] PR-01 Abrir `index.html` en escritorio y movil; comprobar navbar, icono privado, hero y contacto.
+- [ ] PR-02 Probar `games.html` y enlaces a ValentinaPlay, Bingo e Infiltrado.
+- [ ] PR-03 Comprobar que los botones `Volver a Games` regresan a `games.html`.
+- [ ] PR-04 En Bingo carton: generar carton, empezar partida, marcar numeros, recargar y verificar persistencia.
+- [ ] PR-05 En Bingo carton: solicitar cambio, generar clave y validar con contraclave del monitor.
+- [ ] PR-06 En Monitor Bingo: entrar con clave diaria, comenzar, pausar, reanudar, reiniciar y calcular contraclave.
+- [ ] PR-07 En Infiltrado: entrar con clave diaria, configurar jugadores, revelar roles, recargar y finalizar.
+- [ ] PR-08 En ValentinaPlay: abrir cada juego y validar reinicio/victoria/flujo principal.
+- [ ] PR-09 En Privado: iniciar/cerrar sesion y comprobar recordatorio de formula.
+- [ ] PR-10 Enviar contacto desde Webs; comprobar fila en `webs_contact_messages` y recepcion del email.
+- [ ] PR-11 Abrir una ruta inexistente para validar `404.html`.
+- [ ] PR-12 Ejecutar el flujo manual completo indicado en `EvenTin/PROJECT_HANDOFF.md`.
 
-## Ideas de Mejora
+## Ideas De Mejora
 
-- [ ] IM-01 Convertir los juegos en componentes reutilizables solo si el proyecto crece lo suficiente para justificarlo.
-- [x] IM-02 Añadir ayuda contextual para explicar reglas de Bingo e Infiltrado.
-- [ ] IM-03 Preparar despliegue en GitHub Pages con instrucciones claras.
-- [ ] IM-04 Añadir versionado visible o changelog si se usa en eventos/familia.
-- [x] IM-05 En el juego del infiltrado, cambiar las cajas de texto para indicar los infiltrados al resolver el juego, por desplegables que contengan los nombres de los participantes.
-- [ ] IM-06 Icono para el 404.
-- [x] IM-07 En las pantallas de bingo e infiltrado, donde hemos añadido el icono de ayuda junto al titulo, mejor lo vamos a quitar de la parte superior y lo vamos a colocar en la parte inferior, aislado, bajo el boton de volver.
+- [ ] IM-01 Convertir juegos en componentes reutilizables solo si el crecimiento lo justifica.
+- [x] IM-02 Añadir ayuda contextual para Bingo e Infiltrado.
+- [ ] IM-03 Documentar claramente despliegue y mantenimiento de GitHub Pages.
+- [ ] IM-04 Añadir changelog o versionado visible.
+- [x] IM-05 Resolver Infiltrado mediante desplegables con participantes.
+- [ ] IM-06 Añadir icono/favicon para 404 y metadatos del sitio.
+- [x] IM-07 Colocar ayuda de Bingo e Infiltrado en la parte inferior.
+- [ ] IM-08 Añadir indicadores operativos para avisar si una Edge Function de email falla aunque el mensaje quede guardado.

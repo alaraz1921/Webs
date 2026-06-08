@@ -1,58 +1,92 @@
 # PROJECT_CONTEXT
 
+Ultima actualizacion: 2026-06-08
+
 ## Resumen
 
-`Webs` es un repositorio de sitio web estatico personal en HTML, CSS y JavaScript vanilla. No tiene sistema de build, gestor de dependencias, backend ni framework local. El proyecto se puede abrir directamente desde `index.html` o servirse con cualquier servidor estatico.
+`Webs` es un repositorio multipagina publicado con GitHub Pages y dominio personalizado. Usa HTML, CSS y JavaScript vanilla, sin sistema de build, `package.json`, framework local ni tests automatizados.
 
-Repositorio analizado:
+Repositorio:
 
 ```text
 V:\Proyectos\Git\Webs
 ```
 
-Rama actual:
+Rama principal:
 
 ```text
 main
 ```
 
-Ultimos commits vistos:
+Remoto:
 
 ```text
-b2ca9cc Usar modal propio en monitor de bingo
-0a43252 Ajustar botones de vuelta
-8da82e9 Ajustar estilos de portada y accesos
-3276389 Rename IMG_1914.jpg to images/IMG_1914.jpg
-4681855 Add files via upload
+https://github.com/alaraz1921/Webs.git
 ```
+
+Dominio:
+
+```text
+https://www.alaraz1921.com/
+```
+
+## Proyectos Dentro Del Repositorio
+
+El repositorio contiene dos proyectos logicamente independientes:
+
+1. `Webs`: portal personal, juegos, zona privada y formulario de contacto.
+2. `EvenTin/`: plataforma de eventos con su propia base de datos, autenticacion, Edge Functions y documentacion.
+
+Aunque comparten repositorio y GitHub Pages, no deben compartir tablas, claves ni funciones Supabase.
+
+## Cambios Recientes
+
+### Webs
+
+- Se creo `games.html` como concentrador de juegos.
+- La portada quedo simplificada con Games, Contacto e icono discreto de acceso privado.
+- El contacto guarda en `webs_contact_messages` y envia aviso mediante `notify-webs-contact`.
+- Bingo, Monitor, Infiltrado, Privado y Games comparten fondo y cabecera visual.
+- Los juegos vuelven a `games.html`.
+- `supabase/.temp/` esta ignorado mediante `.gitignore`.
+
+### EvenTin
+
+- Se amplio a plataforma de eventos completa con paginas publicas, invitaciones por token, invitados y panel privado.
+- Se incorporaron gestion de usuarios, restauracion de contrasena, almacenamiento de imagenes y Edge Functions.
+- Se refinaron branding, cabeceras, navegacion, vistas admin y experiencia movil.
+- El estado operativo detallado se mantiene en `EvenTin/PROJECT_HANDOFF.md`.
 
 ## Stack
 
 - HTML multipagina.
-- CSS compartido en `assets/styles.css`.
+- CSS compartido de Webs en `assets/styles.css`.
 - JavaScript por pagina en `assets/js/`.
-- Tailwind CSS por CDN en las paginas de `ValentinaPlay`.
-- Google Fonts por CDN en la portada y zona privada.
-- Supabase JS por CDN en `Privado/index.html`.
-- Supabase JS por CDN en `EvenTin`, usando un proyecto Supabase independiente del proyecto privado de `Webs`.
-- Supabase JS por CDN en `Bingo/monitor.html` e `infiltrado/index.html` para validar clave diaria por RPC.
-- Persistencia local mediante `localStorage` en Bingo y El Infiltrado.
+- Tailwind CSS por CDN en ValentinaPlay.
+- Google Fonts por CDN.
+- Supabase JS por CDN.
+- Supabase Auth para zonas privadas.
+- Supabase Edge Functions y Resend para avisos por email.
+- `localStorage` para persistencia de juegos.
 
-No se encontraron:
+No existen:
 
-- `package.json`.
-- Configuracion de build.
-- Tests automatizados.
+- Sistema de build.
+- Gestor de paquetes local.
 - Linter o formatter configurado.
-- Backend o API.
+- Tests automatizados.
 
-## Estructura
+## Estructura Principal
 
 ```text
 .
 |-- index.html
+|-- games.html
 |-- 404.html
-|-- Notas
+|-- CNAME
+|-- .gitignore
+|-- PROJECT_CONTEXT.md
+|-- TODO.md
 |-- assets/
 |   |-- styles.css
 |   |-- supabase-client.js
@@ -62,300 +96,303 @@ No se encontraron:
 |   `-- IMG_1914.jpg
 |-- Privado/
 |   `-- index.html
-|-- EvenTin/
-|   |-- index.html
-|   |-- invitacion.html
-|   |-- admin.html
-|   |-- js/
-|   `-- sql/
-|-- supabase/
-|   |-- README.md
-|   `-- migrations/
-|       `-- 20260601110000_initial_private_schema.sql
 |-- Bingo/
 |   |-- carton.html
-|   |-- monitor.html
+|   `-- monitor.html
 |-- infiltrado/
 |   `-- index.html
-`-- ValentinaPlay/
+|-- ValentinaPlay/
+|-- supabase/
+|   |-- README.md
+|   |-- migrations/
+|   `-- functions/notify-webs-contact/
+`-- EvenTin/
     |-- index.html
-    |-- tictactoe.html
-    |-- connectfour.html
-    |-- number_to_number.html
-    |-- multiplication_hunt.html
-    |-- guess_the_number.html
-    `-- magic_clock.html
+    |-- evento.html
+    |-- invitacion.html
+    |-- invitados.html
+    |-- admin.html
+    |-- reset-password.html
+    |-- debug.html
+    |-- README.md
+    |-- PROJECT_HANDOFF.md
+    |-- MANUAL_USUARIO.md
+    |-- css/
+    |-- js/
+    |-- sql/schema.sql
+    |-- assets/
+    `-- supabase/functions/
 ```
 
-## Paginas Principales
+## Webs
 
-### `index.html`
+### Portada `index.html`
 
-Portada del sitio `alaraz1921`.
+Responsabilidades actuales:
 
-Responsabilidades:
+- Navbar responsive con enlaces a `games.html` y a la seccion de contacto.
+- Hero con `images/IMG_1914.jpg`.
+- Acceso discreto a `Privado/` mediante icono inferior.
+- Formulario de contacto real.
 
-- Navbar responsive.
-- Hero con imagen `images/IMG_1914.jpg`.
-- Accesos a `Privado`, `ValentinaPlay` y otros proyectos.
-- Modal de "Otros Proyectos".
-- Formulario de contacto simulado.
+El formulario:
 
-Notas:
+- Usa `assets/supabase-client.js`.
+- Guarda mensajes en `public.webs_contact_messages`.
+- Invoca la Edge Function `notify-webs-contact`.
+- La funcion envia aviso por email mediante Resend.
+- Si falla el email, el mensaje puede seguir quedando guardado en Supabase.
 
-- El formulario no envia datos reales. Hace `event.preventDefault()`, limpia el formulario y muestra un modal propio de confirmacion.
-- La codificacion de caracteres fue revisada y corregida en la pasada de mantenimiento del 2026-06-01.
+### `games.html`
 
-### `assets/styles.css`
+Concentrador de juegos:
 
-Hoja de estilos compartida para casi todo el sitio.
+- Valentina's Play Time.
+- Bingo.
+- Infiltrado.
 
-Incluye estilos para:
+Los botones de vuelta de Bingo, Monitor e Infiltrado regresan a `games.html`. Desde `games.html` se vuelve a la portada.
 
-- Portada.
-- Pagina 404.
-- El Infiltrado.
-- Bingo carton.
-- Bingo monitor.
-- ValentinaPlay.
-- Zona privada.
-- Ajustes responsive moviles.
+### Estilo Compartido
 
-Notas:
+`games.html`, Bingo, Monitor, Infiltrado y Privado comparten:
 
-- Es un archivo grande que mezcla estilos de muchas paginas.
-- Usa selectores por clase de `body`, lo que ayuda a evitar colisiones.
-- Hay comentarios y caracteres mojibake visibles en algunas secciones.
+- Fondo con `images/IMG_1914.jpg` y overlay oscuro.
+- Cabecera con `alaraz1921` en rojo `#c72c43` sobre pastilla clara translucida.
+- Titulo grande blanco.
 
-### `Privado/index.html`
+Tipografias:
 
-Pantalla de acceso privado conectada con Supabase Auth.
+- Montserrat para titulos.
+- Manrope para texto general.
+- Comic Neue para ValentinaPlay.
 
-Comportamiento actual:
+### Zona Privada
 
-- Pide email y clave.
-- Usa `assets/supabase-client.js` y `assets/private-auth.js`.
-- Mantiene la sesion con Supabase Auth.
-- Muestra un panel privado basico cuando hay sesion activa.
-- Muestra un recordatorio de la formula de claves diarias obtenido desde Supabase.
-- Todavia no carga proyectos desde tablas privadas.
+`Privado/index.html`:
 
-### `supabase/`
+- Login mediante Supabase Auth.
+- Usa `profiles`, `app_projects` y `project_members`.
+- Muestra recordatorio de formula de claves diarias.
+- Todavia no carga la lista real de proyectos accesibles.
 
-Contiene la primera migracion SQL y notas para aplicar el esquema desde el SQL Editor de Supabase.
+### Bingo
 
-Tablas iniciales:
+`Bingo/carton.html`:
 
-- `profiles`.
-- `app_projects`.
-- `project_members`.
+- Genera carton 3x9 con 15 numeros.
+- Persiste carton, tachados, bloqueo y estado en `localStorage`.
+- Permite cambiar libremente carton antes de empezar.
+- Tras empezar, requiere clave/contraclave para desbloquear cambios.
+- Una contraclave valida permite varios cambios hasta volver a empezar partida.
+- Volver a Games y limpiar usan confirmacion.
 
-Todas tienen RLS activado.
+Claves principales:
 
-Tambien contiene una migracion para validar claves diarias de Bingo Monitor e Infiltrado mediante RPC:
+```text
+bingo_perm_juegoEmpezado
+bingo_perm_matrizCarton
+bingo_perm_tachados
+bingo_perm_bloqueo
+```
 
-- `validate_daily_access_code(text, text)`.
-- `get_daily_access_formula_note()`.
-
-### `EvenTin/`
-
-Proyecto estatico independiente dentro del mismo repositorio. Usa su propio proyecto Supabase, configurado en `EvenTin/js/config.js`, y no debe reutilizar la URL ni la `anon public key` del proyecto privado de `Webs`.
-
-Estructura de datos en `EvenTin/sql/schema.sql`:
-
-- `eventin_events`.
-- `eventin_event_settings`.
-- `eventin_profiles`.
-- `eventin_profiles.event_code` como asignacion de usuarios a eventos.
-- `eventin_guest_responses`.
-- `eventin_public_messages`.
-- RPC publica `eventin_submit_guest_response(...)` para confirmar asistencia sin abrir permisos anonimos directos sobre la tabla de respuestas.
-
-### `Bingo/carton.html`
-
-Carton de bingo tradicional.
-
-Responsabilidades:
-
-- Generar carton 3x9 con 15 numeros.
-- Persistir carton, estado de partida, tachados y bloqueo en `localStorage`.
-- Permitir marcar numeros solo cuando la partida esta empezada.
-- Bloquear cambio de carton tras iniciar partida.
-- Solicitar clave/contraclave para desbloquear cambio.
-- Mostrar ayuda contextual con reglas basicas del juego.
-
-Claves de `localStorage`:
-
-- `bingo_perm_juegoEmpezado`
-- `bingo_perm_matrizCarton`
-- `bingo_perm_tachados`
-- `bingo_perm_bloqueo`
-
-Algoritmo de contraclave:
+Contraclave:
 
 ```js
 ((clave * 3) + 7) % 10000
 ```
 
-### `Bingo/monitor.html`
+`Bingo/monitor.html`:
 
-Monitor para cantar bolas de bingo.
+- Acceso mediante clave diaria validada por RPC en Supabase.
+- Gestiona bolas 1-90, pausa, reinicio y contraclave.
+- No persiste la partida si se recarga.
 
-Responsabilidades:
+### Infiltrado
 
-- Pantalla de login por PIN.
-- El PIN del monitor se valida en Supabase mediante `validate_daily_access_code`.
-- Generar tablero 1-90.
-- Sacar bola aleatoria cada 4 segundos.
-- Pausar/reanudar.
-- Reiniciar monitor con modal propio.
-- Calcular contraclave para validar carton.
-- Mostrar ayuda contextual del rol de monitor.
+`infiltrado/index.html`:
 
-Notas importantes:
+- Acceso mediante clave diaria validada por RPC.
+- Configuracion de jugadores e infiltrados.
+- Sorteo y revelado individual.
+- Resolucion mediante desplegables de participantes.
+- Persistencia con claves `infiltrado_*`.
+- Sesion aproximada de 5 horas.
+- Reinicio selectivo sin borrar datos de otros juegos.
 
-- El PIN esta hardcodeado en cliente como `2017`.
-- El algoritmo de contraclave coincide con `carton.html`.
-- El monitor no persiste la partida si se recarga la pagina.
+### ValentinaPlay
 
+Juegos educativos/infantiles:
 
-### `infiltrado/index.html`
+- Tres en raya.
+- Conecta cuatro.
+- Secuencia numerica.
+- Caza de multiplicaciones.
+- Adivinar numero.
+- Reloj.
 
-Juego "El Infiltrado/El Infiltrado".
+Usan Comic Neue y Tailwind CSS por CDN. La logica principal esta separada en `assets/js/valentina-*.js`.
 
-Responsabilidades:
+### Pagina 404
 
-- Login por clave calculada segun el dia.
-- Configuracion de numero de jugadores e infiltrados.
-- Asignacion aleatoria de lugar secreto e infiltrados.
-- Flujo de revelado por turnos.
-- Evaluacion final mediante desplegables con los nombres de participantes.
-- Ayuda contextual con reglas basicas.
-- Persistencia de sesion y estado en `localStorage`.
+`404.html` usa el estilo visual general, ofrece vuelta a portada y contacto.
 
-Claves principales de `localStorage`:
+## Supabase De Webs
 
-- `infiltrado_login_time`
-- `infiltrado_fase`
-- `infiltrado_jugadores`
-- `infiltrado_roles`
-- `infiltrado_infiltradosAsignados`
-- `infiltrado_jugadorActualIndex`
-- `infiltrado_lugarSecreto`
-- `infiltrado_config_total`
-- `infiltrado_config_infs`
-
-Notas:
-
-- La sesion caduca tras 5 horas.
-- La clave diaria se valida en Supabase mediante `validate_daily_access_code`.
-- `reiniciarTodoSistema()` borra solo claves con prefijo `infiltrado_`, evitando eliminar datos de Bingo u otras paginas del mismo origen.
-
-### `ValentinaPlay/`
-
-Conjunto de juegos educativos/infantiles.
-
-Indice:
-
-- `index.html`: menu de juegos.
-- `tictactoe.html`: 3 en raya.
-- `connectfour.html`: conecta cuatro.
-- `number_to_number.html`: juego de secuencia numerica.
-- `multiplication_hunt.html`: caza multiplicaciones.
-- `guess_the_number.html`: adivina el numero de una operacion.
-- `magic_clock.html`: practica de reloj.
-
-Notas:
-
-- Todas estas paginas usan Tailwind CSS por CDN.
-- Comparten algunos estilos desde `assets/styles.css`.
-- La logica esta inline en cada HTML.
-
-### `404.html`
-
-Pagina de error estatica con estilo coherente con Bingo.
-
-### `Notas`
-
-Contiene una nota de historial:
+Proyecto:
 
 ```text
-29-05-2026: Se abre la rama "antesdeclaves", justo antes de meter en el monitor de bingo la clave de apertura.
+Project ref: nxuqkvuvmllqihaefjky
+URL: https://nxuqkvuvmllqihaefjky.supabase.co
+```
+
+Configuracion publica:
+
+```text
+assets/supabase-client.js
+```
+
+Tablas usadas:
+
+- `profiles`
+- `app_projects`
+- `project_members`
+- `webs_contact_messages`
+
+Funciones/RPC:
+
+- `validate_daily_access_code(text, text)`
+- `get_daily_access_formula_note()`
+
+Edge Function:
+
+- `notify-webs-contact`
+
+Migraciones:
+
+- `20260601110000_initial_private_schema.sql`
+- `20260601113000_daily_access_codes.sql`
+- `20260601143000_enable_infiltrado_access_code.sql`
+- `20260604120000_webs_contact_messages.sql`
+
+No usar tablas `eventin_*` en este proyecto Supabase. Son restos candidatos a borrar si existen y estan vacios.
+
+## EvenTin
+
+EvenTin funciona como proyecto independiente dentro de `EvenTin/`.
+
+Supabase:
+
+```text
+Project ref: tmnavlsptjhhdlypgtaa
+URL: https://tmnavlsptjhhdlypgtaa.supabase.co
+```
+
+Documentacion operativa detallada:
+
+- `EvenTin/PROJECT_HANDOFF.md`
+- `EvenTin/MANUAL_USUARIO.md`
+- `EvenTin/README.md`
+
+Funcionalidades principales:
+
+- Portada de servicio y acceso a eventos por codigo.
+- Pagina publica por codigo o slug.
+- Invitaciones genericas e individuales por token.
+- Gestion privada de invitados.
+- Panel admin para eventos, usuarios, respuestas, mensajes y contactos.
+- Restauracion de contrasena.
+- Subida/optimizacion de imagenes.
+- Email de contacto mediante `notify-contact`.
+- Alta segura de usuarios mediante `create-event-user`.
+
+Tablas principales:
+
+- `eventin_event_types`
+- `eventin_events`
+- `eventin_event_settings`
+- `eventin_profiles`
+- `eventin_guests`
+- `eventin_guest_responses`
+- `eventin_public_messages`
+- `eventin_contact_requests`
+
+El esquema actual esta en:
+
+```text
+EvenTin/sql/schema.sql
+```
+
+## Navegacion Actual
+
+```text
+index.html
+|-- games.html
+|   |-- ValentinaPlay/
+|   |-- Bingo/carton.html
+|   |   `-- Bingo/monitor.html
+|   `-- infiltrado/
+|-- Privado/
+`-- contacto en la propia portada
+```
+
+EvenTin se publica en:
+
+```text
+https://www.alaraz1921.com/EvenTin/
 ```
 
 ## Ejecucion Local
 
-Como no hay build, se puede abrir directamente:
-
-```text
-V:\Proyectos\Git\Webs\index.html
-```
-
-Recomendado para evitar diferencias entre navegador y `file://`:
+Puede abrirse directamente, pero se recomienda servidor local:
 
 ```powershell
+cd V:\Proyectos\Git\Webs
 python -m http.server 8000
 ```
 
-desde:
+Abrir:
 
 ```text
-V:\Proyectos\Git\Webs
+http://localhost:8000/
 ```
 
-y abrir:
-
-```text
-http://localhost:8000
-```
-
-## Dependencias Externas
-
-- Google Fonts:
-  - Manrope.
-  - Comic Neue importada desde CSS.
-- Tailwind CSS CDN:
-  - `https://cdn.tailwindcss.com`
-
-Implicacion:
-
-- Varias paginas dependen de internet para verse correctamente.
-- No hay version fijada de Tailwind ni copia local.
-
-## Estado de Calidad
+## Estado De Calidad
 
 Fortalezas:
 
-- Proyecto simple y facil de desplegar como sitio estatico.
-- Separacion parcial de estilos mediante clases de `body`.
-- Muchas interacciones usan modales propios, mejor que depender siempre de `alert/confirm`.
-- Las paginas principales tienen rutas de vuelta a la portada.
+- Arquitectura estatica simple y facil de desplegar.
+- Webs y EvenTin separados logicamente y en Supabase.
+- RLS y Edge Functions para operaciones sensibles.
+- JavaScript mayoritariamente separado por pagina.
+- Navegacion y estilo visual mas consistentes.
+- Formularios de contacto persistentes con aviso por email.
 
 Riesgos y deuda:
 
-- Codificacion de caracteres corregida en la pasada de mantenimiento del 2026-06-01.
-- Credenciales/PIN y algoritmos de acceso visibles en el cliente.
-- `Privado` ya usa Supabase Auth, pero aun falta cargar permisos/proyectos reales desde la base de datos.
-- El formulario de contacto no envia mensajes.
-- JavaScript inline dificulta reutilizacion, pruebas y mantenimiento.
-- CSS compartido muy grande y acoplado a muchas paginas.
-- Dependencia de CDN para Tailwind y fuentes.
-- Hay checklist manual en `TODO.md`; no hay tests automatizados.
+- `assets/styles.css` es grande y mezcla muchos dominios.
+- Dependencia de CDN para fuentes, Tailwind y Supabase JS.
+- No hay tests automatizados.
+- El monitor de Bingo no persiste su partida.
+- La zona privada de Webs aun no lista proyectos reales.
+- Quedan comentarios/textos mojibake en algunas partes de CSS/documentacion.
+- Las Edge Functions y secretos deben configurarse manualmente en Supabase.
 
-## Convenciones Observadas
+## Convenciones
 
-- Paginas HTML independientes.
-- Estilos por pagina usando clases en `body`.
+- HTML independiente por pagina.
+- Clases de `body` para aislar estilos.
 - Nombres de funciones y variables principalmente en espanol.
-- Estado persistente guardado en `localStorage` con prefijos por funcionalidad.
-- Navegacion relativa entre carpetas.
+- Navegacion relativa.
+- Estado local con prefijos por funcionalidad.
+- No guardar `service_role`, tokens Supabase ni API keys privadas en GitHub.
 
-## Recomendacion de Evolucion
+## Validacion Habitual
 
-Mantener el proyecto como estatico por ahora, pero ordenar progresivamente:
+```powershell
+node --check RUTA_DEL_JS
+git -C V:\Proyectos\Git\Webs diff --check
+git -C V:\Proyectos\Git\Webs status --short
+```
 
-1. Mantener codificacion y textos revisados en nuevas paginas.
-2. Documentar uso local y despliegue.
-3. Separar JavaScript por modulo/pagina.
-4. Dividir CSS por areas o componentes.
-5. Sustituir accesos cliente por autenticacion real si la zona privada debe proteger contenido sensible.
+La automatizacion del navegador integrado de Codex falla actualmente en este entorno Windows. No se intenta por defecto; las comprobaciones visuales se hacen manualmente cuando son necesarias.
