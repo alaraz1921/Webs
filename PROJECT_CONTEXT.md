@@ -44,7 +44,9 @@ Aunque comparten repositorio y GitHub Pages, no deben compartir tablas, claves n
 ### Webs
 
 - Se creo `games.html` como concentrador de juegos.
-- La portada quedo simplificada con Games, Contacto e icono discreto de acceso privado.
+- La portada incluye el menu `PROYECTOS`, con acceso a EvenTin y paginas provisionales para EvenPic y Subasta Solidaria.
+- La navegacion principal mantiene el orden `PROYECTOS`, `GAMES` y `CONTACTO`, ademas del icono discreto de acceso privado.
+- Se creo `coming-soon.html` como pagina compartida para proyectos en desarrollo.
 - El contacto guarda en `webs_contact_messages` y envia aviso mediante `notify-webs-contact`.
 - Bingo, Monitor, Infiltrado, Privado y Games comparten fondo y cabecera visual.
 - Los juegos vuelven a `games.html`.
@@ -82,6 +84,7 @@ No existen:
 .
 |-- index.html
 |-- games.html
+|-- coming-soon.html
 |-- 404.html
 |-- CNAME
 |-- .gitignore
@@ -130,7 +133,7 @@ No existen:
 
 Responsabilidades actuales:
 
-- Navbar responsive con enlaces a `games.html` y a la seccion de contacto.
+- Navbar responsive con submenus y enlaces a Proyectos, `games.html` y la seccion de contacto.
 - Hero con `images/IMG_1914.jpg`.
 - Acceso discreto a `Privado/` mediante icono inferior.
 - Formulario de contacto real.
@@ -152,6 +155,15 @@ Concentrador de juegos:
 - Infiltrado.
 
 Los botones de vuelta de Bingo, Monitor e Infiltrado regresan a `games.html`. Desde `games.html` se vuelve a la portada.
+
+### `coming-soon.html`
+
+Pagina compartida para proyectos todavia no publicados:
+
+- Reutiliza la imagen de fondo y overlay oscuro de Webs.
+- Presenta un mensaje central de proyecto en desarrollo.
+- Actualmente recibe los enlaces de EvenPic y Subasta Solidaria.
+- Incluye vuelta a la pagina principal.
 
 ### Estilo Compartido
 
@@ -327,6 +339,10 @@ EvenTin/sql/schema.sql
 
 ```text
 index.html
+|-- Proyectos
+|   |-- https://www.alaraz1921.com/EvenTin/index.html
+|   |-- EvenPic -> coming-soon.html
+|   `-- Subasta Solidaria -> coming-soon.html
 |-- games.html
 |   |-- ValentinaPlay/
 |   |-- Bingo/carton.html
@@ -335,6 +351,15 @@ index.html
 |-- Privado/
 `-- contacto en la propia portada
 ```
+
+## Flujo De Trabajo
+
+Tras cada cambio solicitado en Webs:
+
+1. Implementar y validar los cambios.
+2. Actualizar `PROJECT_CONTEXT.md` y `TODO.md` cuando el estado del proyecto cambie.
+3. Crear un commit con los archivos relacionados.
+4. Subir el commit a GitHub.
 
 EvenTin se publica en:
 
