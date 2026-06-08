@@ -1146,6 +1146,11 @@ fieldset {
     gap: 16px;
 }
 
+.admin-form > label,
+.admin-form > .image-upload-field {
+    min-width: 0;
+}
+
 .admin-form button {
     justify-self: start;
 }
@@ -2448,9 +2453,20 @@ body[data-palette="home"] .home-topbar .event-access .form-status {
 }
 
 .admin-form input[type="datetime-local"] {
+    display: block;
     width: 100%;
     min-width: 0;
     max-width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+@supports (-webkit-touch-callout: none) {
+    @media (max-width: 760px) {
+        .admin-form input[type="datetime-local"] {
+            width: -webkit-fill-available;
+        }
+    }
 }
 
 @media (max-width: 760px) {
