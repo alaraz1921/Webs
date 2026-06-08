@@ -1,6 +1,6 @@
 # Manual de usuario de EvenTin
 
-Ultima actualizacion: 2026-06-05
+Ultima actualizacion: 2026-06-08
 
 ## Acceso
 
@@ -18,6 +18,10 @@ Parte privada:
 - Panel de administracion: `admin.html`
 - Gestion de invitados: `invitados.html`
 - Restaurar clave: `reset-password.html`
+
+La portada mantiene visible una banda superior con el icono de inicio de sesion a la izquierda y el acceso por codigo de evento a la derecha.
+
+Dentro del panel privado, el icono de usuario de la cabecera abre el menu de sesion. Para cerrar sesion se puede usar ese menu o el enlace `Cerrar sesion` del final; ambos solicitan confirmacion.
 
 Hay dos tipos de usuario:
 

@@ -1,6 +1,6 @@
 # EvenTin Project Handoff
 
-Ultima actualizacion: 2026-06-05
+Ultima actualizacion: 2026-06-08
 
 ## Resumen
 
@@ -104,6 +104,22 @@ eventin_profiles.event_code = eventin_events.event_code
 ```
 
 El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear evento y es de solo lectura en el panel.
+
+## Cambios del 2026-06-08
+
+Resumen:
+
+- La portada tiene una banda superior fija con icono de inicio de sesion a la izquierda y acceso por codigo de evento a la derecha.
+- La pagina publica del evento sustituye la pastilla `Admin` por el mismo icono de inicio de sesion.
+- El panel privado muestra el logo EvenTin tambien antes de iniciar sesion.
+- La cabecera del panel admin queda fija durante el desplazamiento, con logo a la izquierda e icono de sesion a la derecha.
+- El icono de sesion del admin abre un menu contextual con `Cerrar sesion`.
+- Tanto el menu contextual como el enlace de texto del final solicitan confirmacion mediante modal antes de cerrar sesion.
+- Los botones para copiar los enlaces publico y de invitacion usan icono de copiar.
+- Se ajusto el control de fecha y hora para que no sobresalga respecto al resto de campos.
+- La pagina de invitacion muestra la imagen de detalle entre el titulo del evento y el bloque de confirmacion.
+- La RPC `eventin_get_guest_invitation(text)` devuelve tambien `settings.detail_image_url` para mostrar la imagen en invitaciones individuales por token.
+- Tras estos cambios hay que ejecutar de nuevo `EvenTin/sql/schema.sql` completo en Supabase.
 
 ## Cambios del 2026-06-05
 

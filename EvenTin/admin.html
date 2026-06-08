@@ -13,6 +13,7 @@
 <body class="simple-page admin-page">
     <main class="admin-layout">
         <section id="login-panel" class="access-layout">
+            <img src="assets/images/eventin-logo-transparent.png" alt="EvenTin" class="login-panel-logo">
             <h1>Panel privado</h1>
             <form id="admin-login-form" class="form-card">
                 <label>
@@ -46,6 +47,14 @@
                     <div>
                         <p id="admin-role-label" class="eyebrow">Usuario:</p>
                         <h1>Administracion de evento</h1>
+                    </div>
+                </div>
+                <div class="session-menu">
+                    <button id="session-menu-button" type="button" class="login-icon-button" aria-label="Menu de sesion" aria-expanded="false" title="Menu de sesion">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3.2" fill="currentColor" stroke="none"/><path d="M5.8 19a6.4 6.4 0 0 1 12.4 0" fill="currentColor" stroke="none"/></svg>
+                    </button>
+                    <div id="session-menu-popup" class="session-menu-popup" hidden>
+                        <button id="session-logout-button" type="button">Cerrar sesion</button>
                     </div>
                 </div>
             </div>
@@ -92,14 +101,14 @@
                             <span>Enlace publico</span>
                             <span class="event-link-actions">
                                 <a id="public-link-go" class="secondary-button" href="index.html">Ir</a>
-                                <button type="button" class="secondary-button" data-copy-link="public">Copiar</button>
+                                <button type="button" class="secondary-button copy-link-button" data-copy-link="public" aria-label="Copiar enlace publico" title="Copiar enlace publico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg></button>
                             </span>
                         </div>
                         <div class="event-link-row">
                             <span>Enlace invitacion</span>
                             <span class="event-link-actions">
                                 <a id="invitation-link-go" class="secondary-button" href="invitacion.html">Ir</a>
-                                <button type="button" class="secondary-button" data-copy-link="invitation">Copiar</button>
+                                <button type="button" class="secondary-button copy-link-button" data-copy-link="invitation" aria-label="Copiar enlace de invitacion" title="Copiar enlace de invitacion"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg></button>
                             </span>
                         </div>
                     </div>
@@ -347,7 +356,7 @@
                 </section>
             </section>
             <div class="admin-footer-actions">
-                <button id="logout-button" type="button" class="secondary-button">Salir</button>
+                <button id="logout-button" type="button" class="text-link-button">Cerrar sesion</button>
             </div>
         </section>
         <footer class="app-credit">
@@ -405,6 +414,17 @@
             <div class="modal-actions">
                 <button id="cancel-confirm-action" type="button" class="secondary-button">Cancelar</button>
                 <button id="accept-confirm-action" type="button" class="danger-button">Confirmar</button>
+            </div>
+        </section>
+    </div>
+
+    <div id="logout-modal" class="modal-backdrop" hidden>
+        <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="logout-modal-title">
+            <h2 id="logout-modal-title">Cerrar sesion</h2>
+            <p>Vas a cerrar la sesion actual. Quieres continuar?</p>
+            <div class="modal-actions">
+                <button id="cancel-logout" type="button" class="secondary-button">Cancelar</button>
+                <button id="confirm-logout" type="button">Aceptar</button>
             </div>
         </section>
     </div>

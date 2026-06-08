@@ -8,6 +8,7 @@
     const modalEventLink = document.getElementById('modal-event-link');
     const guestGreeting = document.getElementById('guest-greeting');
     const notFoundPanel = document.getElementById('invitation-not-found');
+    const detailImage = document.getElementById('invitation-detail-image');
     const legacyFields = document.querySelectorAll('[data-legacy-field]');
     const params = new URLSearchParams(window.location.search);
     const invitationToken = String(params.get('token') || '').trim();
@@ -72,6 +73,12 @@
         setText('[data-invitation-time]', eventDateTime.time ? ` · ${eventDateTime.time}` : '');
     }
 
+    function applyDetailImage(settings) {
+        const imageUrl = valueOrFallback(settings?.detail_image_url, '');
+        detailImage.hidden = !imageUrl;
+        detailImage.style.backgroundImage = imageUrl ? `url("${imageUrl.replace(/"/g, '\\"')}")` : '';
+    }
+
     function setEventLinks(eventData) {
         const eventKey = eventData?.public_slug || eventData?.event_code;
         const eventUrl = eventKey
@@ -112,6 +119,7 @@
 
         setTokenMode(true);
         applyInvitationHeader(data.event);
+        applyDetailImage(data.settings);
         setEventLinks(data.event);
         guestGreeting.textContent = `Hola ${data.guest.name}`;
         guestGreeting.hidden = false;
@@ -125,8 +133,9 @@
             return;
         }
 
-        const { event: eventData } = await eventContext.getEvent();
+        const { event: eventData, settings } = await eventContext.getEvent();
         applyInvitationHeader(eventData);
+        applyDetailImage(settings);
         setEventLinks(eventData);
     }
 

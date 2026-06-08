@@ -6,6 +6,12 @@
     const loginForm = document.getElementById('admin-login-form');
     const loginStatus = document.getElementById('admin-login-status');
     const logoutButton = document.getElementById('logout-button');
+    const sessionMenuButton = document.getElementById('session-menu-button');
+    const sessionMenuPopup = document.getElementById('session-menu-popup');
+    const sessionLogoutButton = document.getElementById('session-logout-button');
+    const logoutModal = document.getElementById('logout-modal');
+    const cancelLogoutButton = document.getElementById('cancel-logout');
+    const confirmLogoutButton = document.getElementById('confirm-logout');
     const adminRoleLabel = document.getElementById('admin-role-label');
     const adminMenu = document.getElementById('admin-menu');
     const showEventsViewButton = document.getElementById('show-events-view');
@@ -651,6 +657,7 @@
         adminPanel.hidden = true;
         adminEventsPanel.hidden = true;
         adminMenu.hidden = true;
+        closeSessionMenu();
     }
 
     async function showAdmin() {
@@ -682,6 +689,26 @@
         const activeEventTitle = eventData?.title || currentEvents[0]?.title || '';
         eventUserTitle.hidden = !activeEventTitle;
         eventUserTitle.textContent = activeEventTitle;
+    }
+
+    function closeSessionMenu() {
+        sessionMenuPopup.hidden = true;
+        sessionMenuButton.setAttribute('aria-expanded', 'false');
+    }
+
+    function openLogoutModal() {
+        closeSessionMenu();
+        logoutModal.hidden = false;
+    }
+
+    function closeLogoutModal() {
+        logoutModal.hidden = true;
+    }
+
+    async function logout() {
+        await client.auth.signOut();
+        closeLogoutModal();
+        showLogin();
     }
     async function loadProfile() {
         const { data: userData } = await client.auth.getUser();
@@ -1563,9 +1590,26 @@
         }
     });
 
-    logoutButton.addEventListener('click', async () => {
-        await client.auth.signOut();
-        showLogin();
+    sessionMenuButton.addEventListener('click', () => {
+        const shouldOpen = sessionMenuPopup.hidden;
+        sessionMenuPopup.hidden = !shouldOpen;
+        sessionMenuButton.setAttribute('aria-expanded', String(shouldOpen));
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.session-menu')) {
+            closeSessionMenu();
+        }
+    });
+
+    logoutButton.addEventListener('click', openLogoutModal);
+    sessionLogoutButton.addEventListener('click', openLogoutModal);
+    cancelLogoutButton.addEventListener('click', closeLogoutModal);
+    confirmLogoutButton.addEventListener('click', logout);
+    logoutModal.addEventListener('click', (event) => {
+        if (event.target === logoutModal) {
+            closeLogoutModal();
+        }
     });
 
     async function init() {

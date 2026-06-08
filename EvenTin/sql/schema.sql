@@ -553,7 +553,8 @@ begin
         ),
         'settings', jsonb_build_object(
             'display_date', s.display_date,
-            'display_time', s.display_time
+            'display_time', s.display_time,
+            'detail_image_url', s.detail_image_url
         )
     )
     into payload

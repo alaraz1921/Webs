@@ -2184,6 +2184,200 @@ body[data-palette="home"] .home-admin-link {
     transition: color 0.2s, background 0.2s, transform 0.2s;
 }
 
+/* Persistent access and session controls */
+.login-icon-link,
+.login-icon-button {
+    display: inline-grid;
+    place-items: center;
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+    min-height: 46px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--accent);
+    text-decoration: none;
+    box-shadow: none;
+}
+
+.login-icon-link svg,
+.login-icon-button svg {
+    width: 34px;
+    height: 34px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+}
+
+body[data-palette="home"] .home-topbar {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    z-index: 40;
+    width: min(100%, 1500px);
+    min-height: 76px;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 12px clamp(1rem, 3vw, 2.8rem);
+    border-bottom: 1px solid rgba(23, 38, 56, 0.08);
+    background: rgba(255, 250, 246, 0.88);
+    backdrop-filter: blur(12px);
+    transform: translateX(-50%);
+}
+
+body[data-palette="home"] .home-topbar .login-icon-link {
+    color: var(--rose-dark);
+}
+
+body[data-palette="home"] .home-topbar .event-access {
+    position: static;
+}
+
+.event-admin-link.login-icon-link {
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    min-height: 48px;
+    padding: 0;
+    border: 0;
+    background: rgba(255, 255, 255, 0.76);
+    color: var(--accent);
+}
+
+.event-admin-link.login-icon-link svg {
+    width: 36px;
+    height: 36px;
+}
+
+.invitation-detail-image {
+    width: 100%;
+    min-height: 250px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background-color: var(--paper);
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    box-shadow: var(--shadow);
+}
+
+.admin-content .admin-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin: 0 -14px 24px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(231, 217, 199, 0.8);
+    background: rgba(251, 247, 240, 0.92);
+    backdrop-filter: blur(12px);
+}
+
+.login-panel-logo {
+    display: block;
+    width: min(260px, 82%);
+    height: auto;
+    margin: 0 auto 18px;
+}
+
+.session-menu {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.session-menu-popup {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 35;
+    min-width: 160px;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+    box-shadow: var(--shadow);
+}
+
+.session-menu-popup button {
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 0;
+    background: transparent;
+    color: var(--accent-dark);
+    text-align: left;
+    box-shadow: none;
+}
+
+.text-link-button {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--accent-dark);
+    font: inherit;
+    font-weight: 800;
+    text-decoration: underline;
+    box-shadow: none;
+}
+
+.event-link-row .copy-link-button {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    min-width: 36px;
+    padding: 0;
+}
+
+.copy-link-button svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.admin-form input[type="datetime-local"] {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+}
+
+@media (max-width: 760px) {
+    .admin-content .admin-header {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .admin-content .admin-brand {
+        width: auto;
+        flex-direction: row;
+        align-items: center;
+        text-align: left;
+    }
+
+    .admin-content .admin-logo {
+        width: 62px;
+    }
+}
+
+@media (max-width: 480px) {
+    body[data-palette="home"] .home-topbar {
+        min-height: 72px;
+        gap: 8px;
+        padding: 10px 0.75rem;
+    }
+
+    body[data-palette="home"] .home-topbar .event-access {
+        width: min(calc(100vw - 5.8rem), 15.8rem);
+    }
+}
+
 body[data-palette="home"] .home-admin-link:hover {
     color: rgba(23, 38, 56, 0.72);
     background: rgba(255, 255, 255, 0.82);
