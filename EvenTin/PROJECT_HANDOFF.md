@@ -112,8 +112,11 @@ Resumen:
 - La portada tiene una banda superior fija con icono de inicio de sesion a la izquierda y acceso por codigo de evento a la derecha.
 - La banda superior de portada es compacta y termina pocos pixeles por debajo de sus controles.
 - La pagina publica del evento sustituye la pastilla `Admin` por el mismo icono de inicio de sesion.
+- La pagina publica del evento muestra una cabecera transparente con logo EvenTin enlazado a portada a la izquierda e icono de inicio de sesion a la derecha.
+- El pie de la pagina publica del evento muestra `Creado con ♥ por alaraz1921` y, debajo, `Descubre más en EvenTin`, ambos enlazados a la portada.
 - El panel privado muestra el logo EvenTin tambien antes de iniciar sesion.
 - El logo de la pantalla de inicio de sesion usa un tamano contenido para no desplazar el formulario.
+- Los logos del acceso privado, cabecera del admin y gestion de invitados enlazan a la portada de EvenTin.
 - La cabecera del panel admin queda fija durante el desplazamiento, con logo a la izquierda e icono de sesion a la derecha.
 - El icono de sesion del admin abre un menu contextual con `Cerrar sesion`.
 - Tanto el menu contextual como el enlace de texto del final solicitan confirmacion mediante modal antes de cerrar sesion.

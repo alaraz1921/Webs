@@ -827,6 +827,9 @@ button,
 
 .event-footer {
     width: min(420px, calc(100% - 32px));
+    display: grid;
+    justify-items: center;
+    gap: 7px;
     margin: 0 auto;
     padding: 0 0 52px;
     text-align: center;
@@ -847,6 +850,17 @@ button,
 
 .developer-credit:hover {
     color: var(--accent-dark);
+    text-decoration: underline;
+}
+
+.eventin-discover-link {
+    color: var(--accent-dark);
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.eventin-discover-link:hover {
     text-decoration: underline;
 }
 
@@ -1063,6 +1077,13 @@ fieldset {
     width: 74px;
     height: auto;
     flex: 0 0 auto;
+}
+
+.brand-home-link {
+    display: inline-flex;
+    flex: 0 0 auto;
+    line-height: 0;
+    text-decoration: none;
 }
 
 .admin-brand h1 {
@@ -2256,6 +2277,7 @@ body[data-palette="home"] .home-topbar .event-access .form-status {
 }
 
 .event-admin-link.login-icon-link {
+    position: static;
     width: 48px;
     min-width: 48px;
     height: 48px;
@@ -2269,6 +2291,33 @@ body[data-palette="home"] .home-topbar .event-access .form-status {
 .event-admin-link.login-icon-link svg {
     width: 36px;
     height: 36px;
+}
+
+.event-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 18px;
+    background: linear-gradient(180deg, rgba(47, 42, 37, 0.32), transparent);
+}
+
+.event-brand-link {
+    display: inline-flex;
+    align-items: center;
+    height: 48px;
+    line-height: 0;
+}
+
+.event-brand-link img {
+    display: block;
+    width: 110px;
+    height: auto;
+    filter: drop-shadow(0 2px 5px rgba(255, 255, 255, 0.36));
 }
 
 .invitation-detail-image {
@@ -2299,6 +2348,21 @@ body[data-palette="home"] .home-topbar .event-access .form-status {
     width: min(210px, 72%);
     height: auto;
     margin: 0 auto 18px;
+}
+
+.access-layout > .brand-home-link {
+    display: flex;
+    justify-content: center;
+}
+
+@media (max-width: 480px) {
+    .event-topbar {
+        padding: 6px 10px;
+    }
+
+    .event-brand-link img {
+        width: 92px;
+    }
 }
 
 .session-menu {
