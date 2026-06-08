@@ -3,24 +3,10 @@ const menuList = document.getElementById('nav-menu-list');
 const navbar = document.getElementById('main-navbar');
 const contactStatus = document.getElementById('contact-status');
 const contactClient = window.websSupabase;
-const submenuToggles = menuList.querySelectorAll('.nav-submenu-toggle');
 
 function cerrarMenuMovil() {
     menuBtn.classList.remove('open');
     menuList.classList.remove('mobile-open');
-    cerrarSubmenus();
-}
-
-function cerrarSubmenus(exceptItem) {
-    menuList.querySelectorAll('.has-submenu').forEach((item) => {
-        if (item === exceptItem) {
-            return;
-        }
-
-        item.classList.remove('active');
-        item.querySelector('.submenu')?.classList.remove('open', 'desktop-open');
-        item.querySelector('.nav-submenu-toggle')?.setAttribute('aria-expanded', 'false');
-    });
 }
 
 menuBtn.addEventListener('click', () => {
@@ -28,26 +14,9 @@ menuBtn.addEventListener('click', () => {
     menuList.classList.toggle('mobile-open');
 });
 
-submenuToggles.forEach((toggle) => {
-    toggle.addEventListener('click', (event) => {
-        event.stopPropagation();
-
-        const item = toggle.closest('.has-submenu');
-        const submenu = item.querySelector('.submenu');
-        const isOpening = !item.classList.contains('active');
-
-        cerrarSubmenus(item);
-        item.classList.toggle('active', isOpening);
-        submenu.classList.toggle(window.innerWidth <= 768 ? 'open' : 'desktop-open', isOpening);
-        toggle.setAttribute('aria-expanded', String(isOpening));
-    });
-});
-
 menuList.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', cerrarMenuMovil);
 });
-
-document.addEventListener('click', () => cerrarSubmenus());
 
 function mostrarEstadoContacto(message, isError) {
     contactStatus.textContent = message;

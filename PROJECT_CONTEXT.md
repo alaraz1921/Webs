@@ -44,7 +44,7 @@ Aunque comparten repositorio y GitHub Pages, no deben compartir tablas, claves n
 ### Webs
 
 - Se creo `games.html` como concentrador de juegos.
-- La portada incluye el menu `PROYECTOS`, con acceso a EvenTin y paginas provisionales para EvenPic y Subasta Solidaria.
+- La portada incluye un enlace directo `PROYECTOS` hacia `proyectos.html`.
 - La navegacion principal mantiene el orden `PROYECTOS`, `GAMES` y `CONTACTO`, ademas del icono discreto de acceso privado.
 - Se creo `proyectos.html` como concentrador de EvenTin, EvenPic y Subastas Solidarias.
 - Se creo `coming-soon.html` como pagina compartida para proyectos en desarrollo.
@@ -137,7 +137,7 @@ No existen:
 
 Responsabilidades actuales:
 
-- Navbar responsive con submenus y enlaces a Proyectos, `games.html` y la seccion de contacto.
+- Navbar responsive con enlaces directos a Proyectos, `games.html` y la seccion de contacto.
 - Hero con `images/IMG_1914.jpg`.
 - H1 editorial, subtitulo y presentacion de alaraz1921 antes del formulario.
 - Acceso discreto a `Privado/` mediante icono inferior.
@@ -356,10 +356,6 @@ index.html
 |   |-- EvenTin
 |   |-- EvenPic -> coming-soon.html
 |   `-- Subastas Solidarias -> coming-soon.html
-|-- submenu Proyectos
-|   |-- https://www.alaraz1921.com/EvenTin/index.html
-|   |-- EvenPic -> coming-soon.html
-|   `-- Subasta Solidaria -> coming-soon.html
 |-- games.html
 |   |-- ValentinaPlay/
 |   |-- Bingo/carton.html

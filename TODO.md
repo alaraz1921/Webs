@@ -34,6 +34,7 @@ Ultima revision: 2026-06-08
 - [ ] PM-15 Revisar y eliminar del Supabase de Webs tablas antiguas `eventin_*` o tablas de eventos sin prefijo, solo si estan vacias.
 - [x] PM-16 Crear el menu `PROYECTOS` y una pagina compartida `coming-soon.html` para proyectos en desarrollo.
 - [x] PM-17 Crear `proyectos.html` y actualizar el mensaje editorial y metadatos comunes de Webs.
+- [x] PM-18 Convertir `PROYECTOS` en enlace directo y añadir separadores al texto de presentacion.
 
 ## Prioridad Baja
 
@@ -60,7 +61,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 
 ## Pruebas Manuales Recomendadas
 
-- [ ] PR-01 Abrir `index.html` en escritorio y movil; comprobar navbar, submenu Proyectos, icono privado, H1, subtitulo, presentacion y contacto.
+- [ ] PR-01 Abrir `index.html` en escritorio y movil; comprobar navbar, enlace Proyectos, icono privado, H1, subtitulo, presentacion, separadores y contacto.
 - [ ] PR-02 Probar `games.html` y enlaces a ValentinaPlay, Bingo e Infiltrado.
 - [ ] PR-03 Comprobar que los botones `Volver a Games` regresan a `games.html`.
 - [ ] PR-04 En Bingo carton: generar carton, empezar partida, marcar numeros, recargar y verificar persistencia.
