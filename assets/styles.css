@@ -81,7 +81,27 @@
             text-shadow: 0 2px 8px rgba(0,0,0,0.55);
         }
 
+        body.home-page .nav-submenu-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border: 0;
+            background: transparent;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.55);
+            font-family: 'Manrope', sans-serif;
+            padding: 0;
+        }
+
         body.home-page .nav-menu a:hover {
+            color: var(--azul-neon);
+        }
+
+        body.home-page .nav-submenu-toggle:hover {
             color: var(--azul-neon);
         }
 
@@ -477,6 +497,13 @@
 
             body.home-page .nav-menu a {
                 display: flex;
+                justify-content: center;
+                padding: 15px 0;
+                width: 100%;
+                border-bottom: 1px solid rgba(58, 80, 107, 0.2);
+            }
+
+            body.home-page .nav-submenu-toggle {
                 justify-content: center;
                 padding: 15px 0;
                 width: 100%;
@@ -1771,4 +1798,64 @@ body.private-page h3 {
 
 #daily-access-formula {
     white-space: pre-line;
+}
+
+/* coming-soon.html */
+body.coming-soon-page {
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 18px;
+    box-sizing: border-box;
+    background:
+        linear-gradient(rgba(11, 19, 43, 0.72), rgba(11, 19, 43, 0.9)),
+        url('../images/IMG_1914.jpg') center/cover no-repeat fixed;
+    color: #ffffff;
+    font-family: 'Manrope', sans-serif;
+    text-align: center;
+}
+
+body.coming-soon-page .coming-soon-layout {
+    width: 100%;
+    max-width: 760px;
+}
+
+body.coming-soon-page h1 {
+    margin: 0 0 18px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2.5rem, 10vw, 5.6rem);
+    font-weight: 900;
+    line-height: 1.02;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    text-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+body.coming-soon-page p {
+    max-width: 680px;
+    margin: 0 auto;
+    color: #e2e8f0;
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    line-height: 1.6;
+    text-shadow: 0 4px 16px rgba(0,0,0,0.42);
+}
+
+body.coming-soon-page .games-home-link {
+    display: inline-flex;
+    width: auto;
+    min-width: 220px;
+    margin-top: 30px;
+    padding: 12px 18px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    background: #475569;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 800;
+}
+
+body.coming-soon-page .games-home-link:hover {
+    background: #64748b;
 }
