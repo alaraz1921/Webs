@@ -46,7 +46,10 @@ Aunque comparten repositorio y GitHub Pages, no deben compartir tablas, claves n
 - Se creo `games.html` como concentrador de juegos.
 - La portada incluye el menu `PROYECTOS`, con acceso a EvenTin y paginas provisionales para EvenPic y Subasta Solidaria.
 - La navegacion principal mantiene el orden `PROYECTOS`, `GAMES` y `CONTACTO`, ademas del icono discreto de acceso privado.
+- Se creo `proyectos.html` como concentrador de EvenTin, EvenPic y Subastas Solidarias.
 - Se creo `coming-soon.html` como pagina compartida para proyectos en desarrollo.
+- Las paginas propias de Webs comparten un `title` y una descripcion orientados a proyectos web, eventos y experiencias digitales.
+- La portada presenta el mensaje principal de eventos y proyectos, el subtitulo `Nothing Gonna Change My World` y un texto introductorio antes del contacto.
 - El contacto guarda en `webs_contact_messages` y envia aviso mediante `notify-webs-contact`.
 - Bingo, Monitor, Infiltrado, Privado y Games comparten fondo y cabecera visual.
 - Los juegos vuelven a `games.html`.
@@ -84,6 +87,7 @@ No existen:
 .
 |-- index.html
 |-- games.html
+|-- proyectos.html
 |-- coming-soon.html
 |-- 404.html
 |-- CNAME
@@ -135,6 +139,7 @@ Responsabilidades actuales:
 
 - Navbar responsive con submenus y enlaces a Proyectos, `games.html` y la seccion de contacto.
 - Hero con `images/IMG_1914.jpg`.
+- H1 editorial, subtitulo y presentacion de alaraz1921 antes del formulario.
 - Acceso discreto a `Privado/` mediante icono inferior.
 - Formulario de contacto real.
 
@@ -155,6 +160,14 @@ Concentrador de juegos:
 - Infiltrado.
 
 Los botones de vuelta de Bingo, Monitor e Infiltrado regresan a `games.html`. Desde `games.html` se vuelve a la portada.
+
+### `proyectos.html`
+
+Concentrador de proyectos y experiencias digitales:
+
+- EvenTin enlaza a su pagina publicada.
+- EvenPic enlaza temporalmente a `coming-soon.html`.
+- Subastas Solidarias enlaza temporalmente a `coming-soon.html`.
 
 ### `coming-soon.html`
 
@@ -339,7 +352,11 @@ EvenTin/sql/schema.sql
 
 ```text
 index.html
-|-- Proyectos
+|-- proyectos.html
+|   |-- EvenTin
+|   |-- EvenPic -> coming-soon.html
+|   `-- Subastas Solidarias -> coming-soon.html
+|-- submenu Proyectos
 |   |-- https://www.alaraz1921.com/EvenTin/index.html
 |   |-- EvenPic -> coming-soon.html
 |   `-- Subasta Solidaria -> coming-soon.html

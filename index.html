@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Portal personal de alaraz1921. Herramientas y proyectos para familia y amigos.">
-    <title>alaraz1921</title>
+    <meta name="description" content="Proyectos digitales para eventos, celebraciones y causas solidarias. Invitaciones online, gestión de invitados, galerías colaborativas y juegos para la familia.">
+    <title>Alaraz1921 | Proyectos web, eventos y experiencias digitales</title>
     <!-- Importamos la fuente Manrope desde Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,9 +28,12 @@
 
             <ul class="nav-menu" id="nav-menu-list">
                 <li class="nav-item has-submenu">
-                    <button class="nav-submenu-toggle" type="button" aria-expanded="false">
-                        PROYECTOS <span class="arrow">▼</span>
-                    </button>
+                    <div class="nav-menu-group">
+                        <a href="proyectos.html">PROYECTOS</a>
+                        <button class="nav-submenu-toggle" type="button" aria-label="Mostrar proyectos" aria-expanded="false">
+                            <span class="arrow">▼</span>
+                        </button>
+                    </div>
                     <ul class="submenu">
                         <li><a href="https://www.alaraz1921.com/EvenTin/index.html">EvenTin</a></li>
                         <li><a href="coming-soon.html">EvenPic</a></li>
@@ -54,11 +57,17 @@
     <!-- HERO / PORTADA -->
     <header class="hero">
         <div class="hero-overlay"></div>
-        <h1 class="hero-text">Nothing Gonna Change My World</h1>
+        <div class="hero-copy">
+            <h1 class="hero-text">Eventos, recuerdos y proyectos que conectan personas</h1>
+            <p class="hero-subtitle">Nothing Gonna Change My World</p>
+        </div>
     </header>
 
     <!-- CUERPO DE LA PÁGINA -->
     <main class="content-section">
+        <section class="home-introduction">
+            <p>Bienvenido a alaraz1921. Un espacio donde nacen proyectos destinados a celebrar momentos especiales, compartir recuerdos y conectar personas mediante experiencias digitales únicas.</p>
+        </section>
 
         <!-- FORMULARIO DE CONTACTO -->
         <section class="contact-form" id="contacto">

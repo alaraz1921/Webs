@@ -33,6 +33,7 @@ Ultima revision: 2026-06-08
 - [ ] PM-14 Añadir una vista privada para consultar y borrar `webs_contact_messages`.
 - [ ] PM-15 Revisar y eliminar del Supabase de Webs tablas antiguas `eventin_*` o tablas de eventos sin prefijo, solo si estan vacias.
 - [x] PM-16 Crear el menu `PROYECTOS` y una pagina compartida `coming-soon.html` para proyectos en desarrollo.
+- [x] PM-17 Crear `proyectos.html` y actualizar el mensaje editorial y metadatos comunes de Webs.
 
 ## Prioridad Baja
 
@@ -59,7 +60,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 
 ## Pruebas Manuales Recomendadas
 
-- [ ] PR-01 Abrir `index.html` en escritorio y movil; comprobar navbar, submenu Proyectos, icono privado, hero y contacto.
+- [ ] PR-01 Abrir `index.html` en escritorio y movil; comprobar navbar, submenu Proyectos, icono privado, H1, subtitulo, presentacion y contacto.
 - [ ] PR-02 Probar `games.html` y enlaces a ValentinaPlay, Bingo e Infiltrado.
 - [ ] PR-03 Comprobar que los botones `Volver a Games` regresan a `games.html`.
 - [ ] PR-04 En Bingo carton: generar carton, empezar partida, marcar numeros, recargar y verificar persistencia.
@@ -71,7 +72,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-10 Enviar contacto desde Webs; comprobar fila en `webs_contact_messages` y recepcion del email.
 - [ ] PR-11 Abrir una ruta inexistente para validar `404.html`.
 - [ ] PR-12 Ejecutar el flujo manual completo indicado en `EvenTin/PROJECT_HANDOFF.md`.
-- [ ] PR-13 Comprobar que EvenTin abre su pagina publicada y que EvenPic y Subasta Solidaria abren `coming-soon.html`.
+- [ ] PR-13 Probar `proyectos.html`; comprobar que EvenTin abre su pagina publicada y que EvenPic y Subastas Solidarias abren `coming-soon.html`.
 
 ## Ideas De Mejora
 
