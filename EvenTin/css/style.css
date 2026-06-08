@@ -2217,12 +2217,11 @@ body[data-palette="home"] .home-topbar {
     left: 50%;
     z-index: 40;
     width: min(100%, 1500px);
-    min-height: 76px;
     display: flex;
-    gap: 18px;
-    align-items: flex-start;
+    gap: 12px;
+    align-items: center;
     justify-content: space-between;
-    padding: 12px clamp(1rem, 3vw, 2.8rem);
+    padding: 4px clamp(1rem, 3vw, 2.8rem);
     border-bottom: 1px solid rgba(23, 38, 56, 0.08);
     background: rgba(255, 250, 246, 0.88);
     backdrop-filter: blur(12px);
@@ -2230,11 +2229,30 @@ body[data-palette="home"] .home-topbar {
 }
 
 body[data-palette="home"] .home-topbar .login-icon-link {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
     color: var(--rose-dark);
 }
 
 body[data-palette="home"] .home-topbar .event-access {
-    position: static;
+    position: relative;
+    align-items: center;
+}
+
+body[data-palette="home"] .home-topbar .event-access input,
+body[data-palette="home"] .home-topbar .event-access button {
+    height: 40px;
+    min-height: 40px;
+}
+
+body[data-palette="home"] .home-topbar .event-access .form-status {
+    position: absolute;
+    top: calc(100% + 3px);
+    right: 0;
+    min-height: 0;
+    margin: 0;
 }
 
 .event-admin-link.login-icon-link {
@@ -2278,7 +2296,7 @@ body[data-palette="home"] .home-topbar .event-access {
 
 .login-panel-logo {
     display: block;
-    width: min(260px, 82%);
+    width: min(210px, 72%);
     height: auto;
     margin: 0 auto 18px;
 }
@@ -2368,9 +2386,8 @@ body[data-palette="home"] .home-topbar .event-access {
 
 @media (max-width: 480px) {
     body[data-palette="home"] .home-topbar {
-        min-height: 72px;
         gap: 8px;
-        padding: 10px 0.75rem;
+        padding: 4px 0.75rem;
     }
 
     body[data-palette="home"] .home-topbar .event-access {
@@ -2424,5 +2441,11 @@ body[data-palette="home"] .home-admin-link svg {
         bottom: 10px;
         width: 34px;
         height: 34px;
+    }
+
+    body[data-palette="home"] .home-topbar .event-access {
+        left: auto;
+        right: auto;
+        width: min(calc(100vw - 5.8rem), 15.8rem);
     }
 }

@@ -110,8 +110,10 @@ El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear
 Resumen:
 
 - La portada tiene una banda superior fija con icono de inicio de sesion a la izquierda y acceso por codigo de evento a la derecha.
+- La banda superior de portada es compacta y termina pocos pixeles por debajo de sus controles.
 - La pagina publica del evento sustituye la pastilla `Admin` por el mismo icono de inicio de sesion.
 - El panel privado muestra el logo EvenTin tambien antes de iniciar sesion.
+- El logo de la pantalla de inicio de sesion usa un tamano contenido para no desplazar el formulario.
 - La cabecera del panel admin queda fija durante el desplazamiento, con logo a la izquierda e icono de sesion a la derecha.
 - El icono de sesion del admin abre un menu contextual con `Cerrar sesion`.
 - Tanto el menu contextual como el enlace de texto del final solicitan confirmacion mediante modal antes de cerrar sesion.
