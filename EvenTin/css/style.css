@@ -835,12 +835,6 @@ button,
     text-align: center;
 }
 
-.app-credit {
-    width: 100%;
-    margin-top: 24px;
-    text-align: center;
-}
-
 .developer-credit {
     color: var(--muted);
     font-size: 0.98rem;
@@ -2353,6 +2347,14 @@ body[data-palette="home"] .home-topbar .event-access .form-status {
 .access-layout > .brand-home-link {
     display: flex;
     justify-content: center;
+}
+
+.reset-password-page {
+    padding-top: 96px;
+}
+
+.reset-password-page > .access-layout {
+    margin: 0 auto 32px;
 }
 
 @media (max-width: 480px) {
