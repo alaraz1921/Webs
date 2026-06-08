@@ -88,8 +88,8 @@ EvenTin/
 - `debug.html`: pagina no enlazada con accesos rapidos a portada, admin, eventos e invitaciones de prueba.
 - `admin.html`: panel privado con login Supabase Auth.
 - `reset-password.html`: restauracion de clave mediante email de Supabase Auth.
-- Todas las pantallas HTML usan el mismo pie de `evento.html`: `Creado con ♥ por alaraz1921` y `Descubre más en EvenTin`.
-- Ambos enlaces llevan a la portada de EvenTin, salvo el primer enlace de `index.html`, que lleva a `https://www.alaraz1921.com/proyectos.html`.
+- Todas las pantallas HTML salvo la portada usan el mismo pie de `evento.html`: `Creado con ♥ por alaraz1921` y `Descubre más en EvenTin`.
+- `index.html` muestra solo `Creado con ♥ por alaraz1921`, enlazado a `https://www.alaraz1921.com/proyectos.html`.
 
 ## Roles
 
@@ -115,8 +115,9 @@ Resumen:
 - La pagina publica del evento sustituye la pastilla `Admin` por el mismo icono de inicio de sesion.
 - La pagina publica del evento muestra una cabecera transparente con logo EvenTin enlazado a portada a la izquierda e icono de inicio de sesion a la derecha.
 - El pie de la pagina publica del evento muestra `Creado con ♥ por alaraz1921` y, debajo, `Descubre más en EvenTin`, ambos enlazados a la portada.
-- Se unifico ese mismo pie en todos los HTML de EvenTin. En portada, el credito enlaza a la pagina general de proyectos.
+- Se unifico ese mismo pie en los HTML de EvenTin; la portada conserva solo el credito enlazado a la pagina general de proyectos.
 - La pagina `reset-password.html` incorpora la cabecera con logo de EvenTin e icono de acceso.
+- La configuracion de imagen principal y detalle muestra una papelera cuando existe una imagen. El borrado usa modal, limpia Storage y hace que la pagina vuelva a usar la imagen predeterminada.
 - El panel privado muestra el logo EvenTin tambien antes de iniciar sesion.
 - El logo de la pantalla de inicio de sesion usa un tamano contenido para no desplazar el formulario.
 - Los logos del acceso privado, cabecera del admin y gestion de invitados enlazan a la portada de EvenTin.

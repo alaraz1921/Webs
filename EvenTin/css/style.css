@@ -1200,8 +1200,29 @@ fieldset {
     gap: 8px;
 }
 
+.image-upload-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.image-upload-heading label {
+    margin: 0;
+}
+
+.image-upload-heading .icon-button {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+}
+
+.admin-tools .image-upload-heading .danger-button {
+    margin-top: 0;
+}
+
 .image-upload-field input[type="file"] {
-    margin-top: 8px;
     padding: 10px;
 }
 

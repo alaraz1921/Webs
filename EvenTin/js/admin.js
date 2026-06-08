@@ -82,6 +82,8 @@
     const eventCodeStatus = document.getElementById('event-code-status');
     const heroImageStatus = document.getElementById('hero-image-status');
     const detailImageStatus = document.getElementById('detail-image-status');
+    const deleteHeroImageButton = document.getElementById('delete-hero-image');
+    const deleteDetailImageButton = document.getElementById('delete-detail-image');
     const refreshContactRequestsButton = document.getElementById('refresh-contact-requests');
     const contactRequestsList = document.getElementById('contact-requests-list');
     const contactRequestsStatus = document.getElementById('contact-requests-status');
@@ -105,6 +107,7 @@
             fileField: 'hero_image_file',
             urlField: 'hero_image_url',
             statusElement: heroImageStatus,
+            deleteButton: deleteHeroImageButton,
             maxWidth: 1600,
             fileBaseName: 'hero',
             label: 'principal'
@@ -113,6 +116,7 @@
             fileField: 'detail_image_file',
             urlField: 'detail_image_url',
             statusElement: detailImageStatus,
+            deleteButton: deleteDetailImageButton,
             maxWidth: 1200,
             fileBaseName: 'detail',
             label: 'detalle'
@@ -421,6 +425,9 @@
         configItem.statusElement.textContent = hasImage
             ? 'Imagen guardada. Puedes elegir otra para sustituirla.'
             : 'Se optimiza automaticamente al guardar.';
+        if (configItem.deleteButton) {
+            configItem.deleteButton.hidden = !hasImage;
+        }
     }
 
     function loadImageFromFile(file) {
@@ -658,6 +665,49 @@
         adminEventsPanel.hidden = true;
         adminMenu.hidden = true;
         closeSessionMenu();
+    }
+
+    async function deleteEventImage(kind) {
+        const configItem = IMAGE_UPLOADS[kind];
+        const eventData = getCurrentEvent();
+        const eventId = eventSelect.value;
+        const imageUrl = String(settingsForm.elements[configItem?.urlField]?.value || '').trim();
+        if (!configItem || !eventData?.event_code || !eventId || !imageUrl) {
+            return;
+        }
+
+        const confirmed = await confirmAction({
+            title: `Borrar imagen ${configItem.label}`,
+            message: `Vas a borrar la imagen ${configItem.label}. La pagina del evento volvera a mostrar la imagen por defecto.`,
+            confirmText: 'Borrar'
+        });
+        if (!confirmed) {
+            return;
+        }
+
+        configItem.deleteButton.disabled = true;
+        setStatus(settingsStatus, `Borrando imagen ${configItem.label}...`, false);
+
+        try {
+            await client
+                .from('eventin_event_settings')
+                .update({ [configItem.urlField]: '' })
+                .eq('event_id', eventId)
+                .throwOnError();
+
+            await removeStaleEventImages(eventData, configItem, '');
+            settingsForm.elements[configItem.urlField].value = '';
+            settingsForm.elements[configItem.fileField].value = '';
+            updateImageStatus(kind, false);
+            setStatus(settingsStatus, 'Imagen borrada. Se mostrara la imagen por defecto.', false);
+        } catch (error) {
+            const errorMessage = error?.message
+                ? `No se pudo borrar la imagen: ${error.message}`
+                : 'No se pudo borrar la imagen.';
+            setStatus(settingsStatus, errorMessage, true);
+        } finally {
+            configItem.deleteButton.disabled = false;
+        }
     }
 
     async function showAdmin() {
@@ -1595,6 +1645,9 @@
         sessionMenuPopup.hidden = !shouldOpen;
         sessionMenuButton.setAttribute('aria-expanded', String(shouldOpen));
     });
+
+    deleteHeroImageButton.addEventListener('click', () => deleteEventImage('hero'));
+    deleteDetailImageButton.addEventListener('click', () => deleteEventImage('detail'));
 
     document.addEventListener('click', (event) => {
         if (!event.target.closest('.session-menu')) {

@@ -166,18 +166,28 @@
                             Texto de presentacion
                             <textarea name="presentation_text" rows="4"></textarea>
                         </label>
-                        <label class="image-upload-field">
-                            Imagen principal
-                            <input type="file" name="hero_image_file" accept="image/*">
+                        <div class="image-upload-field">
+                            <div class="image-upload-heading">
+                                <label for="hero-image-file">Imagen principal</label>
+                                <button id="delete-hero-image" type="button" class="icon-button danger-button" aria-label="Borrar imagen principal" title="Borrar imagen principal" hidden>
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m6 6 1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                                </button>
+                            </div>
+                            <input id="hero-image-file" type="file" name="hero_image_file" accept="image/*">
                             <input type="hidden" name="hero_image_url">
                             <span id="hero-image-status" class="field-hint">Se optimiza automaticamente al guardar.</span>
-                        </label>
-                        <label class="image-upload-field">
-                            Imagen detalle
-                            <input type="file" name="detail_image_file" accept="image/*">
+                        </div>
+                        <div class="image-upload-field">
+                            <div class="image-upload-heading">
+                                <label for="detail-image-file">Imagen detalle</label>
+                                <button id="delete-detail-image" type="button" class="icon-button danger-button" aria-label="Borrar imagen detalle" title="Borrar imagen detalle" hidden>
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m6 6 1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                                </button>
+                            </div>
+                            <input id="detail-image-file" type="file" name="detail_image_file" accept="image/*">
                             <input type="hidden" name="detail_image_url">
                             <span id="detail-image-status" class="field-hint">Se optimiza automaticamente al guardar.</span>
-                        </label>
+                        </div>
                         <label>
                             Paleta
                             <select name="palette_key">
