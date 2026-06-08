@@ -118,6 +118,7 @@ Resumen:
 - Se unifico ese mismo pie en los HTML de EvenTin; la portada conserva solo el credito enlazado a la pagina general de proyectos.
 - La pagina `reset-password.html` incorpora la cabecera con logo de EvenTin e icono de acceso.
 - La configuracion de imagen principal y detalle muestra una papelera cuando existe una imagen. El borrado usa modal, limpia Storage y hace que la pagina vuelva a usar la imagen predeterminada.
+- La portada incluye title, descripcion, metadatos Open Graph, un `h1` accesible orientado a busquedas y la imagen social `assets/images/og-image.jpg`.
 - El panel privado muestra el logo EvenTin tambien antes de iniciar sesion.
 - El logo de la pantalla de inicio de sesion usa un tamano contenido para no desplazar el formulario.
 - Los logos del acceso privado, cabecera del admin y gestion de invitados enlazan a la portada de EvenTin.
