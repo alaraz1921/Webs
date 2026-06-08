@@ -14,6 +14,6 @@
         mapsUrl: 'https://www.google.com/maps',
         presentationTitle: 'Un recuerdo para siempre',
         presentationText: 'Hay momentos que quedan grabados en el corazón para toda la vida. Nos gustaría celebrarlo contigo y guardar juntos este hermoso recuerdo.',
-        paletteKey: 'earth'
+        paletteKey: 'clasica'
     }
 };

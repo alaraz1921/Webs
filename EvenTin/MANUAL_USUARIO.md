@@ -52,7 +52,7 @@ Desde la seccion de eventos se puede:
 - Ver el codigo numerico de 6 digitos, solo lectura.
 - Editar textos visibles de la pagina publica.
 - Subir imagen principal y detalle.
-- Cambiar la paleta de color.
+- Cambiar la paleta de color entre Clasica, Dulce, Brisa y Natura. Clasica es el estilo predeterminado.
 - Copiar o abrir el enlace publico del evento.
 - Copiar o abrir el enlace generico de invitacion.
 - Borrar el evento mediante modal de confirmacion.

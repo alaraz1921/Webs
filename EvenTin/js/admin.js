@@ -880,7 +880,7 @@
         settingsForm.elements.detail_image_url.value = settings?.detail_image_url || '';
         settingsForm.elements.hero_image_file.value = '';
         settingsForm.elements.detail_image_file.value = '';
-        settingsForm.elements.palette_key.value = settings?.palette_key || 'earth';
+        settingsForm.elements.palette_key.value = settings?.palette_key || 'clasica';
         updateImageStatus('hero', Boolean(settings?.hero_image_url));
         updateImageStatus('detail', Boolean(settings?.detail_image_url));
         fillTypeSelect(settingsEventType, eventData?.event_type || 'communion');
@@ -1293,7 +1293,7 @@
                     presentation_text: String(formData.get('presentation_text') ?? '').trim(),
                     hero_image_url: imageUrls.hero_image_url,
                     detail_image_url: imageUrls.detail_image_url,
-                    palette_key: String(formData.get('palette_key') || 'earth')
+                    palette_key: String(formData.get('palette_key') || 'clasica')
                 }, { onConflict: 'event_id' })
                 .throwOnError();
 
@@ -1348,7 +1348,7 @@
                     display_time: '',
                     presentation_title: 'Un recuerdo para siempre',
                     presentation_text: 'Hay momentos que quedan grabados en el corazón para toda la vida. Nos gustaría celebrarlo contigo y guardar juntos este hermoso recuerdo.',
-                    palette_key: 'earth'
+                    palette_key: 'clasica'
                 })
                 .throwOnError();
 

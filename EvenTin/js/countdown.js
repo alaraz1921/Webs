@@ -3,10 +3,10 @@
     const eventContext = window.eventContext;
     let countdownTimer = null;
 
-    const validPalettes = new Set(['earth', 'pastel', 'marine']);
+    const validPalettes = new Set(['clasica', 'dulce', 'brisa', 'natura']);
 
     function normalizePalette(value) {
-        return validPalettes.has(value) ? value : 'earth';
+        return validPalettes.has(value) ? value : 'clasica';
     }
 
     function valueOrFallback(value, fallback) {
@@ -27,7 +27,7 @@
             presentationText: valueOrFallback(settings?.presentation_text, fallback.presentationText),
             heroImageUrl: valueOrFallback(settings?.hero_image_url, ''),
             detailImageUrl: valueOrFallback(settings?.detail_image_url, ''),
-            paletteKey: normalizePalette(valueOrFallback(settings?.palette_key, fallback.paletteKey || 'earth'))
+            paletteKey: normalizePalette(valueOrFallback(settings?.palette_key, fallback.paletteKey || 'clasica'))
         };
 
         document.body.dataset.palette = data.paletteKey;
@@ -103,7 +103,7 @@
                 display_time: config.fallbackEvent.displayTime,
                 presentation_title: config.fallbackEvent.presentationTitle,
                 presentation_text: config.fallbackEvent.presentationText,
-                palette_key: config.fallbackEvent.paletteKey || 'earth'
+                palette_key: config.fallbackEvent.paletteKey || 'clasica'
             });
             return;
         }

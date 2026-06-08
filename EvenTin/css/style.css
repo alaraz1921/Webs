@@ -1,45 +1,90 @@
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Manrope:wght@400;600;700;800&family=Montserrat:wght@700;800;900&family=Rouge+Script&display=swap');
 
 :root {
-    --bg: #fbf7f0;
-    --paper: #fffaf4;
-    --ink: #2f2a25;
-    --muted: #776f66;
-    --line: #e7d9c7;
-    --accent: #9f6b45;
-    --accent-dark: #71472d;
-    --sage: #6f8069;
+    --background: #FFFCF8;
+    --background-soft: #F8F4EE;
+    --title: #5E7084;
+    --text: #70767C;
+    --button: #AFC4D8;
+    --button-hover: #96B2CC;
+    --accent: #D9E4EE;
+    --accent-soft: #EEF4F8;
+    --decorative: #D9E4EE;
+    --bg: var(--background);
+    --paper: var(--background-soft);
+    --ink: var(--text);
+    --muted: var(--text);
+    --line: var(--decorative);
+    --accent-dark: var(--title);
+    --sage: var(--button);
+    --action: var(--button);
+    --action-hover: var(--button-hover);
+    --action-text: var(--title);
     --white: #ffffff;
-    --shadow: 0 22px 60px rgba(70, 47, 30, 0.16);
+    --shadow: 0 22px 60px rgba(94, 112, 132, 0.14);
     --hero-image: url("../assets/images/hero-placeholder.svg");
     --detail-image: url("../assets/images/detail-placeholder.svg");
 }
 
-body[data-palette="pastel"] {
-    --bg: #fff8f3;
-    --paper: #fffdfb;
-    --ink: #3b3036;
-    --muted: #7a6e75;
-    --line: #efdce5;
-    --accent: #d985a9;
-    --accent-dark: #9b4f70;
-    --sage: #8bbfd0;
-    --shadow: 0 22px 60px rgba(180, 108, 136, 0.15);
+body[data-palette="dulce"] {
+    --background: #FFF9F8;
+    --background-soft: #FDF3F4;
+    --title: #7A5660;
+    --text: #6F6A6C;
+    --button: #D9A3B4;
+    --button-hover: #C98EA2;
+    --accent: #EBC8D2;
+    --decorative: #F4DEE5;
+    --shadow: 0 22px 60px rgba(122, 86, 96, 0.14);
 }
 
-body[data-palette="marine"] {
-    --bg: #f4faf8;
-    --paper: #ffffff;
-    --ink: #203139;
-    --muted: #607076;
-    --line: #cfdfdc;
-    --accent: #2f6f88;
-    --accent-dark: #1e4b61;
-    --sage: #4f8b74;
-    --shadow: 0 22px 60px rgba(24, 73, 90, 0.15);
+body[data-palette="brisa"] {
+    --background: #F7FAFD;
+    --background-soft: #EDF4FA;
+    --title: #4C6075;
+    --text: #66717C;
+    --button: #89A9C9;
+    --button-hover: #7398BE;
+    --accent: #C9DCEC;
+    --decorative: #E2ECF5;
+    --shadow: 0 22px 60px rgba(76, 96, 117, 0.14);
+}
+
+body[data-palette="natura"] {
+    --background: #FAFCF8;
+    --background-soft: #F1F6EE;
+    --title: #5E7464;
+    --text: #6C746E;
+    --button: #91B097;
+    --button-hover: #7E9F84;
+    --accent: #CFE0D0;
+    --decorative: #E7F0E6;
+    --shadow: 0 22px 60px rgba(94, 116, 100, 0.14);
+}
+
+body[data-palette="dulce"],
+body[data-palette="brisa"],
+body[data-palette="natura"] {
+    --bg: var(--background);
+    --paper: var(--background-soft);
+    --ink: var(--text);
+    --muted: var(--text);
+    --line: var(--decorative);
+    --accent-dark: var(--title);
+    --sage: var(--button);
+    --action: var(--button);
+    --action-hover: var(--button-hover);
+    --action-text: var(--title);
 }
 
 body[data-palette="home"] {
+    --background: #fffaf6;
+    --background-soft: #fffdf9;
+    --title: #1d2a33;
+    --text: #7a7772;
+    --button: #cf7b76;
+    --button-hover: #c66f68;
+    --decorative: #eaded4;
     --bg: #fffaf6;
     --paper: #fffdf9;
     --ink: #1d2a33;
@@ -48,6 +93,9 @@ body[data-palette="home"] {
     --accent: #cf7b76;
     --accent-dark: #c66f68;
     --sage: #6f998d;
+    --action: #cf7b76;
+    --action-hover: #c66f68;
+    --action-text: #ffffff;
     --white: #ffffff;
     --shadow: 0 24px 70px rgba(90, 70, 58, 0.11);
 }
@@ -75,6 +123,7 @@ h1,
 h2,
 h3 {
     margin: 0;
+    color: var(--title);
     font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
     line-height: 1.05;
 }
@@ -802,8 +851,8 @@ button,
     padding: 12px 18px;
     border: 0;
     border-radius: 999px;
-    background: var(--accent);
-    color: var(--white);
+    background: var(--action);
+    color: var(--action-text);
     font-family: "Manrope", "Segoe UI", Arial, sans-serif;
     font-size: 1rem;
     font-weight: 800;
@@ -814,11 +863,20 @@ button,
 .secondary-link,
 .secondary-button,
 .page-link {
-    background: var(--sage);
+    background: var(--action);
+}
+
+.primary-link:hover,
+.secondary-link:hover,
+button:not(.danger-button):not(.login-icon-button):not(.text-link-button):hover,
+.page-link:hover,
+.secondary-button:hover {
+    background: var(--action-hover);
 }
 
 .danger-button {
     background: #a63d3d;
+    color: var(--white);
 }
 
 .form-section h2 {
@@ -2358,8 +2416,8 @@ body[data-palette="home"] .home-topbar .event-access .form-status {
     z-index: 30;
     margin: 0 -14px 24px;
     padding: 12px 14px;
-    border-bottom: 1px solid rgba(231, 217, 199, 0.8);
-    background: rgba(251, 247, 240, 0.92);
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--background) 92%, transparent);
     backdrop-filter: blur(12px);
 }
 

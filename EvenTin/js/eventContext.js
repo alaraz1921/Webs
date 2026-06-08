@@ -38,7 +38,7 @@
                 presentation_text: config.fallbackEvent.presentationText,
                 hero_image_url: '',
                 detail_image_url: '',
-                palette_key: config.fallbackEvent.paletteKey || 'earth'
+                palette_key: config.fallbackEvent.paletteKey || 'clasica'
             }
         };
     }

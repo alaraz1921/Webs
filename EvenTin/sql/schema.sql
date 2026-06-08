@@ -46,7 +46,7 @@ create table if not exists public.eventin_event_settings (
     presentation_text text,
     hero_image_url text,
     detail_image_url text,
-    palette_key text not null default 'earth',
+    palette_key text not null default 'clasica',
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
@@ -117,7 +117,16 @@ alter table public.eventin_events add column if not exists public_slug text;
 alter table public.eventin_events add column if not exists event_code text;
 alter table public.eventin_events add column if not exists event_type text not null default 'communion';
 alter table public.eventin_event_settings add column if not exists main_title text;
-alter table public.eventin_event_settings add column if not exists palette_key text not null default 'earth';
+alter table public.eventin_event_settings add column if not exists palette_key text not null default 'clasica';
+alter table public.eventin_event_settings alter column palette_key set default 'clasica';
+update public.eventin_event_settings
+set palette_key = 'clasica'
+where palette_key is null
+   or palette_key not in ('clasica', 'dulce', 'brisa', 'natura');
+alter table public.eventin_event_settings drop constraint if exists eventin_event_settings_palette_key_check;
+alter table public.eventin_event_settings
+    add constraint eventin_event_settings_palette_key_check
+    check (palette_key in ('clasica', 'dulce', 'brisa', 'natura'));
 alter table public.eventin_profiles add column if not exists email text;
 alter table public.eventin_profiles add column if not exists event_code text;
 alter table public.eventin_guest_responses add column if not exists guest_id uuid;
@@ -956,7 +965,7 @@ insert into public.eventin_event_settings (
     '14:00',
     'Un recuerdo para siempre',
     'Hay momentos que quedan grabados en el corazón para toda la vida. Nos gustaría celebrarlo contigo y guardar juntos este hermoso recuerdo.',
-    'earth'
+    'clasica'
 ) on conflict (event_id) do update set
     main_title = excluded.main_title,
     subtitle = excluded.subtitle,
