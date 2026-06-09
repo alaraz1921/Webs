@@ -678,7 +678,7 @@ begin
         ) values (
             p_event_id,
             coalesce(p_enabled, false),
-            case when clean_key is null then null else crypt(clean_key, gen_salt('bf')) end
+            case when clean_key is null then null else extensions.crypt(clean_key, extensions.gen_salt('bf')) end
         )
         returning * into settings_record;
     else
@@ -690,7 +690,7 @@ begin
         set collaborative_enabled = coalesce(p_enabled, false),
             collaborative_key_hash = case
                 when clean_key is null then collaborative_key_hash
-                else crypt(clean_key, gen_salt('bf'))
+                else extensions.crypt(clean_key, extensions.gen_salt('bf'))
             end
         where event_id = p_event_id
         returning * into settings_record;
@@ -719,7 +719,7 @@ as $$
       and e.is_active = true
       and s.collaborative_token = trim(coalesce(p_token, ''))
       and s.collaborative_key_hash is not null
-      and crypt(coalesce(p_access_key, ''), s.collaborative_key_hash) = s.collaborative_key_hash
+      and extensions.crypt(coalesce(p_access_key, ''), s.collaborative_key_hash) = s.collaborative_key_hash
     limit 1;
 $$;
 

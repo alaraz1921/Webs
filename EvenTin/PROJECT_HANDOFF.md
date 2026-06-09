@@ -140,6 +140,7 @@ El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear
 - `gallery-api` esta desplegada y controla listado, subida y borrado sin exponer permisos amplios de Storage.
 - La galeria colaborativa usa enlace con token, clave almacenada como hash, activacion desde el panel y presentacion a pantalla completa.
 - Hay que ejecutar el `schema.sql` actualizado para crear tablas, funciones y bucket de galerias.
+- Las funciones de clave colaborativa llaman explicitamente a `extensions.crypt` y `extensions.gen_salt`, porque Supabase instala `pgcrypto` en el esquema `extensions`.
 - El formulario de contacto se movio a `contacto.html`; los botones de contacto y `Crear mi evento` enlazan a esa pagina.
 - Los botones de evento demo enlazan a `evento.html?evento=primera-comunion-demo`.
 
