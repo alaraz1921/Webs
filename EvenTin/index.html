@@ -14,101 +14,105 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js"></script>
-    <script src="js/supabaseClient.js"></script>
     <script src="js/home.js" defer></script>
 </head>
 <body data-palette="home">
-    <main class="home-page">
-        <div class="home-topbar">
-            <a class="login-icon-link" href="admin.html" aria-label="Iniciar sesion" title="Iniciar sesion">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3.2" fill="currentColor" stroke="none"/><path d="M5.8 19a6.4 6.4 0 0 1 12.4 0" fill="currentColor" stroke="none"/></svg>
-            </a>
-            <form id="event-access-form" class="event-access" aria-label="Acceso a evento">
-                <label class="sr-only" for="event-code">ID de evento</label>
-                <input id="event-code" name="event_code" type="text" inputmode="numeric" autocomplete="off" maxlength="6" pattern="[0-9]{6}" placeholder="ID de evento (6 digitos)" required>
-                <button type="submit">Ir</button>
-                <p id="event-access-status" class="form-status" role="status"></p>
-            </form>
-        </div>
-        <section class="home-hero" aria-labelledby="home-title">
-            <div class="home-bg home-bg-left" aria-hidden="true"></div>
-            <div class="home-bg home-bg-right" aria-hidden="true"></div>
+    <div class="home-topbar">
+        <a class="login-icon-link" href="admin.html" aria-label="Iniciar sesion" title="Iniciar sesion">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3.2" fill="currentColor" stroke="none"/><path d="M5.8 19a6.4 6.4 0 0 1 12.4 0" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <form id="event-access-form" class="event-access" aria-label="Acceso a evento">
+            <label class="sr-only" for="event-code">ID de evento</label>
+            <input id="event-code" name="event_code" type="text" inputmode="numeric" autocomplete="off" maxlength="6" pattern="[0-9]{6}" placeholder="ID de evento (6 digitos)" required>
+            <button type="submit">Ir</button>
+            <p id="event-access-status" class="form-status" role="status"></p>
+        </form>
+    </div>
 
-            <div class="home-hero-content">
-                <h1 id="home-title" class="sr-only">Invitaciones digitales para comuniones, bodas y celebraciones</h1>
-                <img src="assets/images/eventin-logo-transparent.png" alt="EvenTin" class="brand-logo">
-                <p class="home-tagline">tu evento, tu historia</p>
-
-                <div class="home-features" aria-label="Servicios">
-                    <article class="feature">
-                        <span class="feature-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24"><path d="M7 2v3M17 2v3M4 9h16M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm2 8h2m3 0h2m3 0h2M7 17h2m3 0h2m3 0h2"/></svg>
-                        </span>
-                        <strong>Celebra</strong>
-                    </article>
-                    <article class="feature">
-                        <span class="feature-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24"><path d="M12 21s7-5.33 7-11a7 7 0 1 0-14 0c0 5.67 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
-                        </span>
-                        <strong>Comparte</strong>
-                    </article>
-                    <article class="feature">
-                        <span class="feature-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM2.5 21a5.5 5.5 0 0 1 11 0M10.5 21a5.5 5.5 0 0 1 11 0"/></svg>
-                        </span>
-                        <strong>Disfruta</strong>
-                    </article>
-                    <article class="feature">
-                        <span class="feature-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 1 1 17 0Z"/><path d="M12 15.8s-3.4-1.9-3.4-4.2A1.9 1.9 0 0 1 12 10.5a1.9 1.9 0 0 1 3.4 1.1c0 2.3-3.4 4.2-3.4 4.2Z"/></svg>
-                        </span>
-                        <strong>Recuerda</strong>
-                    </article>
+    <main class="showcase-home">
+        <section class="showcase-hero" aria-labelledby="home-title">
+            <div class="showcase-copy">
+                <p class="showcase-kicker">EvenTin</p>
+                <h1 id="home-title">Tu evento,<br>tu historia</h1>
+                <div class="showcase-flourish" aria-hidden="true"><span></span><b>♥</b><span></span></div>
+                <p class="showcase-lead">Crea un espacio único para tu celebración. Comparte información, recuerdos y momentos inolvidables con tus invitados.</p>
+                <div class="showcase-mini-features" aria-label="Funciones principales">
+                    <span><b>Calendario</b>Todo organizado</span>
+                    <span><b>Invitados</b>Más especiales</span>
+                    <span><b>Recuerdos</b>Para siempre</span>
+                </div>
+                <div class="showcase-actions">
+                    <a class="showcase-button" href="https://www.alaraz1921.com/EvenTin/evento.html?evento=primera-comunion-demo&amp;v=1780992785334">Ver evento demo</a>
+                    <a class="showcase-button showcase-button-soft" href="contacto.html">Crear mi evento</a>
                 </div>
             </div>
-        </section>
-
-        <section class="home-event-types" aria-label="Tipos de eventos">
-            <div class="home-event-types-content">
-                <p>Comuniones <span>-</span> Bautizos <span>-</span> Bodas <span>-</span> Celebraciones</p>
-                <div class="tiny-heart" aria-hidden="true"><span></span><b>♥</b><span></span></div>
+            <div class="showcase-phone-wrap">
+                <img class="showcase-phone showcase-phone-tilted" src="assets/images/home-hero-phone.jpg" alt="Ejemplo de invitación digital EvenTin para una comunión">
             </div>
         </section>
 
-        <section class="home-contact" aria-labelledby="contact-title">
-            <div class="contact-decoration contact-decoration-left" aria-hidden="true"></div>
-            <div class="contact-decoration contact-decoration-right" aria-hidden="true"></div>
-            <div class="contact-card">
-                <h2 id="contact-title">Contacto</h2>
-                <div class="title-line" aria-hidden="true"></div>
-                <form id="contact-form" class="contact-form">
-                    <div class="form-row">
-                        <label>
-                            <span class="sr-only">Nombre</span>
-                            <input type="text" name="nombre" autocomplete="name" placeholder="Nombre" required>
-                        </label>
-                        <label>
-                            <span class="sr-only">Email</span>
-                            <input type="email" name="email" autocomplete="email" placeholder="Email" required>
-                        </label>
-                    </div>
-                    <label class="contact-wide">
-                        <span class="sr-only">Asunto</span>
-                        <input type="text" name="asunto" placeholder="Asunto" required>
-                    </label>
-                    <label class="contact-wide">
-                        <span class="sr-only">Mensaje</span>
-                        <textarea name="mensaje" rows="5" placeholder="Mensaje" required></textarea>
-                    </label>
-                    <button type="submit">Enviar</button>
-                    <p id="contact-status" class="form-status contact-wide" role="status"></p>
-                </form>
+        <section class="showcase-benefits" aria-label="Ventajas de EvenTin">
+            <article><span class="showcase-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h10M7 13h7"/></svg></span><h2>Diseños elegantes</h2><p>Elige entre diferentes estilos y personaliza cada detalle.</p></article>
+            <article><span class="showcase-icon"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></span><h2>Totalmente responsive</h2><p>Tu página se verá perfecta en cualquier dispositivo.</p></article>
+            <article><span class="showcase-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/><path d="M3 20a6 6 0 0 1 12 0M14 20a4 4 0 0 1 7 0"/></svg></span><h2>Gestión de invitados</h2><p>Invita, confirma asistencia y organiza tu evento fácilmente.</p></article>
+            <article><span class="showcase-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-5"/></svg></span><h2>Privado y seguro</h2><p>Tu evento es privado y solo accesible para invitados.</p></article>
+        </section>
+
+        <section class="showcase-styles" aria-labelledby="styles-title">
+            <p class="showcase-kicker">Tu celebración, a tu manera</p>
+            <h2 id="styles-title">Elige el estilo que mejor combine contigo</h2>
+            <div class="style-gallery">
+                <figure><img src="assets/images/home-style-dulce.jpg" alt="Estilo Dulce"><figcaption><i class="style-dot style-dot-dulce"></i>Dulce</figcaption></figure>
+                <figure><img src="assets/images/home-style-brisa.jpg" alt="Estilo Brisa"><figcaption><i class="style-dot style-dot-brisa"></i>Brisa</figcaption></figure>
+                <figure><img src="assets/images/home-style-natura.jpg" alt="Estilo Natura"><figcaption><i class="style-dot style-dot-natura"></i>Natura</figcaption></figure>
+                <figure><img src="assets/images/home-style-clasica.jpg" alt="Estilo Clasica"><figcaption><i class="style-dot style-dot-clasica"></i>Clasica</figcaption></figure>
             </div>
+        </section>
+
+        <section class="showcase-demo" aria-labelledby="demo-title">
+            <div>
+                <p class="showcase-kicker">Míralo en acción</p>
+                <h2 id="demo-title">Descubre un evento demo</h2>
+                <p>Explora una comunión de ejemplo y conoce todo lo que puedes hacer con EvenTin.</p>
+                <a class="showcase-button" href="https://www.alaraz1921.com/EvenTin/evento.html?evento=primera-comunion-demo&amp;v=1780992785334">Explorar evento demo</a>
+            </div>
+            <img src="assets/images/home-demo-event.jpg" alt="Detalle de una celebración de comunión">
+        </section>
+
+        <section class="showcase-cta" aria-label="Crear un evento">
+            <span class="showcase-icon showcase-icon-filled"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 7v14M12 7H7.5a2.5 2.5 0 1 1 0-5C10.5 2 12 7 12 7Zm0 0h4.5a2.5 2.5 0 1 0 0-5C13.5 2 12 7 12 7Z"/></svg></span>
+            <div><h2>Haz que tu evento sea inolvidable</h2><p>Crea tu página en minutos y comparte momentos para siempre.</p></div>
+            <a class="showcase-button showcase-button-soft" href="contacto.html">Crear mi evento</a>
+        </section>
+
+        <section class="showcase-types" aria-labelledby="types-title">
+            <p class="showcase-kicker">Hay un EvenTin para cada ocasión</p>
+            <h2 id="types-title">Tipos de eventos</h2>
+            <div class="showcase-type-grid">
+                <article><span>♙</span><h3>Comuniones</h3></article>
+                <article><span>♧</span><h3>Bodas</h3></article>
+                <article><span>◊</span><h3>Bautizos</h3></article>
+                <article><span>□</span><h3>Celebraciones</h3></article>
+            </div>
+        </section>
+
+        <section class="showcase-final" aria-label="Contacto y creación de eventos">
+            <article>
+                <span class="showcase-icon showcase-icon-filled"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+                <div><h2>¿Tienes dudas?</h2><p>Estamos aquí para ayudarte a crear el evento perfecto.</p></div>
+                <a class="showcase-button" href="contacto.html">Contáctanos</a>
+            </article>
+            <article>
+                <span class="showcase-icon showcase-icon-filled"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 7v14M12 7H7.5a2.5 2.5 0 1 1 0-5C10.5 2 12 7 12 7Zm0 0h4.5a2.5 2.5 0 1 0 0-5C13.5 2 12 7 12 7Z"/></svg></span>
+                <div><h2>Haz que tu evento sea inolvidable</h2><p>Crea tu página en minutos y comparte momentos para siempre.</p></div>
+                <a class="showcase-button" href="contacto.html">Crear mi evento</a>
+            </article>
         </section>
     </main>
-    <footer class="event-footer">
+
+    <footer class="showcase-footer">
+        <a href="index.html"><img src="assets/images/eventin-logo-transparent.png" alt="EvenTin"></a>
+        <p>Tu evento, tu historia</p>
         <a class="developer-credit" href="https://www.alaraz1921.com/proyectos.html">Creado con ♥ por alaraz1921</a>
     </footer>
 </body>

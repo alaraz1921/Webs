@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacto | EvenTin</title>
+    <meta name="description" content="Contacta con EvenTin para crear una invitación digital personalizada para tu celebración.">
+    <meta name="robots" content="index, follow">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/contact.js" defer></script>
+</head>
+<body class="simple-page contact-page">
+    <div class="event-topbar contact-topbar">
+        <a class="event-brand-link" href="index.html" aria-label="Ir a la portada de EvenTin" title="EvenTin">
+            <img src="assets/images/eventin-logo-transparent.png" alt="EvenTin">
+        </a>
+        <a class="event-admin-link login-icon-link" href="admin.html" aria-label="Iniciar sesión" title="Iniciar sesión">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3.2" fill="currentColor" stroke="none"/><path d="M5.8 19a6.4 6.4 0 0 1 12.4 0" fill="currentColor" stroke="none"/></svg>
+        </a>
+    </div>
+    <main class="contact-page-layout">
+        <header>
+            <p class="showcase-kicker">Hablemos de tu celebración</p>
+            <h1>Crear mi evento</h1>
+            <p>Cuéntanos qué tienes en mente y te ayudaremos a darle forma.</p>
+        </header>
+        <form id="contact-form" class="form-card contact-page-form">
+            <label>Nombre<input type="text" name="nombre" autocomplete="name" required></label>
+            <label>Email<input type="email" name="email" autocomplete="email" required></label>
+            <label>Asunto<input type="text" name="asunto" required></label>
+            <label>Mensaje<textarea name="mensaje" rows="6" required></textarea></label>
+            <button type="submit">Enviar mensaje</button>
+            <p id="contact-status" class="form-status" role="status"></p>
+        </form>
+        <a class="page-link secondary-button" href="index.html">Volver a EvenTin</a>
+    </main>
+    <footer class="event-footer">
+        <a class="developer-credit" href="index.html">Creado con ♥ por alaraz1921</a>
+        <a class="eventin-discover-link" href="index.html">Descubre más en EvenTin</a>
+    </footer>
+</body>
+</html>

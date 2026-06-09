@@ -51,6 +51,7 @@ No guardar nunca:
 ```text
 EvenTin/
 |-- index.html
+|-- contacto.html
 |-- evento.html
 |-- invitacion.html
 |-- invitados.html
@@ -65,6 +66,7 @@ EvenTin/
 |   |-- admin.js
 |   |-- config.js
 |   |-- countdown.js
+|   |-- contact.js
 |   |-- guests.js
 |   |-- home.js
 |   |-- invitation.js
@@ -80,7 +82,8 @@ EvenTin/
 
 ## Paginas
 
-- `index.html`: portada de EvenTin, con acceso por codigo de evento y formulario de contacto.
+- `index.html`: portada de EvenTin, dividida en siete secciones comerciales y con acceso por codigo de evento.
+- `contacto.html`: formulario publico independiente para solicitar informacion o crear un evento.
 - `evento.html?evento=CODIGO_O_SLUG`: pagina publica de evento.
 - `invitacion.html?evento=CODIGO_O_SLUG`: formulario publico legacy de confirmacion de asistencia. Muestra logo, `eventin_events.title` y fecha/hora real de `eventin_events.event_date`.
 - `invitacion.html?token=TOKEN`: invitacion individual por invitado. No usa telefono en URL.
@@ -111,6 +114,10 @@ El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear
 - El email del usuario mostrado en la cabecera administrativa usa el color oscuro de titulo para mantener contraste.
 - Los inserts del evento demo y sus ajustes en `schema.sql` usan `on conflict do nothing`: el esquema crea el demo si falta, pero ya no sobrescribe los cambios realizados desde administracion.
 - Se corrigio la posicion del acceso por ID en la portada de escritorio para que permanezca dentro de la banda superior.
+- Se reconstruyo la portada en siete secciones: presentacion, ventajas, estilos, demo, llamada a la accion, tipos de evento y cierre de contacto.
+- Se incorporaron miniaturas propias para la presentacion, los cuatro estilos y el evento demo.
+- El formulario de contacto se movio a `contacto.html`; los botones de contacto y `Crear mi evento` enlazan a esa pagina.
+- Los botones de evento demo enlazan a `evento.html?evento=primera-comunion-demo`.
 
 ## Cambios del 2026-06-08
 
@@ -436,7 +443,7 @@ Usuarios:
 
 Contactos:
 
-- Ver mensajes enviados desde la portada.
+- Ver mensajes enviados desde `contacto.html`.
 - Responder por email con `mailto:`.
 - Borrar mensajes.
 
@@ -452,7 +459,7 @@ Restaurar clave:
 
 ## Formulario de Contacto
 
-El formulario de portada guarda en:
+El formulario de `contacto.html` guarda en:
 
 ```text
 public.eventin_contact_requests
@@ -625,7 +632,7 @@ d11bde9 Move EvenTin helper functions to private schema
    - acceder como usuario;
    - enviar invitacion;
    - enviar mensaje publico;
-   - enviar contacto desde portada;
+   - enviar contacto desde `contacto.html`;
    - ver contacto en admin y recibir email.
 7. Si se quiere enviar desde `contacto@alaraz1921.com`, verificar dominio/remitente en Resend y configurar `CONTACT_FROM_EMAIL`.
 

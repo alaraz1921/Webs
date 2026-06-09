@@ -1,6 +1,6 @@
 # Manual de usuario de EvenTin
 
-Ultima actualizacion: 2026-06-08
+Ultima actualizacion: 2026-06-09
 
 ## Acceso
 
@@ -9,6 +9,7 @@ EvenTin tiene una parte publica y una parte privada.
 Parte publica:
 
 - Portada: `https://alaraz1921.com/EvenTin/`
+- Contacto y solicitud de evento: `contacto.html`
 - Evento: `evento.html?evento=CODIGO_O_SLUG`
 - Invitacion generica: `invitacion.html?evento=CODIGO_O_SLUG`
 - Invitacion individual: `invitacion.html?token=TOKEN`
@@ -20,6 +21,8 @@ Parte privada:
 - Restaurar clave: `reset-password.html`
 
 La portada mantiene visible una banda superior con el icono de inicio de sesion a la izquierda y el acceso por codigo de evento a la derecha.
+
+La portada muestra ejemplos visuales, los estilos disponibles y accesos al evento demo. Los botones `Crear mi evento` y `Contacto` abren el formulario independiente `contacto.html`.
 
 Dentro del panel privado, el icono de usuario de la cabecera abre el menu de sesion. Para cerrar sesion se puede usar ese menu o el enlace `Cerrar sesion` del final; ambos solicitan confirmacion.
 
@@ -251,7 +254,7 @@ Los mensajes publicos no se editan desde el panel.
 
 ## Mensajes de contacto
 
-El formulario de contacto de la portada guarda mensajes en:
+El formulario de `contacto.html` guarda mensajes en:
 
 ```text
 public.eventin_contact_requests
