@@ -302,7 +302,7 @@ Cuando esta opcion esta marcada, la pagina del evento muestra su enlace dentro d
 
 - Cualquier persona con el enlace y la clave puede ver y añadir fotografias.
 - El administrador global y el usuario administrador del evento pueden borrar fotografias.
-- `Iniciar presentacion` muestra las imagenes a pantalla completa de forma secuencial.
+- `Iniciar presentacion` muestra las imagenes a pantalla completa y avanza automaticamente cada 3 segundos.
 - Las fotografias se optimizan a un maximo de 500 KB.
 
 ## Restaurar clave

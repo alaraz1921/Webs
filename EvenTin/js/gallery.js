@@ -23,6 +23,7 @@
     const deleteCancel = document.getElementById('gallery-delete-cancel');
     const deleteConfirm = document.getElementById('gallery-delete-confirm');
     const maxImageBytes = 500 * 1024;
+    const slideshowIntervalMs = 3000;
     let images = [];
     let canDelete = false;
     let accessKey = '';
@@ -235,9 +236,10 @@
             setStatus(status, 'No hay imagenes para iniciar la presentacion.', true);
             return;
         }
+        stopSlideshow();
         openLightbox(0);
         lightbox.requestFullscreen?.().catch(() => {});
-        slideshowTimer = setInterval(() => openLightbox(activeImageIndex + 1), 5000);
+        slideshowTimer = setInterval(() => openLightbox(activeImageIndex + 1), slideshowIntervalMs);
     }
 
     fileInput?.addEventListener('change', async () => {
