@@ -294,11 +294,11 @@ La pagina del evento muestra la seccion `Recuerdos`, desde la que cualquier visi
 La galeria colaborativa se configura desde el panel de administracion del evento:
 
 1. Indicar una clave de acceso.
-2. Marcar `Activar enlace en la pagina del evento`.
+2. Marcar `Ver enlace en la pagina del evento` solo si se quiere mostrar el acceso en la pagina publica del evento.
 3. Guardar la configuracion.
 4. Copiar el enlace privado y compartirlo junto con la clave.
 
-Cuando esta activa, la pagina del evento muestra su enlace dentro de `Recuerdos`.
+Cuando esta opcion esta marcada, la pagina del evento muestra su enlace dentro de `Recuerdos`. Desde administracion siempre se puede copiar el enlace y acceder a la galeria, aunque no se muestre en la pagina publica.
 
 - Cualquier persona con el enlace y la clave puede ver y añadir fotografias.
 - Solo un usuario con rol administrador puede borrar fotografias.

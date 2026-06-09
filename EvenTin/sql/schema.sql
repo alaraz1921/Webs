@@ -715,8 +715,7 @@ as $$
     select s.event_id
     from public.eventin_gallery_settings s
     join public.eventin_events e on e.id = s.event_id
-    where s.collaborative_enabled = true
-      and e.is_active = true
+    where e.is_active = true
       and s.collaborative_token = trim(coalesce(p_token, ''))
       and s.collaborative_key_hash is not null
       and extensions.crypt(coalesce(p_access_key, ''), s.collaborative_key_hash) = s.collaborative_key_hash
