@@ -124,6 +124,7 @@ El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear
 - La sección de ventajas destaca el envío de invitaciones digitales por WhatsApp o email.
 - La segunda seccion muestra como titulo visible la frase SEO `Invitaciones digitales para comuniones, bodas y celebraciones`.
 - Los iconos de tipos de evento se muestran grandes y sin circulo exterior, con nombres mas destacados.
+- Las pastillas de estado de invitados en movil usan texto oscuro para mejorar su contraste.
 - El formulario de contacto se movio a `contacto.html`; los botones de contacto y `Crear mi evento` enlazan a esa pagina.
 - Los botones de evento demo enlazan a `evento.html?evento=primera-comunion-demo`.
 
