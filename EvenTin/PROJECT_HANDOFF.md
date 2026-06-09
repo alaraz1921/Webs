@@ -110,6 +110,7 @@ El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear
 
 - El email del usuario mostrado en la cabecera administrativa usa el color oscuro de titulo para mantener contraste.
 - Los inserts del evento demo y sus ajustes en `schema.sql` usan `on conflict do nothing`: el esquema crea el demo si falta, pero ya no sobrescribe los cambios realizados desde administracion.
+- Se corrigio la posicion del acceso por ID en la portada de escritorio para que permanezca dentro de la banda superior.
 
 ## Cambios del 2026-06-08
 

@@ -2338,6 +2338,8 @@ body[data-palette="home"] .home-topbar .login-icon-link {
 
 body[data-palette="home"] .home-topbar .event-access {
     position: relative;
+    inset: auto;
+    margin: 0;
     align-items: center;
 }
 
