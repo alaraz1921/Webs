@@ -1144,6 +1144,7 @@ fieldset {
 
 .admin-brand .eyebrow {
     margin-bottom: 4px;
+    color: var(--title);
     overflow-wrap: anywhere;
 }
 

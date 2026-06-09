@@ -939,14 +939,7 @@ insert into public.eventin_events (
     '2027-05-15 14:00:00+02',
     'Por confirmar',
     'https://www.google.com/maps'
-) on conflict (id) do update set
-    title = excluded.title,
-    public_slug = excluded.public_slug,
-    event_code = excluded.event_code,
-    event_type = excluded.event_type,
-    event_date = excluded.event_date,
-    location_name = excluded.location_name,
-    maps_url = excluded.maps_url;
+) on conflict do nothing;
 
 insert into public.eventin_event_settings (
     event_id,
@@ -966,11 +959,4 @@ insert into public.eventin_event_settings (
     'Un recuerdo para siempre',
     'Hay momentos que quedan grabados en el corazón para toda la vida. Nos gustaría celebrarlo contigo y guardar juntos este hermoso recuerdo.',
     'clasica'
-) on conflict (event_id) do update set
-    main_title = excluded.main_title,
-    subtitle = excluded.subtitle,
-    display_date = excluded.display_date,
-    display_time = excluded.display_time,
-    presentation_title = excluded.presentation_title,
-    presentation_text = excluded.presentation_text,
-    palette_key = excluded.palette_key;
+) on conflict do nothing;

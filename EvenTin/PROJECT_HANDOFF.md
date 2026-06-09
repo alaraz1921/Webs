@@ -1,6 +1,6 @@
 # EvenTin Project Handoff
 
-Ultima actualizacion: 2026-06-08
+Ultima actualizacion: 2026-06-09
 
 ## Resumen
 
@@ -105,6 +105,11 @@ eventin_profiles.event_code = eventin_events.event_code
 ```
 
 El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear evento y es de solo lectura en el panel.
+
+## Cambios del 2026-06-09
+
+- El email del usuario mostrado en la cabecera administrativa usa el color oscuro de titulo para mantener contraste.
+- Los inserts del evento demo y sus ajustes en `schema.sql` usan `on conflict do nothing`: el esquema crea el demo si falta, pero ya no sobrescribe los cambios realizados desde administracion.
 
 ## Cambios del 2026-06-08
 
