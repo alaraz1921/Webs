@@ -139,6 +139,7 @@ El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear
 - Se añadieron galeria publica y galeria colaborativa. Las fotografias se optimizan a un maximo de 500 KB y se guardan en el bucket privado `eventin-gallery`.
 - `gallery-api` esta desplegada y controla listado, subida y borrado sin exponer permisos amplios de Storage.
 - La galeria colaborativa usa enlace con token, clave almacenada como hash y presentacion a pantalla completa. El control `Ver enlace en la pagina del evento` solo cambia la visibilidad del enlace publico; desde administracion siempre se puede copiar el enlace y acceder con su clave.
+- El esquema `eventin_private` concede `usage` a `service_role`, necesario para que `gallery-api` pueda verificar las claves de la galeria colaborativa.
 - Hay que ejecutar el `schema.sql` actualizado para crear tablas, funciones y bucket de galerias.
 - Las funciones de clave colaborativa llaman explicitamente a `extensions.crypt` y `extensions.gen_salt`, porque Supabase instala `pgcrypto` en el esquema `extensions`.
 - El formulario de contacto se movio a `contacto.html`; los botones de contacto y `Crear mi evento` enlazan a esa pagina.

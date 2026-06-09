@@ -124,10 +124,14 @@ serve(async (request) => {
             return null;
         }
 
-        const { data } = await adminClient.rpc("eventin_verify_collaborative_gallery_access", {
+        const { data, error } = await adminClient.rpc("eventin_verify_collaborative_gallery_access", {
             p_token: token,
             p_access_key: accessKey
         });
+        if (error) {
+            console.error("Collaborative gallery verification failed", error);
+            throw new Error("Could not verify gallery access");
+        }
         return data ? getEventById(data) : null;
     }
 

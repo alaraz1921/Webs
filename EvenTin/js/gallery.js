@@ -310,7 +310,10 @@
             sessionStorage.setItem(`eventin-gallery-${galleryToken}`, accessKey);
             setStatus(accessStatus, '');
         } catch (error) {
-            setStatus(accessStatus, 'Clave incorrecta o galeria no disponible.', true);
+            const message = error?.message === 'Invalid gallery access'
+                ? 'Clave incorrecta o galeria no disponible.'
+                : 'No se pudo comprobar el acceso a la galeria. Intentalo de nuevo.';
+            setStatus(accessStatus, message, true);
         }
     });
 

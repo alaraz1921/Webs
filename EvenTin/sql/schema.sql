@@ -5,7 +5,7 @@ create extension if not exists pgcrypto;
 
 create schema if not exists eventin_private;
 revoke all on schema eventin_private from public;
-grant usage on schema eventin_private to anon, authenticated;
+grant usage on schema eventin_private to anon, authenticated, service_role;
 
 create table if not exists public.eventin_event_types (
     key text primary key,
