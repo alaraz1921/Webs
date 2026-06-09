@@ -116,6 +116,10 @@ El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear
 - Se corrigio la posicion del acceso por ID en la portada de escritorio para que permanezca dentro de la banda superior.
 - Se reconstruyo la portada en siete secciones: presentacion, ventajas, estilos, demo, llamada a la accion, tipos de evento y cierre de contacto.
 - Se incorporaron miniaturas propias para la presentacion, los cuatro estilos y el evento demo.
+- Las miniaturas de la presentacion y de estilos usan PNG con fondo exterior transparente.
+- La presentacion muestra cuatro funciones con iconos: Celebra, Comparte, Disfruta y Recuerda.
+- Los tipos de evento usan iconos propios para comuniones, bodas, bautizos y otros eventos.
+- La imagen del evento demo se muestra completa en escritorio sin recorte vertical.
 - El formulario de contacto se movio a `contacto.html`; los botones de contacto y `Crear mi evento` enlazan a esa pagina.
 - Los botones de evento demo enlazan a `evento.html?evento=primera-comunion-demo`.
 
