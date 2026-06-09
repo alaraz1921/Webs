@@ -301,7 +301,7 @@ La galeria colaborativa se configura desde el panel de administracion del evento
 Cuando esta opcion esta marcada, la pagina del evento muestra su enlace dentro de `Recuerdos`. Desde administracion siempre se puede copiar el enlace y acceder a la galeria, aunque no se muestre en la pagina publica.
 
 - Cualquier persona con el enlace y la clave puede ver y añadir fotografias.
-- Solo un usuario con rol administrador puede borrar fotografias.
+- El administrador global y el usuario administrador del evento pueden borrar fotografias.
 - `Iniciar presentacion` muestra las imagenes a pantalla completa de forma secuencial.
 - Las fotografias se optimizan a un maximo de 500 KB.
 

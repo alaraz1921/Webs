@@ -245,9 +245,13 @@ serve(async (request) => {
             return jsonResponse({ error: "Invalid gallery access" }, 403);
         }
         const profile = await getProfile();
+        const canDelete = Boolean(profile && (
+            profile.role === "admin"
+            || profile.event_code === eventData.event_code
+        ));
         return jsonResponse({
             event: { title: eventData.title, public_slug: eventData.public_slug, event_code: eventData.event_code },
-            can_delete: profile?.role === "admin",
+            can_delete: canDelete,
             images: await listImages(eventData.id, "collaborative")
         });
     }
@@ -277,9 +281,10 @@ serve(async (request) => {
 
         const eventData = await getEventById(image.event_id);
         const profile = await getProfile();
-        const canDelete = galleryType === "public"
-            ? Boolean(profile && eventData && (profile.role === "admin" || profile.event_code === eventData.event_code))
-            : profile?.role === "admin";
+        const canDelete = Boolean(profile && eventData && (
+            profile.role === "admin"
+            || profile.event_code === eventData.event_code
+        ));
 
         if (!canDelete) {
             return jsonResponse({ error: "Access denied" }, 403);
