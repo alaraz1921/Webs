@@ -224,6 +224,7 @@
 
     function closeLightbox() {
         stopSlideshow();
+        lightbox.classList.remove('is-slideshow');
         lightbox.hidden = true;
         lightboxImage.removeAttribute('src');
         if (document.fullscreenElement) {
@@ -237,6 +238,7 @@
             return;
         }
         stopSlideshow();
+        lightbox.classList.add('is-slideshow');
         openLightbox(0);
         lightbox.requestFullscreen?.().catch(() => {});
         slideshowTimer = setInterval(() => openLightbox(activeImageIndex + 1), slideshowIntervalMs);
@@ -302,6 +304,12 @@
     });
 
     slideshowButton?.addEventListener('click', startSlideshow);
+
+    document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement && lightbox?.classList.contains('is-slideshow')) {
+            closeLightbox();
+        }
+    });
 
     accessForm?.addEventListener('submit', async (event) => {
         event.preventDefault();
