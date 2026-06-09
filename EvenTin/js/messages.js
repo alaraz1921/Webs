@@ -13,6 +13,26 @@
         status.classList.toggle('error', Boolean(isError));
     }
 
+    async function notifyEventUser(recordId) {
+        if (!recordId) {
+            return;
+        }
+
+        try {
+            const { error } = await client.functions.invoke('notify-event-activity', {
+                body: {
+                    activity_type: 'public_message',
+                    record_id: recordId
+                }
+            });
+            if (error) {
+                console.warn('No se pudo enviar la notificacion del mensaje.', error);
+            }
+        } catch (error) {
+            console.warn('No se pudo enviar la notificacion del mensaje.', error);
+        }
+    }
+
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
         showStatus('', false);
@@ -25,13 +45,23 @@
         try {
             const formData = new FormData(form);
             const { event: eventData } = await eventContext.getEvent();
-            const payload = {
-                event_id: eventData.id,
-                author_name: String(formData.get('author_name')).trim(),
-                message: String(formData.get('message')).trim()
-            };
+            const { data: messageId, error: rpcError } = await client.rpc('eventin_submit_public_message', {
+                p_event_id: eventData.id,
+                p_author_name: String(formData.get('author_name')).trim(),
+                p_message: String(formData.get('message')).trim()
+            });
 
-            await client.from('eventin_public_messages').insert(payload).throwOnError();
+            if (rpcError?.code === 'PGRST202') {
+                await client.from('eventin_public_messages').insert({
+                    event_id: eventData.id,
+                    author_name: String(formData.get('author_name')).trim(),
+                    message: String(formData.get('message')).trim()
+                }).throwOnError();
+            } else if (rpcError) {
+                throw rpcError;
+            }
+
+            await notifyEventUser(messageId);
             form.reset();
             showStatus('Mensaje enviado correctamente', false);
         } catch (error) {

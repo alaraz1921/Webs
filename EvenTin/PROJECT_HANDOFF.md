@@ -77,6 +77,7 @@ EvenTin/
 |-- assets/images/
 `-- supabase/functions/
     |-- notify-contact/index.ts
+    |-- notify-event-activity/index.ts
     `-- create-event-user/index.ts
 ```
 
@@ -125,6 +126,9 @@ El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear
 - La segunda seccion muestra como titulo visible la frase SEO `Invitaciones digitales para comuniones, bodas y celebraciones`.
 - Los iconos de tipos de evento se muestran grandes y sin circulo exterior, con nombres mas destacados.
 - Las pastillas de estado de invitados en movil usan texto oscuro para mejorar su contraste.
+- Los mensajes publicos y respuestas de invitacion envian avisos por email al usuario asignado al evento mediante `notify-event-activity`.
+- La Edge Function `notify-event-activity` esta desplegada en el proyecto Supabase EvenTin y reutiliza la configuracion existente de Resend.
+- Hay que ejecutar el `schema.sql` actualizado para activar `eventin_submit_public_message` y los avisos de mensajes publicos.
 - El formulario de contacto se movio a `contacto.html`; los botones de contacto y `Crear mi evento` enlazan a esa pagina.
 - Los botones de evento demo enlazan a `evento.html?evento=primera-comunion-demo`.
 
@@ -482,6 +486,22 @@ notify-contact
 
 Si falla el email, el mensaje sigue guardado en Supabase.
 
+## Avisos por Email del Evento
+
+Los mensajes publicos y las respuestas de invitacion intentan llamar a:
+
+```text
+notify-event-activity
+```
+
+La funcion recibe el UUID del registro ya guardado, consulta su contenido con la clave de servicio y envia el aviso a los perfiles con rol `user` cuyo `event_code` coincide con el evento.
+
+- Reutiliza `RESEND_API_KEY` y `CONTACT_FROM_EMAIL`.
+- No necesita configurar de nuevo Resend.
+- Si falla el email, el mensaje o respuesta permanece guardado.
+- El correo incluye un enlace al panel del evento.
+- Los mensajes publicos se guardan mediante `eventin_submit_public_message`, que devuelve su UUID para solicitar la notificacion.
+
 ## Edge Function de Email
 
 Archivo:
@@ -545,6 +565,7 @@ Comandos habituales:
 cd V:\Proyectos\Git\Webs\EvenTin
 supabase secrets set RESEND_API_KEY=TU_NUEVA_KEY CONTACT_TO_EMAIL=tu_email@gmail.com --project-ref tmnavlsptjhhdlypgtaa
 supabase functions deploy notify-contact --project-ref tmnavlsptjhhdlypgtaa
+supabase functions deploy notify-event-activity --project-ref tmnavlsptjhhdlypgtaa
 supabase functions deploy create-event-user --project-ref tmnavlsptjhhdlypgtaa
 ```
 
@@ -553,6 +574,7 @@ Si no existe `supabase` en PowerShell, instalar Node.js LTS y usar:
 ```powershell
 npx supabase login --token TU_TOKEN_SUPABASE
 npx supabase functions deploy notify-contact --project-ref tmnavlsptjhhdlypgtaa
+npx supabase functions deploy notify-event-activity --project-ref tmnavlsptjhhdlypgtaa
 npx supabase functions deploy create-event-user --project-ref tmnavlsptjhhdlypgtaa
 ```
 
@@ -633,8 +655,9 @@ d11bde9 Move EvenTin helper functions to private schema
 2. Activar `Leaked password protection` en Supabase Auth.
 3. Confirmar que `create-event-user` esta desplegada y permite crear usuarios desde el panel.
 4. Confirmar que `notify-contact` tiene secretos correctos y envia emails.
-5. Confirmar que la subida de imagenes funciona tras ejecutar el `schema.sql` actualizado.
-6. Probar flujo completo:
+5. Comprobar con datos reales los avisos de `notify-event-activity` al usuario del evento.
+6. Confirmar que la subida de imagenes funciona tras ejecutar el `schema.sql` actualizado.
+7. Probar flujo completo:
    - crear evento;
    - subir imagen principal/detalle;
    - crear usuario de evento;
@@ -643,7 +666,7 @@ d11bde9 Move EvenTin helper functions to private schema
    - enviar mensaje publico;
    - enviar contacto desde `contacto.html`;
    - ver contacto en admin y recibir email.
-7. Si se quiere enviar desde `contacto@alaraz1921.com`, verificar dominio/remitente en Resend y configurar `CONTACT_FROM_EMAIL`.
+8. Si se quiere enviar desde `contacto@alaraz1921.com`, verificar dominio/remitente en Resend y configurar `CONTACT_FROM_EMAIL`.
 
 ## Notas de Trabajo
 

@@ -252,6 +252,16 @@ La vista completa:
 
 Los mensajes publicos no se editan desde el panel.
 
+Cuando se guarda un mensaje publico, EvenTin intenta enviar un aviso por email al usuario asignado al evento. El mensaje permanece guardado aunque el envio del correo falle.
+
+## Avisos de respuestas de invitacion
+
+Cuando un invitado confirma o rechaza su asistencia, EvenTin intenta enviar un aviso por email al usuario asignado al evento. El aviso resume la asistencia, numero de adultos, numero de ninos y mensaje recibido.
+
+El destinatario se obtiene automaticamente del perfil de usuario cuyo codigo coincide con el codigo del evento. Si el evento no tiene un usuario asignado con email, no se envia aviso.
+
+El correo es solamente una notificacion: la informacion completa y actualizada debe consultarse desde el panel de administracion.
+
 ## Mensajes de contacto
 
 El formulario de `contacto.html` guarda mensajes en:

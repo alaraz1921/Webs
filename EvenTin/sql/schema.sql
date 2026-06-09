@@ -292,6 +292,7 @@ drop function if exists public.eventin_can_access_event_code(text) cascade;
 drop function if exists public.eventin_can_manage_event_image(text) cascade;
 drop function if exists public.eventin_submit_guest_response(uuid, text, text, boolean, text) cascade;
 drop function if exists public.eventin_submit_guest_response(uuid, text, text, boolean, text, integer, integer) cascade;
+drop function if exists public.eventin_submit_public_message(uuid, text, text) cascade;
 drop function if exists public.eventin_get_guest_invitation(text) cascade;
 drop function if exists public.eventin_submit_guest_token_response(text, boolean, integer, integer, text) cascade;
 drop function if exists public.eventin_generate_event_code() cascade;
@@ -301,6 +302,7 @@ drop function if exists eventin_private.can_access_event_code(text) cascade;
 drop function if exists eventin_private.generate_event_code() cascade;
 drop function if exists eventin_private.submit_guest_response(uuid, text, text, boolean, text) cascade;
 drop function if exists eventin_private.submit_guest_response(uuid, text, text, boolean, text, integer, integer) cascade;
+drop function if exists eventin_private.submit_public_message(uuid, text, text) cascade;
 
 create or replace function eventin_private.is_admin()
 returns boolean
@@ -482,6 +484,44 @@ begin
 end;
 $$;
 
+create or replace function eventin_private.submit_public_message(
+    p_event_id uuid,
+    p_author_name text,
+    p_message text
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    message_id uuid;
+begin
+    if coalesce(trim(p_author_name), '') = '' then
+        raise exception 'Nombre obligatorio';
+    end if;
+
+    if coalesce(trim(p_message), '') = '' then
+        raise exception 'Mensaje obligatorio';
+    end if;
+
+    if not exists (
+        select 1
+        from public.eventin_events
+        where id = p_event_id
+          and is_active = true
+    ) then
+        raise exception 'Evento no disponible';
+    end if;
+
+    insert into public.eventin_public_messages (event_id, author_name, message)
+    values (p_event_id, trim(p_author_name), trim(p_message))
+    returning id into message_id;
+
+    return message_id;
+end;
+$$;
+
 create or replace function public.eventin_submit_guest_response(
     p_event_id uuid,
     p_nombre text,
@@ -508,6 +548,21 @@ as $$
 $$;
 
 grant execute on function public.eventin_submit_guest_response(uuid, text, text, boolean, text, integer, integer) to anon, authenticated;
+
+create or replace function public.eventin_submit_public_message(
+    p_event_id uuid,
+    p_author_name text,
+    p_message text
+)
+returns uuid
+language sql
+security invoker
+set search_path = public
+as $$
+    select eventin_private.submit_public_message(p_event_id, p_author_name, p_message);
+$$;
+
+grant execute on function public.eventin_submit_public_message(uuid, text, text) to anon, authenticated;
 
 create or replace function public.eventin_get_guest_invitation(p_token text)
 returns jsonb
@@ -712,6 +767,9 @@ revoke execute on function eventin_private.generate_event_code() from public, an
 
 revoke execute on function eventin_private.submit_guest_response(uuid, text, text, boolean, text, integer, integer) from public;
 grant execute on function eventin_private.submit_guest_response(uuid, text, text, boolean, text, integer, integer) to anon, authenticated;
+
+revoke execute on function eventin_private.submit_public_message(uuid, text, text) from public;
+grant execute on function eventin_private.submit_public_message(uuid, text, text) to anon, authenticated;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

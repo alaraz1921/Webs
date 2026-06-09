@@ -63,6 +63,26 @@
         }
     }
 
+    async function notifyEventUser(recordId) {
+        if (!recordId) {
+            return;
+        }
+
+        try {
+            const { error } = await client.functions.invoke('notify-event-activity', {
+                body: {
+                    activity_type: 'guest_response',
+                    record_id: recordId
+                }
+            });
+            if (error) {
+                console.warn('No se pudo enviar la notificacion de respuesta.', error);
+            }
+        } catch (error) {
+            console.warn('No se pudo enviar la notificacion de respuesta.', error);
+        }
+    }
+
     function applyInvitationHeader(eventData) {
         const fallback = window.eventPlatformConfig?.fallbackEvent || {};
         const title = valueOrFallback(eventData?.title, fallback.title || '');
@@ -154,22 +174,24 @@
             const adultsCount = Number(formData.get('adults_count') || 0);
             const childrenCount = Number(formData.get('children_count') || 0);
             const mensaje = String(formData.get('mensaje') || '').trim();
+            let responseId = '';
 
             if (invitationToken) {
-                await client.rpc('eventin_submit_guest_token_response', {
+                const { data } = await client.rpc('eventin_submit_guest_token_response', {
                     p_token: invitationToken,
                     p_asistencia: asistencia,
                     p_adults_count: adultsCount,
                     p_children_count: childrenCount,
                     p_mensaje: mensaje
                 }).throwOnError();
+                responseId = data;
             } else {
                 if (!eventContext) {
                     throw new Error('Evento no disponible');
                 }
 
                 const { event: eventData } = await eventContext.getEvent();
-                await client.rpc('eventin_submit_guest_response', {
+                const { data } = await client.rpc('eventin_submit_guest_response', {
                     p_event_id: eventData.id,
                     p_nombre: String(formData.get('nombre')).trim(),
                     p_telefono: normalizePhone(String(formData.get('telefono'))),
@@ -178,8 +200,10 @@
                     p_adults_count: adultsCount,
                     p_children_count: childrenCount
                 }).throwOnError();
+                responseId = data;
             }
 
+            await notifyEventUser(responseId);
             showSuccessModal();
         } catch (error) {
             showStatus('No se pudo enviar la respuesta. Intentalo de nuevo mas tarde.', true);
