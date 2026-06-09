@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuerdos | EvenTin</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/gallery.js" defer></script>
+</head>
+<body class="simple-page gallery-page" data-gallery-mode="public">
+    <header class="gallery-header">
+        <a href="index.html"><img src="assets/images/eventin-logo-transparent.png" alt="EvenTin"></a>
+        <div>
+            <p class="eyebrow">Galeria publica</p>
+            <h1 id="gallery-event-title">Recuerdos</h1>
+        </div>
+        <a id="gallery-event-link" class="secondary-button" href="index.html">Volver al evento</a>
+    </header>
+    <main class="gallery-layout">
+        <section id="gallery-upload-panel" class="gallery-upload-panel" hidden>
+            <label class="secondary-button" for="gallery-file">Añadir imagen</label>
+            <input id="gallery-file" type="file" accept="image/*" hidden>
+            <span>Las imágenes se optimizan automáticamente hasta un máximo de 500 KB.</span>
+        </section>
+        <p id="gallery-status" class="form-status" role="status"></p>
+        <section id="gallery-grid" class="gallery-grid" aria-label="Fotografias del evento"></section>
+        <p id="gallery-empty" class="gallery-empty" hidden>Todavía no hay fotografías en esta galería.</p>
+    </main>
+    <footer class="event-footer">
+        <a class="developer-credit" href="index.html">Creado con ♥ por alaraz1921</a>
+        <a class="eventin-discover-link" href="index.html">Descubre más en EvenTin</a>
+    </footer>
+    <div id="gallery-lightbox" class="gallery-lightbox" hidden>
+        <button type="button" data-lightbox-action="close" aria-label="Cerrar">×</button>
+        <button type="button" data-lightbox-action="previous" aria-label="Imagen anterior">‹</button>
+        <img id="gallery-lightbox-image" alt="Fotografia ampliada">
+        <button type="button" data-lightbox-action="next" aria-label="Imagen siguiente">›</button>
+    </div>
+    <div id="gallery-delete-modal" class="modal-backdrop" hidden>
+        <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="gallery-delete-title">
+            <h2 id="gallery-delete-title">Borrar imagen</h2>
+            <p>Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button id="gallery-delete-cancel" type="button" class="secondary-button">Cancelar</button>
+                <button id="gallery-delete-confirm" type="button" class="danger-button">Borrar</button>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

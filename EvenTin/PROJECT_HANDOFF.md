@@ -52,6 +52,8 @@ No guardar nunca:
 EvenTin/
 |-- index.html
 |-- contacto.html
+|-- galeria.html
+|-- galeria-colaborativa.html
 |-- evento.html
 |-- invitacion.html
 |-- invitados.html
@@ -67,6 +69,8 @@ EvenTin/
 |   |-- config.js
 |   |-- countdown.js
 |   |-- contact.js
+|   |-- event-galleries.js
+|   |-- gallery.js
 |   |-- guests.js
 |   |-- home.js
 |   |-- invitation.js
@@ -78,6 +82,7 @@ EvenTin/
 `-- supabase/functions/
     |-- notify-contact/index.ts
     |-- notify-event-activity/index.ts
+    |-- gallery-api/index.ts
     `-- create-event-user/index.ts
 ```
 
@@ -85,6 +90,8 @@ EvenTin/
 
 - `index.html`: portada de EvenTin, dividida en siete secciones comerciales y con acceso por codigo de evento.
 - `contacto.html`: formulario publico independiente para solicitar informacion o crear un evento.
+- `galeria.html?evento=CODIGO_O_SLUG`: galeria publica del evento.
+- `galeria-colaborativa.html?token=TOKEN`: galeria privada colaborativa protegida por clave.
 - `evento.html?evento=CODIGO_O_SLUG`: pagina publica de evento.
 - `invitacion.html?evento=CODIGO_O_SLUG`: formulario publico legacy de confirmacion de asistencia. Muestra logo, `eventin_events.title` y fecha/hora real de `eventin_events.event_date`.
 - `invitacion.html?token=TOKEN`: invitacion individual por invitado. No usa telefono en URL.
@@ -129,6 +136,10 @@ El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear
 - Los mensajes publicos y respuestas de invitacion envian avisos por email al usuario asignado al evento mediante `notify-event-activity`.
 - La Edge Function `notify-event-activity` esta desplegada en el proyecto Supabase EvenTin y reutiliza la configuracion existente de Resend.
 - Hay que ejecutar el `schema.sql` actualizado para activar `eventin_submit_public_message` y los avisos de mensajes publicos.
+- Se añadieron galeria publica y galeria colaborativa. Las fotografias se optimizan a un maximo de 500 KB y se guardan en el bucket privado `eventin-gallery`.
+- `gallery-api` esta desplegada y controla listado, subida y borrado sin exponer permisos amplios de Storage.
+- La galeria colaborativa usa enlace con token, clave almacenada como hash, activacion desde el panel y presentacion a pantalla completa.
+- Hay que ejecutar el `schema.sql` actualizado para crear tablas, funciones y bucket de galerias.
 - El formulario de contacto se movio a `contacto.html`; los botones de contacto y `Crear mi evento` enlazan a esa pagina.
 - Los botones de evento demo enlazan a `evento.html?evento=primera-comunion-demo`.
 
@@ -566,6 +577,7 @@ cd V:\Proyectos\Git\Webs\EvenTin
 supabase secrets set RESEND_API_KEY=TU_NUEVA_KEY CONTACT_TO_EMAIL=tu_email@gmail.com --project-ref tmnavlsptjhhdlypgtaa
 supabase functions deploy notify-contact --project-ref tmnavlsptjhhdlypgtaa
 supabase functions deploy notify-event-activity --project-ref tmnavlsptjhhdlypgtaa
+supabase functions deploy gallery-api --project-ref tmnavlsptjhhdlypgtaa
 supabase functions deploy create-event-user --project-ref tmnavlsptjhhdlypgtaa
 ```
 
@@ -575,6 +587,7 @@ Si no existe `supabase` en PowerShell, instalar Node.js LTS y usar:
 npx supabase login --token TU_TOKEN_SUPABASE
 npx supabase functions deploy notify-contact --project-ref tmnavlsptjhhdlypgtaa
 npx supabase functions deploy notify-event-activity --project-ref tmnavlsptjhhdlypgtaa
+npx supabase functions deploy gallery-api --project-ref tmnavlsptjhhdlypgtaa
 npx supabase functions deploy create-event-user --project-ref tmnavlsptjhhdlypgtaa
 ```
 
@@ -656,8 +669,9 @@ d11bde9 Move EvenTin helper functions to private schema
 3. Confirmar que `create-event-user` esta desplegada y permite crear usuarios desde el panel.
 4. Confirmar que `notify-contact` tiene secretos correctos y envia emails.
 5. Comprobar con datos reales los avisos de `notify-event-activity` al usuario del evento.
-6. Confirmar que la subida de imagenes funciona tras ejecutar el `schema.sql` actualizado.
-7. Probar flujo completo:
+6. Ejecutar el `schema.sql` actualizado y probar galeria publica y colaborativa con imagenes reales.
+7. Confirmar que la subida de imagenes funciona tras ejecutar el `schema.sql` actualizado.
+8. Probar flujo completo:
    - crear evento;
    - subir imagen principal/detalle;
    - crear usuario de evento;
@@ -666,7 +680,7 @@ d11bde9 Move EvenTin helper functions to private schema
    - enviar mensaje publico;
    - enviar contacto desde `contacto.html`;
    - ver contacto en admin y recibir email.
-8. Si se quiere enviar desde `contacto@alaraz1921.com`, verificar dominio/remitente en Resend y configurar `CONTACT_FROM_EMAIL`.
+9. Si se quiere enviar desde `contacto@alaraz1921.com`, verificar dominio/remitente en Resend y configurar `CONTACT_FROM_EMAIL`.
 
 ## Notas de Trabajo
 

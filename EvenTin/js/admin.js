@@ -29,6 +29,7 @@
     const showCreateEventButton = document.getElementById('show-create-event-button');
     const publicLinkGo = document.getElementById('public-link-go');
     const invitationLinkGo = document.getElementById('invitation-link-go');
+    const publicGalleryLinkGo = document.getElementById('public-gallery-link-go');
     const adminEventsPanel = document.getElementById('admin-events-panel');
     const eventAdminStatus = document.getElementById('event-admin-status');
     const createEventForm = document.getElementById('create-event-form');
@@ -90,6 +91,11 @@
     const loginResetLink = document.getElementById('login-reset-link');
     const userResetLink = document.getElementById('user-reset-link');
     const adminFooterActions = document.querySelector('.admin-footer-actions');
+    const collaborativeGalleryForm = document.getElementById('collaborative-gallery-form');
+    const collaborativeGalleryActions = document.getElementById('collaborative-gallery-actions');
+    const collaborativeGalleryGo = document.getElementById('collaborative-gallery-go');
+    const copyCollaborativeGalleryLinkButton = document.getElementById('copy-collaborative-gallery-link');
+    const collaborativeGalleryStatus = document.getElementById('collaborative-gallery-status');
 
     const IMAGE_BUCKET = 'eventin-images';
     const PREVIEW_LIMIT = 3;
@@ -377,6 +383,16 @@
 
     function getInvitationEventUrl(eventData) {
         return getEventUrl('invitacion.html', eventData, false);
+    }
+
+    function getPublicGalleryUrl(eventData) {
+        return getEventUrl('galeria.html', eventData, false);
+    }
+
+    function getCollaborativeGalleryUrl(token) {
+        const url = new URL('galeria-colaborativa.html', window.location.href);
+        url.searchParams.set('token', token);
+        return url.href;
     }
 
     function getCurrentEvent() {
@@ -838,6 +854,9 @@
             allResponsesTable.innerHTML = '';
             allMessagesList.innerHTML = '';
             manageGuestsLink.href = 'invitados.html';
+            collaborativeGalleryForm.reset();
+            collaborativeGalleryActions.hidden = true;
+            setStatus(collaborativeGalleryStatus, '', false);
             publicLink.textContent = isEventUser()
                 ? 'No hay ningun evento con el codigo asignado a tu usuario.'
                 : 'Todavia no hay eventos creados.';
@@ -847,9 +866,37 @@
     async function loadEventData(eventId) {
         await Promise.all([
             loadEventSettings(eventId),
+            loadGallerySettings(eventId),
             loadResponses(eventId),
             loadMessages(eventId)
         ]);
+    }
+
+    async function loadGallerySettings(eventId) {
+        collaborativeGalleryForm.elements.access_key.value = '';
+        setStatus(collaborativeGalleryStatus, '', false);
+
+        const { data, error } = await client.rpc('eventin_get_gallery_admin_settings', {
+            p_event_id: eventId
+        });
+
+        if (error) {
+            collaborativeGalleryForm.elements.enabled.checked = false;
+            collaborativeGalleryActions.hidden = true;
+            setStatus(collaborativeGalleryStatus, 'Ejecuta el schema actualizado para configurar la galeria colaborativa.', true);
+            return;
+        }
+
+        collaborativeGalleryForm.elements.enabled.checked = Boolean(data?.enabled);
+        collaborativeGalleryActions.hidden = !data?.token;
+        if (data?.token) {
+            const url = getCollaborativeGalleryUrl(data.token);
+            collaborativeGalleryGo.href = url;
+            collaborativeGalleryActions.dataset.url = url;
+        } else {
+            collaborativeGalleryGo.removeAttribute('href');
+            delete collaborativeGalleryActions.dataset.url;
+        }
     }
 
     async function loadEventSettings(eventId) {
@@ -889,6 +936,7 @@
             const publicUrl = getPublicEventUrl(eventData, true);
             publicLinkGo.href = publicUrl;
             invitationLinkGo.href = getInvitationEventUrl(eventData);
+            publicGalleryLinkGo.href = getPublicGalleryUrl(eventData);
             manageGuestsLink.href = `invitados.html?evento=${encodeURIComponent(eventData.id)}`;
             eventLinks.hidden = false;
             eventLinks.dataset.publicUrl = publicUrl;
@@ -900,6 +948,7 @@
             delete eventLinks.dataset.invitationUrl;
             publicLinkGo.removeAttribute('href');
             invitationLinkGo.removeAttribute('href');
+            publicGalleryLinkGo.removeAttribute('href');
             manageGuestsLink.href = 'invitados.html';
             publicLink.textContent = 'Este evento todavia no tiene enlace publico.';
         }
@@ -1247,6 +1296,52 @@
             setStatus(settingsStatus, 'Enlace copiado al portapapeles', false);
         } catch (error) {
             setStatus(settingsStatus, 'No se pudo copiar el enlace.', true);
+        }
+    });
+
+    collaborativeGalleryForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const eventId = eventSelect.value;
+        if (!eventId) {
+            setStatus(collaborativeGalleryStatus, 'No hay evento seleccionado.', true);
+            return;
+        }
+
+        const formData = new FormData(collaborativeGalleryForm);
+        try {
+            const { data, error } = await client.rpc('eventin_manage_collaborative_gallery', {
+                p_event_id: eventId,
+                p_enabled: collaborativeGalleryForm.elements.enabled.checked,
+                p_access_key: String(formData.get('access_key') || '').trim()
+            });
+            if (error) {
+                throw error;
+            }
+
+            collaborativeGalleryForm.elements.access_key.value = '';
+            collaborativeGalleryActions.hidden = !data?.token;
+            if (data?.token) {
+                const url = getCollaborativeGalleryUrl(data.token);
+                collaborativeGalleryGo.href = url;
+                collaborativeGalleryActions.dataset.url = url;
+            }
+            setStatus(collaborativeGalleryStatus, 'Configuracion de galeria guardada.', false);
+        } catch (error) {
+            setStatus(collaborativeGalleryStatus, error?.message || 'No se pudo guardar la configuracion.', true);
+        }
+    });
+
+    copyCollaborativeGalleryLinkButton.addEventListener('click', async () => {
+        const url = collaborativeGalleryActions.dataset.url;
+        if (!url) {
+            setStatus(collaborativeGalleryStatus, 'Primero guarda la configuracion de la galeria.', true);
+            return;
+        }
+        try {
+            await copyText(url);
+            setStatus(collaborativeGalleryStatus, 'Enlace privado copiado al portapapeles.', false);
+        } catch (_error) {
+            setStatus(collaborativeGalleryStatus, 'No se pudo copiar el enlace.', true);
         }
     });
 

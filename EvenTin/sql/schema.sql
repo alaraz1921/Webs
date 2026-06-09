@@ -113,6 +113,24 @@ create table if not exists public.eventin_contact_requests (
     created_at timestamptz not null default now()
 );
 
+create table if not exists public.eventin_gallery_settings (
+    event_id uuid primary key references public.eventin_events(id) on delete cascade,
+    collaborative_enabled boolean not null default false,
+    collaborative_token text unique not null default encode(gen_random_bytes(24), 'hex'),
+    collaborative_key_hash text,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+create table if not exists public.eventin_gallery_images (
+    id uuid primary key default gen_random_uuid(),
+    event_id uuid not null references public.eventin_events(id) on delete cascade,
+    gallery_type text not null check (gallery_type in ('public', 'collaborative')),
+    storage_path text unique not null,
+    uploaded_by uuid references auth.users(id) on delete set null,
+    created_at timestamptz not null default now()
+);
+
 alter table public.eventin_events add column if not exists public_slug text;
 alter table public.eventin_events add column if not exists event_code text;
 alter table public.eventin_events add column if not exists event_type text not null default 'communion';
@@ -237,6 +255,7 @@ create index if not exists idx_eventin_guests_event_phone on public.eventin_gues
 create unique index if not exists idx_eventin_guests_invitation_token on public.eventin_guests(invitation_token);
 create index if not exists idx_eventin_public_messages_event_id on public.eventin_public_messages(event_id);
 create index if not exists idx_eventin_contact_requests_created_at on public.eventin_contact_requests(created_at);
+create index if not exists idx_eventin_gallery_images_event_type_created on public.eventin_gallery_images(event_id, gallery_type, created_at desc);
 
 create or replace function public.eventin_set_updated_at()
 returns trigger
@@ -284,6 +303,11 @@ create trigger trg_public_messages_updated_at
 before update on public.eventin_public_messages
 for each row execute function public.eventin_set_updated_at();
 
+drop trigger if exists trg_gallery_settings_updated_at on public.eventin_gallery_settings;
+create trigger trg_gallery_settings_updated_at
+before update on public.eventin_gallery_settings
+for each row execute function public.eventin_set_updated_at();
+
 drop function if exists public.eventin_can_admin_event(uuid) cascade;
 drop function if exists public.eventin_is_superadmin() cascade;
 drop function if exists public.eventin_is_admin() cascade;
@@ -293,6 +317,10 @@ drop function if exists public.eventin_can_manage_event_image(text) cascade;
 drop function if exists public.eventin_submit_guest_response(uuid, text, text, boolean, text) cascade;
 drop function if exists public.eventin_submit_guest_response(uuid, text, text, boolean, text, integer, integer) cascade;
 drop function if exists public.eventin_submit_public_message(uuid, text, text) cascade;
+drop function if exists public.eventin_get_collaborative_gallery_link(uuid) cascade;
+drop function if exists public.eventin_get_gallery_admin_settings(uuid) cascade;
+drop function if exists public.eventin_manage_collaborative_gallery(uuid, boolean, text) cascade;
+drop function if exists public.eventin_verify_collaborative_gallery_access(text, text) cascade;
 drop function if exists public.eventin_get_guest_invitation(text) cascade;
 drop function if exists public.eventin_submit_guest_token_response(text, boolean, integer, integer, text) cascade;
 drop function if exists public.eventin_generate_event_code() cascade;
@@ -303,6 +331,10 @@ drop function if exists eventin_private.generate_event_code() cascade;
 drop function if exists eventin_private.submit_guest_response(uuid, text, text, boolean, text) cascade;
 drop function if exists eventin_private.submit_guest_response(uuid, text, text, boolean, text, integer, integer) cascade;
 drop function if exists eventin_private.submit_public_message(uuid, text, text) cascade;
+drop function if exists eventin_private.get_collaborative_gallery_link(uuid) cascade;
+drop function if exists eventin_private.get_gallery_admin_settings(uuid) cascade;
+drop function if exists eventin_private.manage_collaborative_gallery(uuid, boolean, text) cascade;
+drop function if exists eventin_private.verify_collaborative_gallery_access(text, text) cascade;
 
 create or replace function eventin_private.is_admin()
 returns boolean
@@ -564,6 +596,193 @@ $$;
 
 grant execute on function public.eventin_submit_public_message(uuid, text, text) to anon, authenticated;
 
+create or replace function eventin_private.get_collaborative_gallery_link(p_event_id uuid)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+    select case
+        when e.is_active and coalesce(s.collaborative_enabled, false) then jsonb_build_object(
+            'enabled', true,
+            'token', s.collaborative_token
+        )
+        else jsonb_build_object('enabled', false)
+    end
+    from public.eventin_events e
+    left join public.eventin_gallery_settings s on s.event_id = e.id
+    where e.id = p_event_id;
+$$;
+
+create or replace function eventin_private.get_gallery_admin_settings(p_event_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    settings_record public.eventin_gallery_settings%rowtype;
+begin
+    if auth.uid() is null or not eventin_private.can_access_event(p_event_id) then
+        raise exception 'Acceso no permitido';
+    end if;
+
+    select * into settings_record
+    from public.eventin_gallery_settings
+    where event_id = p_event_id;
+
+    if not found then
+        return jsonb_build_object('enabled', false, 'token', null);
+    end if;
+
+    return jsonb_build_object(
+        'enabled', settings_record.collaborative_enabled,
+        'token', settings_record.collaborative_token
+    );
+end;
+$$;
+
+create or replace function eventin_private.manage_collaborative_gallery(
+    p_event_id uuid,
+    p_enabled boolean,
+    p_access_key text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    settings_record public.eventin_gallery_settings%rowtype;
+    clean_key text;
+begin
+    if auth.uid() is null or not eventin_private.can_access_event(p_event_id) then
+        raise exception 'Acceso no permitido';
+    end if;
+
+    clean_key := nullif(trim(coalesce(p_access_key, '')), '');
+
+    select * into settings_record
+    from public.eventin_gallery_settings
+    where event_id = p_event_id;
+
+    if not found then
+        if p_enabled and clean_key is null then
+            raise exception 'Indica una clave para activar la galeria';
+        end if;
+
+        insert into public.eventin_gallery_settings (
+            event_id,
+            collaborative_enabled,
+            collaborative_key_hash
+        ) values (
+            p_event_id,
+            coalesce(p_enabled, false),
+            case when clean_key is null then null else crypt(clean_key, gen_salt('bf')) end
+        )
+        returning * into settings_record;
+    else
+        if p_enabled and settings_record.collaborative_key_hash is null and clean_key is null then
+            raise exception 'Indica una clave para activar la galeria';
+        end if;
+
+        update public.eventin_gallery_settings
+        set collaborative_enabled = coalesce(p_enabled, false),
+            collaborative_key_hash = case
+                when clean_key is null then collaborative_key_hash
+                else crypt(clean_key, gen_salt('bf'))
+            end
+        where event_id = p_event_id
+        returning * into settings_record;
+    end if;
+
+    return jsonb_build_object(
+        'enabled', settings_record.collaborative_enabled,
+        'token', settings_record.collaborative_token
+    );
+end;
+$$;
+
+create or replace function eventin_private.verify_collaborative_gallery_access(
+    p_token text,
+    p_access_key text
+)
+returns uuid
+language sql
+security definer
+set search_path = public
+as $$
+    select s.event_id
+    from public.eventin_gallery_settings s
+    join public.eventin_events e on e.id = s.event_id
+    where s.collaborative_enabled = true
+      and e.is_active = true
+      and s.collaborative_token = trim(coalesce(p_token, ''))
+      and s.collaborative_key_hash is not null
+      and crypt(coalesce(p_access_key, ''), s.collaborative_key_hash) = s.collaborative_key_hash
+    limit 1;
+$$;
+
+create or replace function public.eventin_get_collaborative_gallery_link(p_event_id uuid)
+returns jsonb
+language sql
+security invoker
+set search_path = public
+as $$
+    select eventin_private.get_collaborative_gallery_link(p_event_id);
+$$;
+
+create or replace function public.eventin_get_gallery_admin_settings(p_event_id uuid)
+returns jsonb
+language sql
+security invoker
+set search_path = public
+as $$
+    select eventin_private.get_gallery_admin_settings(p_event_id);
+$$;
+
+create or replace function public.eventin_manage_collaborative_gallery(
+    p_event_id uuid,
+    p_enabled boolean,
+    p_access_key text default null
+)
+returns jsonb
+language sql
+security invoker
+set search_path = public
+as $$
+    select eventin_private.manage_collaborative_gallery(p_event_id, p_enabled, p_access_key);
+$$;
+
+create or replace function public.eventin_verify_collaborative_gallery_access(
+    p_token text,
+    p_access_key text
+)
+returns uuid
+language sql
+security invoker
+set search_path = public
+as $$
+    select eventin_private.verify_collaborative_gallery_access(p_token, p_access_key);
+$$;
+
+revoke execute on function eventin_private.get_collaborative_gallery_link(uuid) from public;
+revoke execute on function eventin_private.get_gallery_admin_settings(uuid) from public, anon;
+revoke execute on function eventin_private.manage_collaborative_gallery(uuid, boolean, text) from public, anon;
+revoke execute on function eventin_private.verify_collaborative_gallery_access(text, text) from public;
+grant execute on function eventin_private.get_collaborative_gallery_link(uuid) to anon, authenticated;
+grant execute on function eventin_private.get_gallery_admin_settings(uuid) to authenticated;
+grant execute on function eventin_private.manage_collaborative_gallery(uuid, boolean, text) to authenticated;
+grant execute on function eventin_private.verify_collaborative_gallery_access(text, text) to anon, authenticated, service_role;
+revoke execute on function public.eventin_get_collaborative_gallery_link(uuid) from public;
+revoke execute on function public.eventin_get_gallery_admin_settings(uuid) from public, anon;
+revoke execute on function public.eventin_manage_collaborative_gallery(uuid, boolean, text) from public, anon;
+revoke execute on function public.eventin_verify_collaborative_gallery_access(text, text) from public;
+grant execute on function public.eventin_get_collaborative_gallery_link(uuid) to anon, authenticated;
+grant execute on function public.eventin_get_gallery_admin_settings(uuid) to authenticated;
+grant execute on function public.eventin_manage_collaborative_gallery(uuid, boolean, text) to authenticated;
+grant execute on function public.eventin_verify_collaborative_gallery_access(text, text) to anon, authenticated, service_role;
+
 create or replace function public.eventin_get_guest_invitation(p_token text)
 returns jsonb
 language plpgsql
@@ -784,6 +1003,19 @@ on conflict (id) do update set
     file_size_limit = excluded.file_size_limit,
     allowed_mime_types = excluded.allowed_mime_types;
 
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+    'eventin-gallery',
+    'eventin-gallery',
+    false,
+    512000,
+    array['image/webp', 'image/jpeg', 'image/png']::text[]
+)
+on conflict (id) do update set
+    public = excluded.public,
+    file_size_limit = excluded.file_size_limit,
+    allowed_mime_types = excluded.allowed_mime_types;
+
 alter table public.eventin_event_types enable row level security;
 alter table public.eventin_events enable row level security;
 alter table public.eventin_event_settings enable row level security;
@@ -792,6 +1024,8 @@ alter table public.eventin_guests enable row level security;
 alter table public.eventin_guest_responses enable row level security;
 alter table public.eventin_public_messages enable row level security;
 alter table public.eventin_contact_requests enable row level security;
+alter table public.eventin_gallery_settings enable row level security;
+alter table public.eventin_gallery_images enable row level security;
 
 drop policy if exists "Public can read event types" on public.eventin_event_types;
 create policy "Public can read event types"

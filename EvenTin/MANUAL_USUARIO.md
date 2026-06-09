@@ -280,6 +280,31 @@ En el panel de administracion se pueden:
 - Responder por email mediante `mailto:`.
 - Borrar mensajes mediante modal.
 
+## Galeria publica
+
+La pagina del evento muestra la seccion `Recuerdos`, desde la que cualquier visitante puede abrir la galeria publica.
+
+- Las fotografias se muestran como miniaturas y se amplian al pulsarlas.
+- Los usuarios de evento y administradores que tengan una sesion iniciada pueden añadir y borrar imagenes.
+- Cada imagen se optimiza antes de subirla y no puede superar 500 KB.
+- Desde el panel del evento existe un enlace directo a esta galeria.
+
+## Galeria colaborativa
+
+La galeria colaborativa se configura desde el panel de administracion del evento:
+
+1. Indicar una clave de acceso.
+2. Marcar `Activar enlace en la pagina del evento`.
+3. Guardar la configuracion.
+4. Copiar el enlace privado y compartirlo junto con la clave.
+
+Cuando esta activa, la pagina del evento muestra su enlace dentro de `Recuerdos`.
+
+- Cualquier persona con el enlace y la clave puede ver y añadir fotografias.
+- Solo un usuario con rol administrador puede borrar fotografias.
+- `Iniciar presentacion` muestra las imagenes a pantalla completa de forma secuencial.
+- Las fotografias se optimizan a un maximo de 500 KB.
+
 ## Restaurar clave
 
 Desde el login del panel o desde administracion de usuarios se puede abrir `reset-password.html`.

@@ -115,6 +115,12 @@
                                 <button type="button" class="secondary-button copy-link-button" data-copy-link="invitation" aria-label="Copiar enlace de invitacion" title="Copiar enlace de invitacion"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg></button>
                             </span>
                         </div>
+                        <div class="event-link-row">
+                            <span>Galeria publica</span>
+                            <span class="event-link-actions">
+                                <a id="public-gallery-link-go" class="secondary-button" href="galeria.html">Ir</a>
+                            </span>
+                        </div>
                     </div>
                     <p id="public-link" class="public-link"></p>
                     <form id="event-settings-form" class="admin-form">
@@ -200,6 +206,26 @@
                         <button type="submit">Guardar cambios</button>
                     </form>
                     <p id="event-settings-status" class="form-status" role="status"></p>
+                </section>
+
+                <section class="data-panel admin-tools">
+                    <h2>Galeria colaborativa</h2>
+                    <form id="collaborative-gallery-form" class="collaborative-gallery-settings">
+                        <label class="radio-line">
+                            <input type="checkbox" name="enabled">
+                            Activar enlace en la pagina del evento
+                        </label>
+                        <label>
+                            Clave de acceso
+                            <input type="password" name="access_key" autocomplete="new-password" placeholder="Dejar vacio para conservar la clave actual">
+                        </label>
+                        <button type="submit">Guardar configuracion</button>
+                    </form>
+                    <div id="collaborative-gallery-actions" class="collaborative-gallery-actions" hidden>
+                        <a id="collaborative-gallery-go" class="secondary-button" href="galeria-colaborativa.html">Ir a la galeria</a>
+                        <button id="copy-collaborative-gallery-link" type="button" class="secondary-button">Copiar enlace privado</button>
+                    </div>
+                    <p id="collaborative-gallery-status" class="form-status" role="status"></p>
                 </section>
 
                 <section class="data-panel admin-tools admin-shortcut-panel">

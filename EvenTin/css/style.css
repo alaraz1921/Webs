@@ -2734,3 +2734,246 @@ body[data-palette="home"] .home-admin-link svg {
         min-width: 0;
     }
 }
+
+/* Event galleries */
+.memories-section {
+    text-align: center;
+}
+
+.memories-section h2 {
+    font-family: "Rouge Script", Georgia, serif;
+    font-size: clamp(3rem, 8vw, 5rem);
+    font-weight: 400;
+}
+
+.memory-links {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 22px;
+}
+
+.gallery-page {
+    min-height: 100vh;
+    display: block;
+    padding: 0;
+}
+
+.gallery-header {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    align-items: center;
+    padding: 12px max(18px, calc((100vw - 1180px) / 2));
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--background) 94%, transparent);
+    backdrop-filter: blur(12px);
+}
+
+.gallery-header img {
+    display: block;
+    width: 96px;
+}
+
+.gallery-header h1 {
+    margin: 0;
+    color: var(--accent-dark);
+    font-family: "Rouge Script", Georgia, serif;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
+.gallery-header > div {
+    min-width: 0;
+}
+
+.gallery-header .eyebrow {
+    margin: 0;
+}
+
+.gallery-layout {
+    width: min(1180px, calc(100% - 28px));
+    min-height: 62vh;
+    margin: 30px auto 56px;
+}
+
+.gallery-upload-panel,
+.gallery-toolbar {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+}
+
+.gallery-upload-panel span,
+.gallery-toolbar span {
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.gallery-access-panel {
+    width: min(520px, 100%);
+    margin: 70px auto;
+    box-sizing: border-box;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.gallery-item {
+    position: relative;
+    min-width: 0;
+    margin: 0;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+}
+
+.gallery-image-button {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.gallery-image-button:hover {
+    background: transparent !important;
+}
+
+.gallery-image-button img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.25s;
+}
+
+.gallery-image-button:hover img {
+    transform: scale(1.025);
+}
+
+.gallery-delete-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+}
+
+.gallery-empty {
+    padding: 60px 18px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.gallery-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr) 64px;
+    gap: 12px;
+    place-items: center;
+    padding: 18px;
+    background: rgba(20, 24, 27, 0.94);
+}
+
+.gallery-lightbox[hidden] {
+    display: none;
+}
+
+.gallery-lightbox img {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100vh - 36px);
+    object-fit: contain;
+}
+
+.gallery-lightbox button {
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    min-height: 48px;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 2rem;
+}
+
+.gallery-lightbox [data-lightbox-action="close"] {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+}
+
+.collaborative-gallery-settings {
+    display: grid;
+    gap: 16px;
+}
+
+.collaborative-gallery-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 760px) {
+    .gallery-header {
+        grid-template-columns: auto 1fr;
+    }
+
+    .gallery-header > .secondary-button {
+        grid-column: 1 / -1;
+        justify-self: center;
+    }
+
+    .gallery-header img {
+        width: 76px;
+    }
+
+    .gallery-header h1 {
+        font-size: 2rem;
+        line-height: 1;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .gallery-upload-panel,
+    .gallery-toolbar {
+        justify-content: center;
+        text-align: center;
+        flex-wrap: wrap;
+    }
+
+    .gallery-lightbox {
+        grid-template-columns: 44px minmax(0, 1fr) 44px;
+        gap: 4px;
+        padding: 8px;
+    }
+
+    .gallery-lightbox button {
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+        min-height: 40px;
+    }
+}
