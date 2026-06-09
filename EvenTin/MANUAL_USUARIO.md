@@ -291,7 +291,9 @@ La pagina del evento muestra la seccion `Recuerdos`, desde la que cualquier visi
 
 ## Galeria colaborativa
 
-La galeria colaborativa se configura desde el panel de administracion del evento:
+El administrador global debe habilitar primero la galeria colaborativa desde la edicion del evento. Si no esta habilitada, el usuario asignado al evento no vera sus controles ni podra administrarla.
+
+Una vez habilitada, la galeria colaborativa se configura desde el panel de administracion del evento:
 
 1. Indicar una clave de acceso.
 2. Marcar `Ver enlace en la pagina del evento` solo si se quiere mostrar el acceso en la pagina publica del evento.

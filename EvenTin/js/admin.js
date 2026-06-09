@@ -30,6 +30,7 @@
     const publicLinkGo = document.getElementById('public-link-go');
     const invitationLinkGo = document.getElementById('invitation-link-go');
     const publicGalleryLinkGo = document.getElementById('public-gallery-link-go');
+    const managePublicGalleryLink = document.getElementById('manage-public-gallery-link');
     const adminEventsPanel = document.getElementById('admin-events-panel');
     const eventAdminStatus = document.getElementById('event-admin-status');
     const createEventForm = document.getElementById('create-event-form');
@@ -92,6 +93,8 @@
     const userResetLink = document.getElementById('user-reset-link');
     const adminFooterActions = document.querySelector('.admin-footer-actions');
     const collaborativeGalleryForm = document.getElementById('collaborative-gallery-form');
+    const collaborativeGalleryPanel = document.getElementById('collaborative-gallery-panel');
+    const collaborativeGalleryAvailableField = document.getElementById('collaborative-gallery-available-field');
     const collaborativeGalleryActions = document.getElementById('collaborative-gallery-actions');
     const collaborativeGalleryGo = document.getElementById('collaborative-gallery-go');
     const copyCollaborativeGalleryLinkButton = document.getElementById('copy-collaborative-gallery-link');
@@ -854,6 +857,8 @@
             allResponsesTable.innerHTML = '';
             allMessagesList.innerHTML = '';
             manageGuestsLink.href = 'invitados.html';
+            managePublicGalleryLink.href = 'galeria.html';
+            collaborativeGalleryPanel.hidden = !isAdmin();
             collaborativeGalleryForm.reset();
             collaborativeGalleryActions.hidden = true;
             setStatus(collaborativeGalleryStatus, '', false);
@@ -881,12 +886,16 @@
         });
 
         if (error) {
+            collaborativeGalleryPanel.hidden = !isAdmin();
             collaborativeGalleryForm.elements.enabled.checked = false;
             collaborativeGalleryActions.hidden = true;
             setStatus(collaborativeGalleryStatus, 'Ejecuta el schema actualizado para configurar la galeria colaborativa.', true);
             return;
         }
 
+        collaborativeGalleryPanel.hidden = !isAdmin() && !data?.available;
+        collaborativeGalleryAvailableField.hidden = !isAdmin();
+        settingsForm.elements.collaborative_gallery_available.checked = Boolean(data?.available);
         collaborativeGalleryForm.elements.enabled.checked = Boolean(data?.enabled);
         collaborativeGalleryActions.hidden = !data?.token;
         if (data?.token) {
@@ -937,6 +946,7 @@
             publicLinkGo.href = publicUrl;
             invitationLinkGo.href = getInvitationEventUrl(eventData);
             publicGalleryLinkGo.href = getPublicGalleryUrl(eventData);
+            managePublicGalleryLink.href = getPublicGalleryUrl(eventData);
             manageGuestsLink.href = `invitados.html?evento=${encodeURIComponent(eventData.id)}`;
             eventLinks.hidden = false;
             eventLinks.dataset.publicUrl = publicUrl;
@@ -949,6 +959,7 @@
             publicLinkGo.removeAttribute('href');
             invitationLinkGo.removeAttribute('href');
             publicGalleryLinkGo.removeAttribute('href');
+            managePublicGalleryLink.href = 'galeria.html';
             manageGuestsLink.href = 'invitados.html';
             publicLink.textContent = 'Este evento todavia no tiene enlace publico.';
         }
@@ -1373,6 +1384,13 @@
                 .update(eventPayload)
                 .eq('id', eventId)
                 .throwOnError();
+
+            if (isAdmin()) {
+                await client.rpc('eventin_set_collaborative_gallery_available', {
+                    p_event_id: eventId,
+                    p_available: settingsForm.elements.collaborative_gallery_available.checked
+                }).throwOnError();
+            }
 
             const imageUrls = await uploadPendingImages(eventData, formData);
 

@@ -142,6 +142,8 @@ El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear
 - El esquema `eventin_private` concede `usage` a `service_role`, necesario para que `gallery-api` pueda verificar las claves de la galeria colaborativa.
 - En la galeria colaborativa pueden borrar fotografias tanto el administrador global como el usuario asignado al evento.
 - La presentacion de la galeria colaborativa avanza automaticamente cada 3 segundos en un modo limpio para monitor o proyector, sin controles de navegacion y con un cierre discreto.
+- El administrador global habilita la galeria colaborativa por evento mediante `collaborative_available`. Si no esta habilitada, el usuario del evento no ve su panel y la base de datos bloquea configuracion y acceso.
+- El panel de administracion incluye un acceso directo independiente a la galeria publica.
 - Hay que ejecutar el `schema.sql` actualizado para crear tablas, funciones y bucket de galerias.
 - Las funciones de clave colaborativa llaman explicitamente a `extensions.crypt` y `extensions.gen_salt`, porque Supabase instala `pgcrypto` en el esquema `extensions`.
 - El formulario de contacto se movio a `contacto.html`; los botones de contacto y `Crear mi evento` enlazan a esa pagina.

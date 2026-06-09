@@ -115,6 +115,7 @@ create table if not exists public.eventin_contact_requests (
 
 create table if not exists public.eventin_gallery_settings (
     event_id uuid primary key references public.eventin_events(id) on delete cascade,
+    collaborative_available boolean not null default false,
     collaborative_enabled boolean not null default false,
     collaborative_token text unique not null default encode(gen_random_bytes(24), 'hex'),
     collaborative_key_hash text,
@@ -133,6 +134,7 @@ create table if not exists public.eventin_gallery_images (
 
 alter table public.eventin_events add column if not exists public_slug text;
 alter table public.eventin_events add column if not exists event_code text;
+alter table public.eventin_gallery_settings add column if not exists collaborative_available boolean not null default false;
 alter table public.eventin_events add column if not exists event_type text not null default 'communion';
 alter table public.eventin_event_settings add column if not exists main_title text;
 alter table public.eventin_event_settings add column if not exists palette_key text not null default 'clasica';
@@ -320,6 +322,7 @@ drop function if exists public.eventin_submit_public_message(uuid, text, text) c
 drop function if exists public.eventin_get_collaborative_gallery_link(uuid) cascade;
 drop function if exists public.eventin_get_gallery_admin_settings(uuid) cascade;
 drop function if exists public.eventin_manage_collaborative_gallery(uuid, boolean, text) cascade;
+drop function if exists public.eventin_set_collaborative_gallery_available(uuid, boolean) cascade;
 drop function if exists public.eventin_verify_collaborative_gallery_access(text, text) cascade;
 drop function if exists public.eventin_get_guest_invitation(text) cascade;
 drop function if exists public.eventin_submit_guest_token_response(text, boolean, integer, integer, text) cascade;
@@ -334,6 +337,7 @@ drop function if exists eventin_private.submit_public_message(uuid, text, text) 
 drop function if exists eventin_private.get_collaborative_gallery_link(uuid) cascade;
 drop function if exists eventin_private.get_gallery_admin_settings(uuid) cascade;
 drop function if exists eventin_private.manage_collaborative_gallery(uuid, boolean, text) cascade;
+drop function if exists eventin_private.set_collaborative_gallery_available(uuid, boolean) cascade;
 drop function if exists eventin_private.verify_collaborative_gallery_access(text, text) cascade;
 
 create or replace function eventin_private.is_admin()
@@ -603,7 +607,7 @@ security definer
 set search_path = public
 as $$
     select case
-        when e.is_active and coalesce(s.collaborative_enabled, false) then jsonb_build_object(
+        when e.is_active and coalesce(s.collaborative_available, false) and coalesce(s.collaborative_enabled, false) then jsonb_build_object(
             'enabled', true,
             'token', s.collaborative_token
         )
@@ -632,10 +636,11 @@ begin
     where event_id = p_event_id;
 
     if not found then
-        return jsonb_build_object('enabled', false, 'token', null);
+        return jsonb_build_object('available', false, 'enabled', false, 'token', null);
     end if;
 
     return jsonb_build_object(
+        'available', settings_record.collaborative_available,
         'enabled', settings_record.collaborative_enabled,
         'token', settings_record.collaborative_token
     );
@@ -666,40 +671,57 @@ begin
     from public.eventin_gallery_settings
     where event_id = p_event_id;
 
-    if not found then
-        if p_enabled and clean_key is null then
-            raise exception 'Indica una clave para activar la galeria';
-        end if;
-
-        insert into public.eventin_gallery_settings (
-            event_id,
-            collaborative_enabled,
-            collaborative_key_hash
-        ) values (
-            p_event_id,
-            coalesce(p_enabled, false),
-            case when clean_key is null then null else extensions.crypt(clean_key, extensions.gen_salt('bf')) end
-        )
-        returning * into settings_record;
-    else
-        if p_enabled and settings_record.collaborative_key_hash is null and clean_key is null then
-            raise exception 'Indica una clave para activar la galeria';
-        end if;
-
-        update public.eventin_gallery_settings
-        set collaborative_enabled = coalesce(p_enabled, false),
-            collaborative_key_hash = case
-                when clean_key is null then collaborative_key_hash
-                else extensions.crypt(clean_key, extensions.gen_salt('bf'))
-            end
-        where event_id = p_event_id
-        returning * into settings_record;
+    if not found or not settings_record.collaborative_available then
+        raise exception 'La galeria colaborativa no esta habilitada para este evento';
     end if;
+
+    if p_enabled and settings_record.collaborative_key_hash is null and clean_key is null then
+        raise exception 'Indica una clave para activar la galeria';
+    end if;
+
+    update public.eventin_gallery_settings
+    set collaborative_enabled = coalesce(p_enabled, false),
+        collaborative_key_hash = case
+            when clean_key is null then collaborative_key_hash
+            else extensions.crypt(clean_key, extensions.gen_salt('bf'))
+        end
+    where event_id = p_event_id
+    returning * into settings_record;
 
     return jsonb_build_object(
         'enabled', settings_record.collaborative_enabled,
         'token', settings_record.collaborative_token
     );
+end;
+$$;
+
+create or replace function eventin_private.set_collaborative_gallery_available(
+    p_event_id uuid,
+    p_available boolean
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+    if auth.uid() is null or not eventin_private.is_admin() then
+        raise exception 'Acceso no permitido';
+    end if;
+
+    insert into public.eventin_gallery_settings (
+        event_id,
+        collaborative_available
+    ) values (
+        p_event_id,
+        coalesce(p_available, false)
+    )
+    on conflict (event_id) do update
+    set collaborative_available = excluded.collaborative_available,
+        collaborative_enabled = case
+            when excluded.collaborative_available then public.eventin_gallery_settings.collaborative_enabled
+            else false
+        end;
 end;
 $$;
 
@@ -716,6 +738,7 @@ as $$
     from public.eventin_gallery_settings s
     join public.eventin_events e on e.id = s.event_id
     where e.is_active = true
+      and s.collaborative_available = true
       and s.collaborative_token = trim(coalesce(p_token, ''))
       and s.collaborative_key_hash is not null
       and extensions.crypt(coalesce(p_access_key, ''), s.collaborative_key_hash) = s.collaborative_key_hash
@@ -753,6 +776,18 @@ as $$
     select eventin_private.manage_collaborative_gallery(p_event_id, p_enabled, p_access_key);
 $$;
 
+create or replace function public.eventin_set_collaborative_gallery_available(
+    p_event_id uuid,
+    p_available boolean
+)
+returns void
+language sql
+security invoker
+set search_path = public
+as $$
+    select eventin_private.set_collaborative_gallery_available(p_event_id, p_available);
+$$;
+
 create or replace function public.eventin_verify_collaborative_gallery_access(
     p_token text,
     p_access_key text
@@ -768,18 +803,22 @@ $$;
 revoke execute on function eventin_private.get_collaborative_gallery_link(uuid) from public;
 revoke execute on function eventin_private.get_gallery_admin_settings(uuid) from public, anon;
 revoke execute on function eventin_private.manage_collaborative_gallery(uuid, boolean, text) from public, anon;
+revoke execute on function eventin_private.set_collaborative_gallery_available(uuid, boolean) from public, anon, authenticated;
 revoke execute on function eventin_private.verify_collaborative_gallery_access(text, text) from public;
 grant execute on function eventin_private.get_collaborative_gallery_link(uuid) to anon, authenticated;
 grant execute on function eventin_private.get_gallery_admin_settings(uuid) to authenticated;
 grant execute on function eventin_private.manage_collaborative_gallery(uuid, boolean, text) to authenticated;
+grant execute on function eventin_private.set_collaborative_gallery_available(uuid, boolean) to authenticated;
 grant execute on function eventin_private.verify_collaborative_gallery_access(text, text) to anon, authenticated, service_role;
 revoke execute on function public.eventin_get_collaborative_gallery_link(uuid) from public;
 revoke execute on function public.eventin_get_gallery_admin_settings(uuid) from public, anon;
 revoke execute on function public.eventin_manage_collaborative_gallery(uuid, boolean, text) from public, anon;
+revoke execute on function public.eventin_set_collaborative_gallery_available(uuid, boolean) from public, anon;
 revoke execute on function public.eventin_verify_collaborative_gallery_access(text, text) from public;
 grant execute on function public.eventin_get_collaborative_gallery_link(uuid) to anon, authenticated;
 grant execute on function public.eventin_get_gallery_admin_settings(uuid) to authenticated;
 grant execute on function public.eventin_manage_collaborative_gallery(uuid, boolean, text) to authenticated;
+grant execute on function public.eventin_set_collaborative_gallery_available(uuid, boolean) to authenticated;
 grant execute on function public.eventin_verify_collaborative_gallery_access(text, text) to anon, authenticated, service_role;
 
 create or replace function public.eventin_get_guest_invitation(p_token text)
