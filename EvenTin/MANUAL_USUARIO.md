@@ -286,7 +286,7 @@ La pagina del evento muestra la seccion `Recuerdos`, desde la que cualquier visi
 
 - Las fotografias se muestran como miniaturas y se amplian al pulsarlas.
 - Los usuarios de evento y administradores que tengan una sesion iniciada pueden añadir y borrar imagenes.
-- Cada imagen se optimiza antes de subirla y no puede superar 500 KB.
+- Cada imagen se optimiza antes de subirla y no puede superar 500 KB. Tambien se genera una miniatura de hasta 400 px y 50 KB para cargar la cuadricula con mayor rapidez.
 - Desde el panel del evento existe un enlace directo a esta galeria.
 
 ## Galeria colaborativa
@@ -305,7 +305,7 @@ Cuando esta opcion esta marcada, la pagina del evento muestra su enlace dentro d
 - Cualquier persona con el enlace y la clave puede ver y añadir fotografias.
 - El administrador global y el usuario administrador del evento pueden borrar fotografias.
 - `Iniciar presentacion` muestra las imagenes a pantalla completa y avanza automaticamente cada 3 segundos. Durante la presentacion se ocultan los controles de navegacion y solo permanece un discreto boton de cierre.
-- Las fotografias se optimizan a un maximo de 500 KB.
+- Las fotografias se optimizan a un maximo de 500 KB y generan una miniatura de hasta 400 px y 50 KB. La imagen grande solo se carga al ampliarla o iniciar la presentacion.
 
 ## Restaurar clave
 

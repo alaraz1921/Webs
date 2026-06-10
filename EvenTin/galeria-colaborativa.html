@@ -13,11 +13,11 @@
 <body class="simple-page gallery-page" data-gallery-mode="collaborative">
     <header class="gallery-header">
         <a href="index.html"><img src="assets/images/eventin-logo-transparent.png" alt="EvenTin"></a>
-        <div>
+        <div class="gallery-header-title">
             <p class="eyebrow">Galeria colaborativa</p>
             <h1 id="gallery-event-title">Compartir recuerdos</h1>
         </div>
-        <a id="gallery-event-link" class="secondary-button" href="index.html">Volver al evento</a>
+        <a id="gallery-event-link" class="gallery-back-link" href="index.html" aria-label="Volver al evento">Volver</a>
     </header>
     <main class="gallery-layout">
         <section id="gallery-access-panel" class="access-layout gallery-access-panel">
@@ -30,10 +30,13 @@
         </section>
         <div id="gallery-content" hidden>
             <section class="gallery-toolbar">
-                <label class="secondary-button" for="gallery-file">Añadir imagen</label>
+                <label class="icon-button secondary-button gallery-tool-button" for="gallery-file" aria-label="Añadir imagen" title="Añadir imagen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                </label>
                 <input id="gallery-file" type="file" accept="image/*" hidden>
-                <button id="gallery-slideshow-button" type="button">Iniciar presentación</button>
-                <span>Máximo 500 KB por fotografía.</span>
+                <button id="gallery-slideshow-button" type="button" class="icon-button gallery-tool-button" aria-label="Iniciar presentación" title="Iniciar presentación">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg>
+                </button>
             </section>
             <p id="gallery-status" class="form-status" role="status"></p>
             <section id="gallery-grid" class="gallery-grid" aria-label="Fotografias compartidas"></section>

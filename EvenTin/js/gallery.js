@@ -23,6 +23,7 @@
     const deleteCancel = document.getElementById('gallery-delete-cancel');
     const deleteConfirm = document.getElementById('gallery-delete-confirm');
     const maxImageBytes = 500 * 1024;
+    const maxThumbnailBytes = 50 * 1024;
     const slideshowIntervalMs = 3000;
     let images = [];
     let canDelete = false;
@@ -80,17 +81,7 @@
         });
     }
 
-    async function optimizeImage(file) {
-        if (!file.type.startsWith('image/')) {
-            throw new Error('Selecciona un archivo de imagen.');
-        }
-        if (file.size > 12 * 1024 * 1024) {
-            throw new Error('La imagen original supera 12 MB.');
-        }
-
-        const image = await loadImage(file);
-        const maxDimensions = [1800, 1500, 1200, 1000, 800, 650];
-        const qualities = [0.82, 0.72, 0.62, 0.52, 0.44];
+    async function optimizeLoadedImage(image, maxBytes, maxDimensions, qualities) {
         const outputTypes = ['image/webp', 'image/jpeg'];
 
         for (const maxDimension of maxDimensions) {
@@ -105,14 +96,38 @@
             for (const type of outputTypes) {
                 for (const quality of qualities) {
                     const blob = await canvasToBlob(canvas, type, quality);
-                    if (blob.size <= maxImageBytes) {
+                    if (blob.size <= maxBytes) {
                         return blob;
                     }
                 }
             }
         }
 
-        throw new Error('No se pudo reducir la imagen por debajo de 500 KB.');
+        throw new Error(`No se pudo reducir la imagen por debajo de ${Math.round(maxBytes / 1024)} KB.`);
+    }
+
+    async function optimizeImages(file) {
+        if (!file.type.startsWith('image/')) {
+            throw new Error('Selecciona un archivo de imagen.');
+        }
+        if (file.size > 12 * 1024 * 1024) {
+            throw new Error('La imagen original supera 12 MB.');
+        }
+
+        const image = await loadImage(file);
+        const imageBlob = await optimizeLoadedImage(
+            image,
+            maxImageBytes,
+            [1800, 1500, 1200, 1000, 800, 650],
+            [0.82, 0.72, 0.62, 0.52, 0.44]
+        );
+        const thumbnailBlob = await optimizeLoadedImage(
+            image,
+            maxThumbnailBytes,
+            [400, 360, 320, 280, 240],
+            [0.78, 0.68, 0.58, 0.48, 0.38]
+        );
+        return { imageBlob, thumbnailBlob };
     }
 
     function blobToBase64(blob) {
@@ -143,7 +158,7 @@
             openButton.dataset.index = String(index);
             openButton.setAttribute('aria-label', 'Ampliar fotografia');
             const img = document.createElement('img');
-            img.src = image.url;
+            img.src = image.thumbnail_url || image.url;
             img.alt = 'Recuerdo del evento';
             img.loading = 'lazy';
             openButton.append(img);
@@ -187,13 +202,18 @@
 
     async function uploadSelectedImage(file) {
         setStatus(status, 'Optimizando imagen...');
-        const blob = await optimizeImage(file);
+        const { imageBlob, thumbnailBlob } = await optimizeImages(file);
         setStatus(status, 'Subiendo imagen...');
-        const imageBase64 = await blobToBase64(blob);
+        const [imageBase64, thumbnailBase64] = await Promise.all([
+            blobToBase64(imageBlob),
+            blobToBase64(thumbnailBlob)
+        ]);
         const payload = {
             action: mode === 'public' ? 'upload_public' : 'upload_collaborative',
             image_base64: imageBase64,
-            content_type: blob.type
+            content_type: imageBlob.type,
+            thumbnail_base64: thumbnailBase64,
+            thumbnail_content_type: thumbnailBlob.type
         };
         if (mode === 'public') {
             payload.event_key = eventKey;

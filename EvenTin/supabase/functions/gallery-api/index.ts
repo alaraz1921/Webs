@@ -9,6 +9,7 @@ const corsHeaders = {
 
 const bucketName = "eventin-gallery";
 const maxImageBytes = 512000;
+const maxThumbnailBytes = 50 * 1024;
 const allowedTypes: Record<string, string> = {
     "image/webp": "webp",
     "image/jpeg": "jpg",
@@ -23,6 +24,8 @@ type GalleryPayload = {
     image_id?: string;
     image_base64?: string;
     content_type?: string;
+    thumbnail_base64?: string;
+    thumbnail_content_type?: string;
 };
 
 function jsonResponse(body: unknown, status = 200) {
@@ -138,7 +141,7 @@ serve(async (request) => {
     async function listImages(eventId: string, galleryType: "public" | "collaborative") {
         const { data: images, error } = await adminClient
             .from("eventin_gallery_images")
-            .select("id,storage_path,created_at")
+            .select("*")
             .eq("event_id", eventId)
             .eq("gallery_type", galleryType)
             .order("created_at", { ascending: false });
@@ -159,9 +162,25 @@ serve(async (request) => {
             throw signError;
         }
 
+        const thumbnailPaths = images
+            .map((image) => image.thumbnail_storage_path)
+            .filter(Boolean);
+        const { data: signedThumbnails, error: thumbnailSignError } = thumbnailPaths.length
+            ? await adminClient.storage.from(bucketName).createSignedUrls(thumbnailPaths, 3600)
+            : { data: [], error: null };
+
+        if (thumbnailSignError) {
+            throw thumbnailSignError;
+        }
+
+        const thumbnailUrls = new Map(
+            thumbnailPaths.map((path, index) => [path, signedThumbnails?.[index]?.signedUrl || ""])
+        );
+
         return images.map((image, index) => ({
             id: image.id,
             url: signedImages?.[index]?.signedUrl || "",
+            thumbnail_url: thumbnailUrls.get(image.thumbnail_storage_path) || signedImages?.[index]?.signedUrl || "",
             created_at: image.created_at
         }));
     }
@@ -170,13 +189,18 @@ serve(async (request) => {
         const contentType = cleanText(payload.content_type);
         const extension = allowedTypes[contentType];
         const imageBase64 = cleanText(payload.image_base64);
-        if (!extension || !imageBase64) {
+        const thumbnailContentType = cleanText(payload.thumbnail_content_type);
+        const thumbnailExtension = allowedTypes[thumbnailContentType];
+        const thumbnailBase64 = cleanText(payload.thumbnail_base64);
+        if (!extension || !imageBase64 || !thumbnailExtension || !thumbnailBase64) {
             return jsonResponse({ error: "Invalid image" }, 400);
         }
 
         let bytes: Uint8Array;
+        let thumbnailBytes: Uint8Array;
         try {
             bytes = decodeBase64(imageBase64);
+            thumbnailBytes = decodeBase64(thumbnailBase64);
         } catch (_error) {
             return jsonResponse({ error: "Invalid image data" }, 400);
         }
@@ -184,9 +208,13 @@ serve(async (request) => {
         if (!bytes.length || bytes.length > maxImageBytes) {
             return jsonResponse({ error: "Image exceeds 500 KB" }, 413);
         }
+        if (!thumbnailBytes.length || thumbnailBytes.length > maxThumbnailBytes) {
+            return jsonResponse({ error: "Thumbnail exceeds 50 KB" }, 413);
+        }
 
         const imageId = crypto.randomUUID();
         const storagePath = `${eventId}/${galleryType}/${imageId}.${extension}`;
+        const thumbnailStoragePath = `${eventId}/${galleryType}/thumbnails/${imageId}.${thumbnailExtension}`;
         const { error: uploadError } = await adminClient.storage
             .from(bucketName)
             .upload(storagePath, bytes, { contentType, upsert: false });
@@ -196,6 +224,16 @@ serve(async (request) => {
             return jsonResponse({ error: "Could not upload image" }, 502);
         }
 
+        const { error: thumbnailUploadError } = await adminClient.storage
+            .from(bucketName)
+            .upload(thumbnailStoragePath, thumbnailBytes, { contentType: thumbnailContentType, upsert: false });
+
+        if (thumbnailUploadError) {
+            await adminClient.storage.from(bucketName).remove([storagePath]);
+            console.error("Gallery thumbnail upload failed", thumbnailUploadError);
+            return jsonResponse({ error: "Could not upload thumbnail" }, 502);
+        }
+
         const { error: insertError } = await adminClient
             .from("eventin_gallery_images")
             .insert({
@@ -203,11 +241,12 @@ serve(async (request) => {
                 event_id: eventId,
                 gallery_type: galleryType,
                 storage_path: storagePath,
+                thumbnail_storage_path: thumbnailStoragePath,
                 uploaded_by: uploadedBy
             });
 
         if (insertError) {
-            await adminClient.storage.from(bucketName).remove([storagePath]);
+            await adminClient.storage.from(bucketName).remove([storagePath, thumbnailStoragePath]);
             console.error("Gallery metadata insert failed", insertError);
             return jsonResponse({ error: "Could not save image" }, 502);
         }
@@ -270,7 +309,7 @@ serve(async (request) => {
         const galleryType = action === "delete_public" ? "public" : "collaborative";
         const { data: image } = await adminClient
             .from("eventin_gallery_images")
-            .select("id,event_id,gallery_type,storage_path")
+            .select("id,event_id,gallery_type,storage_path,thumbnail_storage_path")
             .eq("id", imageId)
             .eq("gallery_type", galleryType)
             .maybeSingle();
@@ -290,7 +329,8 @@ serve(async (request) => {
             return jsonResponse({ error: "Access denied" }, 403);
         }
 
-        const { error: removeError } = await adminClient.storage.from(bucketName).remove([image.storage_path]);
+        const pathsToRemove = [image.storage_path, image.thumbnail_storage_path].filter(Boolean);
+        const { error: removeError } = await adminClient.storage.from(bucketName).remove(pathsToRemove);
         if (removeError) {
             console.error("Gallery delete failed", removeError);
             return jsonResponse({ error: "Could not delete image" }, 502);

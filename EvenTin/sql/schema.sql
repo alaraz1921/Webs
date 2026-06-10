@@ -128,6 +128,7 @@ create table if not exists public.eventin_gallery_images (
     event_id uuid not null references public.eventin_events(id) on delete cascade,
     gallery_type text not null check (gallery_type in ('public', 'collaborative')),
     storage_path text unique not null,
+    thumbnail_storage_path text unique,
     uploaded_by uuid references auth.users(id) on delete set null,
     created_at timestamptz not null default now()
 );
@@ -135,6 +136,7 @@ create table if not exists public.eventin_gallery_images (
 alter table public.eventin_events add column if not exists public_slug text;
 alter table public.eventin_events add column if not exists event_code text;
 alter table public.eventin_gallery_settings add column if not exists collaborative_available boolean not null default false;
+alter table public.eventin_gallery_images add column if not exists thumbnail_storage_path text unique;
 alter table public.eventin_events add column if not exists event_type text not null default 'communion';
 alter table public.eventin_event_settings add column if not exists main_title text;
 alter table public.eventin_event_settings add column if not exists palette_key text not null default 'clasica';
