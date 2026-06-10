@@ -74,7 +74,7 @@ body[data-palette="natura"] {
     --sage: var(--button);
     --action: var(--button);
     --action-hover: var(--button-hover);
-    --action-text: var(--title);
+    --action-text: #ffffff;
 }
 
 body[data-palette="home"] {
@@ -718,10 +718,11 @@ a {
 }
 
 #event-info-title,
-#message-title {
-    font-family: "Caveat", "Manrope", cursive;
-    font-size: clamp(2.3rem, 5vw, 3.3rem);
-    font-weight: 700;
+#message-title,
+#memories-title {
+    font-family: "Rouge Script", Georgia, serif;
+    font-size: clamp(3rem, 8vw, 5rem);
+    font-weight: 400;
     letter-spacing: 0;
 }
 
@@ -2738,12 +2739,6 @@ body[data-palette="home"] .home-admin-link svg {
 /* Event galleries */
 .memories-section {
     text-align: center;
-}
-
-.memories-section h2 {
-    font-family: "Rouge Script", Georgia, serif;
-    font-size: clamp(3rem, 8vw, 5rem);
-    font-weight: 400;
 }
 
 .memory-links {
