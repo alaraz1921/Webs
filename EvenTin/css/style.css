@@ -2738,15 +2738,31 @@ body[data-palette="home"] .home-admin-link svg {
 
 /* Event galleries */
 .memories-section {
-    text-align: center;
+    position: relative;
+    padding: 32px 0;
+    text-align: left;
+}
+
+.memories-section::after {
+    position: absolute;
+    right: 32px;
+    bottom: 0;
+    left: 32px;
+    height: 1px;
+    content: "";
+    background: var(--line);
 }
 
 .memory-links {
     display: flex;
     gap: 12px;
-    justify-content: center;
+    justify-content: flex-start;
     flex-wrap: wrap;
-    margin-top: 22px;
+    margin-top: 14px;
+}
+
+.memories-section + .form-section {
+    padding-top: 32px;
 }
 
 .gallery-page {
