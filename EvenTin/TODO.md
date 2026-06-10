@@ -32,7 +32,7 @@ Rediseñar la sección “Recuerdos” para que muestre una previsualización de
 
 Diseño deseado:
 - Título: “Recuerdos”
-- Subtítulo: Aunque se vea en la imagen adjunta, no lo añadas
+- Subtítulo: Aunque se vea en la imagen adjunta, no lo añadas.
 - Debajo, mostrar 3 miniaturas en una fila.
 - Las miniaturas deben tener bordes redondeados.
 - En móvil deben verse 3 miniaturas cuadradas o casi cuadradas.
@@ -75,3 +75,6 @@ Responsive:
 
 Resultado esperado:
 La sección debe parecerse a la muestra de la imagen adjunta
+
+- [ ] IM-07 Para que en WhatsApp, al compartir el enlace, aparezca la imagen principal del evento.
+Añadir a evento.html los mismos meta property="og:... que index.html
