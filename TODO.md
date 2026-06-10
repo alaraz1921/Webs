@@ -85,3 +85,9 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] IM-06 Añadir icono/favicon para 404 y metadatos del sitio.
 - [x] IM-07 Colocar ayuda de Bingo e Infiltrado en la parte inferior.
 - [ ] IM-08 Añadir indicadores operativos para avisar si una Edge Function de email falla aunque el mensaje quede guardado.
+- [ ] IM-09 Hacer PWA de bingo e infiltrado.
+
+Bingo
+En el monitor se entra logandose con usuario creado en supabase.
+Las partidas tendrán un id.
+Mientras una partida no haya comenzado el usuario podrá cambiar el cartón. Si el administrador comienza la partida ya no se puede cambiar el cartón.

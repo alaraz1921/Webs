@@ -78,3 +78,4 @@ La sección debe parecerse a la muestra de la imagen adjunta
 
 - [ ] IM-07 Para que en WhatsApp, al compartir el enlace, aparezca la imagen principal del evento.
 Añadir a evento.html los mismos meta property="og:... que index.html
+- [ ] IM-08 Hacer PWA
