@@ -1892,6 +1892,10 @@ body.bingo-carton-page .btn-cambiar {
     background-color: #2563eb;
 }
 
+body.bingo-carton-page .btn-instalar {
+    background-color: #7c3aed;
+}
+
 body.bingo-carton-page .partida-modal-input {
     width: 140px;
     margin: 0 0 18px;

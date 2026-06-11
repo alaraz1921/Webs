@@ -6,6 +6,7 @@ const PARTIDA_KEY = 'bingo_partida_id';
 let matrizCarton = [];
 let posicionesTachadas = [];
 let partidaActual = null;
+let instalacionPwaPendiente = null;
 
 function cerrarMenuBingo() {
     const menu = document.getElementById('bingoMenuList');
@@ -282,6 +283,34 @@ function solicitarVolverPrincipal() {
 function mostrarAyudaBingo() {
     mostrarAlerta('<strong>Como jugar al Bingo</strong><br><br>1. Selecciona el id indicado por el monitor.<br>2. Puedes cambiar de carton mientras la partida no este iniciada.<br>3. Cuando el monitor inicie la partida podras marcar los numeros cantados.<br>4. Limpiar solo desmarca los numeros de tu carton.');
 }
+
+async function solicitarInstalacionPwa() {
+    cerrarMenuBingo();
+
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+        mostrarAlerta('Bingo ya esta instalado en este dispositivo.');
+        return;
+    }
+
+    if (!instalacionPwaPendiente) {
+        mostrarAlerta('Para instalar Bingo, abre el menu del navegador y selecciona Instalar aplicacion o Añadir a pantalla de inicio.');
+        return;
+    }
+
+    instalacionPwaPendiente.prompt();
+    await instalacionPwaPendiente.userChoice;
+    instalacionPwaPendiente = null;
+}
+
+window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    instalacionPwaPendiente = event;
+});
+
+window.addEventListener('appinstalled', () => {
+    instalacionPwaPendiente = null;
+    mostrarAlerta('Bingo se ha instalado correctamente.');
+});
 
 window.addEventListener('load', async () => {
     inicializarMenuBingo();

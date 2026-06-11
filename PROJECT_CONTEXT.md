@@ -239,6 +239,7 @@ Base de datos y PWA:
 - Id automatico entre 100 y 999.
 - `Bingo/manifest.json`, `Bingo/sw.js` e iconos permiten instalar Bingo como PWA.
 - Los iconos PWA usan la bola azul con el numero 21 proporcionada para Bingo.
+- El carton ofrece instalacion PWA desde el panel de botones y desde su menu superior.
 
 ### Infiltrado
 

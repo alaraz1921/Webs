@@ -17,6 +17,7 @@ Ultima revision: 2026-06-11
 - [x] PA-11 Implementar partidas Supabase, permisos, nuevas reglas y PWA para Bingo.
 - [x] PA-12 Hacer idempotente la migracion de Bingo para permitir reejecuciones parciales.
 - [x] PA-13 Sustituir el icono PWA de Bingo por la bola azul numero 21.
+- [x] PA-14 Añadir acceso de instalacion PWA al panel y menu del carton de Bingo.
 
 ## Prioridad Media
 
