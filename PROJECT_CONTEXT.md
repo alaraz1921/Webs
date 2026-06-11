@@ -233,6 +233,7 @@ bingo_partida_id
 Base de datos y PWA:
 
 - Migracion: `supabase/migrations/20260611120000_bingo_partidas.sql`.
+- La migracion es idempotente y puede completar una ejecucion parcial sin borrar `bingo_partidas`.
 - Proyecto privado: `app_projects.slug = 'bingo'`.
 - Tabla publica de lectura y gestion protegida: `bingo_partidas`.
 - Id automatico entre 100 y 999.

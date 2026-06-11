@@ -51,6 +51,7 @@ La migracion `20260611120000_bingo_partidas.sql`:
 
 - Crea o actualiza el proyecto `bingo` en `app_projects`.
 - Crea `bingo_partidas` con ids automaticos entre 100 y 999.
+- Es idempotente: puede ejecutarse de nuevo si una ejecucion anterior quedo incompleta.
 - Permite lectura publica para que el carton no necesite login.
 - Restringe crear, iniciar y reiniciar partidas a administradores o miembros `owner`/`editor` de Bingo.
 
@@ -74,6 +75,8 @@ on conflict (project_id, user_id) do update set role = excluded.role;
 El formulario del monitor acepta `demobingo` y lo transforma internamente en ese email. Los usuarios cuyo perfil tenga `role = 'admin'` tambien pueden acceder sin pertenecer expresamente al proyecto.
 
 La contraseña demo debe cambiarse antes de usar el monitor en un entorno real.
+
+Si Supabase muestra `relation "bingo_partidas" already exists`, actualizar el repositorio y volver a ejecutar el archivo completo. La version actual reutiliza la tabla existente y completa columnas, permisos y politicas sin borrarla.
 
 ## Contacto de Webs
 
