@@ -146,6 +146,8 @@ El codigo numerico de evento tiene 6 digitos, se genera automaticamente al crear
 - El panel de administracion incluye un acceso directo independiente a la galeria publica.
 - Las nuevas fotografias de ambas galerias guardan una imagen principal de hasta 500 KB y una miniatura de hasta 400 px y 50 KB. Las cuadriculas cargan la miniatura y el visor/presentacion usa la imagen principal. Las imagenes antiguas mantienen compatibilidad usando la principal como miniatura.
 - Las paginas de galeria usan cabecera no fija y compacta, enlace textual de vuelta y controles iconicos pequenos para anadir imagen e iniciar presentacion.
+- La seccion `Recuerdos` de `evento.html` carga mediante `gallery-api` una previsualizacion ligera de hasta seis miniaturas, muestra tres en movil, contador total, estado vacio y botones verticales.
+- `evento.html` incluye metadatos Open Graph estaticos y `countdown.js` los actualiza en el navegador con titulo, subtitulo e imagen principal del evento. Los rastreadores que no ejecutan JavaScript siguen viendo la imagen Open Graph generica.
 - Hay que ejecutar el `schema.sql` actualizado para crear tablas, funciones y bucket de galerias.
 - Las funciones de clave colaborativa llaman explicitamente a `extensions.crypt` y `extensions.gen_salt`, porque Supabase instala `pgcrypto` en el esquema `extensions`.
 - El formulario de contacto se movio a `contacto.html`; los botones de contacto y `Crear mi evento` enlazan a esa pagina.

@@ -46,7 +46,30 @@
 
         setPanelImage('.hero', data.heroImageUrl);
         setPanelImage('.image-panel', data.detailImageUrl);
+        updatePageMetadata(eventData, data);
         startCountdown(data.eventDate);
+    }
+
+    function updatePageMetadata(eventData, data) {
+        const eventTitle = valueOrFallback(eventData?.title, data.title) || 'Evento';
+        const description = data.subtitle || 'Consulta todos los detalles y recuerdos de este evento en EvenTin.';
+        const imageUrl = data.heroImageUrl
+            ? new URL(data.heroImageUrl, window.location.href).href
+            : 'https://www.alaraz1921.com/EvenTin/assets/images/og-image.jpg';
+
+        document.title = `${eventTitle} | EvenTin`;
+        setMeta('meta[name="description"]', description);
+        setMeta('meta[property="og:title"]', `${eventTitle} | EvenTin`);
+        setMeta('meta[property="og:description"]', description);
+        setMeta('meta[property="og:url"]', window.location.href);
+        setMeta('meta[property="og:image"]', imageUrl);
+    }
+
+    function setMeta(selector, content) {
+        const meta = document.querySelector(selector);
+        if (meta) {
+            meta.setAttribute('content', content);
+        }
     }
 
     function setText(selector, value) {

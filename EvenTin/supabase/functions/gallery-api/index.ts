@@ -185,6 +185,38 @@ serve(async (request) => {
         }));
     }
 
+    async function getPublicGalleryPreview(eventId: string) {
+        const { data: images, error, count } = await adminClient
+            .from("eventin_gallery_images")
+            .select("storage_path,thumbnail_storage_path", { count: "exact" })
+            .eq("event_id", eventId)
+            .eq("gallery_type", "public")
+            .order("created_at", { ascending: false })
+            .range(0, 5);
+
+        if (error) {
+            throw error;
+        }
+
+        const paths = (images || []).map((image) => image.thumbnail_storage_path || image.storage_path);
+        if (!paths.length) {
+            return { total: count || 0, images: [] };
+        }
+
+        const { data: signedImages, error: signError } = await adminClient.storage
+            .from(bucketName)
+            .createSignedUrls(paths, 3600);
+
+        if (signError) {
+            throw signError;
+        }
+
+        return {
+            total: count || paths.length,
+            images: signedImages?.map((image) => image.signedUrl || "") || []
+        };
+    }
+
     async function uploadImage(eventId: string, galleryType: "public" | "collaborative", uploadedBy: string | null) {
         const contentType = cleanText(payload.content_type);
         const extension = allowedTypes[contentType];
@@ -267,6 +299,14 @@ serve(async (request) => {
             can_manage: canManage,
             images: await listImages(eventData.id, "public")
         });
+    }
+
+    if (action === "preview_public") {
+        const eventData = await getEventByKey(cleanText(payload.event_key));
+        if (!eventData) {
+            return jsonResponse({ error: "Event not found" }, 404);
+        }
+        return jsonResponse(await getPublicGalleryPreview(eventData.id));
     }
 
     if (action === "upload_public") {

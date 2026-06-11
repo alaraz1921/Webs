@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Evento | EvenTin</title>
+    <meta name="description" content="Consulta todos los detalles y recuerdos de este evento en EvenTin.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Evento | EvenTin">
+    <meta property="og:description" content="Consulta todos los detalles y recuerdos de este evento en EvenTin.">
+    <meta property="og:url" content="https://www.alaraz1921.com/EvenTin/evento.html">
+    <meta property="og:image" content="https://www.alaraz1921.com/EvenTin/assets/images/og-image.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Rouge+Script&display=swap" rel="stylesheet">
@@ -74,9 +80,15 @@
 
         <section class="section memories-section" aria-labelledby="memories-title">
             <h2 id="memories-title">Recuerdos</h2>
+            <div id="memories-preview" class="memories-preview" hidden></div>
+            <div id="memories-empty" class="memories-empty" hidden>Aún no hay recuerdos compartidos</div>
+            <p id="memories-count" class="memories-count" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m4 17 5-5 4 4 3-3 4 4"/></svg>
+                <span></span>
+            </p>
             <div class="memory-links">
-                <a id="public-gallery-link" class="secondary-link" href="galeria.html">Ver Galería</a>
-                <a id="collaborative-gallery-link" class="secondary-link" href="galeria-colaborativa.html" hidden>Sube tus recuerdos</a>
+                <a id="public-gallery-link" class="primary-link memory-primary-link" href="galeria.html">Ver galería</a>
+                <a id="collaborative-gallery-link" class="memory-secondary-link" href="galeria-colaborativa.html" hidden>Sube tus recuerdos</a>
             </div>
         </section>
 

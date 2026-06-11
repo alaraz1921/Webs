@@ -285,6 +285,7 @@ En el panel de administracion se pueden:
 La pagina del evento muestra la seccion `Recuerdos`, desde la que cualquier visitante puede abrir la galeria publica.
 
 - Las fotografias se muestran como miniaturas y se amplian al pulsarlas.
+- La pagina del evento muestra una previsualizacion de hasta seis recuerdos en escritorio y tres en movil, junto con el numero total de fotografias.
 - Los usuarios de evento y administradores que tengan una sesion iniciada pueden añadir y borrar imagenes.
 - Cada imagen se optimiza antes de subirla y no puede superar 500 KB. Tambien se genera una miniatura de hasta 400 px y 50 KB para cargar la cuadricula con mayor rapidez.
 - Desde el panel del evento existe un enlace directo a esta galeria.

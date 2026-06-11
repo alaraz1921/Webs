@@ -2755,14 +2755,129 @@ body[data-palette="home"] .home-admin-link svg {
 
 .memory-links {
     display: flex;
-    gap: 12px;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    margin-top: 14px;
+    flex-direction: column;
+    gap: 10px;
+    width: min(520px, 100%);
+    margin-top: 18px;
+}
+
+.memory-links a {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.memory-secondary-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 11px 18px;
+    border: 2px solid var(--action);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--accent-dark);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.memory-secondary-link:hover {
+    background: var(--background-soft);
+}
+
+.memories-preview {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.memories-preview[hidden],
+.memories-empty[hidden],
+.memories-count[hidden] {
+    display: none;
+}
+
+.memories-preview-item {
+    position: relative;
+    aspect-ratio: 1;
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--background-soft);
+}
+
+.memories-preview-item img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.memories-preview-extra {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--button) 78%, transparent);
+    color: #fff;
+    font-size: clamp(1.25rem, 4vw, 2rem);
+    font-weight: 800;
+}
+
+.memories-preview-extra.mobile-extra {
+    display: none;
+}
+
+.memories-count {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 14px 0 0;
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.memories-count svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: var(--button);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.memories-empty {
+    margin-top: 18px;
+    padding: 28px 18px;
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    background: var(--background-soft);
+    color: var(--muted);
+    text-align: center;
 }
 
 .memories-section + .form-section {
     padding-top: 32px;
+}
+
+@media (max-width: 640px) {
+    .memories-preview {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .memories-preview-item:nth-child(n + 4) {
+        display: none;
+    }
+
+    .memories-preview-extra.mobile-extra {
+        display: grid;
+    }
+
+    .memories-preview-extra.desktop-extra {
+        display: none;
+    }
 }
 
 .gallery-page {
