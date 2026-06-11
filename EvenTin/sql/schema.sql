@@ -1075,9 +1075,6 @@ grant execute on function eventin_private.can_access_event_code(text) to authent
 
 revoke execute on function eventin_private.generate_event_code() from public, anon, authenticated;
 
-revoke execute on function eventin_private.submit_guest_response(uuid, text, text, boolean, text, integer, integer) from public;
-grant execute on function eventin_private.submit_guest_response(uuid, text, text, boolean, text, integer, integer) to anon, authenticated;
-
 revoke execute on function eventin_private.submit_public_message(uuid, text, text) from public;
 grant execute on function eventin_private.submit_public_message(uuid, text, text) to anon, authenticated;
 
