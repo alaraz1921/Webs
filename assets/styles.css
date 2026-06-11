@@ -943,6 +943,30 @@ body.infiltrado-page {
         body.infiltrado-page .btn-danger { background-color: #f72585; color: white; }
         body.infiltrado-page .btn-danger:hover { background-color: #b5179e; }
 
+        body.infiltrado-page .player-turn-heading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        body.infiltrado-page .player-turn-label {
+            color: #ffffff;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        body.infiltrado-page .player-turn-player {
+            max-width: 100%;
+            color: #ffb703;
+            font-size: 2.25rem;
+            font-weight: 900;
+            line-height: 1.1;
+            overflow-wrap: anywhere;
+        }
+
         body.infiltrado-page .reveal-box {
             background: #2a3a5c; /* Fondo más claro que el fondo general para que destaque */
             color: #ffb703;

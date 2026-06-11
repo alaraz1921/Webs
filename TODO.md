@@ -22,6 +22,7 @@ Ultima revision: 2026-06-11
 - [x] PA-16 Mostrar los botones PWA solo cuando proceda, ocultarlos tras instalar y guiar la instalacion en iOS.
 - [x] PA-17 Ocultar la vuelta a Games en modo PWA y limitar a 24 horas los accesos de Monitor Bingo e Infiltrado.
 - [x] PA-18 Reforzar la deteccion del modo instalado y renombrar las PWA como `Bingo Alaraz1921` e `Infiltrado Alaraz1921`.
+- [x] PA-19 Destacar el nombre del jugador frente a la etiqueta `Tu turno` durante el revelado de roles de Infiltrado.
 
 ## Prioridad Media
 

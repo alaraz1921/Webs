@@ -344,7 +344,7 @@ async function eliminarPartidaTemporal() {
 }
 
 function prepararTurnoJugador() {
-    document.getElementById('player-turn-name').textContent = `Turno de: ${jugadores[jugadorActualIndex]}`;
+    document.getElementById('player-turn-player').textContent = jugadores[jugadorActualIndex];
     document.getElementById('reveal-area').textContent = 'MANTÉN PULSADO PARA VER';
     document.getElementById('btn-next-player').textContent = jugadorActualIndex === jugadores.length - 1 ? 'Comenzar Partida' : 'Siguiente Jugador';
 }

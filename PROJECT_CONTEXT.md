@@ -252,7 +252,7 @@ Base de datos y PWA:
 - El alias `demo` se convierte internamente en `demo@alaraz1921.com`.
 - La validacion propia de Infiltrado caduca a las 24 horas y obliga a introducir de nuevo usuario y clave.
 - Configuracion de jugadores, infiltrados y tipo de palabra, incluyendo `Aleatoria`.
-- Sorteo y revelado individual.
+- Sorteo y revelado individual, destacando en amarillo el nombre del jugador de cada turno.
 - Resolucion mediante desplegables de participantes.
 - Las palabras se cargan desde `infiltrado_palabras`.
 - La partida temporal se guarda en `infiltrado_partidas` y sus jugadores en `infiltrado_jugadores`.

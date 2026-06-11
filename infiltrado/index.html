@@ -81,7 +81,10 @@
     </div>
 
     <div id="screen-draw" class="screen">
-        <h2 id="player-turn-name">Turno de: </h2>
+        <h2 id="player-turn-name" class="player-turn-heading">
+            <span class="player-turn-label">Tu turno</span>
+            <span id="player-turn-player" class="player-turn-player"></span>
+        </h2>
         <p>Pasa el móvil a este jugador. Mantén pulsado el recuadro para ver tu rol:</p>
         <div id="reveal-area" class="reveal-box" onmousedown="mostrarRol()" onmouseup="ocultarRol()" ontouchstart="mostrarRol()" ontouchend="ocultarRol()">
             MANTÉN PULSADO PARA VER
