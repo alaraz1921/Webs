@@ -1,5 +1,7 @@
 const infiltradoClient = window.websSupabase;
 const DEMO_EMAIL = 'demo@alaraz1921.com';
+const INFILTRADO_AUTH_TIME_KEY = 'infiltrado_auth_time';
+const AUTH_DURATION_MS = 24 * 60 * 60 * 1000;
 
 let jugadores = [];
 let roles = {};
@@ -22,6 +24,13 @@ for (let numero = 3; numero <= 20; numero++) {
 function normalizarUsuario(usuario) {
     const valor = usuario.trim().toLowerCase();
     return valor.includes('@') ? valor : valor === 'demo' ? DEMO_EMAIL : valor;
+}
+
+function sesionInfiltradoVigente() {
+    const inicioSesion = Number(localStorage.getItem(INFILTRADO_AUTH_TIME_KEY));
+    return Number.isFinite(inicioSesion)
+        && inicioSesion > 0
+        && Date.now() - inicioSesion < AUTH_DURATION_MS;
 }
 
 async function usuarioPuedeUsarInfiltrado() {
@@ -58,16 +67,20 @@ async function iniciarSesion(event) {
     }
 
     document.getElementById('infiltradoClave').value = '';
+    localStorage.setItem(INFILTRADO_AUTH_TIME_KEY, String(Date.now()));
     await iniciarAplicacion();
 }
 
 async function comprobarSesion() {
     const { data } = await infiltradoClient.auth.getSession();
-    if (data.session?.user && await usuarioPuedeUsarInfiltrado()) {
+    if (data.session?.user && sesionInfiltradoVigente() && await usuarioPuedeUsarInfiltrado()) {
         await iniciarAplicacion();
         return;
     }
 
+    localStorage.removeItem(INFILTRADO_AUTH_TIME_KEY);
+    accesoInfiltradoValidado = false;
+    actualizarBotonInstalacionPwa();
     cambiarPantallaVisual('screen-lock');
     document.getElementById('infiltradoUsuario').focus();
 }
@@ -450,6 +463,7 @@ window.addEventListener('appinstalled', () => {
 });
 
 window.addEventListener('load', () => {
+    document.body.classList.toggle('pwa-standalone', estaInstaladaPwa());
     document.getElementById('infiltradoLoginForm').addEventListener('submit', iniciarSesion);
     restaurarConfiguracionBase();
     comprobarSesion();

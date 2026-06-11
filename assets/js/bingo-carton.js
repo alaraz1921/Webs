@@ -333,6 +333,7 @@ window.addEventListener('appinstalled', () => {
 });
 
 window.addEventListener('load', async () => {
+    document.body.classList.toggle('pwa-standalone', estaInstaladaPwa());
     inicializarMenuBingo();
     cargarCartonGuardado();
     await cargarPartidaGuardada();

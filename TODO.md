@@ -20,6 +20,7 @@ Ultima revision: 2026-06-11
 - [x] PA-14 Añadir acceso de instalacion PWA al panel y menu del carton de Bingo.
 - [x] PA-15 Migrar Infiltrado a Supabase Auth, palabras categorizadas, partidas temporales y PWA.
 - [x] PA-16 Mostrar los botones PWA solo cuando proceda, ocultarlos tras instalar y guiar la instalacion en iOS.
+- [x] PA-17 Ocultar la vuelta a Games en modo PWA y limitar a 24 horas los accesos de Monitor Bingo e Infiltrado.
 
 ## Prioridad Media
 

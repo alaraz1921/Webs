@@ -159,7 +159,7 @@ Concentrador de juegos:
 - Bingo.
 - Infiltrado.
 
-Los botones de vuelta de Bingo, Monitor e Infiltrado regresan a `games.html`. Desde `games.html` se vuelve a la portada.
+Los botones de vuelta de Bingo, Monitor e Infiltrado regresan a `games.html` y se ocultan cuando el juego se ejecuta como PWA instalada. Desde `games.html` se vuelve a la portada.
 
 ### `proyectos.html`
 
@@ -227,6 +227,7 @@ bingo_partida_id
 - Requiere Supabase Auth y acceso al proyecto `bingo`.
 - Acepta el alias `demobingo` o el email del usuario administrador.
 - El rol `admin` y los miembros `owner` o `editor` del proyecto pueden gestionarlo.
+- La validacion propia del Monitor caduca a las 24 horas y obliga a introducir de nuevo usuario y clave.
 - Crea partidas, inicia el bloqueo de cartones y reinicia una partida conservando su id.
 - Persiste los numeros cantados por id de partida en `localStorage`.
 
@@ -241,6 +242,7 @@ Base de datos y PWA:
 - Los iconos PWA usan la bola azul con el numero 21 proporcionada para Bingo.
 - El carton ofrece instalacion PWA desde el panel de botones y desde su menu superior.
 - Los controles de instalacion aparecen solo cuando existe instalacion nativa disponible o en iOS, y se ocultan tras instalar.
+- En modo PWA se ocultan los controles de vuelta a `games.html` tanto en el carton como en el Monitor.
 
 ### Infiltrado
 
@@ -248,6 +250,7 @@ Base de datos y PWA:
 
 - Acceso mediante Supabase Auth para administradores y miembros del proyecto `infiltrado`.
 - El alias `demo` se convierte internamente en `demo@alaraz1921.com`.
+- La validacion propia de Infiltrado caduca a las 24 horas y obliga a introducir de nuevo usuario y clave.
 - Configuracion de jugadores, infiltrados y tipo de palabra, incluyendo `Aleatoria`.
 - Sorteo y revelado individual.
 - Resolucion mediante desplegables de participantes.
@@ -255,6 +258,7 @@ Base de datos y PWA:
 - La partida temporal se guarda en `infiltrado_partidas` y sus jugadores en `infiltrado_jugadores`.
 - La PWA usa manifest, service worker y el icono de espia proporcionado.
 - El boton de instalacion aparece solo despues del login y muestra instrucciones especificas en iOS.
+- En modo PWA se ocultan los controles de vuelta a `games.html`.
 
 ### ValentinaPlay
 

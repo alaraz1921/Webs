@@ -1961,6 +1961,16 @@ body.infiltrado-page .infiltrado-install-button {
     display: none !important;
 }
 
+body.pwa-standalone .hide-in-pwa {
+    display: none !important;
+}
+
+@media (display-mode: standalone) {
+    .hide-in-pwa {
+        display: none !important;
+    }
+}
+
 /* coming-soon.html */
 body.coming-soon-page {
     min-height: 100vh;
