@@ -16,6 +16,7 @@ Ultima revision: 2026-06-11
 - [x] PA-10 Conectar el formulario de contacto de Webs a `webs_contact_messages` y `notify-webs-contact`.
 - [x] PA-11 Implementar partidas Supabase, permisos, nuevas reglas y PWA para Bingo.
 - [x] PA-12 Hacer idempotente la migracion de Bingo para permitir reejecuciones parciales.
+- [x] PA-13 Sustituir el icono PWA de Bingo por la bola azul numero 21.
 
 ## Prioridad Media
 

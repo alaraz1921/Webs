@@ -1,9 +1,8 @@
-const CACHE_NAME = 'bingo-v1';
+const CACHE_NAME = 'bingo-v2';
 const APP_SHELL = [
   './carton.html',
   './monitor.html',
   './manifest.json',
-  './icons/bingo-icon.svg',
   './icons/bingo-icon-192.png',
   './icons/bingo-icon-512.png',
   '../assets/styles.css',

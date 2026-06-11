@@ -238,6 +238,7 @@ Base de datos y PWA:
 - Tabla publica de lectura y gestion protegida: `bingo_partidas`.
 - Id automatico entre 100 y 999.
 - `Bingo/manifest.json`, `Bingo/sw.js` e iconos permiten instalar Bingo como PWA.
+- Los iconos PWA usan la bola azul con el numero 21 proporcionada para Bingo.
 
 ### Infiltrado
 
