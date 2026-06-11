@@ -148,6 +148,10 @@ alter table public.eventin_guests add column if not exists message text;
 alter table public.eventin_guests add column if not exists viewed_at timestamptz;
 alter table public.eventin_guests add column if not exists responded_at timestamptz;
 
+-- Remove the legacy response synchronization before any guest migration runs.
+drop trigger if exists trg_sync_guest_response on public.eventin_guests;
+drop function if exists eventin_private.sync_guest_response() cascade;
+
 do $$
 begin
     if exists (
