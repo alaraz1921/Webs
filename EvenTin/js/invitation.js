@@ -72,6 +72,7 @@
 
     function applyDetailImage(settings) {
         const imageUrl = valueOrFallback(settings?.detail_image_url, '');
+        document.body.dataset.palette = settings?.palette_key || 'clasica';
         detailImage.hidden = !imageUrl;
         detailImage.style.backgroundImage = imageUrl ? `url("${imageUrl.replace(/"/g, '\\"')}")` : '';
     }
