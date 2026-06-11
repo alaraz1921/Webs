@@ -13,7 +13,6 @@ Ultima revision: 2026-06-11
 
 ## Ideas de mejora
 - [ ] IM-01 Informe de mensajes publicos
-- [ ] IM-02 Informe de respuestas recibidas de invitaciones
 - [ ] IM-03 La fuente de los datos de fecha, hora y lugar, que sea la misma que la del texto del datalle, solo la fuente del dato, el epigrafe mantiene la fuente actual.
 - [ ] IM-04 El botón para ver en Google Maps que salga centrado en la versión para móvil
 - [ ] IM-05 URL amigables

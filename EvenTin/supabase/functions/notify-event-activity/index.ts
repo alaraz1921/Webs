@@ -104,13 +104,13 @@ serve(async (request) => {
         };
     } else {
         const { data, error } = await adminClient
-            .from("eventin_guest_responses")
-            .select("event_id,nombre,asistencia,adults_count,children_count,mensaje")
+            .from("eventin_guests")
+            .select("event_id,name,will_attend,adults_count,children_count,message")
             .eq("id", recordId)
             .maybeSingle();
 
         if (error || !data) {
-            return jsonResponse({ error: "Guest response not found" }, 404);
+            return jsonResponse({ error: "Guest not found" }, 404);
         }
 
         details = {
@@ -118,11 +118,11 @@ serve(async (request) => {
             heading: "Nueva respuesta de invitacion en EvenTin",
             subjectPrefix: "Nueva respuesta de invitacion",
             lines: [
-                ["Invitado", truncate(data.nombre, 200)],
-                ["Asistencia", data.asistencia ? "Confirmada" : "Rechazada"],
+                ["Invitado", truncate(data.name, 200)],
+                ["Asistencia", data.will_attend ? "Confirmada" : "Rechazada"],
                 ["Adultos", String(data.adults_count ?? 0)],
                 ["Ninos", String(data.children_count ?? 0)],
-                ["Mensaje", truncate(data.mensaje)]
+                ["Mensaje", truncate(data.message)]
             ]
         };
     }

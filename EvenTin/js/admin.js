@@ -18,7 +18,6 @@
     const showUsersViewButton = document.getElementById('show-users-view');
     const showContactsViewButton = document.getElementById('show-contacts-view');
     const eventsView = document.getElementById('events-view');
-    const responsesView = document.getElementById('responses-view');
     const messagesView = document.getElementById('messages-view');
     const usersView = document.getElementById('users-view');
     const contactsView = document.getElementById('contacts-view');
@@ -41,14 +40,6 @@
     const deleteEventMessage = document.getElementById('delete-event-message');
     const cancelDeleteEventButton = document.getElementById('cancel-delete-event');
     const confirmDeleteEventButton = document.getElementById('confirm-delete-event');
-    const deleteResponseModal = document.getElementById('delete-response-modal');
-    const deleteResponseMessage = document.getElementById('delete-response-message');
-    const cancelDeleteResponseButton = document.getElementById('cancel-delete-response');
-    const confirmDeleteResponseButton = document.getElementById('confirm-delete-response');
-    const editResponseModal = document.getElementById('edit-response-modal');
-    const editResponseMessage = document.getElementById('edit-response-message');
-    const cancelEditResponseButton = document.getElementById('cancel-edit-response');
-    const confirmEditResponseButton = document.getElementById('confirm-edit-response');
     const confirmActionModal = document.getElementById('confirm-action-modal');
     const confirmActionTitle = document.getElementById('confirm-action-title');
     const confirmActionMessage = document.getElementById('confirm-action-message');
@@ -60,13 +51,6 @@
     const publicLink = document.getElementById('public-link');
     const eventLinks = document.getElementById('event-links');
     const manageGuestsLink = document.getElementById('manage-guests-link');
-    const responsesTable = document.getElementById('responses-table');
-    const showAllResponsesButton = document.getElementById('show-all-responses');
-    const allResponsesTable = document.getElementById('all-responses-table');
-    const loadMoreResponsesButton = document.getElementById('load-more-responses');
-    const allResponsesStatus = document.getElementById('all-responses-status');
-    const backFromResponsesButton = document.getElementById('back-from-responses');
-    const backFromResponsesBottomButton = document.getElementById('back-from-responses-bottom');
     const messagesList = document.getElementById('messages-list');
     const showAllMessagesButton = document.getElementById('show-all-messages');
     const allMessagesList = document.getElementById('all-messages-list');
@@ -133,16 +117,12 @@
     };
 
     const ICONS = {
-        edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>',
         trash: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m6 6 1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>'
     };
 
     let currentProfile = null;
     let currentEvents = [];
     let currentEventTypes = [];
-    let currentResponses = [];
-    let loadedResponses = 0;
-    let totalResponses = 0;
     let loadedMessages = 0;
     let totalMessages = 0;
     let currentUsers = [];
@@ -216,84 +196,6 @@
             cancelDeleteEventButton.addEventListener('click', onCancel);
             confirmDeleteEventButton.addEventListener('click', onConfirm);
             deleteEventModal.addEventListener('click', onBackdrop);
-        });
-    }
-
-    function confirmDeleteResponse(responseName) {
-        if (!deleteResponseModal) {
-            return Promise.resolve(false);
-        }
-
-        deleteResponseMessage.textContent = `Vas a borrar la respuesta de ${responseName || 'este invitado'}. Esta accion no se puede deshacer.`;
-        deleteResponseModal.hidden = false;
-
-        return new Promise((resolve) => {
-            function close(result) {
-                deleteResponseModal.hidden = true;
-                cancelDeleteResponseButton.removeEventListener('click', onCancel);
-                confirmDeleteResponseButton.removeEventListener('click', onConfirm);
-                deleteResponseModal.removeEventListener('click', onBackdrop);
-                resolve(result);
-            }
-
-            function onCancel() {
-                close(false);
-            }
-
-            function onConfirm() {
-                close(true);
-            }
-
-            function onBackdrop(event) {
-                if (event.target === deleteResponseModal) {
-                    close(false);
-                }
-            }
-
-            cancelDeleteResponseButton.addEventListener('click', onCancel);
-            confirmDeleteResponseButton.addEventListener('click', onConfirm);
-            deleteResponseModal.addEventListener('click', onBackdrop);
-        });
-    }
-
-    function editResponseAttendance(response) {
-        if (!editResponseModal) {
-            return Promise.resolve(null);
-        }
-
-        editResponseMessage.textContent = `Asistencia de ${response?.nombre || 'este invitado'}.`;
-        editResponseModal.querySelectorAll('input[name="response_attendance"]').forEach((input) => {
-            input.checked = input.value === String(Boolean(response?.asistencia));
-        });
-        editResponseModal.hidden = false;
-
-        return new Promise((resolve) => {
-            function close(result) {
-                editResponseModal.hidden = true;
-                cancelEditResponseButton.removeEventListener('click', onCancel);
-                confirmEditResponseButton.removeEventListener('click', onConfirm);
-                editResponseModal.removeEventListener('click', onBackdrop);
-                resolve(result);
-            }
-
-            function onCancel() {
-                close(null);
-            }
-
-            function onConfirm() {
-                const selected = editResponseModal.querySelector('input[name="response_attendance"]:checked');
-                close(selected ? selected.value === 'true' : null);
-            }
-
-            function onBackdrop(event) {
-                if (event.target === editResponseModal) {
-                    close(null);
-                }
-            }
-
-            cancelEditResponseButton.addEventListener('click', onCancel);
-            confirmEditResponseButton.addEventListener('click', onConfirm);
-            editResponseModal.addEventListener('click', onBackdrop);
         });
     }
 
@@ -652,11 +554,10 @@
     function showView(viewName) {
         const usersAllowed = isAdmin();
         eventsView.hidden = viewName !== 'events';
-        responsesView.hidden = viewName !== 'responses';
         messagesView.hidden = viewName !== 'messages';
         usersView.hidden = viewName !== 'users' || !usersAllowed;
         contactsView.hidden = viewName !== 'contacts' || !usersAllowed;
-        adminFooterActions.hidden = viewName === 'responses' || viewName === 'messages';
+        adminFooterActions.hidden = viewName === 'messages';
         showEventsViewButton.classList.toggle('active', viewName === 'events');
         showUsersViewButton.classList.toggle('active', viewName === 'users');
         showContactsViewButton.classList.toggle('active', viewName === 'contacts');
@@ -667,10 +568,6 @@
 
         if (viewName === 'contacts' && usersAllowed) {
             loadContactRequests();
-        }
-
-        if (viewName === 'responses') {
-            loadAllResponses(true);
         }
 
         if (viewName === 'messages') {
@@ -848,13 +745,10 @@
             eventSelect.value = selectedEvent.id;
             await loadEventData(selectedEvent.id);
         } else {
-            responsesTable.innerHTML = '<tr><td colspan="7">No hay eventos disponibles.</td></tr>';
             messagesList.innerHTML = '<tr><td colspan="4">No hay eventos disponibles.</td></tr>';
             settingsForm.reset();
             eventSettingsTitle.textContent = 'Editar evento';
-            showAllResponsesButton.hidden = true;
             showAllMessagesButton.hidden = true;
-            allResponsesTable.innerHTML = '';
             allMessagesList.innerHTML = '';
             manageGuestsLink.href = 'invitados.html';
             managePublicGalleryLink.href = 'galeria.html';
@@ -872,7 +766,6 @@
         await Promise.all([
             loadEventSettings(eventId),
             loadGallerySettings(eventId),
-            loadResponses(eventId),
             loadMessages(eventId)
         ]);
     }
@@ -964,96 +857,6 @@
             publicLink.textContent = 'Este evento todavia no tiene enlace publico.';
         }
         setStatus(settingsStatus, '', false);
-    }
-
-    function rememberResponses(rows) {
-        const byId = new Map(currentResponses.map((item) => [item.id, item]));
-        rows.forEach((item) => byId.set(item.id, item));
-        currentResponses = Array.from(byId.values());
-    }
-
-    function renderResponseRows(rows) {
-        return rows.map((row) => `
-            <tr>
-                <td>${escapeHtml(row.nombre)}</td>
-                <td>${escapeHtml(row.telefono)}</td>
-                <td>${row.asistencia ? 'Si' : 'No'}</td>
-                <td>${escapeHtml(row.mensaje)}</td>
-                <td>${formatDate(row.created_at)}</td>
-                <td>${formatDate(row.updated_at)}</td>
-                <td class="table-actions icon-actions">
-                    <button type="button" data-action="edit-response" data-id="${row.id}" class="icon-button secondary-button" aria-label="Editar asistencia" title="Editar asistencia">${ICONS.edit}</button>
-                    <button type="button" data-action="delete-response" data-id="${row.id}" class="icon-button danger-button" aria-label="Borrar respuesta" title="Borrar respuesta">${ICONS.trash}</button>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    async function loadResponses(eventId) {
-        const { data, error, count } = await client
-            .from('eventin_guest_responses')
-            .select('id,guest_id,nombre,telefono,asistencia,mensaje,created_at,updated_at', { count: 'exact' })
-            .eq('event_id', eventId)
-            .order('updated_at', { ascending: false })
-            .range(0, PREVIEW_LIMIT - 1);
-
-        if (error || !data?.length) {
-            currentResponses = [];
-            totalResponses = 0;
-            responsesTable.innerHTML = '<tr><td colspan="7">Sin respuestas recibidas.</td></tr>';
-            showAllResponsesButton.hidden = true;
-            return;
-        }
-
-        currentResponses = data;
-        totalResponses = count || data.length;
-        responsesTable.innerHTML = renderResponseRows(data);
-        showAllResponsesButton.hidden = totalResponses <= PREVIEW_LIMIT;
-        showAllResponsesButton.textContent = `Ver todas (${totalResponses})`;
-    }
-
-    async function loadAllResponses(reset = false) {
-        const eventId = eventSelect.value;
-        if (!eventId) {
-            allResponsesTable.innerHTML = '<tr><td colspan="7">Selecciona un evento para ver sus respuestas.</td></tr>';
-            loadMoreResponsesButton.hidden = true;
-            return;
-        }
-
-        if (reset) {
-            loadedResponses = 0;
-            allResponsesTable.innerHTML = '<tr><td colspan="7">Cargando respuestas...</td></tr>';
-            setStatus(allResponsesStatus, '', false);
-        }
-
-        const from = loadedResponses;
-        const to = from + PAGE_SIZE - 1;
-        const { data, error, count } = await client
-            .from('eventin_guest_responses')
-            .select('id,guest_id,nombre,telefono,asistencia,mensaje,created_at,updated_at', { count: 'exact' })
-            .eq('event_id', eventId)
-            .order('updated_at', { ascending: false })
-            .range(from, to);
-
-        if (error) {
-            allResponsesTable.innerHTML = '<tr><td colspan="7">No se pudieron cargar las respuestas.</td></tr>';
-            loadMoreResponsesButton.hidden = true;
-            setStatus(allResponsesStatus, 'No se pudieron cargar las respuestas.', true);
-            return;
-        }
-
-        totalResponses = count || 0;
-        const rows = data || [];
-        rememberResponses(rows);
-        loadedResponses += rows.length;
-        if (reset) {
-            allResponsesTable.innerHTML = '';
-        }
-        allResponsesTable.insertAdjacentHTML('beforeend', rows.length
-            ? renderResponseRows(rows)
-            : '<tr><td colspan="7">No hay respuestas.</td></tr>');
-        loadMoreResponsesButton.hidden = loadedResponses >= totalResponses;
-        setStatus(allResponsesStatus, totalResponses ? `${loadedResponses} de ${totalResponses} respuestas cargadas.` : '', false);
     }
 
     async function loadMessages(eventId) {
@@ -1269,13 +1072,9 @@
     showUsersViewButton.addEventListener('click', () => showView('users'));
     showContactsViewButton.addEventListener('click', () => showView('contacts'));
     refreshContactRequestsButton.addEventListener('click', loadContactRequests);
-    showAllResponsesButton.addEventListener('click', () => showView('responses'));
     showAllMessagesButton.addEventListener('click', () => showView('messages'));
-    backFromResponsesButton.addEventListener('click', () => showView('events'));
-    backFromResponsesBottomButton.addEventListener('click', () => showView('events'));
     backFromMessagesButton.addEventListener('click', () => showView('events'));
     backFromMessagesBottomButton.addEventListener('click', () => showView('events'));
-    loadMoreResponsesButton.addEventListener('click', () => loadAllResponses(false));
     loadMoreMessagesButton.addEventListener('click', () => loadAllMessages(false));
 
     eventSelect.addEventListener('change', () => {
@@ -1504,64 +1303,6 @@
             setStatus(settingsStatus, 'No se pudo borrar el evento.', true);
         }
     });
-
-    async function handleResponseAction(event) {
-        const button = event.target.closest('button[data-action]');
-        if (!button) {
-            return;
-        }
-
-        const action = button.dataset.action;
-        const id = button.dataset.id;
-        const eventId = eventSelect.value;
-        const response = currentResponses.find((item) => item.id === id);
-
-        try {
-            if (action === 'delete-response') {
-                const confirmed = await confirmDeleteResponse(response?.nombre);
-                if (!confirmed) {
-                    return;
-                }
-
-                if (response?.guest_id) {
-                    await client.from('eventin_guests').update({
-                        will_attend: null,
-                        invitation_status: 'pending',
-                        responded_at: null
-                    }).eq('id', response.guest_id).throwOnError();
-                } else {
-                    await client.from('eventin_guest_responses').delete().eq('id', id).throwOnError();
-                }
-            }
-
-            if (action === 'edit-response') {
-                const asistencia = await editResponseAttendance(response);
-                if (asistencia === null) {
-                    return;
-                }
-
-                if (response?.guest_id) {
-                    await client.from('eventin_guests').update({
-                        will_attend: asistencia,
-                        invitation_status: asistencia ? 'confirmed' : 'declined',
-                        responded_at: new Date().toISOString()
-                    }).eq('id', response.guest_id).throwOnError();
-                } else {
-                    await client.from('eventin_guest_responses').update({ asistencia }).eq('id', id).throwOnError();
-                }
-            }
-
-            await loadResponses(eventId);
-            if (!responsesView.hidden) {
-                await loadAllResponses(true);
-            }
-        } catch (error) {
-            setStatus(responsesView.hidden ? settingsStatus : allResponsesStatus, 'No se pudo actualizar la respuesta.', true);
-        }
-    }
-
-    responsesTable.addEventListener('click', handleResponseAction);
-    allResponsesTable.addEventListener('click', handleResponseAction);
 
     async function handleMessageAction(event) {
         const button = event.target.closest('button[data-action]');

@@ -63,20 +63,6 @@ create table if not exists public.eventin_profiles (
 
 drop table if exists public.eventin_event_admins cascade;
 
-create table if not exists public.eventin_guest_responses (
-    id uuid primary key default gen_random_uuid(),
-    event_id uuid not null references public.eventin_events(id) on delete cascade,
-    guest_id uuid,
-    nombre text not null,
-    telefono text,
-    asistencia boolean not null,
-    adults_count integer not null default 1,
-    children_count integer not null default 0,
-    mensaje text,
-    created_at timestamptz not null default now(),
-    updated_at timestamptz not null default now()
-);
-
 create table if not exists public.eventin_guests (
     id uuid primary key default gen_random_uuid(),
     event_id uuid not null references public.eventin_events(id) on delete cascade,
@@ -153,11 +139,6 @@ alter table public.eventin_event_settings
     check (palette_key in ('clasica', 'dulce', 'brisa', 'natura'));
 alter table public.eventin_profiles add column if not exists email text;
 alter table public.eventin_profiles add column if not exists event_code text;
-alter table public.eventin_guest_responses add column if not exists guest_id uuid;
-alter table public.eventin_guest_responses add column if not exists adults_count integer not null default 1;
-alter table public.eventin_guest_responses add column if not exists children_count integer not null default 0;
-alter table public.eventin_guest_responses alter column telefono drop not null;
-alter table public.eventin_guest_responses drop constraint if exists eventin_guest_responses_event_id_telefono_key;
 alter table public.eventin_guests add column if not exists phone1 text;
 alter table public.eventin_guests add column if not exists phone2 text;
 alter table public.eventin_guests add column if not exists phone3 text;
@@ -192,16 +173,32 @@ $$;
 
 do $$
 begin
-    if exists (
-        select 1 from information_schema.columns
-        where table_schema = 'public' and table_name = 'eventin_guests' and column_name = 'invitation_token'
-    ) then
-        alter table public.eventin_guests alter column invitation_token drop default;
-        alter table public.eventin_guests alter column invitation_token drop not null;
-        update public.eventin_guests set invitation_token = null;
+    if to_regclass('public.eventin_guest_responses') is not null then
+        execute $migration$
+            update public.eventin_guests guest
+            set will_attend = response.asistencia,
+                adults_count = response.adults_count,
+                children_count = response.children_count,
+                message = coalesce(guest.message, response.mensaje),
+                responded_at = coalesce(guest.responded_at, response.updated_at),
+                invitation_status = case when response.asistencia then 'confirmed' else 'declined' end
+            from (
+                select distinct on (guest_id)
+                    guest_id, asistencia, adults_count, children_count, mensaje, updated_at
+                from public.eventin_guest_responses
+                where guest_id is not null
+                order by guest_id, updated_at desc
+            ) response
+            where guest.id = response.guest_id
+        $migration$;
     end if;
 end;
 $$;
+
+alter table public.eventin_guests drop column if exists phone cascade;
+alter table public.eventin_guests drop column if exists notes cascade;
+alter table public.eventin_guests drop column if exists invitation_token cascade;
+drop table if exists public.eventin_guest_responses cascade;
 
 update public.eventin_profiles
 set role = 'admin'
@@ -260,20 +257,6 @@ $$;
 do $$
 begin
     if exists (
-        select 1 from pg_constraint where conname = 'eventin_guest_responses_counts_check'
-    ) then
-        alter table public.eventin_guest_responses drop constraint eventin_guest_responses_counts_check;
-    end if;
-
-    alter table public.eventin_guest_responses
-    add constraint eventin_guest_responses_counts_check
-    check (adults_count >= 0 and children_count >= 0);
-end;
-$$;
-
-do $$
-begin
-    if exists (
         select 1 from pg_constraint where conname = 'eventin_profiles_event_code_check'
     ) then
         alter table public.eventin_profiles drop constraint eventin_profiles_event_code_check;
@@ -285,32 +268,11 @@ begin
 end;
 $$;
 
-do $$
-begin
-    if not exists (
-        select 1 from pg_constraint where conname = 'eventin_guest_responses_guest_id_fkey'
-    ) then
-        alter table public.eventin_guest_responses
-        add constraint eventin_guest_responses_guest_id_fkey
-        foreign key (guest_id) references public.eventin_guests(id) on delete set null;
-    end if;
-end;
-$$;
-
 create index if not exists idx_eventin_events_public_slug on public.eventin_events(public_slug);
 create index if not exists idx_eventin_events_event_code on public.eventin_events(event_code);
 create index if not exists idx_eventin_events_event_type on public.eventin_events(event_type);
 create unique index if not exists idx_eventin_profiles_email_unique on public.eventin_profiles(email) where email is not null;
 create index if not exists idx_eventin_profiles_event_code on public.eventin_profiles(event_code);
-create index if not exists idx_eventin_guest_responses_event_id on public.eventin_guest_responses(event_id);
-create index if not exists idx_eventin_guest_responses_event_phone on public.eventin_guest_responses(event_id, telefono);
-create index if not exists idx_eventin_guest_responses_guest_id on public.eventin_guest_responses(guest_id);
-delete from public.eventin_guest_responses older
-using public.eventin_guest_responses newer
-where older.guest_id is not null
-  and older.guest_id = newer.guest_id
-  and (older.updated_at, older.id) < (newer.updated_at, newer.id);
-create unique index if not exists idx_eventin_guest_responses_guest_unique on public.eventin_guest_responses(guest_id) where guest_id is not null;
 create index if not exists idx_eventin_guests_event_id on public.eventin_guests(event_id);
 create index if not exists idx_eventin_guests_event_phone1 on public.eventin_guests(event_id, phone1);
 create index if not exists idx_eventin_guests_event_phone2 on public.eventin_guests(event_id, phone2);
@@ -350,11 +312,6 @@ for each row execute function public.eventin_set_updated_at();
 drop trigger if exists trg_profiles_updated_at on public.eventin_profiles;
 create trigger trg_profiles_updated_at
 before update on public.eventin_profiles
-for each row execute function public.eventin_set_updated_at();
-
-drop trigger if exists trg_guest_responses_updated_at on public.eventin_guest_responses;
-create trigger trg_guest_responses_updated_at
-before update on public.eventin_guest_responses
 for each row execute function public.eventin_set_updated_at();
 
 drop trigger if exists trg_guests_updated_at on public.eventin_guests;
@@ -407,7 +364,6 @@ drop function if exists eventin_private.normalize_guest_phone(text) cascade;
 drop function if exists eventin_private.find_guest_by_phone(text, text) cascade;
 drop function if exists eventin_private.submit_guest_phone_response(text, text, boolean, integer, integer, text) cascade;
 drop function if exists eventin_private.validate_guest_phones() cascade;
-drop function if exists eventin_private.sync_guest_response() cascade;
 
 create or replace function eventin_private.is_admin()
 returns boolean
@@ -810,73 +766,11 @@ create trigger trg_validate_guest_phones
 before insert or update of event_id, phone1, phone2, phone3, phone4 on public.eventin_guests
 for each row execute function eventin_private.validate_guest_phones();
 
-create or replace function eventin_private.sync_guest_response()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-    response_id uuid;
-    response_phone text;
-begin
-    if new.will_attend is null then
-        delete from public.eventin_guest_responses where guest_id = new.id;
-        return new;
-    end if;
-
-    response_phone := coalesce(new.phone1, new.phone2, new.phone3, new.phone4);
-    update public.eventin_guest_responses
-    set event_id = new.event_id,
-        nombre = new.name,
-        telefono = response_phone,
-        asistencia = new.will_attend,
-        adults_count = new.adults_count,
-        children_count = new.children_count,
-        mensaje = new.message,
-        updated_at = now()
-    where guest_id = new.id
-    returning id into response_id;
-
-    if response_id is null then
-        insert into public.eventin_guest_responses (
-            event_id, guest_id, nombre, telefono, asistencia, adults_count, children_count, mensaje
-        ) values (
-            new.event_id, new.id, new.name, response_phone, new.will_attend,
-            new.adults_count, new.children_count, new.message
-        );
-    end if;
-    return new;
-end;
-$$;
-
-update public.eventin_guests guest
-set will_attend = response.asistencia,
-    adults_count = response.adults_count,
-    children_count = response.children_count,
-    message = coalesce(guest.message, response.mensaje),
-    responded_at = coalesce(guest.responded_at, response.updated_at),
-    invitation_status = case when response.asistencia then 'confirmed' else 'declined' end
-from (
-    select distinct on (guest_id)
-        guest_id, asistencia, adults_count, children_count, mensaje, updated_at
-    from public.eventin_guest_responses
-    where guest_id is not null
-    order by guest_id, updated_at desc
-) response
-where guest.id = response.guest_id;
-
 update public.eventin_guests
 set phone1 = phone1,
     phone2 = phone2,
     phone3 = phone3,
     phone4 = phone4;
-
-drop trigger if exists trg_sync_guest_response on public.eventin_guests;
-create trigger trg_sync_guest_response
-after insert or update of event_id, name, phone1, phone2, phone3, phone4, adults_count, children_count, will_attend, message
-on public.eventin_guests
-for each row execute function eventin_private.sync_guest_response();
 
 create or replace function eventin_private.find_guest_by_phone(p_event_key text, p_phone text)
 returns jsonb
@@ -963,7 +857,6 @@ declare
     normalized_phone text;
     guest_record public.eventin_guests%rowtype;
     event_id_value uuid;
-    response_id uuid;
 begin
     normalized_phone := eventin_private.normalize_guest_phone(p_phone);
     if normalized_phone is null or p_adults_count < 0 or p_children_count < 0 then
@@ -995,10 +888,7 @@ begin
     where id = guest_record.id
     returning * into guest_record;
 
-    select id into response_id
-    from public.eventin_guest_responses
-    where guest_id = guest_record.id;
-    return response_id;
+    return guest_record.id;
 end;
 $$;
 
@@ -1029,7 +919,6 @@ $$;
 
 revoke execute on function eventin_private.normalize_guest_phone(text) from public;
 revoke execute on function eventin_private.validate_guest_phones() from public;
-revoke execute on function eventin_private.sync_guest_response() from public;
 revoke execute on function eventin_private.find_guest_by_phone(text, text) from public;
 revoke execute on function eventin_private.submit_guest_phone_response(text, text, boolean, integer, integer, text) from public;
 revoke execute on function public.eventin_find_guest_by_phone(text, text) from public;
@@ -1109,7 +998,6 @@ alter table public.eventin_events enable row level security;
 alter table public.eventin_event_settings enable row level security;
 alter table public.eventin_profiles enable row level security;
 alter table public.eventin_guests enable row level security;
-alter table public.eventin_guest_responses enable row level security;
 alter table public.eventin_public_messages enable row level security;
 alter table public.eventin_contact_requests enable row level security;
 alter table public.eventin_gallery_settings enable row level security;
@@ -1183,22 +1071,12 @@ to authenticated
 using (eventin_private.is_admin())
 with check (eventin_private.is_admin());
 
-drop policy if exists "Users can manage assigned guest responses" on public.eventin_guest_responses;
-create policy "Users can manage assigned guest responses"
-on public.eventin_guest_responses for all
-to authenticated
-using (eventin_private.can_access_event(event_id))
-with check (eventin_private.can_access_event(event_id));
-
 drop policy if exists "Users can manage assigned guests" on public.eventin_guests;
 create policy "Users can manage assigned guests"
 on public.eventin_guests for all
 to authenticated
 using (eventin_private.can_access_event(event_id))
 with check (eventin_private.can_access_event(event_id));
-
-drop policy if exists "Public can insert guest responses" on public.eventin_guest_responses;
-drop policy if exists "Public can update guest responses by event phone" on public.eventin_guest_responses;
 
 drop policy if exists "Public can insert messages" on public.eventin_public_messages;
 create policy "Public can insert messages"

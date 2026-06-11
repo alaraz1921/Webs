@@ -28,7 +28,7 @@ Dentro del panel privado, el icono de usuario de la cabecera abre el menu de ses
 
 Hay dos tipos de usuario:
 
-- `admin`: puede gestionar todos los eventos, usuarios, invitados, respuestas, mensajes publicos y contactos.
+- `admin`: puede gestionar todos los eventos, usuarios, invitados, mensajes publicos y contactos.
 - `user`: usuario de evento. Solo puede gestionar el evento cuyo codigo numerico coincide con su perfil.
 
 ## Panel de administracion
@@ -190,21 +190,17 @@ Reglas al guardar:
 
 Esto permite que una persona conteste desde el enlace generico y quede asociada si el telefono coincide con una ficha ya existente.
 
-## Respuestas de invitaciones
+## Confirmaciones de invitados
 
-En el panel del evento se muestran las 3 ultimas respuestas.
+La asistencia, adultos, ninos, mensaje y estado se guardan directamente en `public.eventin_guests`.
 
-Si hay mas, aparece `Ver todas`.
+Para consultar o modificar una confirmacion:
 
-La vista completa:
+1. Entrar en `Gestion Invitados`.
+2. Abrir la fila del invitado.
+3. Pulsar `Modificar`.
 
-- Carga respuestas por bloques con `Cargar mas`.
-- Muestra el nombre del evento activo en el encabezado general del panel.
-- Permite editar solo la asistencia.
-- Permite borrar una respuesta mediante modal.
-- Usa iconos de lapiz y papelera.
-
-Editar una respuesta desde el panel no cambia nombre, telefono, mensaje, adultos ni ninos. Solo cambia `asistencia`.
+No existe una tabla ni una seccion independiente de respuestas.
 
 ## Mensajes publicos
 
@@ -243,7 +239,7 @@ Cuando un invitado confirma o rechaza su asistencia, EvenTin intenta enviar un a
 
 El destinatario se obtiene automaticamente del perfil de usuario cuyo codigo coincide con el codigo del evento. Si el evento no tiene un usuario asignado con email, no se envia aviso.
 
-El correo es solamente una notificacion: la informacion completa y actualizada debe consultarse desde el panel de administracion.
+El correo es solamente una notificacion: la informacion completa y actualizada debe consultarse desde `Gestion Invitados`.
 
 ## Mensajes de contacto
 
@@ -336,12 +332,12 @@ Crear invitado:
 5. Guardar datos.
 6. Copiar invitacion o enviar por WhatsApp.
 
-Revisar respuestas:
+Revisar confirmaciones:
 
 1. Entrar al panel.
 2. Seleccionar evento.
-3. Revisar `Respuestas Invitaciones`.
-4. Pulsar `Ver todas` si hay mas de 3.
+3. Entrar en `Gestion Invitados`.
+4. Abrir la ficha del invitado.
 
 Revisar mensajes publicos:
 

@@ -205,17 +205,15 @@ bde7e93 Align EvenTin guest action icons
 Resumen:
 
 - Se ajusto el hero y la imagen de detalle para que en escritorio grande se vea mas imagen completa sin deformarla.
-- Se anadieron vistas dedicadas en admin para `Respuestas Invitaciones` y `Mensajes publicos`, con carga incremental tipo `Cargar mas`.
-- Las respuestas del panel permiten editar solo la asistencia y borrar mediante modal.
+- La vista dedicada de mensajes publicos usa carga incremental tipo `Cargar mas`.
+- La asistencia se consulta y modifica directamente desde `Gestion Invitados`.
 - Los mensajes publicos se listan por lineas y ya no tienen edicion.
 - `debug.html` abre enlaces en pestana nueva.
 - La gestion de invitados se inicio con tokens individuales; desde el 11 de junio de 2026 usa un enlace general por evento y busqueda por telefono.
-- El panel admin enlaza a `invitados.html`, donde se puede crear, editar, borrar, copiar mensaje de invitacion y abrir WhatsApp para cada invitado.
+- El panel admin enlaza a `invitados.html`, donde se puede crear, editar, borrar y consultar la confirmacion de cada invitado.
 - Alta, edicion y borrado de invitados se hacen mediante modales. Las acciones usan botones compactos de icono.
 - La invitacion general muestra el saludo personalizado tras localizar uno de los cuatro telefonos del invitado.
-- La identificacion marca `viewed_at` y cada guardado actualiza la misma respuesta asociada por `guest_id`.
-- La invitacion generica intenta localizar invitado por telefono; si no existe, lo crea y vincula la respuesta.
-- Si la invitacion generica localiza un invitado por telefono, no actualiza su nombre ni telefono; solo asistencia, adultos, ninos, estado y mensaje/respuesta.
+- La identificacion marca `viewed_at` y cada guardado actualiza directamente el registro de `eventin_guests`.
 - La gestion de invitados quedo en `invitados.html` con login propio de respaldo, filtro por nombre/telefono, orden por nombre/telefono/estado y paginacion de 10 invitados.
 - En escritorio y movil se ajustaron las acciones de invitados como iconos compactos alineados: editar, copiar invitacion, WhatsApp y borrar.
 - Las vistas completas de respuestas y mensajes publicos muestran estados de carga/error/no hay datos dentro de la tabla para evitar pantallas vacias.
@@ -292,7 +290,6 @@ Tablas principales:
 - `public.eventin_event_settings`
 - `public.eventin_profiles`
 - `public.eventin_guests`
-- `public.eventin_guest_responses`
 - `public.eventin_public_messages`
 - `public.eventin_contact_requests`
 
@@ -329,17 +326,11 @@ Son `SECURITY INVOKER` y llaman a funciones internas que devuelven solo los dato
 - `invitation_status`: `pending`, `viewed`, `confirmed`, `declined`.
 - `viewed_at`, `responded_at`, `created_at`, `updated_at`.
 
-`public.eventin_guest_responses` mantiene compatibilidad con respuestas antiguas y ahora tambien puede guardar:
-
-- `guest_id`
-- `adults_count`
-- `children_count`
-
 Reglas actuales de respuestas:
 
 - Existe un unico enlace por evento: `invitacion.html?evento=SLUG_EVENTO`.
 - El invitado se identifica por cualquiera de sus cuatro telefonos normalizados.
-- El nombre es de solo lectura y cada nuevo guardado actualiza el mismo invitado y la misma respuesta por `guest_id`.
+- El nombre es de solo lectura y cada nuevo guardado actualiza el mismo invitado.
 - Un telefono no puede repetirse entre invitados del mismo evento; si puede existir en eventos distintos.
 - La gestion de invitados usa una tabla compacta y un unico modal para consulta, alta, modificacion y borrado.
 
@@ -446,7 +437,7 @@ Eventos:
 - Subir imagen principal y detalle optimizadas.
 - Cambiar paleta del evento.
 - Editar `Titulo principal` (`main_title`), subtitulo, fecha/hora visible y textos de presentacion.
-- Ver respuestas recibidas.
+- Consultar confirmaciones desde la gestion de invitados.
 - Ver mensajes publicos.
 
 Invitados:

@@ -243,35 +243,12 @@
                 <section class="data-panel admin-tools admin-shortcut-panel">
                     <div>
                         <h2>Invitados</h2>
-                        <p>Gestiona invitados, enlaces individuales y envio por WhatsApp.</p>
+                        <p>Gestiona invitados, teléfonos y confirmaciones de asistencia.</p>
                     </div>
                     <a id="manage-guests-link" class="secondary-button" href="invitados.html">Gestion Invitados</a>
                 </section>
 
-                <div class="admin-grid">
-                    <section class="data-panel">
-                        <div class="admin-view-header">
-                            <h2>Respuestas Invitaciones</h2>
-                            <button id="show-all-responses" type="button" class="secondary-button" hidden>Ver todas</button>
-                        </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <th>Telefono</th>
-                                        <th>Asistencia</th>
-                                        <th>Mensaje</th>
-                                        <th>Creacion</th>
-                                        <th>Actualizacion</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="responses-table"></tbody>
-                            </table>
-                        </div>
-                    </section>
-
+                <div>
                     <section class="data-panel">
                         <div class="admin-view-header">
                             <h2>Mensajes publicos</h2>
@@ -292,36 +269,6 @@
                         </div>
                     </section>
                 </div>
-            </section>
-
-            <section id="responses-view" class="admin-view" hidden>
-                <section class="data-panel">
-                    <div class="admin-view-header">
-                        <h2>Respuestas Invitaciones</h2>
-                        <button id="back-from-responses" type="button" class="secondary-button">Volver</button>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>Telefono</th>
-                                    <th>Asistencia</th>
-                                    <th>Mensaje</th>
-                                    <th>Creacion</th>
-                                    <th>Actualizacion</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="all-responses-table"></tbody>
-                        </table>
-                    </div>
-                    <button id="load-more-responses" type="button" class="secondary-button" hidden>Cargar mas</button>
-                    <p id="all-responses-status" class="form-status" role="status"></p>
-                    <div class="bottom-view-actions">
-                        <button id="back-from-responses-bottom" type="button" class="secondary-button">Volver</button>
-                    </div>
-                </section>
             </section>
 
             <section id="messages-view" class="admin-view" hidden>
@@ -426,38 +373,6 @@
             <div class="modal-actions">
                 <button id="cancel-delete-event" type="button" class="secondary-button">Cancelar</button>
                 <button id="confirm-delete-event" type="button" class="danger-button">Borrar Evento</button>
-            </div>
-        </section>
-    </div>
-
-    <div id="delete-response-modal" class="modal-backdrop" hidden>
-        <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-response-title">
-            <h2 id="delete-response-title">Borrar respuesta</h2>
-            <p id="delete-response-message">Esta accion no se puede deshacer.</p>
-            <div class="modal-actions">
-                <button id="cancel-delete-response" type="button" class="secondary-button">Cancelar</button>
-                <button id="confirm-delete-response" type="button" class="danger-button">Borrar</button>
-            </div>
-        </section>
-    </div>
-
-    <div id="edit-response-modal" class="modal-backdrop" hidden>
-        <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="edit-response-title">
-            <h2 id="edit-response-title">Editar asistencia</h2>
-            <p id="edit-response-message">Selecciona la asistencia de esta respuesta.</p>
-            <fieldset class="modal-radio-group">
-                <label class="radio-line">
-                    <input type="radio" name="response_attendance" value="true">
-                    Si asistire
-                </label>
-                <label class="radio-line">
-                    <input type="radio" name="response_attendance" value="false">
-                    No podre asistir
-                </label>
-            </fieldset>
-            <div class="modal-actions">
-                <button id="cancel-edit-response" type="button" class="secondary-button">Cancelar</button>
-                <button id="confirm-edit-response" type="button">Guardar</button>
             </div>
         </section>
     </div>
