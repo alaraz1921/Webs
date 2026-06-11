@@ -33,9 +33,6 @@
             <button type="submit">Continuar</button>
             <p id="invitation-phone-status" class="form-status" role="status"></p>
         </form>
-        <section id="invitation-not-found" class="form-card" hidden>
-            <p>No hemos encontrado una invitación asociada a ese teléfono. Revisa el número o contacta con los organizadores del evento.</p>
-        </section>
         <form id="invitation-form" class="form-card" hidden>
             <label>
                 Nombre
@@ -80,7 +77,18 @@
         <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="invitation-success-title">
             <h2 id="invitation-success-title">Respuesta enviada correctamente</h2>
             <p>Hemos recibido tu confirmacion correctamente.</p>
-            <a id="modal-event-link" class="page-link" href="index.html">Volver al evento</a>
+            <div class="modal-actions">
+                <button id="respond-another-invitation" type="button" class="secondary-button outline-secondary-button">Responder otra invitación</button>
+                <a id="modal-event-link" class="page-link" href="index.html">Ir a la página del evento</a>
+            </div>
+        </section>
+    </div>
+
+    <div id="invitation-not-found" class="modal-backdrop" hidden>
+        <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="invitation-not-found-title">
+            <h2 id="invitation-not-found-title">Invitación no encontrada</h2>
+            <p id="invitation-not-found-message">No hemos encontrado una invitación asociada a ese teléfono. Revisa el número o contacta con los organizadores del evento.</p>
+            <button id="retry-invitation-phone" type="button">Volver a intentarlo</button>
         </section>
     </div>
 </body>

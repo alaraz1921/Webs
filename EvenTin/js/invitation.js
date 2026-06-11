@@ -7,11 +7,14 @@
     const responseStatus = document.getElementById('invitation-status');
     const changePhoneButton = document.getElementById('change-invitation-phone');
     const notFoundPanel = document.getElementById('invitation-not-found');
+    const notFoundMessage = document.getElementById('invitation-not-found-message');
+    const retryPhoneButton = document.getElementById('retry-invitation-phone');
     const guestGreeting = document.getElementById('guest-greeting');
     const detailImage = document.getElementById('invitation-detail-image');
     const eventLink = document.getElementById('event-link');
     const modal = document.getElementById('invitation-success-modal');
     const modalEventLink = document.getElementById('modal-event-link');
+    const respondAnotherButton = document.getElementById('respond-another-invitation');
     const params = new URLSearchParams(window.location.search);
     const eventKey = String(params.get('evento') || '').trim();
     let matchedPhone = '';
@@ -86,11 +89,15 @@
 
     function showPhoneLookup() {
         matchedPhone = '';
+        modal.hidden = true;
+        notFoundPanel.hidden = true;
         phoneForm.hidden = false;
         responseForm.hidden = true;
-        notFoundPanel.hidden = true;
         guestGreeting.hidden = true;
+        phoneForm.reset();
+        responseForm.reset();
         setStatus(phoneStatus, '', false);
+        setStatus(responseStatus, '', false);
         phoneForm.elements.phone.focus();
     }
 
@@ -146,6 +153,7 @@
             }
             if (!data?.guest) {
                 notFoundPanel.hidden = false;
+                retryPhoneButton.focus();
                 return;
             }
             applyInvitationHeader(data.event);
@@ -188,12 +196,21 @@
     });
 
     changePhoneButton.addEventListener('click', showPhoneLookup);
+    retryPhoneButton.addEventListener('click', showPhoneLookup);
+    respondAnotherButton.addEventListener('click', showPhoneLookup);
+
+    notFoundPanel.addEventListener('click', (event) => {
+        if (event.target === notFoundPanel) {
+            showPhoneLookup();
+        }
+    });
 
     (async function init() {
         if (!eventKey || !eventContext) {
             phoneForm.hidden = true;
             notFoundPanel.hidden = false;
-            notFoundPanel.querySelector('p').textContent = 'No hemos podido identificar el evento de esta invitación.';
+            notFoundMessage.textContent = 'No hemos podido identificar el evento de esta invitación.';
+            retryPhoneButton.hidden = true;
             return;
         }
         try {
