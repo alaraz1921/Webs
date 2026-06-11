@@ -206,32 +206,37 @@ Tipografias:
 `Bingo/carton.html`:
 
 - Genera carton 3x9 con 15 numeros.
-- Persiste carton, tachados, bloqueo y estado en `localStorage`.
-- Permite cambiar libremente carton antes de empezar.
-- Tras empezar, requiere clave/contraclave para desbloquear cambios.
-- Una contraclave valida permite varios cambios hasta volver a empezar partida.
+- Es publico y no requiere login.
+- Permite seleccionar una partida existente por id de 3 cifras.
+- Muestra `Id Partida: ---` cuando no existe una partida seleccionada.
+- Persiste carton, tachados e id seleccionado en `localStorage`.
+- Permite cambiar carton sin id o mientras la partida seleccionada no este iniciada.
+- Consulta `bingo_partidas.iniciada` antes de marcar numeros o cambiar carton.
 - Volver a Games y limpiar usan confirmacion.
 
 Claves principales:
 
 ```text
-bingo_perm_juegoEmpezado
 bingo_perm_matrizCarton
 bingo_perm_tachados
-bingo_perm_bloqueo
-```
-
-Contraclave:
-
-```js
-((clave * 3) + 7) % 10000
+bingo_partida_id
 ```
 
 `Bingo/monitor.html`:
 
-- Acceso mediante clave diaria validada por RPC en Supabase.
-- Gestiona bolas 1-90, pausa, reinicio y contraclave.
-- No persiste la partida si se recarga.
+- Requiere Supabase Auth y acceso al proyecto `bingo`.
+- Acepta el alias `demobingo` o el email del usuario administrador.
+- El rol `admin` y los miembros `owner` o `editor` del proyecto pueden gestionarlo.
+- Crea partidas, inicia el bloqueo de cartones y reinicia una partida conservando su id.
+- Persiste los numeros cantados por id de partida en `localStorage`.
+
+Base de datos y PWA:
+
+- Migracion: `supabase/migrations/20260611120000_bingo_partidas.sql`.
+- Proyecto privado: `app_projects.slug = 'bingo'`.
+- Tabla publica de lectura y gestion protegida: `bingo_partidas`.
+- Id automatico entre 100 y 999.
+- `Bingo/manifest.json`, `Bingo/sw.js` e iconos permiten instalar Bingo como PWA.
 
 ### Infiltrado
 
@@ -411,7 +416,7 @@ Riesgos y deuda:
 - `assets/styles.css` es grande y mezcla muchos dominios.
 - Dependencia de CDN para fuentes, Tailwind y Supabase JS.
 - No hay tests automatizados.
-- El monitor de Bingo no persiste su partida.
+- La migracion de Bingo y el usuario `demobingo` deben configurarse manualmente en Supabase antes de usar el monitor.
 - La zona privada de Webs aun no lista proyectos reales.
 - Quedan comentarios/textos mojibake en algunas partes de CSS/documentacion.
 - Las Edge Functions y secretos deben configurarse manualmente en Supabase.

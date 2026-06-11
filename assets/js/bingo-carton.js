@@ -1,279 +1,294 @@
-        let juegoEmpezado = false;
-        let bloqueadoPorSeguridad = false; // Controla si se requiere clave/contraclave
-        let matrizCarton = [];
-        let claveGenerada = 0;
-        let posicionesTachadas = [];
+const bingoClient = window.websSupabase;
+const CARTON_KEY = 'bingo_perm_matrizCarton';
+const MARKS_KEY = 'bingo_perm_tachados';
+const PARTIDA_KEY = 'bingo_partida_id';
 
-        function cerrarMenuBingo() {
-            const menu = document.getElementById('bingoMenuList');
-            const toggle = document.getElementById('bingoMenuToggle');
-            if (!menu || !toggle) return;
+let matrizCarton = [];
+let posicionesTachadas = [];
+let partidaActual = null;
 
-            menu.classList.remove('is-open');
-            toggle.setAttribute('aria-expanded', 'false');
+function cerrarMenuBingo() {
+    const menu = document.getElementById('bingoMenuList');
+    const toggle = document.getElementById('bingoMenuToggle');
+    if (!menu || !toggle) return;
+
+    menu.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded', 'false');
+}
+
+function inicializarMenuBingo() {
+    const toggle = document.getElementById('bingoMenuToggle');
+    const menu = document.getElementById('bingoMenuList');
+    const helpButton = document.getElementById('bingoHelpMenuBtn');
+
+    if (!toggle || !menu) return;
+
+    toggle.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const estaAbierto = menu.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', String(estaAbierto));
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.bingo-top-menu')) cerrarMenuBingo();
+    });
+
+    helpButton?.addEventListener('click', () => {
+        cerrarMenuBingo();
+        mostrarAyudaBingo();
+    });
+}
+
+function mostrarConfirmacion(texto, callback) {
+    document.getElementById('textoModalConfirm').innerHTML = texto;
+    const modal = document.getElementById('miModalConfirm');
+    modal.style.display = 'flex';
+
+    document.getElementById('btnModalConfirmSi').onclick = () => {
+        modal.style.display = 'none';
+        callback();
+    };
+    document.getElementById('btnModalConfirmNo').onclick = () => {
+        modal.style.display = 'none';
+    };
+}
+
+function mostrarAlerta(texto) {
+    document.getElementById('textoModalAlert').innerHTML = texto;
+    document.getElementById('miModalAlert').style.display = 'flex';
+}
+
+function cerrarModalAlert() {
+    document.getElementById('miModalAlert').style.display = 'none';
+}
+
+function abrirSelectorPartida() {
+    const input = document.getElementById('inputPartidaId');
+    input.value = partidaActual?.id || '';
+    document.getElementById('partidaModal').style.display = 'flex';
+    input.focus();
+}
+
+function cerrarSelectorPartida() {
+    document.getElementById('partidaModal').style.display = 'none';
+}
+
+async function seleccionarPartida() {
+    const id = Number(document.getElementById('inputPartidaId').value);
+    if (!Number.isInteger(id) || id < 100 || id > 999) {
+        mostrarAlerta('Introduce un id de partida valido de 3 cifras.');
+        return;
+    }
+
+    const partida = await buscarPartida(id);
+    if (!partida) {
+        mostrarAlerta('La partida indicada no existe.');
+        return;
+    }
+
+    if (partidaActual?.id !== partida.id) {
+        posicionesTachadas = [];
+        guardarCarton();
+        dibujarCartonHTML();
+    }
+
+    partidaActual = partida;
+    localStorage.setItem(PARTIDA_KEY, String(partida.id));
+    actualizarIdPartida();
+    cerrarSelectorPartida();
+}
+
+async function buscarPartida(id) {
+    const { data, error } = await bingoClient
+        .from('bingo_partidas')
+        .select('id, iniciada')
+        .eq('id', id)
+        .maybeSingle();
+
+    if (error) {
+        mostrarAlerta('No se pudo consultar la partida. Intentalo de nuevo.');
+        return null;
+    }
+
+    return data;
+}
+
+function actualizarIdPartida() {
+    document.getElementById('partidaId').textContent = partidaActual?.id || '---';
+}
+
+function cargarCartonGuardado() {
+    const cartonGuardado = localStorage.getItem(CARTON_KEY);
+    const tachadosGuardados = localStorage.getItem(MARKS_KEY);
+
+    if (cartonGuardado) {
+        matrizCarton = JSON.parse(cartonGuardado);
+        posicionesTachadas = tachadosGuardados ? JSON.parse(tachadosGuardados) : [];
+        dibujarCartonHTML();
+        return;
+    }
+
+    generarNuevaEstructuraCarton();
+}
+
+async function cargarPartidaGuardada() {
+    const valorGuardado = localStorage.getItem(PARTIDA_KEY);
+    if (!valorGuardado) {
+        actualizarIdPartida();
+        return;
+    }
+
+    const idGuardado = Number(valorGuardado);
+    if (!Number.isInteger(idGuardado)) {
+        actualizarIdPartida();
+        return;
+    }
+
+    partidaActual = await buscarPartida(idGuardado);
+    if (!partidaActual) localStorage.removeItem(PARTIDA_KEY);
+    actualizarIdPartida();
+}
+
+function generarNuevaEstructuraCarton() {
+    matrizCarton = Array.from({ length: 3 }, () => Array(9).fill(null));
+    posicionesTachadas = [];
+
+    for (let fila = 0; fila < 3; fila++) {
+        const columnas = [];
+        while (columnas.length < 5) {
+            const columna = Math.floor(Math.random() * 9);
+            if (!columnas.includes(columna)) columnas.push(columna);
+        }
+        columnas.forEach((columna) => {
+            matrizCarton[fila][columna] = 0;
+        });
+    }
+
+    for (let columna = 0; columna < 9; columna++) {
+        if (!matrizCarton.some((fila) => fila[columna] === 0)) {
+            matrizCarton[Math.floor(Math.random() * 3)][columna] = 0;
+        }
+    }
+
+    for (let columna = 0; columna < 9; columna++) {
+        const minimo = columna === 0 ? 1 : columna * 10;
+        const maximo = columna === 8 ? 90 : (columna * 10) + 9;
+        const filas = [];
+
+        for (let fila = 0; fila < 3; fila++) {
+            if (matrizCarton[fila][columna] === 0) filas.push(fila);
         }
 
-        function inicializarMenuBingo() {
-            const toggle = document.getElementById('bingoMenuToggle');
-            const menu = document.getElementById('bingoMenuList');
-            const helpButton = document.getElementById('bingoHelpMenuBtn');
-
-            if (!toggle || !menu) return;
-
-            toggle.addEventListener('click', function(event) {
-                event.stopPropagation();
-                const estaAbierto = menu.classList.toggle('is-open');
-                toggle.setAttribute('aria-expanded', estaAbierto ? 'true' : 'false');
-            });
-
-            document.addEventListener('click', function(event) {
-                if (!event.target.closest('.bingo-top-menu')) {
-                    cerrarMenuBingo();
-                }
-            });
-
-            if (helpButton) {
-                helpButton.addEventListener('click', function() {
-                    cerrarMenuBingo();
-                    mostrarAyudaBingo();
-                });
-            }
+        const numeros = [];
+        while (numeros.length < filas.length) {
+            const numero = Math.floor(Math.random() * (maximo - minimo + 1)) + minimo;
+            if (!numeros.includes(numero)) numeros.push(numero);
         }
+        numeros.sort((a, b) => a - b);
+        filas.forEach((fila, indice) => {
+            matrizCarton[fila][columna] = numeros[indice];
+        });
+    }
 
-        // MODALES WEB
-        function mostrarConfirmacion(texto, callback) {
-            document.getElementById('textoModalConfirm').innerHTML = texto;
-            const modal = document.getElementById('miModalConfirm');
-            modal.style.display = 'flex';
-            
-            document.getElementById('btnModalConfirmSi').onclick = function() {
-                modal.style.display = 'none';
-                callback();
-            };
-            document.getElementById('btnModalConfirmNo').onclick = function() {
-                modal.style.display = 'none';
-            };
-        }
+    guardarCarton();
+    dibujarCartonHTML();
+}
 
-        function mostrarAlerta(texto) {
-            document.getElementById('textoModalAlert').innerHTML = texto;
-            document.getElementById('miModalAlert').style.display = 'flex';
-        }
+function guardarCarton() {
+    localStorage.setItem(CARTON_KEY, JSON.stringify(matrizCarton));
+    localStorage.setItem(MARKS_KEY, JSON.stringify(posicionesTachadas));
+}
 
-        function cerrarModalAlert() {
-            document.getElementById('miModalAlert').style.display = 'none';
-        }
+function dibujarCartonHTML() {
+    const tabla = document.getElementById('tabla-carton');
+    tabla.innerHTML = '';
 
-        function mostrarAyudaBingo() {
-            mostrarAlerta("<strong>Cómo jugar al Bingo</strong><br><br>1. Antes de empezar puedes cambiar de cartón libremente.<br>2. Pulsa Empezar Partida cuando el monitor empiece a cantar bolas.<br>3. Durante la partida puedes tocar los números que vayan saliendo.<br>4. Si quieres cambiar de cartón con la partida empezada, pide una contraclave al monitor.<br>5. Tras validar la contraclave, podrás cambiar de cartón libremente hasta que vuelvas a pulsar Empezar Partida.");
-        }
+    matrizCarton.forEach((fila, filaIndice) => {
+        const filaHTML = document.createElement('tr');
 
-        // CONTROL DE MEMORIA PERMANENTE
-        function comprobarMemoriaOCrear() {
-            const estadoGuardado = localStorage.getItem('bingo_perm_juegoEmpezado');
-            const cartonGuardado = localStorage.getItem('bingo_perm_matrizCarton');
-            const tachadosGuardados = localStorage.getItem('bingo_perm_tachados');
-            const bloqueoGuardado = localStorage.getItem('bingo_perm_bloqueo');
-
-            if (cartonGuardado) {
-                matrizCarton = JSON.parse(cartonGuardado);
-                juegoEmpezado = (estadoGuardado === 'true');
-                bloqueadoPorSeguridad = (bloqueoGuardado === 'true');
-                
-                if (tachadosGuardados) {
-                    posicionesTachadas = JSON.parse(tachadosGuardados);
-                }
-                dibujarCartonHTML();
-                actualizarInterfazBotones();
+        fila.forEach((valor, columnaIndice) => {
+            const celda = document.createElement('td');
+            if (valor === null) {
+                celda.classList.add('sombreada');
             } else {
-                bloqueadoPorSeguridad = false;
-                localStorage.setItem('bingo_perm_bloqueo', 'false');
-                generarNuevaEstructuraCarton();
-            }
-        }
-
-        function generarNuevaEstructuraCarton() {
-            matrizCarton = Array.from({ length: 3 }, () => Array(9).fill(null));
-            posicionesTachadas = [];
-
-            for (let f = 0; f < 3; f++) {
-                let indicesColumnas = [];
-                while (indicesColumnas.length < 5) {
-                    let colAleatoria = Math.floor(Math.random() * 9);
-                    if (!indicesColumnas.includes(colAleatoria)) {
-                        indicesColumnas.push(colAleatoria);
-                    }
+                celda.textContent = valor;
+                if (posicionesTachadas.some((posicion) => posicion.f === filaIndice && posicion.c === columnaIndice)) {
+                    celda.classList.add('marcado');
                 }
-                indicesColumnas.forEach(c => matrizCarton[f][c] = 0);
+                celda.addEventListener('click', () => tacharNumero(celda, filaIndice, columnaIndice));
             }
+            filaHTML.appendChild(celda);
+        });
 
-            for (let c = 0; c < 9; c++) {
-                let tieneNumero = false;
-                for (let f = 0; f < 3; f++) {
-                    if (matrizCarton[f][c] === 0) tieneNumero = true;
-                }
-                if (!tieneNumero) {
-                    let filaAleatoria = Math.floor(Math.random() * 3);
-                    matrizCarton[filaAleatoria][c] = 0;
-                }
-            }
+        tabla.appendChild(filaHTML);
+    });
+}
 
-            for (let c = 0; c < 9; c++) {
-                let cMin = (c === 0) ? 1 : c * 10;
-                let cMax = (c === 8) ? 90 : (c * 10) + 9;
+async function tacharNumero(celda, fila, columna) {
+    if (!partidaActual) {
+        mostrarAlerta('Selecciona una partida antes de marcar numeros.');
+        return;
+    }
 
-                let filasAAsignar = [];
-                for (let f = 0; f < 3; f++) {
-                    if (matrizCarton[f][c] === 0) filasAAsignar.push(f);
-                }
+    const partida = await buscarPartida(partidaActual.id);
+    if (!partida?.iniciada) {
+        mostrarAlerta('La partida todavia no ha comenzado.');
+        return;
+    }
 
-                let numerosColumna = [];
-                while (numerosColumna.length < filasAAsignar.length) {
-                    let num = Math.floor(Math.random() * (cMax - cMin + 1)) + cMin;
-                    if (!numerosColumna.includes(num)) numerosColumna.push(num);
-                }
-                numerosColumna.sort((a, b) => a - b);
+    partidaActual = partida;
+    celda.classList.toggle('marcado');
 
-                filasAAsignar.forEach((f, idx) => {
-                    matrizCarton[f][c] = numerosColumna[idx];
-                });
-            }
+    if (celda.classList.contains('marcado')) {
+        posicionesTachadas.push({ f: fila, c: columna });
+    } else {
+        posicionesTachadas = posicionesTachadas.filter((posicion) => posicion.f !== fila || posicion.c !== columna);
+    }
+    guardarCarton();
+}
 
-            localStorage.setItem('bingo_perm_matrizCarton', JSON.stringify(matrizCarton));
-            localStorage.setItem('bingo_perm_juegoEmpezado', juegoEmpezado ? 'true' : 'false');
-            localStorage.setItem('bingo_perm_tachados', JSON.stringify(posicionesTachadas));
+async function solicitudCambioCarton() {
+    if (!partidaActual) {
+        generarNuevaEstructuraCarton();
+        return;
+    }
 
-            dibujarCartonHTML();
-            actualizarInterfazBotones();
-        }
+    const partida = await buscarPartida(partidaActual.id);
+    if (!partida) return;
 
-        function dibujarCartonHTML() {
-            const tabla = document.getElementById('tabla-carton');
-            tabla.innerHTML = '';
+    partidaActual = partida;
+    if (partida.iniciada) {
+        mostrarAlerta('La partida ya esta comenzada y no se puede cambiar el carton.');
+        return;
+    }
 
-            for (let f = 0; f < 3; f++) {
-                let filaHTML = document.createElement('tr');
-                for (let c = 0; c < 9; c++) {
-                    let celda = document.createElement('td');
-                    let valor = matrizCarton[f][c];
-                    
-                    if (valor === null) {
-                        celda.classList.add('sombreada');
-                    } else {
-                        celda.textContent = valor;
-                        
-                        let yaTachada = posicionesTachadas.some(p => p.f === f && p.c === c);
-                        if (yaTachada) {
-                            celda.classList.add('marcado');
-                        }
+    generarNuevaEstructuraCarton();
+}
 
-                        celda.onclick = () => tacharNumero(celda, f, c);
-                    }
-                    filaHTML.appendChild(celda);
-                }
-                tabla.appendChild(filaHTML);
-            }
-        }
+function solicitarLimpieza() {
+    mostrarConfirmacion('¿Estas seguro de que quieres desmarcar todos los numeros?', () => {
+        posicionesTachadas = [];
+        guardarCarton();
+        dibujarCartonHTML();
+    });
+}
 
-        function tacharNumero(celda, fila, col) {
-            if (!juegoEmpezado) return; 
-            
-            celda.classList.toggle('marcado');
+function solicitarVolverPrincipal() {
+    mostrarConfirmacion('¿Quieres volver a Games?', () => {
+        window.location.href = '../games.html';
+    });
+}
 
-            if (celda.classList.contains('marcado')) {
-                posicionesTachadas.push({f: fila, c: col});
-            } else {
-                posicionesTachadas = posicionesTachadas.filter(p => !(p.f === fila && p.c === col));
-            }
-            localStorage.setItem('bingo_perm_tachados', JSON.stringify(posicionesTachadas));
-        }
+function mostrarAyudaBingo() {
+    mostrarAlerta('<strong>Como jugar al Bingo</strong><br><br>1. Selecciona el id indicado por el monitor.<br>2. Puedes cambiar de carton mientras la partida no este iniciada.<br>3. Cuando el monitor inicie la partida podras marcar los numeros cantados.<br>4. Limpiar solo desmarca los numeros de tu carton.');
+}
 
-        function conmutarEstadoJuego() {
-            if (juegoEmpezado) return;
+window.addEventListener('load', async () => {
+    inicializarMenuBingo();
+    cargarCartonGuardado();
+    await cargarPartidaGuardada();
 
-            juegoEmpezado = true;
-            bloqueadoPorSeguridad = true;
-            localStorage.setItem('bingo_perm_juegoEmpezado', 'true');
-            localStorage.setItem('bingo_perm_bloqueo', 'true');
-            document.getElementById('zonaCambio').style.display = 'none';
-            actualizarInterfazBotones();
-        }
-
-        function actualizarInterfazBotones() {
-            const btnAccion = document.getElementById('btnAccion');
-            const btnCambiar = document.getElementById('btnCambiar');
-
-            if (juegoEmpezado) {
-                btnAccion.textContent = "PARTIDA EN CURSO";
-                btnAccion.className = "btn-terminar";
-                btnAccion.disabled = true;
-            } else {
-                btnAccion.textContent = "EMPEZAR PARTIDA";
-                btnAccion.className = "btn-empezar";
-                btnAccion.disabled = false;
-            }
-            btnCambiar.disabled = false;
-        }
-
-        // FUNCI&Oacute;N DEL BOT&Oacute;N "CAMBIAR CART&Oacute;N"
-        function solicitudCambioCarton() {
-            if (!juegoEmpezado || !bloqueadoPorSeguridad) {
-                cambiarCartonLibre();
-                return;
-            }
-
-            mostrarZonaCambio();
-        }
-
-        function cambiarCartonLibre() {
-            document.getElementById('zonaCambio').style.display = 'none';
-            document.getElementById('inputContraclave').value = '';
-            document.getElementById('txtClave').textContent = '0000';
-            juegoEmpezado = false;
-            localStorage.setItem('bingo_perm_juegoEmpezado', 'false');
-            localStorage.setItem('bingo_perm_bloqueo', 'false');
-            generarNuevaEstructuraCarton();
-        }
-
-        function mostrarZonaCambio() {
-            claveGenerada = Math.floor(1000 + Math.random() * 9000);
-            document.getElementById('txtClave').textContent = claveGenerada;
-            document.getElementById('inputContraclave').value = '';
-            document.getElementById('zonaCambio').style.display = 'block';
-            document.getElementById('inputContraclave').focus();
-        }
-
-        function procesarCambioCarton() {
-            const inputElement = document.getElementById('inputContraclave');
-            let input = parseInt(inputElement.value);
-            let contraclaveCorrecta = ((claveGenerada * 3) + 7) % 10000;
-
-            if (input === contraclaveCorrecta) {
-                mostrarAlerta("&iexcl;Contraclave v&aacute;lida! Se ha cambiado el cart&oacute;n.");
-
-                bloqueadoPorSeguridad = false;
-                cambiarCartonLibre();
-            } else {
-                mostrarAlerta("Contraclave incorrecta. P&iacute;desela al monitor.");
-            }
-        }
-
-        function solicitarLimpieza() {
-            mostrarConfirmacion("&iquest;Est&aacute;s seguro de que quieres desmarcar todos los n&uacute;meros tildados?", function() {
-                posicionesTachadas = [];
-                localStorage.setItem('bingo_perm_tachados', JSON.stringify([]));
-                const marcados = document.querySelectorAll('.marcado');
-                marcados.forEach(c => c.classList.remove('marcado'));
-            });
-        }
-
-        function solicitarVolverPrincipal() {
-            mostrarConfirmacion("&iquest;Quieres volver a Games?", function() {
-                window.location.href = "../games.html";
-            });
-        }
-
-        window.onload = function() {
-            inicializarMenuBingo();
-            comprobarMemoriaOCrear();
-        };
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+});

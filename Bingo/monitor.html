@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Proyectos digitales para eventos, celebraciones y causas solidarias. Invitaciones online, gestión de invitados, galerías colaborativas y juegos para la familia.">
     <title>Alaraz1921 | Proyectos web, eventos y experiencias digitales</title>
+    <meta name="theme-color" content="#0b132b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/bingo-icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/bingo-icon-192.png">
     <link rel="stylesheet" href="../assets/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -17,25 +24,30 @@
         </header>
         <div class="login-box">
             <h2>CONTROL DE ACCESO</h2>
-            <p>Introduce el PIN del Monitor para gestionar la partida:</p>
-            <input type="password" id="pinAcceso" placeholder="****" inputmode="numeric" pattern="[0-9]*" maxlength="4" onkeypress="if(event.key === 'Enter') verificarPin();">
-            <button class="btn-entrar" onclick="verificarPin()">ENTRAR</button>
-            <div class="error-login" id="msgError">CLAVE INCORRECTA</div>
+            <p>Introduce tu usuario y clave para gestionar la partida:</p>
+            <form id="bingoLoginForm">
+                <input type="text" id="bingoUsuario" placeholder="Usuario o email" autocomplete="username" required>
+                <input type="password" id="bingoClave" placeholder="Clave" autocomplete="current-password" required>
+                <button class="btn-entrar" type="submit">ENTRAR</button>
+            </form>
+            <div class="error-login" id="msgError">ACCESO INCORRECTO</div>
         </div>
-        <a class="btn-principal btn-login-principal btn-home" href="../games.html">
+        <button class="btn-principal btn-login-principal btn-home" type="button" onclick="solicitarVolverGames()">
             <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 11.5 12 4l9 7.5"></path>
                 <path d="M5.5 10.5V20h13v-9.5"></path>
                 <path d="M9.5 20v-6h5v6"></path>
             </svg>
             <span>Volver a Games</span>
-        </a>
+        </button>
     </div>
 
     <header class="app-page-header">
         <p class="app-page-kicker">alaraz1921</p>
         <h1>MONITOR BINGO</h1>
     </header>
+
+    <p class="partida-id">Id Partida: <strong id="partidaId">---</strong></p>
 
     <div class="marcador-bolas">
         <div class="bola-actual" id="bolaActual">--</div>
@@ -47,27 +59,19 @@
     </div>
 
     <div class="panel-botones">
-        <button class="btn-comenzar" id="btnControl" onclick="conmutarJuego()">Comenzar</button>
-        <button class="btn-validar" onclick="alternarZonaValidar()">Validar Cart&oacute;n</button>
-        <button class="btn-limpiar" onclick="reiniciarTodo()">Limpiar</button>
-        <a class="btn-principal btn-home" href="../games.html">
+        <button class="btn-comenzar" id="btnControl" type="button" onclick="solicitarInicioPartida()">INICIAR PARTIDA</button>
+        <button class="btn-reiniciar" type="button" onclick="solicitarReinicioPartida()">REINICIAR PARTIDA</button>
+        <button class="btn-nueva-monitor" type="button" onclick="solicitarNuevaPartida()">NUEVA PARTIDA</button>
+        <button class="btn-principal btn-home" type="button" onclick="solicitarVolverGames()">
             <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 11.5 12 4l9 7.5"></path>
                 <path d="M5.5 10.5V20h13v-9.5"></path>
                 <path d="M9.5 20v-6h5v6"></path>
             </svg>
             <span>Volver a Games</span>
-        </a>
+        </button>
         <button class="help-button help-button-bottom" type="button" onclick="mostrarAyudaMonitor()" aria-label="Ayuda del monitor de Bingo">?</button>
     </div>
-
-    <div class="zona-validacion" id="zonaValidar">
-        <p style="margin-bottom: 8px;">Introduce la clave del Jugador:</p>
-        <input type="number" id="claveJugador" class="input-num" placeholder="0000" inputmode="numeric" min="1000" max="9999" oninput="if(this.value.length > 4) this.value = this.value.slice(0,4);">
-        <button style="width:auto; display:inline-block; padding: 8px 15px;" class="btn-validar" onclick="calcularContraclave()">Calcular</button>
-        <div class="resultado-validacion" id="resultadoContraclave"></div>
-    </div>
-
 
     <div id="monitorModalConfirm" class="modal-background">
         <div class="modal-box">

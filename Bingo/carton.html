@@ -5,13 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Proyectos digitales para eventos, celebraciones y causas solidarias. Invitaciones online, gestión de invitados, galerías colaborativas y juegos para la familia.">
     <title>Alaraz1921 | Proyectos web, eventos y experiencias digitales</title>
+    <meta name="theme-color" content="#0b132b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/bingo-icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/bingo-icon-192.png">
     <link rel="stylesheet" href="../assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bingo-carton-page">
     <header class="app-page-header">
         <p class="app-page-kicker">alaraz1921</p>
         <h1>BINGO</h1>
     </header>
+
+    <p class="partida-id">Id Partida: <strong id="partidaId">---</strong></p>
 
     <nav class="bingo-top-menu" aria-label="Menu de Bingo">
         <button class="bingo-menu-toggle" id="bingoMenuToggle" type="button" aria-label="Abrir menu de Bingo" aria-expanded="false">
@@ -30,7 +40,7 @@
     </div>
 
     <div class="panel-botones">
-        <button class="btn-empezar" id="btnAccion" onclick="conmutarEstadoJuego()">EMPEZAR PARTIDA</button>
+        <button class="btn-nueva" type="button" onclick="abrirSelectorPartida()">NUEVA PARTIDA</button>
         <button class="btn-limpiar" id="btnLimpiar" onclick="solicitarLimpieza()">LIMPIAR</button>
         <button class="btn-cambiar" id="btnCambiar" onclick="solicitudCambioCarton()">CAMBIAR CART&Oacute;N</button>
         <button class="btn-principal btn-home" type="button" onclick="solicitarVolverPrincipal()">
@@ -43,12 +53,15 @@
         </button>
     </div>
 
-    <div class="zona-validacion" id="zonaCambio">
-        <p>Comunica esta clave al Monitor:</p>
-        <div class="clave-box" id="txtClave">0000</div>
-        <p>Introduce la contraclave recibida:</p>
-        <input type="number" id="inputContraclave" placeholder="0000" inputmode="numeric" min="0" max="9999" oninput="if(this.value.length > 4) this.value = this.value.slice(0,4);">
-        <button class="btn-confirmar-cambio" onclick="procesarCambioCarton()">Validar y Cambiar</button>
+    <div id="partidaModal" class="modal-background">
+        <div class="modal-box">
+            <p>Introduce el id de partida</p>
+            <input class="partida-modal-input" type="number" id="inputPartidaId" placeholder="000" inputmode="numeric" min="100" max="999">
+            <div class="modal-flex-botones">
+                <div class="modal-cell"><button class="btn-modal-ok" type="button" onclick="seleccionarPartida()">Cargar</button></div>
+                <div class="modal-cell"><button class="btn-modal-cancel" type="button" onclick="cerrarSelectorPartida()">Cancelar</button></div>
+            </div>
+        </div>
     </div>
 
     <div id="miModalConfirm" class="modal-background">
@@ -68,6 +81,7 @@
         </div>
     </div>
 
+    <script src="../assets/supabase-client.js"></script>
     <script src="../assets/js/bingo-carton.js"></script>
 </body>
 </html>

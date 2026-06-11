@@ -1866,6 +1866,67 @@ body.private-page h3 {
     white-space: pre-line;
 }
 
+/* Bingo con partidas Supabase */
+body.bingo-carton-page .partida-id,
+body.bingo-monitor-page .partida-id {
+    width: 100%;
+    max-width: 550px;
+    margin: 0 auto 12px;
+    color: #cbd5e1;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+body.bingo-carton-page .partida-id strong,
+body.bingo-monitor-page .partida-id strong {
+    color: #f59e0b;
+    font-size: 1.15rem;
+}
+
+body.bingo-carton-page .btn-nueva {
+    background-color: #22c55e;
+}
+
+body.bingo-carton-page .btn-cambiar {
+    background-color: #2563eb;
+}
+
+body.bingo-carton-page .partida-modal-input {
+    width: 140px;
+    margin: 0 0 18px;
+    font-size: 1.2rem;
+}
+
+body.bingo-monitor-page .partida-id {
+    max-width: 450px;
+}
+
+body.bingo-monitor-page .btn-reiniciar {
+    background-color: #2563eb;
+}
+
+body.bingo-monitor-page .btn-nueva-monitor {
+    background-color: #ef4444;
+}
+
+body.bingo-monitor-page #bingoLoginForm {
+    width: 100%;
+}
+
+body.bingo-monitor-page #pantallaLogin .login-box input {
+    width: 100%;
+    margin-bottom: 12px;
+    font-size: 1rem;
+    letter-spacing: 0;
+    text-align: left;
+}
+
+body.bingo-monitor-page #pantallaLogin .login-box button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
 /* coming-soon.html */
 body.coming-soon-page {
     min-height: 100vh;

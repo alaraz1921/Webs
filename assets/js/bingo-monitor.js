@@ -1,158 +1,305 @@
-        let numerosDisponibles = Array.from({length: 90}, (_, i) => i + 1);
-        let numerosCantados = [];
-        let intervalo = null;
-        let enMarcha = false;
+const bingoClient = window.websSupabase;
+const DEMO_BINGO_EMAIL = 'demobingo@alaraz1921.com';
 
-        // Función para validar el PIN de entrada
-        async function verificarPin() {
-            const inputPin = document.getElementById('pinAcceso').value;
-            const msgError = document.getElementById('msgError');
-            msgError.style.display = 'none';
+let numerosDisponibles = Array.from({ length: 90 }, (_, indice) => indice + 1);
+let numerosCantados = [];
+let intervalo = null;
+let enMarcha = false;
+let partidaActual = null;
 
-            const { data, error } = await window.websSupabase.rpc('validate_daily_access_code', {
-                p_game_slug: 'bingo_monitor',
-                p_access_code: inputPin
-            });
+function normalizarUsuario(usuario) {
+    const valor = usuario.trim().toLowerCase();
+    return valor.includes('@') ? valor : valor === 'demobingo' ? DEMO_BINGO_EMAIL : valor;
+}
 
-            if (error) {
-                msgError.textContent = 'CLAVE INCORRECTA';
-                msgError.style.display = 'block';
-                return;
-            }
+async function usuarioPuedeGestionarBingo() {
+    const { data, error } = await bingoClient
+        .from('app_projects')
+        .select('id')
+        .eq('slug', 'bingo')
+        .maybeSingle();
 
-            if (data === true) {
-                // Si es correcto, desvanecemos la pantalla de bloqueo
-                document.getElementById('pantallaLogin').style.display = 'none';
-                // Inicializamos el panel de juego seguro
-                inicializarPanel();
-            } else {
-                // Si falla, mostramos error y limpiamos el cuadro
-                msgError.textContent = 'CLAVE INCORRECTA';
-                msgError.style.display = 'block';
-                document.getElementById('pinAcceso').value = '';
-                document.getElementById('pinAcceso').focus();
-            }
+    return !error && Boolean(data);
+}
+
+async function iniciarSesion(event) {
+    event.preventDefault();
+    const errorBox = document.getElementById('msgError');
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    errorBox.style.display = 'none';
+    submitButton.disabled = true;
+    submitButton.textContent = 'ENTRANDO...';
+
+    const { error } = await bingoClient.auth.signInWithPassword({
+        email: normalizarUsuario(document.getElementById('bingoUsuario').value),
+        password: document.getElementById('bingoClave').value
+    });
+
+    if (error || !(await usuarioPuedeGestionarBingo())) {
+        await bingoClient.auth.signOut();
+        errorBox.textContent = 'USUARIO O CLAVE INCORRECTOS';
+        errorBox.style.display = 'block';
+        submitButton.disabled = false;
+        submitButton.textContent = 'ENTRAR';
+        return;
+    }
+
+    document.getElementById('bingoClave').value = '';
+    await mostrarMonitor();
+}
+
+async function comprobarSesion() {
+    const { data } = await bingoClient.auth.getSession();
+    if (data.session?.user && await usuarioPuedeGestionarBingo()) {
+        await mostrarMonitor();
+        return;
+    }
+
+    document.getElementById('pantallaLogin').style.display = 'flex';
+    document.getElementById('bingoUsuario').focus();
+}
+
+async function mostrarMonitor() {
+    document.getElementById('pantallaLogin').style.display = 'none';
+    inicializarPanel();
+    await cargarPartidaActual();
+}
+
+async function cargarPartidaActual() {
+    const { data, error } = await bingoClient
+        .from('bingo_partidas')
+        .select('id, iniciada')
+        .order('id', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error) {
+        mostrarAlertaMonitor('No se pudo cargar la partida actual.');
+        return;
+    }
+
+    if (data) {
+        establecerPartida(data);
+    } else {
+        await crearNuevaPartida();
+    }
+}
+
+function establecerPartida(partida) {
+    partidaActual = partida;
+    document.getElementById('partidaId').textContent = partida.id;
+    cargarEstadoMonitor();
+    actualizarBotonControl();
+}
+
+async function crearNuevaPartida() {
+    const { data, error } = await bingoClient
+        .from('bingo_partidas')
+        .insert({ iniciada: false })
+        .select('id, iniciada')
+        .single();
+
+    if (error) {
+        mostrarAlertaMonitor('No se pudo crear una nueva partida.');
+        return;
+    }
+
+    establecerPartida(data);
+}
+
+function claveEstadoMonitor() {
+    return partidaActual ? `bingo_monitor_partida_${partidaActual.id}` : '';
+}
+
+function guardarEstadoMonitor() {
+    if (!partidaActual) return;
+    localStorage.setItem(claveEstadoMonitor(), JSON.stringify(numerosCantados));
+}
+
+function cargarEstadoMonitor() {
+    detenerCanto();
+    numerosCantados = JSON.parse(localStorage.getItem(claveEstadoMonitor()) || '[]');
+    numerosDisponibles = Array.from({ length: 90 }, (_, indice) => indice + 1)
+        .filter((numero) => !numerosCantados.includes(numero));
+    inicializarPanel();
+
+    numerosCantados.forEach((numero) => {
+        document.getElementById(`bola-${numero}`)?.classList.add('cantado');
+    });
+
+    const ultima = numerosCantados.at(-1);
+    const anterior = numerosCantados.at(-2);
+    document.getElementById('bolaActual').textContent = ultima || '--';
+    document.getElementById('bolaAnterior').textContent = anterior || '--';
+}
+
+function limpiarEstadoMonitor() {
+    detenerCanto();
+    if (partidaActual) localStorage.removeItem(claveEstadoMonitor());
+    numerosDisponibles = Array.from({ length: 90 }, (_, indice) => indice + 1);
+    numerosCantados = [];
+    document.getElementById('bolaActual').textContent = '--';
+    document.getElementById('bolaAnterior').textContent = '--';
+    inicializarPanel();
+}
+
+function inicializarPanel() {
+    const tabla = document.getElementById('tabla-panel');
+    tabla.innerHTML = '';
+
+    for (let numero = 1; numero <= 90; numero++) {
+        if ((numero - 1) % 10 === 0) tabla.appendChild(document.createElement('tr'));
+        const celda = document.createElement('td');
+        celda.textContent = numero;
+        celda.id = `bola-${numero}`;
+        tabla.lastElementChild.appendChild(celda);
+    }
+}
+
+async function solicitarInicioPartida() {
+    if (!partidaActual) return;
+
+    if (enMarcha) {
+        detenerCanto();
+        actualizarBotonControl();
+        return;
+    }
+
+    if (partidaActual.iniciada) {
+        comenzarCanto();
+        return;
+    }
+
+    mostrarConfirmacionMonitor('La partida se marcara como iniciada y ya no se podran cambiar los cartones. ¿Quieres continuar?', async () => {
+        const { data, error } = await bingoClient
+            .from('bingo_partidas')
+            .update({ iniciada: true, updated_at: new Date().toISOString() })
+            .eq('id', partidaActual.id)
+            .select('id, iniciada')
+            .single();
+
+        if (error) {
+            mostrarAlertaMonitor('No se pudo iniciar la partida.');
+            return;
         }
 
-        function inicializarPanel() {
-            const tabla = document.getElementById('tabla-panel');
-            tabla.innerHTML = '';
-            let contador = 1;
-            
-            for (let f = 0; f < 9; f++) {
-                let fila = document.createElement('tr');
-                for (let c = 0; c < 10; c++) {
-                    let celda = document.createElement('td');
-                    celda.textContent = contador;
-                    celda.id = 'bola-' + contador;
-                    fila.appendChild(celda);
-                    contador++;
-                }
-                tabla.appendChild(fila);
-            }
+        partidaActual = data;
+        comenzarCanto();
+    });
+}
+
+function comenzarCanto() {
+    if (numerosDisponibles.length === 0) {
+        mostrarAlertaMonitor('Se han cantado los 90 numeros. Fin de la partida.');
+        return;
+    }
+
+    enMarcha = true;
+    sacarBola();
+    intervalo = setInterval(sacarBola, 4000);
+    actualizarBotonControl();
+}
+
+function detenerCanto() {
+    clearInterval(intervalo);
+    intervalo = null;
+    enMarcha = false;
+}
+
+function actualizarBotonControl() {
+    const boton = document.getElementById('btnControl');
+    if (!partidaActual?.iniciada) {
+        boton.textContent = 'INICIAR PARTIDA';
+        boton.className = 'btn-comenzar';
+    } else if (enMarcha) {
+        boton.textContent = 'PAUSAR CANTO';
+        boton.className = 'btn-pausar';
+    } else {
+        boton.textContent = 'REANUDAR CANTO';
+        boton.className = 'btn-comenzar';
+    }
+}
+
+function sacarBola() {
+    if (numerosDisponibles.length === 0) {
+        detenerCanto();
+        actualizarBotonControl();
+        mostrarAlertaMonitor('Se han cantado los 90 numeros. Fin de la partida.');
+        return;
+    }
+
+    const indice = Math.floor(Math.random() * numerosDisponibles.length);
+    const bola = numerosDisponibles.splice(indice, 1)[0];
+    numerosCantados.push(bola);
+    document.getElementById('bolaAnterior').textContent = document.getElementById('bolaActual').textContent;
+    document.getElementById('bolaActual').textContent = bola;
+    document.getElementById(`bola-${bola}`)?.classList.add('cantado');
+    guardarEstadoMonitor();
+}
+
+function solicitarReinicioPartida() {
+    mostrarConfirmacionMonitor('Se limpiara la tabla del monitor, la partida se marcara como no iniciada y se podran cambiar los cartones. ¿Quieres continuar?', async () => {
+        const { data, error } = await bingoClient
+            .from('bingo_partidas')
+            .update({ iniciada: false, updated_at: new Date().toISOString() })
+            .eq('id', partidaActual.id)
+            .select('id, iniciada')
+            .single();
+
+        if (error) {
+            mostrarAlertaMonitor('No se pudo reiniciar la partida.');
+            return;
         }
 
-        function conmutarJuego() {
-            const btn = document.getElementById('btnControl');
-            if (!enMarcha) {
-                enMarcha = true;
-                btn.textContent = "Pausar";
-                btn.className = "btn-pausar";
-                sacarBola(); 
-                intervalo = setInterval(sacarBola, 4000); 
-            } else {
-                enMarcha = false;
-                btn.textContent = "Reanudar";
-                btn.className = "btn-comenzar";
-                clearInterval(intervalo);
-            }
-        }
+        limpiarEstadoMonitor();
+        establecerPartida(data);
+    });
+}
 
-        function sacarBola() {
-            if (numerosDisponibles.length === 0) {
-                clearInterval(intervalo);
-                mostrarAlertaMonitor("Se han cantado los 90 n&uacute;meros. Fin de la partida.");
-                return;
-            }
+function solicitarNuevaPartida() {
+    mostrarConfirmacionMonitor('Se limpiara la tabla del monitor y se generara un nuevo id de partida. ¿Quieres continuar?', async () => {
+        limpiarEstadoMonitor();
+        await crearNuevaPartida();
+    });
+}
 
-            const actualBox = document.getElementById('bolaActual');
-            const anteriorBox = document.getElementById('bolaAnterior');
-            if (actualBox.textContent !== '--') {
-                anteriorBox.textContent = actualBox.textContent;
-            }
+function solicitarVolverGames() {
+    mostrarConfirmacionMonitor('¿Quieres volver a Games?', () => {
+        window.location.href = '../games.html';
+    });
+}
 
-            let indiceAleatorio = Math.floor(Math.random() * numerosDisponibles.length);
-            let bolaSacadada = numerosDisponibles.splice(indiceAleatorio, 1)[0];
-            numerosCantados.push(bolaSacadada);
+function mostrarConfirmacionMonitor(texto, callback) {
+    document.getElementById('textoMonitorModalConfirm').textContent = texto;
+    const modal = document.getElementById('monitorModalConfirm');
+    modal.style.display = 'flex';
+    document.getElementById('btnMonitorConfirmSi').onclick = () => {
+        modal.style.display = 'none';
+        callback();
+    };
+    document.getElementById('btnMonitorConfirmNo').onclick = () => {
+        modal.style.display = 'none';
+    };
+}
 
-            actualBox.textContent = bolaSacadada;
+function mostrarAlertaMonitor(texto) {
+    document.getElementById('textoMonitorModalAlert').textContent = texto;
+    document.getElementById('monitorModalAlert').style.display = 'flex';
+}
 
-            const celdaPanel = document.getElementById('bola-' + bolaSacadada);
-            if (celdaPanel) celdaPanel.classList.add('cantado');
-        }
+function cerrarAlertaMonitor() {
+    document.getElementById('monitorModalAlert').style.display = 'none';
+}
 
+function mostrarAyudaMonitor() {
+    mostrarAlertaMonitor('Inicia la partida para bloquear los cambios de carton. Reiniciar conserva el id actual y permite nuevos cartones. Nueva partida genera un id distinto.');
+}
 
-        function mostrarConfirmacionMonitor(texto, callback) {
-            document.getElementById('textoMonitorModalConfirm').innerHTML = texto;
-            const modal = document.getElementById('monitorModalConfirm');
-            modal.style.display = 'flex';
+window.addEventListener('load', () => {
+    document.getElementById('bingoLoginForm').addEventListener('submit', iniciarSesion);
+    comprobarSesion();
 
-            document.getElementById('btnMonitorConfirmSi').onclick = function() {
-                modal.style.display = 'none';
-                callback();
-            };
-            document.getElementById('btnMonitorConfirmNo').onclick = function() {
-                modal.style.display = 'none';
-            };
-        }
-
-        function mostrarAlertaMonitor(texto) {
-            document.getElementById('textoMonitorModalAlert').innerHTML = texto;
-            document.getElementById('monitorModalAlert').style.display = 'flex';
-        }
-
-        function cerrarAlertaMonitor() {
-            document.getElementById('monitorModalAlert').style.display = 'none';
-        }
-
-        function mostrarAyudaMonitor() {
-            mostrarAlertaMonitor("<strong>Monitor de Bingo</strong><br><br>1. Accede con el PIN del monitor.<br>2. Pulsa Comenzar para cantar bolas automáticamente cada pocos segundos.<br>3. Usa Pausar o Reanudar para controlar la partida.<br>4. Validar Cartón calcula la contraclave que necesita un jugador para cambiar de cartón.<br>5. Limpiar reinicia todas las bolas cantadas y deja el monitor preparado para una nueva partida.");
-        }
-
-        function reiniciarTodo() {
-            mostrarConfirmacionMonitor("&iquest;Seguro que quieres reiniciar el monitor? Se borrar&aacute;n todos los n&uacute;meros cantados.", function() {
-                clearInterval(intervalo);
-                enMarcha = false;
-                numerosDisponibles = Array.from({length: 90}, (_, i) => i + 1);
-                numerosCantados = [];
-                document.getElementById('bolaActual').textContent = '--';
-                document.getElementById('bolaAnterior').textContent = '--';
-                document.getElementById('btnControl').textContent = "Comenzar";
-                document.getElementById('btnControl').className = "btn-comenzar";
-                document.getElementById('resultadoContraclave').textContent = '';
-                document.getElementById('claveJugador').value = '';
-                inicializarPanel();
-            });
-        }
-
-        function alternarZonaValidar() {
-            const zona = document.getElementById('zonaValidar');
-            zona.style.display = (zona.style.display === 'block') ? 'none' : 'block';
-        }
-
-        function calcularContraclave() {
-            let clave = parseInt(document.getElementById('claveJugador').value);
-            if (isNaN(clave)) {
-                mostrarAlertaMonitor("Por favor, introduce los 4 n&uacute;meros de la clave.");
-                return;
-            }
-            let contraclave = ((clave * 3) + 7) % 10000;
-            let contraclaveString = contraclave.toString().padStart(4, '0');
-            
-            document.getElementById('resultadoContraclave').textContent = "CONTRACLAVE: " + contraclaveString;
-        }
-
-        // Al arrancar, el foco se pone directamente en el cuadro de contraseña
-        window.onload = function() {
-            document.getElementById('pinAcceso').focus();
-        };
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+});

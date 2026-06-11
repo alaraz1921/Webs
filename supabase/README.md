@@ -23,6 +23,7 @@ Opcion sencilla desde el panel de Supabase:
    - `migrations/20260601110000_initial_private_schema.sql`
    - `migrations/20260601113000_daily_access_codes.sql`
    - `migrations/20260604120000_webs_contact_messages.sql`
+   - `migrations/20260611120000_bingo_partidas.sql`
 5. Comprobar que no hay errores en el resultado.
 
 ## Crear el primer usuario
@@ -41,8 +42,38 @@ Todas las tablas tienen RLS activado.
 
 ## Funciones RPC
 
-- `validate_daily_access_code(game_slug, access_code)`: valida la clave diaria para `bingo_monitor` e `infiltrado`.
+- `validate_daily_access_code(game_slug, access_code)`: valida la clave diaria de `infiltrado`.
 - `get_daily_access_formula_note()`: devuelve el recordatorio de la formula para mostrarlo en la zona privada.
+
+## Bingo
+
+La migracion `20260611120000_bingo_partidas.sql`:
+
+- Crea o actualiza el proyecto `bingo` en `app_projects`.
+- Crea `bingo_partidas` con ids automaticos entre 100 y 999.
+- Permite lectura publica para que el carton no necesite login.
+- Restringe crear, iniciar y reiniciar partidas a administradores o miembros `owner`/`editor` de Bingo.
+
+Supabase Auth necesita un email aunque el formulario del monitor permita escribir el alias `demobingo`.
+
+Para crear el usuario solicitado:
+
+1. Ir a `Authentication` -> `Users` -> `Add user`.
+2. Crear `demobingo@alaraz1921.com` con contraseña `bingo123` y confirmar el usuario.
+3. En `SQL Editor`, ejecutar:
+
+```sql
+insert into public.project_members (project_id, user_id, role)
+select ap.id, au.id, 'editor'
+from public.app_projects ap
+join auth.users au on lower(au.email) = 'demobingo@alaraz1921.com'
+where ap.slug = 'bingo'
+on conflict (project_id, user_id) do update set role = excluded.role;
+```
+
+El formulario del monitor acepta `demobingo` y lo transforma internamente en ese email. Los usuarios cuyo perfil tenga `role = 'admin'` tambien pueden acceder sin pertenecer expresamente al proyecto.
+
+La contraseña demo debe cambiarse antes de usar el monitor en un entorno real.
 
 ## Contacto de Webs
 
