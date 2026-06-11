@@ -1931,6 +1931,32 @@ body.bingo-monitor-page #pantallaLogin .login-box button:disabled {
     cursor: wait;
 }
 
+/* Infiltrado con Supabase y PWA */
+body.infiltrado-page #infiltradoLoginForm {
+    width: 100%;
+}
+
+body.infiltrado-page #screen-lock .login-box input {
+    width: 100%;
+    margin-bottom: 12px;
+    font-size: 1rem;
+    letter-spacing: 0;
+    text-align: left;
+}
+
+body.infiltrado-page #screen-lock .login-box button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+body.infiltrado-page .infiltrado-install-button {
+    width: 100%;
+    max-width: 450px;
+    margin-top: 10px;
+    background: #7c3aed;
+    color: #ffffff;
+}
+
 /* coming-soon.html */
 body.coming-soon-page {
     min-height: 100vh;

@@ -18,12 +18,13 @@ Ultima revision: 2026-06-11
 - [x] PA-12 Hacer idempotente la migracion de Bingo para permitir reejecuciones parciales.
 - [x] PA-13 Sustituir el icono PWA de Bingo por la bola azul numero 21.
 - [x] PA-14 Añadir acceso de instalacion PWA al panel y menu del carton de Bingo.
+- [x] PA-15 Migrar Infiltrado a Supabase Auth, palabras categorizadas, partidas temporales y PWA.
 
 ## Prioridad Media
 
 - [ ] PM-01 Crear un `README.md` raiz con descripcion del sitio, estructura, ejecucion local y rutas principales.
 - [x] PM-02 Documentar el flujo de Bingo: monitor autenticado, partidas Supabase, carton publico y `localStorage`.
-- [ ] PM-03 Documentar el flujo de Infiltrado: acceso, caducidad, configuracion, persistencia y reinicio.
+- [x] PM-03 Documentar el flujo de Infiltrado: Auth, categorias, partida temporal, persistencia y reinicio.
 - [x] PM-04 Aplicar en Supabase Webs la migracion inicial de zona privada.
 - [x] PM-05 Aplicar en Supabase Webs las funciones de clave diaria.
 - [x] PM-06 Crear usuario privado en Supabase Auth y configurar acceso administrativo.
@@ -71,7 +72,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-04 En Bingo carton: seleccionar partida, marcar numeros iniciados, limpiar y verificar persistencia.
 - [ ] PR-05 En Bingo carton: comprobar cambio libre sin partida o no iniciada y bloqueo cuando `iniciada = true`.
 - [ ] PR-06 En Monitor Bingo: entrar como `demobingo` y admin; iniciar, pausar, reanudar, reiniciar y crear nueva partida.
-- [ ] PR-07 En Infiltrado: entrar con clave diaria, configurar jugadores, revelar roles, recargar y finalizar.
+- [ ] PR-07 En Infiltrado: entrar como `demo` y admin; elegir categoria, configurar jugadores, revelar roles, recargar y finalizar.
 - [ ] PR-08 En ValentinaPlay: abrir cada juego y validar reinicio/victoria/flujo principal.
 - [ ] PR-09 En Privado: iniciar/cerrar sesion y comprobar recordatorio de formula.
 - [ ] PR-10 Enviar contacto desde Webs; comprobar fila en `webs_contact_messages` y recepcion del email.
@@ -89,4 +90,4 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] IM-06 Añadir icono/favicon para 404 y metadatos del sitio.
 - [x] IM-07 Colocar ayuda de Bingo e Infiltrado en la parte inferior.
 - [ ] IM-08 Añadir indicadores operativos para avisar si una Edge Function de email falla aunque el mensaje quede guardado.
-- [ ] IM-09 Preparar Infiltrado como PWA; Bingo ya dispone de manifest, iconos y service worker.
+- [x] IM-09 Preparar Bingo e Infiltrado como PWA con manifest, iconos y service worker.

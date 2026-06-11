@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Proyectos digitales para eventos, celebraciones y causas solidarias. Invitaciones online, gestión de invitados, galerías colaborativas y juegos para la familia.">
     <title>Alaraz1921 | Proyectos web, eventos y experiencias digitales</title>
+    <meta name="theme-color" content="#10131a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/infiltrado-icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="icons/infiltrado-icon-192.png">
     <link rel="stylesheet" href="../assets/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -32,10 +39,13 @@
         </header>
         <div class="login-box">
             <h2>CONTROL DE ACCESO</h2>
-            <p>Introduce la clave para entrar:</p>
-            <input type="password" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="****">
-            <button class="btn-entrar" onclick="verificarClave()">ENTRAR</button>
-            <div class="error-login" id="msgErrorInfiltrado">CLAVE INCORRECTA</div>
+            <p>Introduce tu usuario y clave:</p>
+            <form id="infiltradoLoginForm">
+                <input type="text" id="infiltradoUsuario" placeholder="Usuario o email" autocomplete="username" required>
+                <input type="password" id="infiltradoClave" placeholder="Clave" autocomplete="current-password" required>
+                <button class="btn-entrar" type="submit">ENTRAR</button>
+            </form>
+            <div class="error-login" id="msgErrorInfiltrado">USUARIO O CLAVE INCORRECTOS</div>
         </div>
         <a class="btn-principal btn-login-principal btn-home" href="../games.html">
             <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -56,6 +66,11 @@
         <select id="totalInfiltrados" onchange="guardarConfiguracionBase()">
             <option value="1">1 Infiltrado</option>
             <option value="2">2 Infiltrados</option>
+        </select>
+
+        <label>Tipo de palabra</label>
+        <select id="tipoPalabra" onchange="guardarConfiguracionBase()">
+            <option value="Aleatoria">Aleatoria</option>
         </select>
         <button id="btn-continue" onclick="generarInputsNombres()">Continuar</button>
         
@@ -90,6 +105,7 @@
             <span>Volver a Games</span>
         </a>
         <button class="help-button help-button-bottom" type="button" onclick="mostrarAyudaInfiltrado()" aria-label="Ayuda de El Infiltrado">?</button>
+        <button class="infiltrado-install-button" type="button" onclick="solicitarInstalacionPwa()">Instalar app</button>
     </div>
 
     <script src="../assets/supabase-client.js"></script>

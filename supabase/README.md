@@ -24,6 +24,7 @@ Opcion sencilla desde el panel de Supabase:
    - `migrations/20260601113000_daily_access_codes.sql`
    - `migrations/20260604120000_webs_contact_messages.sql`
    - `migrations/20260611120000_bingo_partidas.sql`
+   - `migrations/20260611150000_infiltrado_supabase.sql`
 5. Comprobar que no hay errores en el resultado.
 
 ## Crear el primer usuario
@@ -77,6 +78,18 @@ El formulario del monitor acepta `demobingo` y lo transforma internamente en ese
 La contraseña demo debe cambiarse antes de usar el monitor en un entorno real.
 
 Si Supabase muestra `relation "bingo_partidas" already exists`, actualizar el repositorio y volver a ejecutar el archivo completo. La version actual reutiliza la tabla existente y completa columnas, permisos y politicas sin borrarla.
+
+## Infiltrado
+
+La migracion `20260611150000_infiltrado_supabase.sql` crea el proyecto `infiltrado`, las tablas `infiltrado_palabras`, `infiltrado_partidas` e `infiltrado_jugadores`, y carga las categorias Lugares, Cosas y Profesiones.
+
+Para crear el usuario demo:
+
+1. Ir a `Authentication` -> `Users` -> `Add user`.
+2. Crear `demo@alaraz1921.com` con la contraseña tecnica `demo123`.
+3. Ejecutar de nuevo la migracion completa para asignar el usuario al proyecto.
+
+El formulario acepta las credenciales visibles `demo` / `123` y las convierte internamente en `demo@alaraz1921.com` / `demo123`. Los administradores tambien pueden entrar con su email y contraseña habituales.
 
 ## Contacto de Webs
 

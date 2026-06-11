@@ -245,13 +245,14 @@ Base de datos y PWA:
 
 `infiltrado/index.html`:
 
-- Acceso mediante clave diaria validada por RPC.
-- Configuracion de jugadores e infiltrados.
+- Acceso mediante Supabase Auth para administradores y miembros del proyecto `infiltrado`.
+- El alias `demo` se convierte internamente en `demo@alaraz1921.com`.
+- Configuracion de jugadores, infiltrados y tipo de palabra, incluyendo `Aleatoria`.
 - Sorteo y revelado individual.
 - Resolucion mediante desplegables de participantes.
-- Persistencia con claves `infiltrado_*`.
-- Sesion aproximada de 5 horas.
-- Reinicio selectivo sin borrar datos de otros juegos.
+- Las palabras se cargan desde `infiltrado_palabras`.
+- La partida temporal se guarda en `infiltrado_partidas` y sus jugadores en `infiltrado_jugadores`.
+- La PWA usa manifest, service worker y el icono de espia proporcionado.
 
 ### ValentinaPlay
 
