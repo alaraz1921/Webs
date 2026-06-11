@@ -1,8 +1,8 @@
 {
-  "name": "Bingo - alaraz1921",
-  "short_name": "Bingo",
+  "name": "Bingo Alaraz1921",
+  "short_name": "Bingo Alaraz1921",
   "description": "Carton y monitor de Bingo para familia y amigos.",
-  "start_url": "./carton.html",
+  "start_url": "./carton.html?pwa=1",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0b132b",
@@ -24,11 +24,11 @@
   "shortcuts": [
     {
       "name": "Carton",
-      "url": "./carton.html"
+      "url": "./carton.html?pwa=1"
     },
     {
       "name": "Monitor",
-      "url": "./monitor.html"
+      "url": "./monitor.html?pwa=1"
     }
   ]
 }

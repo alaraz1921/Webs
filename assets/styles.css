@@ -1965,7 +1965,11 @@ body.pwa-standalone .hide-in-pwa {
     display: none !important;
 }
 
-@media (display-mode: standalone) {
+.hide-in-pwa[hidden] {
+    display: none !important;
+}
+
+@media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
     .hide-in-pwa {
         display: none !important;
     }

@@ -238,11 +238,11 @@ Base de datos y PWA:
 - Proyecto privado: `app_projects.slug = 'bingo'`.
 - Tabla publica de lectura y gestion protegida: `bingo_partidas`.
 - Id automatico entre 100 y 999.
-- `Bingo/manifest.json`, `Bingo/sw.js` e iconos permiten instalar Bingo como PWA.
+- `Bingo/manifest.json`, `Bingo/sw.js` e iconos permiten instalar la PWA `Bingo Alaraz1921`.
 - Los iconos PWA usan la bola azul con el numero 21 proporcionada para Bingo.
 - El carton ofrece instalacion PWA desde el panel de botones y desde su menu superior.
 - Los controles de instalacion aparecen solo cuando existe instalacion nativa disponible o en iOS, y se ocultan tras instalar.
-- En modo PWA se ocultan los controles de vuelta a `games.html` tanto en el carton como en el Monitor.
+- En modo PWA se ocultan los controles de vuelta a `games.html` tanto en el carton como en el Monitor. La deteccion combina modos de visualizacion instalados y la marca `?pwa=1` del manifiesto.
 
 ### Infiltrado
 
@@ -256,9 +256,9 @@ Base de datos y PWA:
 - Resolucion mediante desplegables de participantes.
 - Las palabras se cargan desde `infiltrado_palabras`.
 - La partida temporal se guarda en `infiltrado_partidas` y sus jugadores en `infiltrado_jugadores`.
-- La PWA usa manifest, service worker y el icono de espia proporcionado.
+- La PWA `Infiltrado Alaraz1921` usa manifest, service worker y el icono de espia proporcionado.
 - El boton de instalacion aparece solo despues del login y muestra instrucciones especificas en iOS.
-- En modo PWA se ocultan los controles de vuelta a `games.html`.
+- En modo PWA se ocultan los controles de vuelta a `games.html`. La deteccion combina modos de visualizacion instalados y la marca `?pwa=1` del manifiesto.
 
 ### ValentinaPlay
 

@@ -1,8 +1,8 @@
 {
-  "name": "Infiltrado - alaraz1921",
-  "short_name": "Infiltrado",
+  "name": "Infiltrado Alaraz1921",
+  "short_name": "Infiltrado Alaraz1921",
   "description": "Juego social de roles ocultos para familia y amigos.",
-  "start_url": "./",
+  "start_url": "./?pwa=1",
   "scope": "./",
   "display": "standalone",
   "background_color": "#10131a",

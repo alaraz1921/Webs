@@ -425,7 +425,24 @@ function esDispositivoIos() {
 }
 
 function estaInstaladaPwa() {
-    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const iniciadaDesdeManifest = new URLSearchParams(window.location.search).get('pwa') === '1';
+    if (iniciadaDesdeManifest) sessionStorage.setItem('infiltrado_pwa_mode', '1');
+
+    return iniciadaDesdeManifest
+        || sessionStorage.getItem('infiltrado_pwa_mode') === '1'
+        || window.matchMedia('(display-mode: standalone)').matches
+        || window.matchMedia('(display-mode: fullscreen)').matches
+        || window.matchMedia('(display-mode: minimal-ui)').matches
+        || window.navigator.standalone === true
+        || document.referrer.startsWith('android-app://');
+}
+
+function actualizarNavegacionPwa() {
+    const modoPwa = estaInstaladaPwa();
+    document.body.classList.toggle('pwa-standalone', modoPwa);
+    document.querySelectorAll('.hide-in-pwa').forEach((control) => {
+        control.hidden = modoPwa;
+    });
 }
 
 function actualizarBotonInstalacionPwa() {
@@ -463,7 +480,7 @@ window.addEventListener('appinstalled', () => {
 });
 
 window.addEventListener('load', () => {
-    document.body.classList.toggle('pwa-standalone', estaInstaladaPwa());
+    actualizarNavegacionPwa();
     document.getElementById('infiltradoLoginForm').addEventListener('submit', iniciarSesion);
     restaurarConfiguracionBase();
     comprobarSesion();
