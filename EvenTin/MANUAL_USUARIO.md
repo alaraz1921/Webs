@@ -12,7 +12,7 @@ Parte publica:
 - Contacto y solicitud de evento: `contacto.html`
 - Evento: `evento.html?evento=CODIGO_O_SLUG`
 - Invitacion generica: `invitacion.html?evento=CODIGO_O_SLUG`
-- Invitacion individual: `invitacion.html?token=TOKEN`
+- Invitacion general del evento: `invitacion.html?evento=SLUG_EVENTO`
 
 Parte privada:
 
@@ -98,71 +98,53 @@ La lista permite:
 - Ordenar por nombre, telefono o estado.
 - Ver invitados paginados de 10 en 10.
 - Crear un invitado con el boton `Nuevo`.
-- Editar con el icono de lapiz.
-- Copiar el mensaje de invitacion con el icono de sobre.
-- Abrir WhatsApp con el icono de WhatsApp.
-- Borrar con el icono de papelera, siempre con modal de confirmacion.
+- Abrir la ficha completa haciendo clic en una fila.
+- Modificar o eliminar desde la ficha, siempre con modal de confirmacion.
+- Copiar el unico enlace general de invitacion del evento.
 
 Datos del invitado:
 
 - Nombre.
-- Telefono.
-- Email.
+- Hasta cuatro telefonos.
 - Numero de adultos.
 - Numero de ninos.
-- Notas.
+- Asistencia.
+- Mensaje o nota.
+- Estado.
 
-Cada invitado tiene un `invitation_token` unico. Ese token se usa para generar el enlace individual:
+Todos los invitados de un evento usan el mismo enlace:
 
 ```text
-https://www.alaraz1921.com/EvenTin/invitacion.html?token=TOKEN
+https://www.alaraz1921.com/EvenTin/invitacion.html?evento=SLUG_EVENTO
 ```
 
-El telefono no se usa en la URL publica.
+El telefono no se incluye en la URL. La pagina lo solicita antes de mostrar la ficha del invitado.
 
 ## Estados de invitacion
 
 Los estados posibles del invitado son:
 
 - `pending`: invitacion pendiente.
-- `opened`: el invitado abrio su enlace individual, pero aun no confirmo.
+- `viewed`: el invitado se identifico con su telefono, pero aun no confirmo.
 - `confirmed`: confirmo asistencia.
 - `declined`: rechazo asistencia.
 
-Cuando un invitado abre su enlace individual por token, se marca `opened_at` si todavia estaba vacio. Si estaba en `pending`, pasa a `opened`.
+Cuando un invitado se identifica correctamente, se marca `viewed_at` si todavia estaba vacio. Si estaba en `pending`, pasa a `viewed`.
 
 ## Compartir invitaciones
 
-En la gestion de invitados hay dos formas rapidas:
+El boton `Copiar enlace de invitacion` copia el enlace general del evento. El organizador puede pegarlo en WhatsApp, email o cualquier otro medio.
 
-- Copiar invitacion: copia un mensaje completo con saludo, texto y enlace individual.
-- WhatsApp: abre `wa.me` con el mensaje preparado.
+## Confirmacion de asistencia
 
-Si el invitado no tiene telefono, WhatsApp queda deshabilitado. Aun asi se puede copiar la invitacion.
+Cuando el invitado entra con `invitacion.html?evento=SLUG_EVENTO`:
 
-Mensaje base:
-
-```text
-Hola {nombre}.
-
-Nos encantaria compartir contigo un dia muy especial.
-
-Puedes ver todos los detalles y confirmar tu asistencia aqui:
-
-{enlace_invitacion}
-
-Un abrazo.
-```
-
-## Confirmacion por invitacion individual
-
-Cuando el invitado entra con `invitacion.html?token=TOKEN`:
-
-1. Se busca el invitado por `invitation_token`.
-2. Si existe, se muestra `Hola {nombre}`.
-3. Se muestra el nombre del evento y la fecha/hora real del evento.
-4. Se marca la apertura si procede.
-5. El invitado puede responder:
+1. Introduce su telefono.
+2. El sistema normaliza el numero y lo busca en `phone1`, `phone2`, `phone3` y `phone4` dentro del evento.
+3. Si existe, se muestra `Hola {nombre}`.
+4. Se muestra el nombre del evento y la fecha/hora real del evento.
+5. Se marca la visualizacion si procede.
+6. El invitado puede responder:
    - Asistire: si/no.
    - Adultos confirmados.
    - Ninos confirmados.
@@ -173,10 +155,11 @@ Al enviar:
 - Si responde que si, el invitado queda en `confirmed`.
 - Si responde que no, queda en `declined`.
 - Se guarda o actualiza una respuesta asociada al invitado.
+- No se crean respuestas duplicadas aunque guarde varias veces.
 - Siempre se muestra `Respuesta enviada correctamente`.
 - No se informa al invitado si estaba modificando una respuesta anterior.
 
-Si el invitado no tiene telefono en su ficha, la respuesta se guarda sin telefono.
+Un telefono no puede pertenecer a dos invitados del mismo evento, pero si puede reutilizarse en eventos distintos.
 
 ## Confirmacion por invitacion generica
 
@@ -331,7 +314,7 @@ El enlace apunta a la portada de EvenTin.
 - No se guarda ninguna clave privada en frontend.
 - La web usa la anon public key de Supabase.
 - Las operaciones privadas se protegen con Supabase Auth y RLS.
-- Los invitados individuales se identifican por token aleatorio, nunca por telefono en la URL.
+- Los invitados se identifican por telefono dentro del evento; el telefono nunca aparece en la URL.
 - Los usuarios de evento solo acceden al evento cuyo codigo coincide con su perfil.
 
 ## Tareas habituales

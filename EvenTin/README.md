@@ -158,7 +158,7 @@ Evento demo creado por `sql/schema.sql`:
 ## Notas de seguridad
 
 - Los mensajes publicos usan RLS para insertar registros anonimos en `eventin_public_messages`.
-- Las confirmaciones de asistencia se envian mediante la RPC `eventin_submit_guest_response`; los usuarios anonimos no tienen permiso directo de insercion/actualizacion sobre `eventin_guest_responses`.
+- Las confirmaciones de asistencia se envian mediante las RPC `eventin_find_guest_by_phone` y `eventin_submit_guest_phone_response`; los usuarios anonimos no tienen permiso directo sobre las tablas de invitados o respuestas.
 - Los admins tienen acceso global mediante RLS.
 - Los usuarios de evento solo acceden a eventos cuyo codigo coincida con su `event_code`.
 - La `service_role key` no debe estar nunca en GitHub Pages ni en JavaScript de frontend.

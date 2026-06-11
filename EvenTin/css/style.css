@@ -1068,6 +1068,8 @@ fieldset {
 
 .modal-card-wide {
     width: min(680px, 100%);
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
 }
 
 .modal-form {
@@ -1481,6 +1483,50 @@ th {
     width: min(1240px, calc(100% - 28px));
 }
 
+.admin-inline-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.guests-table tbody tr[data-guest-id] {
+    cursor: pointer;
+}
+
+.guests-table tbody tr[data-guest-id]:hover,
+.guests-table tbody tr[data-guest-id]:focus-visible {
+    background: var(--background-soft);
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.guest-status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 9px;
+    border-radius: 999px;
+    color: #26332b;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.guest-status-pill.status-pending {
+    background: #eee7d8;
+}
+
+.guest-status-pill.status-viewed {
+    background: #dceaf4;
+}
+
+.guest-status-pill.status-confirmed {
+    background: #d9eadc;
+}
+
+.guest-status-pill.status-declined {
+    background: #f1d9d9;
+}
+
 .disabled-link {
     opacity: 0.45;
     pointer-events: none;
@@ -1574,7 +1620,9 @@ th {
 }
 
 .admin-form input:disabled,
-.admin-form input[readonly] {
+.admin-form input[readonly],
+.admin-form select:disabled,
+.admin-form textarea:disabled {
     background: #f5efe7;
     color: var(--muted);
 }
@@ -1632,6 +1680,16 @@ th {
         grid-template-columns: 1fr;
     }
 
+    .admin-inline-actions {
+        display: grid;
+        width: 100%;
+        grid-template-columns: 1fr;
+    }
+
+    .admin-inline-actions button {
+        width: 100%;
+    }
+
     .pagination-controls {
         align-items: stretch;
     }
@@ -1659,9 +1717,10 @@ th {
     }
 
     .guests-table thead,
-    .guests-table td:empty,
-    .guests-table td[data-label="Email"]:empty,
-    .guests-table td[data-label="Apertura"]:empty {
+    .guests-table td[data-label="Teléfono 2"],
+    .guests-table td[data-label="Adultos"],
+    .guests-table td[data-label="Niños"],
+    .guests-table td[data-label="Asistirá"] {
         display: none;
     }
 
@@ -1702,42 +1761,6 @@ th {
 
     .guests-table td[data-label="Nombre"]::before {
         content: none;
-    }
-
-    .guests-table td[data-label="Estado"] {
-        display: inline-flex;
-        width: fit-content;
-        margin: 2px 0 8px;
-        padding: 5px 9px;
-        border-radius: 999px;
-        background: rgba(111, 128, 105, 0.14);
-        color: var(--accent-dark);
-        font-size: 0.84rem;
-        font-weight: 900;
-    }
-
-    .guests-table td[data-label="Estado"]::before {
-        content: none;
-    }
-
-    .guests-table .table-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-        margin-top: 8px;
-        padding-top: 12px;
-        border-top: 1px solid var(--line);
-    }
-
-    .guests-table .table-actions::before {
-        content: none;
-    }
-
-    .guests-table .icon-button {
-        width: 36px;
-        min-width: 36px;
-        height: 36px;
-        min-height: 36px;
     }
 
     .admin-shortcut-panel {

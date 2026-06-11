@@ -74,22 +74,24 @@ create table if not exists public.eventin_guest_responses (
     children_count integer not null default 0,
     mensaje text,
     created_at timestamptz not null default now(),
-    updated_at timestamptz not null default now(),
-    unique (event_id, telefono)
+    updated_at timestamptz not null default now()
 );
 
 create table if not exists public.eventin_guests (
     id uuid primary key default gen_random_uuid(),
     event_id uuid not null references public.eventin_events(id) on delete cascade,
     name text not null,
-    phone text,
-    email text,
+    phone1 text,
+    phone2 text,
+    phone3 text,
+    phone4 text,
     adults_count integer not null default 1,
     children_count integer not null default 0,
-    notes text,
-    invitation_token text unique not null default encode(gen_random_bytes(24), 'hex'),
+    will_attend boolean,
+    message text,
     invitation_status text not null default 'pending',
-    opened_at timestamptz,
+    viewed_at timestamptz,
+    responded_at timestamptz,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
@@ -155,6 +157,51 @@ alter table public.eventin_guest_responses add column if not exists guest_id uui
 alter table public.eventin_guest_responses add column if not exists adults_count integer not null default 1;
 alter table public.eventin_guest_responses add column if not exists children_count integer not null default 0;
 alter table public.eventin_guest_responses alter column telefono drop not null;
+alter table public.eventin_guest_responses drop constraint if exists eventin_guest_responses_event_id_telefono_key;
+alter table public.eventin_guests add column if not exists phone1 text;
+alter table public.eventin_guests add column if not exists phone2 text;
+alter table public.eventin_guests add column if not exists phone3 text;
+alter table public.eventin_guests add column if not exists phone4 text;
+alter table public.eventin_guests add column if not exists will_attend boolean;
+alter table public.eventin_guests add column if not exists message text;
+alter table public.eventin_guests add column if not exists viewed_at timestamptz;
+alter table public.eventin_guests add column if not exists responded_at timestamptz;
+
+do $$
+begin
+    if exists (
+        select 1 from information_schema.columns
+        where table_schema = 'public' and table_name = 'eventin_guests' and column_name = 'phone'
+    ) then
+        execute 'update public.eventin_guests set phone1 = coalesce(phone1, phone) where phone1 is null';
+    end if;
+    if exists (
+        select 1 from information_schema.columns
+        where table_schema = 'public' and table_name = 'eventin_guests' and column_name = 'notes'
+    ) then
+        execute 'update public.eventin_guests set message = coalesce(message, notes) where message is null';
+    end if;
+    if exists (
+        select 1 from information_schema.columns
+        where table_schema = 'public' and table_name = 'eventin_guests' and column_name = 'opened_at'
+    ) then
+        execute 'update public.eventin_guests set viewed_at = coalesce(viewed_at, opened_at) where viewed_at is null';
+    end if;
+end;
+$$;
+
+do $$
+begin
+    if exists (
+        select 1 from information_schema.columns
+        where table_schema = 'public' and table_name = 'eventin_guests' and column_name = 'invitation_token'
+    ) then
+        alter table public.eventin_guests alter column invitation_token drop default;
+        alter table public.eventin_guests alter column invitation_token drop not null;
+        update public.eventin_guests set invitation_token = null;
+    end if;
+end;
+$$;
 
 update public.eventin_profiles
 set role = 'admin'
@@ -186,9 +233,13 @@ begin
         alter table public.eventin_guests drop constraint eventin_guests_status_check;
     end if;
 
+    update public.eventin_guests
+    set invitation_status = 'viewed'
+    where invitation_status = 'opened';
+
     alter table public.eventin_guests
     add constraint eventin_guests_status_check
-    check (invitation_status in ('pending', 'opened', 'confirmed', 'declined'));
+    check (invitation_status in ('pending', 'viewed', 'confirmed', 'declined'));
 end;
 $$;
 
@@ -254,9 +305,18 @@ create index if not exists idx_eventin_profiles_event_code on public.eventin_pro
 create index if not exists idx_eventin_guest_responses_event_id on public.eventin_guest_responses(event_id);
 create index if not exists idx_eventin_guest_responses_event_phone on public.eventin_guest_responses(event_id, telefono);
 create index if not exists idx_eventin_guest_responses_guest_id on public.eventin_guest_responses(guest_id);
+delete from public.eventin_guest_responses older
+using public.eventin_guest_responses newer
+where older.guest_id is not null
+  and older.guest_id = newer.guest_id
+  and (older.updated_at, older.id) < (newer.updated_at, newer.id);
+create unique index if not exists idx_eventin_guest_responses_guest_unique on public.eventin_guest_responses(guest_id) where guest_id is not null;
 create index if not exists idx_eventin_guests_event_id on public.eventin_guests(event_id);
-create index if not exists idx_eventin_guests_event_phone on public.eventin_guests(event_id, phone);
-create unique index if not exists idx_eventin_guests_invitation_token on public.eventin_guests(invitation_token);
+create index if not exists idx_eventin_guests_event_phone1 on public.eventin_guests(event_id, phone1);
+create index if not exists idx_eventin_guests_event_phone2 on public.eventin_guests(event_id, phone2);
+create index if not exists idx_eventin_guests_event_phone3 on public.eventin_guests(event_id, phone3);
+create index if not exists idx_eventin_guests_event_phone4 on public.eventin_guests(event_id, phone4);
+drop index if exists public.idx_eventin_guests_invitation_token;
 create index if not exists idx_eventin_public_messages_event_id on public.eventin_public_messages(event_id);
 create index if not exists idx_eventin_contact_requests_created_at on public.eventin_contact_requests(created_at);
 create index if not exists idx_eventin_gallery_images_event_type_created on public.eventin_gallery_images(event_id, gallery_type, created_at desc);
@@ -328,6 +388,8 @@ drop function if exists public.eventin_set_collaborative_gallery_available(uuid,
 drop function if exists public.eventin_verify_collaborative_gallery_access(text, text) cascade;
 drop function if exists public.eventin_get_guest_invitation(text) cascade;
 drop function if exists public.eventin_submit_guest_token_response(text, boolean, integer, integer, text) cascade;
+drop function if exists public.eventin_find_guest_by_phone(text, text) cascade;
+drop function if exists public.eventin_submit_guest_phone_response(text, text, boolean, integer, integer, text) cascade;
 drop function if exists public.eventin_generate_event_code() cascade;
 drop function if exists eventin_private.is_admin() cascade;
 drop function if exists eventin_private.can_access_event(uuid) cascade;
@@ -341,6 +403,11 @@ drop function if exists eventin_private.get_gallery_admin_settings(uuid) cascade
 drop function if exists eventin_private.manage_collaborative_gallery(uuid, boolean, text) cascade;
 drop function if exists eventin_private.set_collaborative_gallery_available(uuid, boolean) cascade;
 drop function if exists eventin_private.verify_collaborative_gallery_access(text, text) cascade;
+drop function if exists eventin_private.normalize_guest_phone(text) cascade;
+drop function if exists eventin_private.find_guest_by_phone(text, text) cascade;
+drop function if exists eventin_private.submit_guest_phone_response(text, text, boolean, integer, integer, text) cascade;
+drop function if exists eventin_private.validate_guest_phones() cascade;
+drop function if exists eventin_private.sync_guest_response() cascade;
 
 create or replace function eventin_private.is_admin()
 returns boolean
@@ -412,116 +479,6 @@ begin
 end;
 $$;
 
-create or replace function eventin_private.submit_guest_response(
-    p_event_id uuid,
-    p_nombre text,
-    p_telefono text,
-    p_asistencia boolean,
-    p_mensaje text default null,
-    p_adults_count integer default 1,
-    p_children_count integer default 0
-)
-returns uuid
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-    guest_record public.eventin_guests%rowtype;
-    response_id uuid;
-    normalized_phone text;
-begin
-    if coalesce(trim(p_nombre), '') = '' then
-        raise exception 'Nombre obligatorio';
-    end if;
-
-    normalized_phone := nullif(trim(coalesce(p_telefono, '')), '');
-
-    if coalesce(trim(p_telefono), '') = '' then
-        raise exception 'Telefono obligatorio';
-    end if;
-
-    if p_adults_count < 0 or p_children_count < 0 then
-        raise exception 'Numero de invitados no valido';
-    end if;
-
-    if not exists (
-        select 1
-        from public.eventin_events
-        where id = p_event_id
-          and is_active = true
-    ) then
-        raise exception 'Evento no disponible';
-    end if;
-
-    select *
-    into guest_record
-    from public.eventin_guests
-    where event_id = p_event_id
-      and (
-          phone = normalized_phone
-          or nullif(regexp_replace(coalesce(phone, ''), '[^\d+]', '', 'g'), '') = normalized_phone
-      )
-    limit 1;
-
-    if not found then
-        insert into public.eventin_guests (
-            event_id,
-            name,
-            phone,
-            adults_count,
-            children_count,
-            invitation_status
-        ) values (
-            p_event_id,
-            trim(p_nombre),
-            normalized_phone,
-            coalesce(p_adults_count, 0),
-            coalesce(p_children_count, 0),
-            case when p_asistencia then 'confirmed' else 'declined' end
-        )
-        returning * into guest_record;
-    else
-        update public.eventin_guests
-        set adults_count = coalesce(p_adults_count, 0),
-            children_count = coalesce(p_children_count, 0),
-            invitation_status = case when p_asistencia then 'confirmed' else 'declined' end
-        where id = guest_record.id
-        returning * into guest_record;
-    end if;
-
-    insert into public.eventin_guest_responses (
-        event_id,
-        guest_id,
-        nombre,
-        telefono,
-        asistencia,
-        adults_count,
-        children_count,
-        mensaje
-    ) values (
-        p_event_id,
-        guest_record.id,
-        guest_record.name,
-        normalized_phone,
-        p_asistencia,
-        coalesce(p_adults_count, 0),
-        coalesce(p_children_count, 0),
-        nullif(trim(coalesce(p_mensaje, '')), '')
-    )
-    on conflict (event_id, telefono) do update set
-        guest_id = excluded.guest_id,
-        asistencia = excluded.asistencia,
-        adults_count = excluded.adults_count,
-        children_count = excluded.children_count,
-        mensaje = excluded.mensaje,
-        updated_at = now()
-    returning id into response_id;
-
-    return response_id;
-end;
-$$;
-
 create or replace function eventin_private.submit_public_message(
     p_event_id uuid,
     p_author_name text,
@@ -559,33 +516,6 @@ begin
     return message_id;
 end;
 $$;
-
-create or replace function public.eventin_submit_guest_response(
-    p_event_id uuid,
-    p_nombre text,
-    p_telefono text,
-    p_asistencia boolean,
-    p_mensaje text default null,
-    p_adults_count integer default 1,
-    p_children_count integer default 0
-)
-returns uuid
-language sql
-security invoker
-set search_path = public
-as $$
-    select eventin_private.submit_guest_response(
-        p_event_id,
-        p_nombre,
-        p_telefono,
-        p_asistencia,
-        p_mensaje,
-        p_adults_count,
-        p_children_count
-    );
-$$;
-
-grant execute on function public.eventin_submit_guest_response(uuid, text, text, boolean, text, integer, integer) to anon, authenticated;
 
 create or replace function public.eventin_submit_public_message(
     p_event_id uuid,
@@ -823,79 +753,206 @@ grant execute on function public.eventin_manage_collaborative_gallery(uuid, bool
 grant execute on function public.eventin_set_collaborative_gallery_available(uuid, boolean) to authenticated;
 grant execute on function public.eventin_verify_collaborative_gallery_access(text, text) to anon, authenticated, service_role;
 
-create or replace function public.eventin_get_guest_invitation(p_token text)
+create or replace function eventin_private.normalize_guest_phone(p_phone text)
+returns text
+language plpgsql
+immutable
+set search_path = public
+as $$
+declare
+    digits text;
+begin
+    digits := regexp_replace(coalesce(p_phone, ''), '[^0-9]', '', 'g');
+    if digits like '0034%' then
+        digits := substr(digits, 5);
+    elsif length(digits) > 9 and digits like '34%' then
+        digits := substr(digits, 3);
+    end if;
+    return nullif(digits, '');
+end;
+$$;
+
+create or replace function eventin_private.validate_guest_phones()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    phones text[];
+begin
+    perform pg_advisory_xact_lock(hashtextextended(new.event_id::text, 0));
+    new.phone1 := eventin_private.normalize_guest_phone(new.phone1);
+    new.phone2 := eventin_private.normalize_guest_phone(new.phone2);
+    new.phone3 := eventin_private.normalize_guest_phone(new.phone3);
+    new.phone4 := eventin_private.normalize_guest_phone(new.phone4);
+    phones := array_remove(array[new.phone1, new.phone2, new.phone3, new.phone4], null);
+
+    if cardinality(phones) <> (select count(distinct phone) from unnest(phones) as phone) then
+        raise exception 'Un telefono no puede repetirse en el mismo invitado';
+    end if;
+
+    if exists (
+        select 1
+        from public.eventin_guests g
+        where g.event_id = new.event_id
+          and g.id is distinct from new.id
+          and array_remove(array[g.phone1, g.phone2, g.phone3, g.phone4], null) && phones
+    ) then
+        raise exception 'El telefono ya pertenece a otro invitado de este evento';
+    end if;
+    return new;
+end;
+$$;
+
+drop trigger if exists trg_validate_guest_phones on public.eventin_guests;
+create trigger trg_validate_guest_phones
+before insert or update of event_id, phone1, phone2, phone3, phone4 on public.eventin_guests
+for each row execute function eventin_private.validate_guest_phones();
+
+create or replace function eventin_private.sync_guest_response()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    response_id uuid;
+    response_phone text;
+begin
+    if new.will_attend is null then
+        delete from public.eventin_guest_responses where guest_id = new.id;
+        return new;
+    end if;
+
+    response_phone := coalesce(new.phone1, new.phone2, new.phone3, new.phone4);
+    update public.eventin_guest_responses
+    set event_id = new.event_id,
+        nombre = new.name,
+        telefono = response_phone,
+        asistencia = new.will_attend,
+        adults_count = new.adults_count,
+        children_count = new.children_count,
+        mensaje = new.message,
+        updated_at = now()
+    where guest_id = new.id
+    returning id into response_id;
+
+    if response_id is null then
+        insert into public.eventin_guest_responses (
+            event_id, guest_id, nombre, telefono, asistencia, adults_count, children_count, mensaje
+        ) values (
+            new.event_id, new.id, new.name, response_phone, new.will_attend,
+            new.adults_count, new.children_count, new.message
+        );
+    end if;
+    return new;
+end;
+$$;
+
+update public.eventin_guests guest
+set will_attend = response.asistencia,
+    adults_count = response.adults_count,
+    children_count = response.children_count,
+    message = coalesce(guest.message, response.mensaje),
+    responded_at = coalesce(guest.responded_at, response.updated_at),
+    invitation_status = case when response.asistencia then 'confirmed' else 'declined' end
+from (
+    select distinct on (guest_id)
+        guest_id, asistencia, adults_count, children_count, mensaje, updated_at
+    from public.eventin_guest_responses
+    where guest_id is not null
+    order by guest_id, updated_at desc
+) response
+where guest.id = response.guest_id;
+
+update public.eventin_guests
+set phone1 = phone1,
+    phone2 = phone2,
+    phone3 = phone3,
+    phone4 = phone4;
+
+drop trigger if exists trg_sync_guest_response on public.eventin_guests;
+create trigger trg_sync_guest_response
+after insert or update of event_id, name, phone1, phone2, phone3, phone4, adults_count, children_count, will_attend, message
+on public.eventin_guests
+for each row execute function eventin_private.sync_guest_response();
+
+create or replace function eventin_private.find_guest_by_phone(p_event_key text, p_phone text)
 returns jsonb
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-    payload jsonb;
+    normalized_phone text;
     guest_record public.eventin_guests%rowtype;
+    event_record public.eventin_events%rowtype;
+    settings_record public.eventin_event_settings%rowtype;
 begin
-    select *
-    into guest_record
-    from public.eventin_guests
-    where invitation_token = p_token;
+    normalized_phone := eventin_private.normalize_guest_phone(p_phone);
+    if normalized_phone is null then
+        return null;
+    end if;
 
+    select * into event_record
+    from public.eventin_events
+    where is_active = true
+      and (public_slug = trim(p_event_key) or event_code = trim(p_event_key))
+    limit 1;
     if not found then
         return null;
     end if;
 
-    if not exists (
-        select 1
-        from public.eventin_events
-        where id = guest_record.event_id
-          and is_active = true
-    ) then
+    select * into guest_record
+    from public.eventin_guests
+    where event_id = event_record.id
+      and normalized_phone = any(array[phone1, phone2, phone3, phone4])
+    limit 1;
+    if not found then
         return null;
     end if;
 
-    if guest_record.opened_at is null then
-        update public.eventin_guests
-        set opened_at = now(),
-            invitation_status = case when invitation_status = 'pending' then 'opened' else invitation_status end
-        where id = guest_record.id
-        returning * into guest_record;
-    end if;
+    update public.eventin_guests
+    set viewed_at = coalesce(viewed_at, now()),
+        invitation_status = case when invitation_status = 'pending' then 'viewed' else invitation_status end
+    where id = guest_record.id
+    returning * into guest_record;
 
-    select jsonb_build_object(
+    select * into settings_record
+    from public.eventin_event_settings
+    where event_id = event_record.id;
+
+    return jsonb_build_object(
         'guest', jsonb_build_object(
-            'id', guest_record.id,
             'name', guest_record.name,
             'adults_count', guest_record.adults_count,
             'children_count', guest_record.children_count,
+            'will_attend', guest_record.will_attend,
+            'message', guest_record.message,
             'invitation_status', guest_record.invitation_status
         ),
         'event', jsonb_build_object(
-            'id', e.id,
-            'title', e.title,
-            'event_date', e.event_date,
-            'public_slug', e.public_slug,
-            'event_code', e.event_code
+            'id', event_record.id,
+            'title', event_record.title,
+            'event_date', event_record.event_date,
+            'public_slug', event_record.public_slug,
+            'event_code', event_record.event_code
         ),
         'settings', jsonb_build_object(
-            'display_date', s.display_date,
-            'display_time', s.display_time,
-            'detail_image_url', s.detail_image_url
+            'detail_image_url', settings_record.detail_image_url
         )
-    )
-    into payload
-    from public.eventin_events e
-    left join public.eventin_event_settings s on s.event_id = e.id
-    where e.id = guest_record.event_id
-      and e.is_active = true;
-
-    return payload;
+    );
 end;
 $$;
 
-create or replace function public.eventin_submit_guest_token_response(
-    p_token text,
-    p_asistencia boolean,
+create or replace function eventin_private.submit_guest_phone_response(
+    p_event_key text,
+    p_phone text,
+    p_will_attend boolean,
     p_adults_count integer,
     p_children_count integer,
-    p_mensaje text default null
+    p_message text default null
 )
 returns uuid
 language plpgsql
@@ -903,90 +960,84 @@ security definer
 set search_path = public
 as $$
 declare
+    normalized_phone text;
     guest_record public.eventin_guests%rowtype;
+    event_id_value uuid;
     response_id uuid;
-    response_phone text;
 begin
-    select *
-    into guest_record
-    from public.eventin_guests
-    where invitation_token = p_token;
+    normalized_phone := eventin_private.normalize_guest_phone(p_phone);
+    if normalized_phone is null or p_adults_count < 0 or p_children_count < 0 then
+        raise exception 'Datos de respuesta no validos';
+    end if;
 
+    select id into event_id_value
+    from public.eventin_events
+    where is_active = true
+      and (public_slug = trim(p_event_key) or event_code = trim(p_event_key))
+    limit 1;
+
+    select * into guest_record
+    from public.eventin_guests
+    where event_id = event_id_value
+      and normalized_phone = any(array[phone1, phone2, phone3, phone4])
+    limit 1;
     if not found then
         raise exception 'Invitacion no encontrada';
     end if;
 
-    if not exists (
-        select 1
-        from public.eventin_events
-        where id = guest_record.event_id
-          and is_active = true
-    ) then
-        raise exception 'Evento no disponible';
-    end if;
-
-    if p_adults_count < 0 or p_children_count < 0 then
-        raise exception 'Numero de invitados no valido';
-    end if;
-
     update public.eventin_guests
-    set invitation_status = case when p_asistencia then 'confirmed' else 'declined' end,
-        adults_count = coalesce(p_adults_count, 0),
-        children_count = coalesce(p_children_count, 0)
-    where id = guest_record.id;
-
-    response_phone := nullif(trim(coalesce(guest_record.phone, '')), '');
-
-    update public.eventin_guest_responses
-    set nombre = guest_record.name,
-        telefono = response_phone,
-        asistencia = p_asistencia,
-        adults_count = coalesce(p_adults_count, 0),
+    set adults_count = coalesce(p_adults_count, 0),
         children_count = coalesce(p_children_count, 0),
-        mensaje = nullif(trim(coalesce(p_mensaje, '')), ''),
-        updated_at = now()
-    where guest_id = guest_record.id
-    returning id into response_id;
+        will_attend = p_will_attend,
+        message = nullif(trim(coalesce(p_message, '')), ''),
+        invitation_status = case when p_will_attend then 'confirmed' else 'declined' end,
+        responded_at = now()
+    where id = guest_record.id
+    returning * into guest_record;
 
-    if response_id is not null then
-        return response_id;
-    end if;
-
-    insert into public.eventin_guest_responses (
-        event_id,
-        guest_id,
-        nombre,
-        telefono,
-        asistencia,
-        adults_count,
-        children_count,
-        mensaje
-    ) values (
-        guest_record.event_id,
-        guest_record.id,
-        guest_record.name,
-        response_phone,
-        p_asistencia,
-        coalesce(p_adults_count, 0),
-        coalesce(p_children_count, 0),
-        nullif(trim(coalesce(p_mensaje, '')), '')
-    )
-    on conflict (event_id, telefono) do update set
-        guest_id = excluded.guest_id,
-        nombre = excluded.nombre,
-        asistencia = excluded.asistencia,
-        adults_count = excluded.adults_count,
-        children_count = excluded.children_count,
-        mensaje = excluded.mensaje,
-        updated_at = now()
-    returning id into response_id;
-
+    select id into response_id
+    from public.eventin_guest_responses
+    where guest_id = guest_record.id;
     return response_id;
 end;
 $$;
 
-grant execute on function public.eventin_get_guest_invitation(text) to anon, authenticated;
-grant execute on function public.eventin_submit_guest_token_response(text, boolean, integer, integer, text) to anon, authenticated;
+create or replace function public.eventin_find_guest_by_phone(p_event_key text, p_phone text)
+returns jsonb
+language sql
+security invoker
+set search_path = public
+as $$ select eventin_private.find_guest_by_phone(p_event_key, p_phone); $$;
+
+create or replace function public.eventin_submit_guest_phone_response(
+    p_event_key text,
+    p_phone text,
+    p_will_attend boolean,
+    p_adults_count integer,
+    p_children_count integer,
+    p_message text default null
+)
+returns uuid
+language sql
+security invoker
+set search_path = public
+as $$
+    select eventin_private.submit_guest_phone_response(
+        p_event_key, p_phone, p_will_attend, p_adults_count, p_children_count, p_message
+    );
+$$;
+
+revoke execute on function eventin_private.normalize_guest_phone(text) from public;
+revoke execute on function eventin_private.validate_guest_phones() from public;
+revoke execute on function eventin_private.sync_guest_response() from public;
+revoke execute on function eventin_private.find_guest_by_phone(text, text) from public;
+revoke execute on function eventin_private.submit_guest_phone_response(text, text, boolean, integer, integer, text) from public;
+revoke execute on function public.eventin_find_guest_by_phone(text, text) from public;
+revoke execute on function public.eventin_submit_guest_phone_response(text, text, boolean, integer, integer, text) from public;
+grant execute on function eventin_private.find_guest_by_phone(text, text) to anon, authenticated;
+grant execute on function eventin_private.submit_guest_phone_response(text, text, boolean, integer, integer, text) to anon, authenticated;
+grant execute on function public.eventin_find_guest_by_phone(text, text) to anon, authenticated;
+grant execute on function public.eventin_submit_guest_phone_response(text, text, boolean, integer, integer, text) to anon, authenticated;
 
 create or replace function public.eventin_can_manage_event_image(target_event_code text)
 returns boolean

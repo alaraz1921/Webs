@@ -23,27 +23,33 @@
             <p id="guest-greeting" class="guest-greeting" hidden></p>
             <p><span data-invitation-date></span><span data-invitation-time></span></p>
         </section>
-        <section id="invitation-not-found" class="form-card" hidden>
-            <p>No hemos encontrado esta invitacion. Revisa el enlace o contacta con la persona que te lo envio.</p>
-        </section>
-        <form id="invitation-form" class="form-card">
-            <label data-legacy-field>
-                Nombre
-                <input type="text" name="nombre" autocomplete="name" required>
+        <form id="invitation-phone-form" class="form-card invitation-phone-form">
+            <h3>Busca tu invitación</h3>
+            <p>Introduce uno de los teléfonos asociados a tu invitación.</p>
+            <label>
+                Teléfono
+                <input type="tel" name="phone" autocomplete="tel" inputmode="tel" required>
             </label>
-            <label data-legacy-field>
-                Telefono
-                <input type="tel" name="telefono" autocomplete="tel" inputmode="tel" required>
+            <button type="submit">Continuar</button>
+            <p id="invitation-phone-status" class="form-status" role="status"></p>
+        </form>
+        <section id="invitation-not-found" class="form-card" hidden>
+            <p>No hemos encontrado una invitación asociada a ese teléfono. Revisa el número o contacta con los organizadores del evento.</p>
+        </section>
+        <form id="invitation-form" class="form-card" hidden>
+            <label>
+                Nombre
+                <input type="text" name="name" readonly>
             </label>
             <fieldset>
                 <legend>Asistencia</legend>
                 <label class="radio-line">
-                    <input type="radio" name="asistencia" value="true" required>
-                    Si asistire
+                    <input type="radio" name="will_attend" value="true" required>
+                    Sí asistiré
                 </label>
                 <label class="radio-line">
-                    <input type="radio" name="asistencia" value="false" required>
-                    No podre asistir
+                    <input type="radio" name="will_attend" value="false" required>
+                    No podré asistir
                 </label>
             </fieldset>
             <label>
@@ -51,14 +57,15 @@
                 <input type="number" name="adults_count" min="0" value="1">
             </label>
             <label>
-                Ninos confirmados
+                Niños confirmados
                 <input type="number" name="children_count" min="0" value="0">
             </label>
             <label>
-                Mensaje
-                <textarea name="mensaje" rows="4"></textarea>
+                Mensaje o nota
+                <textarea name="message" rows="4"></textarea>
             </label>
-            <button type="submit">Enviar respuesta</button>
+            <button type="submit">Guardar respuesta</button>
+            <button id="change-invitation-phone" type="button" class="secondary-button">Usar otro teléfono</button>
             <p id="invitation-status" class="form-status" role="status"></p>
         </form>
         <a id="event-link" class="page-link" href="index.html">Ir al evento</a>

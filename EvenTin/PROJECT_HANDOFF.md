@@ -1,6 +1,6 @@
 # EvenTin Project Handoff
 
-Ultima actualizacion: 2026-06-09
+Ultima actualizacion: 2026-06-11
 
 ## Resumen
 
@@ -94,7 +94,7 @@ EvenTin/
 - `galeria-colaborativa.html?token=TOKEN`: galeria privada colaborativa protegida por clave.
 - `evento.html?evento=CODIGO_O_SLUG`: pagina publica de evento.
 - `invitacion.html?evento=CODIGO_O_SLUG`: formulario publico legacy de confirmacion de asistencia. Muestra logo, `eventin_events.title` y fecha/hora real de `eventin_events.event_date`.
-- `invitacion.html?token=TOKEN`: invitacion individual por invitado. No usa telefono en URL.
+- `invitacion.html?evento=SLUG_EVENTO`: enlace unico de invitacion del evento. El telefono no aparece en URL.
 - `invitados.html?evento=EVENT_ID`: gestion privada de invitados del evento seleccionado.
 - `debug.html`: pagina no enlazada con accesos rapidos a portada, admin, eventos e invitaciones de prueba.
 - `admin.html`: panel privado con login Supabase Auth.
@@ -178,7 +178,7 @@ Resumen:
 - Los botones para copiar los enlaces publico y de invitacion usan icono de copiar.
 - Se ajusto el control de fecha y hora para que no sobresalga respecto al resto de campos.
 - La pagina de invitacion muestra la imagen de detalle entre el titulo del evento y el bloque de confirmacion.
-- La RPC `eventin_get_guest_invitation(text)` devuelve tambien `settings.detail_image_url` para mostrar la imagen en invitaciones individuales por token.
+- La RPC `eventin_find_guest_by_phone(text, text)` devuelve tambien `settings.detail_image_url` para mostrar la imagen de detalle tras identificar al invitado.
 - Tras estos cambios hay que ejecutar de nuevo `EvenTin/sql/schema.sql` completo en Supabase.
 
 ## Cambios del 2026-06-05
@@ -209,11 +209,11 @@ Resumen:
 - Las respuestas del panel permiten editar solo la asistencia y borrar mediante modal.
 - Los mensajes publicos se listan por lineas y ya no tienen edicion.
 - `debug.html` abre enlaces en pestana nueva.
-- Se inicio la gestion de invitados con tabla `eventin_guests`, tokens individuales y enlaces `invitacion.html?token=TOKEN`.
+- La gestion de invitados se inicio con tokens individuales; desde el 11 de junio de 2026 usa un enlace general por evento y busqueda por telefono.
 - El panel admin enlaza a `invitados.html`, donde se puede crear, editar, borrar, copiar mensaje de invitacion y abrir WhatsApp para cada invitado.
 - Alta, edicion y borrado de invitados se hacen mediante modales. Las acciones usan botones compactos de icono.
-- La invitacion por token muestra saludo personalizado, marca apertura y guarda confirmacion/rechazo contra el invitado.
-- Si una invitacion por token no tiene telefono en la ficha del invitado, la respuesta se guarda sin telefono.
+- La invitacion general muestra el saludo personalizado tras localizar uno de los cuatro telefonos del invitado.
+- La identificacion marca `viewed_at` y cada guardado actualiza la misma respuesta asociada por `guest_id`.
 - La invitacion generica intenta localizar invitado por telefono; si no existe, lo crea y vincula la respuesta.
 - Si la invitacion generica localiza un invitado por telefono, no actualiza su nombre ni telefono; solo asistencia, adultos, ninos, estado y mensaje/respuesta.
 - La gestion de invitados quedo en `invitados.html` con login propio de respaldo, filtro por nombre/telefono, orden por nombre/telefono/estado y paginacion de 10 invitados.
@@ -308,33 +308,26 @@ Funciones internas sensibles se movieron a `eventin_private` para que no queden 
 - `eventin_private.can_access_event(uuid)`
 - `eventin_private.can_access_event_code(text)`
 - `eventin_private.generate_event_code()`
-- `eventin_private.submit_guest_response(...)`
+- `eventin_private.find_guest_by_phone(...)`
+- `eventin_private.submit_guest_phone_response(...)`
 
-RPC publica conservada para la invitacion:
-
-```text
-public.eventin_submit_guest_response(...)
-```
-
-Esta RPC es `SECURITY INVOKER`; llama internamente a `eventin_private.submit_guest_response(...)`.
-
-RPC publicas para invitacion individual por token:
+RPC publicas para la invitacion general por evento:
 
 ```text
-public.eventin_get_guest_invitation(text)
-public.eventin_submit_guest_token_response(text, boolean, integer, integer, text)
+public.eventin_find_guest_by_phone(text, text)
+public.eventin_submit_guest_phone_response(text, text, boolean, integer, integer, text)
 ```
 
-Son `SECURITY DEFINER` de forma intencionada para permitir el flujo publico por token sin exponer la tabla completa. Devuelven solo datos minimos del invitado y validan que el evento este activo.
+Son `SECURITY INVOKER` y llaman a funciones internas que devuelven solo los datos minimos del invitado localizado dentro de un evento activo.
 
 ### Invitados
 
 `public.eventin_guests` contiene:
 
-- `event_id`, `name`, `phone`, `email`, `adults_count`, `children_count`, `notes`.
-- `invitation_token`: token aleatorio unico. Es lo unico que se usa en la URL publica.
-- `invitation_status`: `pending`, `opened`, `confirmed`, `declined`.
-- `opened_at`, `created_at`, `updated_at`.
+- `event_id`, `name`, `phone1`, `phone2`, `phone3`, `phone4`.
+- `adults_count`, `children_count`, `will_attend`, `message`.
+- `invitation_status`: `pending`, `viewed`, `confirmed`, `declined`.
+- `viewed_at`, `responded_at`, `created_at`, `updated_at`.
 
 `public.eventin_guest_responses` mantiene compatibilidad con respuestas antiguas y ahora tambien puede guardar:
 
@@ -342,15 +335,13 @@ Son `SECURITY DEFINER` de forma intencionada para permitir el flujo publico por 
 - `adults_count`
 - `children_count`
 
-El campo `telefono` puede quedar vacio (`null`) cuando la respuesta viene de una invitacion individual por token y el invitado no tenia telefono en su ficha.
-
 Reglas actuales de respuestas:
 
-- Invitacion individual por token: busca el invitado por `invitation_token`, marca `opened_at` si procede y guarda/actualiza una respuesta asociada por `guest_id`.
-- Si el invitado por token no tiene telefono, `eventin_guest_responses.telefono` queda `null`.
-- Invitacion generica por `evento`: exige nombre y telefono, busca invitado por telefono dentro del evento y crea uno si no existe.
-- Si la invitacion generica encuentra invitado, no sobreescribe `name` ni `phone` en `eventin_guests`; actualiza asistencia, adultos, ninos y estado.
-- Las respuestas genericas se guardan con el nombre de la ficha del invitado si el telefono coincide con un invitado existente.
+- Existe un unico enlace por evento: `invitacion.html?evento=SLUG_EVENTO`.
+- El invitado se identifica por cualquiera de sus cuatro telefonos normalizados.
+- El nombre es de solo lectura y cada nuevo guardado actualiza el mismo invitado y la misma respuesta por `guest_id`.
+- Un telefono no puede repetirse entre invitados del mismo evento; si puede existir en eventos distintos.
+- La gestion de invitados usa una tabla compacta y un unico modal para consulta, alta, modificacion y borrado.
 
 ### Campos importantes de eventos
 
@@ -463,7 +454,7 @@ Invitados:
 - Se gestionan desde `invitados.html`, enlazado desde el panel de eventos.
 - Tiene formulario de login propio si no detecta sesion activa.
 - Permite crear, editar y borrar invitados mediante modales.
-- Permite copiar el mensaje de invitacion individual y abrir WhatsApp si hay telefono.
+- Permite copiar el enlace general del evento y abrir la ficha completa de cada invitado desde la tabla.
 - La lista se puede filtrar por nombre/telefono, ordenar por nombre/telefono/estado y pagina cada 10 invitados.
 
 Usuarios:

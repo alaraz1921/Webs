@@ -56,7 +56,10 @@
             <section class="data-panel admin-tools">
                 <div class="admin-view-header">
                     <h2 id="guests-list-title">Invitados</h2>
-                    <button id="new-guest-button" type="button" class="secondary-button">Nuevo</button>
+                    <div class="admin-inline-actions">
+                        <button id="copy-invitation-link" type="button" class="secondary-button">Copiar enlace de invitación</button>
+                        <button id="new-guest-button" type="button">Nuevo</button>
+                    </div>
                 </div>
                 <div class="guest-list-controls">
                     <label>
@@ -67,7 +70,7 @@
                         Ordenar por
                         <select id="guest-sort">
                             <option value="name">Nombre</option>
-                            <option value="phone">Telefono</option>
+                            <option value="phone">Teléfono</option>
                             <option value="status">Estado</option>
                         </select>
                     </label>
@@ -78,13 +81,12 @@
                         <thead>
                             <tr>
                                 <th>Nombre</th>
-                                <th>Telefono</th>
-                                <th>Email</th>
+                                <th>Teléfono 1</th>
+                                <th>Teléfono 2</th>
                                 <th>Adultos</th>
-                                <th>Ninos</th>
+                                <th>Niños</th>
+                                <th>Asistirá</th>
                                 <th>Estado</th>
-                                <th>Apertura</th>
-                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="guests-table"></tbody>
@@ -107,9 +109,9 @@
         <a class="eventin-discover-link" href="index.html">Descubre más en EvenTin</a>
     </footer>
 
-    <div id="guest-form-modal" class="modal-backdrop" hidden>
-        <section class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-labelledby="guest-form-title">
-            <h2 id="guest-form-title">Nuevo invitado</h2>
+    <div id="guest-detail-modal" class="modal-backdrop" hidden>
+        <section class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-labelledby="guest-detail-title">
+            <h2 id="guest-detail-title">Invitado</h2>
             <form id="guest-form" class="admin-form modal-form">
                 <input type="hidden" name="guest_id">
                 <label>
@@ -117,27 +119,52 @@
                     <input type="text" name="name" required>
                 </label>
                 <label>
-                    Telefono
-                    <input type="tel" name="phone" inputmode="tel">
+                    Teléfono 1
+                    <input type="tel" name="phone1" inputmode="tel">
                 </label>
                 <label>
-                    Email
-                    <input type="email" name="email">
+                    Teléfono 2
+                    <input type="tel" name="phone2" inputmode="tel">
+                </label>
+                <label>
+                    Teléfono 3
+                    <input type="tel" name="phone3" inputmode="tel">
+                </label>
+                <label>
+                    Teléfono 4
+                    <input type="tel" name="phone4" inputmode="tel">
                 </label>
                 <label>
                     Adultos
                     <input type="number" name="adults_count" min="0" value="1">
                 </label>
                 <label>
-                    Ninos
+                    Niños
                     <input type="number" name="children_count" min="0" value="0">
                 </label>
                 <label>
-                    Notas
-                    <textarea name="notes" rows="3"></textarea>
+                    Asistirá
+                    <select name="will_attend">
+                        <option value="">Sin respuesta</option>
+                        <option value="true">Sí</option>
+                        <option value="false">No</option>
+                    </select>
                 </label>
-                <div class="modal-actions">
-                    <button id="cancel-guest-form" type="button" class="secondary-button">Cancelar</button>
+                <label>
+                    Mensaje
+                    <textarea name="message" rows="3"></textarea>
+                </label>
+                <label>
+                    Estado
+                    <input type="text" name="status_label" readonly>
+                </label>
+                <div id="guest-read-actions" class="modal-actions">
+                    <button id="close-guest-detail" type="button" class="secondary-button">Cerrar</button>
+                    <button id="delete-guest-button" type="button" class="danger-button">Eliminar</button>
+                    <button id="edit-guest-button" type="button">Modificar</button>
+                </div>
+                <div id="guest-edit-actions" class="modal-actions" hidden>
+                    <button id="cancel-guest-edit" type="button" class="secondary-button">Cancelar</button>
                     <button type="submit">Guardar</button>
                 </div>
             </form>

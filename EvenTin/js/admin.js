@@ -992,7 +992,7 @@
     async function loadResponses(eventId) {
         const { data, error, count } = await client
             .from('eventin_guest_responses')
-            .select('id,nombre,telefono,asistencia,mensaje,created_at,updated_at', { count: 'exact' })
+            .select('id,guest_id,nombre,telefono,asistencia,mensaje,created_at,updated_at', { count: 'exact' })
             .eq('event_id', eventId)
             .order('updated_at', { ascending: false })
             .range(0, PREVIEW_LIMIT - 1);
@@ -1030,7 +1030,7 @@
         const to = from + PAGE_SIZE - 1;
         const { data, error, count } = await client
             .from('eventin_guest_responses')
-            .select('id,nombre,telefono,asistencia,mensaje,created_at,updated_at', { count: 'exact' })
+            .select('id,guest_id,nombre,telefono,asistencia,mensaje,created_at,updated_at', { count: 'exact' })
             .eq('event_id', eventId)
             .order('updated_at', { ascending: false })
             .range(from, to);
@@ -1523,7 +1523,15 @@
                     return;
                 }
 
-                await client.from('eventin_guest_responses').delete().eq('id', id).throwOnError();
+                if (response?.guest_id) {
+                    await client.from('eventin_guests').update({
+                        will_attend: null,
+                        invitation_status: 'pending',
+                        responded_at: null
+                    }).eq('id', response.guest_id).throwOnError();
+                } else {
+                    await client.from('eventin_guest_responses').delete().eq('id', id).throwOnError();
+                }
             }
 
             if (action === 'edit-response') {
@@ -1532,11 +1540,15 @@
                     return;
                 }
 
-                await client
-                    .from('eventin_guest_responses')
-                    .update({ asistencia })
-                    .eq('id', id)
-                    .throwOnError();
+                if (response?.guest_id) {
+                    await client.from('eventin_guests').update({
+                        will_attend: asistencia,
+                        invitation_status: asistencia ? 'confirmed' : 'declined',
+                        responded_at: new Date().toISOString()
+                    }).eq('id', response.guest_id).throwOnError();
+                } else {
+                    await client.from('eventin_guest_responses').update({ asistencia }).eq('id', id).throwOnError();
+                }
             }
 
             await loadResponses(eventId);
