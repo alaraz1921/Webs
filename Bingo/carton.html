@@ -32,7 +32,7 @@
         <div class="bingo-menu-list" id="bingoMenuList">
             <button type="button" id="bingoHelpMenuBtn">Ayuda</button>
             <a href="monitor.html">Monitor</a>
-            <button type="button" onclick="solicitarInstalacionPwa()">Instalar app</button>
+            <button class="pwa-install-control" type="button" onclick="solicitarInstalacionPwa()" hidden>Instalar aplicación</button>
         </div>
     </nav>
 
@@ -44,7 +44,7 @@
         <button class="btn-nueva" type="button" onclick="abrirSelectorPartida()">NUEVA PARTIDA</button>
         <button class="btn-limpiar" id="btnLimpiar" onclick="solicitarLimpieza()">LIMPIAR</button>
         <button class="btn-cambiar" id="btnCambiar" onclick="solicitudCambioCarton()">CAMBIAR CART&Oacute;N</button>
-        <button class="btn-instalar" type="button" onclick="solicitarInstalacionPwa()">INSTALAR APP</button>
+        <button class="btn-instalar pwa-install-control" type="button" onclick="solicitarInstalacionPwa()" hidden>INSTALAR APLICACIÓN</button>
         <button class="btn-principal btn-home" type="button" onclick="solicitarVolverPrincipal()">
             <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 11.5 12 4l9 7.5"></path>

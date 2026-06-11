@@ -9,6 +9,7 @@ let lugarSecreto = '';
 let faseActual = 'CONFIGURACION';
 let partidaActualId = null;
 let instalacionPwaPendiente = null;
+let accesoInfiltradoValidado = false;
 
 const selectP = document.getElementById('totalPlayers');
 for (let numero = 3; numero <= 20; numero++) {
@@ -72,6 +73,8 @@ async function comprobarSesion() {
 }
 
 async function iniciarAplicacion() {
+    accesoInfiltradoValidado = true;
+    actualizarBotonInstalacionPwa();
     await cargarCategorias();
     restaurarConfiguracionBase();
     await cargarPartidaTemporal();
@@ -403,23 +406,47 @@ async function reiniciarTodoSistema() {
     cambiarPantallaVisual('screen-config');
 }
 
+function esDispositivoIos() {
+    return /iphone|ipad|ipod/i.test(window.navigator.userAgent)
+        || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+}
+
+function estaInstaladaPwa() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function actualizarBotonInstalacionPwa() {
+    const boton = document.querySelector('.infiltrado-install-button');
+    boton.hidden = !accesoInfiltradoValidado || estaInstaladaPwa() || (!instalacionPwaPendiente && !esDispositivoIos());
+}
+
 async function solicitarInstalacionPwa() {
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-        abrirModal('Instalación', 'Infiltrado ya está instalado en este dispositivo.');
+    if (estaInstaladaPwa()) {
+        actualizarBotonInstalacionPwa();
         return;
     }
-    if (!instalacionPwaPendiente) {
-        abrirModal('Instalación', 'Abre el menú del navegador y selecciona Instalar aplicación o Añadir a pantalla de inicio.');
+
+    if (esDispositivoIos()) {
+        abrirModal('Instalar aplicación en iOS', '1. Pulsa el botón Compartir de Safari.\n2. Selecciona "Añadir a pantalla de inicio".\n3. Confirma la instalación.');
         return;
     }
+
+    if (!instalacionPwaPendiente) return;
     instalacionPwaPendiente.prompt();
-    await instalacionPwaPendiente.userChoice;
+    const resultado = await instalacionPwaPendiente.userChoice;
     instalacionPwaPendiente = null;
+    if (resultado.outcome === 'accepted') actualizarBotonInstalacionPwa();
 }
 
 window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     instalacionPwaPendiente = event;
+    actualizarBotonInstalacionPwa();
+});
+
+window.addEventListener('appinstalled', () => {
+    instalacionPwaPendiente = null;
+    actualizarBotonInstalacionPwa();
 });
 
 window.addEventListener('load', () => {

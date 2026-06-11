@@ -240,6 +240,7 @@ Base de datos y PWA:
 - `Bingo/manifest.json`, `Bingo/sw.js` e iconos permiten instalar Bingo como PWA.
 - Los iconos PWA usan la bola azul con el numero 21 proporcionada para Bingo.
 - El carton ofrece instalacion PWA desde el panel de botones y desde su menu superior.
+- Los controles de instalacion aparecen solo cuando existe instalacion nativa disponible o en iOS, y se ocultan tras instalar.
 
 ### Infiltrado
 
@@ -253,6 +254,7 @@ Base de datos y PWA:
 - Las palabras se cargan desde `infiltrado_palabras`.
 - La partida temporal se guarda en `infiltrado_partidas` y sus jugadores en `infiltrado_jugadores`.
 - La PWA usa manifest, service worker y el icono de espia proporcionado.
+- El boton de instalacion aparece solo despues del login y muestra instrucciones especificas en iOS.
 
 ### ValentinaPlay
 

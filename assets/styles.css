@@ -1957,6 +1957,10 @@ body.infiltrado-page .infiltrado-install-button {
     color: #ffffff;
 }
 
+.pwa-install-control[hidden] {
+    display: none !important;
+}
+
 /* coming-soon.html */
 body.coming-soon-page {
     min-height: 100vh;

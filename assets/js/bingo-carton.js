@@ -284,38 +284,59 @@ function mostrarAyudaBingo() {
     mostrarAlerta('<strong>Como jugar al Bingo</strong><br><br>1. Selecciona el id indicado por el monitor.<br>2. Puedes cambiar de carton mientras la partida no este iniciada.<br>3. Cuando el monitor inicie la partida podras marcar los numeros cantados.<br>4. Limpiar solo desmarca los numeros de tu carton.');
 }
 
+function esDispositivoIos() {
+    return /iphone|ipad|ipod/i.test(window.navigator.userAgent)
+        || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+}
+
+function estaInstaladaPwa() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function actualizarBotonesInstalacionPwa() {
+    const debenMostrarse = !estaInstaladaPwa() && (Boolean(instalacionPwaPendiente) || esDispositivoIos());
+    document.querySelectorAll('.pwa-install-control').forEach((boton) => {
+        boton.hidden = !debenMostrarse;
+    });
+}
+
 async function solicitarInstalacionPwa() {
     cerrarMenuBingo();
 
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-        mostrarAlerta('Bingo ya esta instalado en este dispositivo.');
+    if (estaInstaladaPwa()) {
+        actualizarBotonesInstalacionPwa();
         return;
     }
 
-    if (!instalacionPwaPendiente) {
-        mostrarAlerta('Para instalar Bingo, abre el menu del navegador y selecciona Instalar aplicacion o Añadir a pantalla de inicio.');
+    if (esDispositivoIos()) {
+        mostrarAlerta('<strong>Instalar aplicación en iOS</strong><br><br>1. Pulsa el botón Compartir de Safari.<br>2. Selecciona "Añadir a pantalla de inicio".<br>3. Confirma la instalación.');
         return;
     }
+
+    if (!instalacionPwaPendiente) return;
 
     instalacionPwaPendiente.prompt();
-    await instalacionPwaPendiente.userChoice;
+    const resultado = await instalacionPwaPendiente.userChoice;
     instalacionPwaPendiente = null;
+    if (resultado.outcome === 'accepted') actualizarBotonesInstalacionPwa();
 }
 
 window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     instalacionPwaPendiente = event;
+    actualizarBotonesInstalacionPwa();
 });
 
 window.addEventListener('appinstalled', () => {
     instalacionPwaPendiente = null;
-    mostrarAlerta('Bingo se ha instalado correctamente.');
+    actualizarBotonesInstalacionPwa();
 });
 
 window.addEventListener('load', async () => {
     inicializarMenuBingo();
     cargarCartonGuardado();
     await cargarPartidaGuardada();
+    actualizarBotonesInstalacionPwa();
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js');
