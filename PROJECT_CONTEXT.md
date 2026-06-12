@@ -142,6 +142,7 @@ Responsabilidades actuales:
 - H1 editorial, subtitulo y presentacion de alaraz1921 antes del formulario.
 - Acceso discreto a `Privado/` mediante icono inferior.
 - Formulario de contacto real.
+- Proteccion anti-spam previa al envio mediante honeypot, tiempo minimo de 5 segundos y validaciones de contenido.
 
 El formulario:
 
@@ -150,6 +151,7 @@ El formulario:
 - Invoca la Edge Function `notify-webs-contact`.
 - La funcion envia aviso por email mediante Resend.
 - Si falla el email, el mensaje puede seguir quedando guardado en Supabase.
+- Las validaciones anti-spam se ejecutan antes de insertar en Supabase o invocar la Edge Function, sin modificar el payload enviado.
 
 ### `games.html`
 

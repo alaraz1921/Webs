@@ -26,6 +26,7 @@ Ultima revision: 2026-06-12
 - [x] PA-20 Añadir cuenta compartida, login y solicitud de registro con confirmacion de correo en `games.html`.
 - [x] PA-21 Permitir acceso por alias y añadir restauracion de contraseña en Games.
 - [x] PA-22 Situar la restauracion de contraseña en la pantalla de login de Games.
+- [x] PA-23 Añadir proteccion anti-spam no visual al formulario de contacto de la portada.
 
 ## Prioridad Media
 
@@ -90,6 +91,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-13 Probar `proyectos.html`; comprobar que EvenTin abre su pagina publicada y que EvenPic y Subastas Solidarias abren `coming-soon.html`.
 - [ ] PR-14 Probar registro, confirmacion de correo, login compartido, cierre de sesion y acceso a Monitor Bingo e Infiltrado desde Games.
 - [ ] PR-15 Probar login por usuario y correo, solicitud de restauracion y cambio de contraseña desde el enlace recibido.
+- [ ] PR-16 Probar validaciones, tiempo minimo y honeypot del formulario de contacto sin generar mensajes ni emails bloqueados.
 
 ## Ideas De Mejora
 
