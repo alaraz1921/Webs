@@ -13,7 +13,7 @@ Ultima revision: 2026-06-11
 
 ## Ideas de mejora
 - [ ] IM-01 Informe de mensajes publicos
-- [ ] IM-03 La fuente de los datos de fecha, hora y lugar, que sea la misma que la del texto del datalle, solo la fuente del dato, el epigrafe mantiene la fuente actual.
+- [X] IM-03 La fuente de los datos de fecha, hora y lugar, que sea la misma que la del texto del datalle, solo la fuente del dato, el epigrafe mantiene la fuente actual.
 - [ ] IM-05 URL amigables
 - [X] IM-06 Cambiar la sección Galería
 - [ ] IM-07 Al compartir el enlace en WhatsApp aparezca la imagen principal y el título del evento.

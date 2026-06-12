@@ -867,7 +867,8 @@ a {
 
 .event-details dd {
     margin: 6px 0 0;
-    font-size: 1.08rem;
+    font-family: "Caveat", "Manrope", cursive;
+    font-size: clamp(1.55rem, 3vw, 2rem);
     font-weight: 700;
 }
 
