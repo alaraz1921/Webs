@@ -32,6 +32,7 @@ Ultima revision: 2026-06-12
 - [x] PA-26 Normalizar tamaño y separacion de los controles de acceso de Monitor Bingo e Infiltrado.
 - [x] PA-27 Permitir acceso por nombre de usuario en Monitor Bingo e Infiltrado.
 - [x] PA-28 Eliminar accesos especiales demo y exigir usuarios reales de Supabase en Monitor Bingo e Infiltrado.
+- [x] PA-29 Añadir animaciones discretas de entrada al hacer scroll en la portada y `games.html`.
 
 ## Prioridad Media
 

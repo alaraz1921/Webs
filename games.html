@@ -32,27 +32,27 @@
     </div>
 
     <main class="games-layout">
-        <header class="app-page-header">
+        <header class="app-page-header" data-reveal="hero">
             <p class="app-page-kicker">alaraz1921</p>
             <h1>Games</h1>
         </header>
 
         <nav class="games-list" aria-label="Listado de juegos">
-            <a href="ValentinaPlay/">
+            <a href="ValentinaPlay/" data-reveal data-reveal-delay="80">
                 <span>Valentina's Play Time</span>
                 <small>Juegos educativos y familiares</small>
             </a>
-            <a href="Bingo/carton.html">
+            <a href="Bingo/carton.html" data-reveal data-reveal-delay="150">
                 <span>BINGO</span>
                 <small>Carton de bingo</small>
             </a>
-            <a href="infiltrado/">
+            <a href="infiltrado/" data-reveal data-reveal-delay="220">
                 <span>INFILTRADO</span>
                 <small>Juego social de roles ocultos</small>
             </a>
         </nav>
 
-        <a class="games-home-link btn-home" href="index.html">
+        <a class="games-home-link btn-home" href="index.html" data-reveal data-reveal-delay="290">
             <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 11.5 12 4l9 7.5"></path>
                 <path d="M5.5 10.5V20h13v-9.5"></path>
@@ -143,6 +143,7 @@
         </div>
     </section>
 
+    <script src="assets/js/scroll-reveal.js"></script>
     <script src="assets/supabase-client.js"></script>
     <script src="assets/js/games-auth.js"></script>
 </body>

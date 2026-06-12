@@ -45,7 +45,7 @@
     <!-- HERO / PORTADA -->
     <header class="hero">
         <div class="hero-overlay"></div>
-        <div class="hero-copy">
+        <div class="hero-copy" data-reveal="hero">
             <h1 class="hero-text">Eventos, recuerdos y proyectos que conectan personas</h1>
             <p class="hero-subtitle">Nothing Gonna Change My World</p>
         </div>
@@ -53,12 +53,12 @@
 
     <!-- CUERPO DE LA PÁGINA -->
     <main class="content-section">
-        <section class="home-introduction">
+        <section class="home-introduction" data-reveal>
             <p>Bienvenido a alaraz1921. Un espacio donde nacen proyectos destinados a celebrar momentos especiales, compartir recuerdos y conectar personas mediante experiencias digitales únicas.</p>
         </section>
 
         <!-- FORMULARIO DE CONTACTO -->
-        <section class="contact-form" id="contacto">
+        <section class="contact-form" id="contacto" data-reveal>
             <h2>Contacto</h2>
             <form action="#" method="POST" onsubmit="enviarContacto(event)">
                 <!-- Honeypot anti-spam: debe permanecer vacio y fuera de la vista de usuarios reales. -->
@@ -90,6 +90,7 @@
     </main>
 
     <!-- ─────────────── SCRIPTS DE CONTROL (JAVASCRIPT) ─────────────── */ -->
+    <script src="assets/js/scroll-reveal.js"></script>
     <script src="assets/js/home.js"></script>
 
 </body>
