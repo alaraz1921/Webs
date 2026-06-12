@@ -159,6 +159,11 @@ Concentrador de juegos:
 - Bingo.
 - Infiltrado.
 
+- Incluye un icono de usuario con inicio de sesion, registro y cierre de sesion.
+- El registro usa Supabase Auth con confirmacion de correo y guarda el nombre visible en los metadatos del usuario.
+- Los registros creados desde Games reciben acceso automatico al Monitor de Bingo y a Infiltrado mediante `project_members`.
+- Games, Monitor Bingo e Infiltrado comparten una validacion local de sesion de 24 horas mediante `games_auth_time`.
+
 Los botones de vuelta de Bingo, Monitor e Infiltrado regresan a `games.html` y se ocultan cuando el juego se ejecuta como PWA instalada. Desde `games.html` se vuelve a la portada.
 
 ### `proyectos.html`
@@ -228,6 +233,7 @@ bingo_partida_id
 - Acepta el alias `demobingo` o el email del usuario administrador.
 - El rol `admin` y los miembros `owner` o `editor` del proyecto pueden gestionarlo.
 - La validacion propia del Monitor caduca a las 24 horas y obliga a introducir de nuevo usuario y clave.
+- El acceso iniciado desde `games.html` tambien permite entrar al Monitor durante esas 24 horas.
 - Crea partidas, inicia el bloqueo de cartones y reinicia una partida conservando su id.
 - Persiste los numeros cantados por id de partida en `localStorage`.
 
@@ -251,6 +257,7 @@ Base de datos y PWA:
 - Acceso mediante Supabase Auth para administradores y miembros del proyecto `infiltrado`.
 - El alias `demo` se convierte internamente en `demo@alaraz1921.com`.
 - La validacion propia de Infiltrado caduca a las 24 horas y obliga a introducir de nuevo usuario y clave.
+- El acceso iniciado desde `games.html` tambien permite entrar a Infiltrado durante esas 24 horas.
 - Configuracion de jugadores, infiltrados y tipo de palabra, incluyendo `Aleatoria`.
 - Sorteo y revelado individual, destacando en amarillo el nombre del jugador de cada turno.
 - Resolucion mediante desplegables de participantes.
@@ -314,6 +321,15 @@ Migraciones:
 - `20260601113000_daily_access_codes.sql`
 - `20260601143000_enable_infiltrado_access_code.sql`
 - `20260604120000_webs_contact_messages.sql`
+- `20260611120000_bingo_partidas.sql`
+- `20260611150000_infiltrado_supabase.sql`
+- `20260612100000_games_self_registration.sql`
+
+Configuracion manual necesaria para el registro de Games:
+
+- Activar `Confirm email` en Supabase Auth.
+- Permitir `https://www.alaraz1921.com/games.html` como URL de redireccion.
+- Ejecutar `20260612100000_games_self_registration.sql`.
 
 No usar tablas `eventin_*` en este proyecto Supabase. Son restos candidatos a borrar si existen y estan vacios.
 

@@ -1,6 +1,6 @@
 const infiltradoClient = window.websSupabase;
 const DEMO_EMAIL = 'demo@alaraz1921.com';
-const INFILTRADO_AUTH_TIME_KEY = 'infiltrado_auth_time';
+const GAMES_AUTH_TIME_KEY = 'games_auth_time';
 const AUTH_DURATION_MS = 24 * 60 * 60 * 1000;
 
 let jugadores = [];
@@ -27,7 +27,7 @@ function normalizarUsuario(usuario) {
 }
 
 function sesionInfiltradoVigente() {
-    const inicioSesion = Number(localStorage.getItem(INFILTRADO_AUTH_TIME_KEY));
+    const inicioSesion = Number(localStorage.getItem(GAMES_AUTH_TIME_KEY));
     return Number.isFinite(inicioSesion)
         && inicioSesion > 0
         && Date.now() - inicioSesion < AUTH_DURATION_MS;
@@ -67,7 +67,7 @@ async function iniciarSesion(event) {
     }
 
     document.getElementById('infiltradoClave').value = '';
-    localStorage.setItem(INFILTRADO_AUTH_TIME_KEY, String(Date.now()));
+    localStorage.setItem(GAMES_AUTH_TIME_KEY, String(Date.now()));
     await iniciarAplicacion();
 }
 
@@ -78,7 +78,7 @@ async function comprobarSesion() {
         return;
     }
 
-    localStorage.removeItem(INFILTRADO_AUTH_TIME_KEY);
+    localStorage.removeItem(GAMES_AUTH_TIME_KEY);
     accesoInfiltradoValidado = false;
     actualizarBotonInstalacionPwa();
     cambiarPantallaVisual('screen-lock');
@@ -209,6 +209,29 @@ function abrirModal(titulo, mensaje, esFinPartida = false) {
 
 function cerrarModal() {
     document.getElementById('custom-modal').style.display = 'none';
+}
+
+function solicitarVolverGamesInfiltrado(event) {
+    event.preventDefault();
+    document.getElementById('modal-title').textContent = 'Volver a Games';
+    document.getElementById('modal-message').textContent = '¿Quieres salir de Infiltrado y volver a Games?';
+    const contenedor = document.getElementById('modal-buttons');
+    contenedor.innerHTML = '';
+
+    const confirmar = document.createElement('button');
+    confirmar.textContent = 'Sí, volver';
+    confirmar.onclick = () => {
+        window.location.href = '../games.html';
+    };
+    contenedor.appendChild(confirmar);
+
+    const cancelar = document.createElement('button');
+    cancelar.textContent = 'Cancelar';
+    cancelar.className = 'btn-danger';
+    cancelar.onclick = cerrarModal;
+    contenedor.appendChild(cancelar);
+
+    document.getElementById('custom-modal').style.display = 'flex';
 }
 
 function mostrarAyudaInfiltrado() {

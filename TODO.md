@@ -1,6 +1,6 @@
 # TODO
 
-Ultima revision: 2026-06-11
+Ultima revision: 2026-06-12
 
 ## Prioridad Alta
 
@@ -23,6 +23,7 @@ Ultima revision: 2026-06-11
 - [x] PA-17 Ocultar la vuelta a Games en modo PWA y limitar a 24 horas los accesos de Monitor Bingo e Infiltrado.
 - [x] PA-18 Reforzar la deteccion del modo instalado y renombrar las PWA como `Bingo Alaraz1921` e `Infiltrado Alaraz1921`.
 - [x] PA-19 Destacar el nombre del jugador frente a la etiqueta `Tu turno` durante el revelado de roles de Infiltrado.
+- [x] PA-20 Añadir cuenta compartida, login y solicitud de registro con confirmacion de correo en `games.html`.
 
 ## Prioridad Media
 
@@ -44,6 +45,7 @@ Ultima revision: 2026-06-11
 - [x] PM-16 Crear el menu `PROYECTOS` y una pagina compartida `coming-soon.html` para proyectos en desarrollo.
 - [x] PM-17 Crear `proyectos.html` y actualizar el mensaje editorial y metadatos comunes de Webs.
 - [x] PM-18 Convertir `PROYECTOS` en enlace directo y añadir separadores al texto de presentacion.
+- [ ] PM-19 Ejecutar `20260612100000_games_self_registration.sql`, activar `Confirm email` y permitir la redireccion a `games.html` en Supabase.
 
 ## Prioridad Baja
 
@@ -83,6 +85,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-11 Abrir una ruta inexistente para validar `404.html`.
 - [ ] PR-12 Ejecutar el flujo manual completo indicado en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-13 Probar `proyectos.html`; comprobar que EvenTin abre su pagina publicada y que EvenPic y Subastas Solidarias abren `coming-soon.html`.
+- [ ] PR-14 Probar registro, confirmacion de correo, login compartido, cierre de sesion y acceso a Monitor Bingo e Infiltrado desde Games.
 
 ## Ideas De Mejora
 
@@ -95,4 +98,4 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [x] IM-07 Colocar ayuda de Bingo e Infiltrado en la parte inferior.
 - [ ] IM-08 Añadir indicadores operativos para avisar si una Edge Function de email falla aunque el mensaje quede guardado.
 - [x] IM-09 Preparar Bingo e Infiltrado como PWA con manifest, iconos y service worker.
-- [ ] IM-10 Registro con perfil para los dos juegos.
+- [x] IM-10 Registro con perfil para los dos juegos.

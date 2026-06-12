@@ -1,6 +1,6 @@
 const bingoClient = window.websSupabase;
 const DEMO_BINGO_EMAIL = 'demobingo@alaraz1921.com';
-const BINGO_AUTH_TIME_KEY = 'bingo_monitor_auth_time';
+const GAMES_AUTH_TIME_KEY = 'games_auth_time';
 const AUTH_DURATION_MS = 24 * 60 * 60 * 1000;
 
 let numerosDisponibles = Array.from({ length: 90 }, (_, indice) => indice + 1);
@@ -15,7 +15,7 @@ function normalizarUsuario(usuario) {
 }
 
 function sesionBingoVigente() {
-    const inicioSesion = Number(localStorage.getItem(BINGO_AUTH_TIME_KEY));
+    const inicioSesion = Number(localStorage.getItem(GAMES_AUTH_TIME_KEY));
     return Number.isFinite(inicioSesion)
         && inicioSesion > 0
         && Date.now() - inicioSesion < AUTH_DURATION_MS;
@@ -75,7 +75,7 @@ async function iniciarSesion(event) {
     }
 
     document.getElementById('bingoClave').value = '';
-    localStorage.setItem(BINGO_AUTH_TIME_KEY, String(Date.now()));
+    localStorage.setItem(GAMES_AUTH_TIME_KEY, String(Date.now()));
     await mostrarMonitor();
 }
 
@@ -86,7 +86,7 @@ async function comprobarSesion() {
         return;
     }
 
-    localStorage.removeItem(BINGO_AUTH_TIME_KEY);
+    localStorage.removeItem(GAMES_AUTH_TIME_KEY);
     document.getElementById('pantallaLogin').style.display = 'flex';
     document.getElementById('bingoUsuario').focus();
 }

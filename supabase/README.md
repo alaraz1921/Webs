@@ -25,6 +25,7 @@ Opcion sencilla desde el panel de Supabase:
    - `migrations/20260604120000_webs_contact_messages.sql`
    - `migrations/20260611120000_bingo_partidas.sql`
    - `migrations/20260611150000_infiltrado_supabase.sql`
+   - `migrations/20260612100000_games_self_registration.sql`
 5. Comprobar que no hay errores en el resultado.
 
 ## Crear el primer usuario
@@ -90,6 +91,18 @@ Para crear el usuario demo:
 3. Ejecutar de nuevo la migracion completa para asignar el usuario al proyecto.
 
 El formulario acepta las credenciales visibles `demo` / `123` y las convierte internamente en `demo@alaraz1921.com` / `demo123`. Los administradores tambien pueden entrar con su email y contraseña habituales.
+
+## Registro compartido de Games
+
+La migracion `20260612100000_games_self_registration.sql` amplia el alta de usuarios para que los registros solicitados desde `games.html` reciban automaticamente acceso al Monitor de Bingo y a Infiltrado.
+
+Para que Supabase valide el correo:
+
+1. Ir a `Authentication` -> `Providers` -> `Email`.
+2. Mantener activada la opcion `Confirm email`.
+3. Añadir `https://www.alaraz1921.com/games.html` a las URLs de redireccion permitidas si no esta incluida por la configuracion general del sitio.
+
+El usuario no podra iniciar sesion hasta confirmar el enlace enviado por Supabase. La sesion compartida de Games caduca localmente a las 24 horas.
 
 ## Contacto de Webs
 
