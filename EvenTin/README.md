@@ -23,6 +23,7 @@ EvenTin/
 |-- assets/icons/
 |-- sql/schema.sql
 |-- supabase/functions/notify-contact/
+|-- supabase/functions/notify-new-user/
 |-- supabase/functions/create-event-user/
 `-- README.md
 ```
@@ -93,6 +94,12 @@ SUPABASE_URL
 SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
 ```
+
+## Aviso de nuevos usuarios
+
+Para recibir un email al crear cualquier usuario en Supabase Auth, seguir las
+instrucciones de `NOTIFY_NEW_USER_SETUP.md`. La solución usa la Edge Function
+`notify-new-user`, Resend y un trigger asíncrono sobre `auth.users`.
 
 ## Roles
 
