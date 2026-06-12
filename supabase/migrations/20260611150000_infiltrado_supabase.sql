@@ -139,10 +139,3 @@ insert into public.infiltrado_palabras (tipo, palabra)
 select 'Profesiones', palabra from unnest(array[
     'Cocinero','Pintor','Constructor','Jardinero','Cartero','Médico','Enfermero','Bombero','Policía','Juez','Abogado','Profesor','Bibliotecario','Actor','Cantante','Músico','Director','Fotógrafo','Periodista','Escritor','Editor','Traductor','Programador','Diseñador','Arquitecto','Ingeniero','Albañil','Carpintero','Fontanero','Electricista','Mecánico','Soldador','Joyero','Sastre','Zapatero','Panadero','Pastelero','Carnicero','Pescadero','Agricultor','Ganadero','Veterinario','Apicultor','Astrónomo','Científico','Químico','Biólogo','Geólogo','Piloto','Navegante','Marinero','Capitán','Azafato','Guía','Recepcionista','Camarero','Sumiller','Mago','Payaso','Locutor','Presentador','DJ','Entrenador','Árbitro','Futbolista','Ciclista','Nadador','Boxeador','Detective','Espía','Guardabosques','Minero','Buzo','Rescatador','Explorador','Cazador','Leñador','Taxista','Conductor','Repartidor','Mensajero','Comerciante','Vendedor','Cajero','Banquero','Corredor','Notario','Diplomático','Embajador','Sacerdote','Monje','Cerrajero','Relojero','Barbero','Peluquero','Estilista','Influencer','Actor de doblaje','Community Manager','Locomotorista'
 ]) as palabra on conflict (tipo, palabra) do nothing;
-
-insert into public.project_members (project_id, user_id, role)
-select ap.id, au.id, 'editor'
-from public.app_projects ap
-join auth.users au on lower(au.email) = 'demo@alaraz1921.com'
-where ap.slug = 'infiltrado'
-on conflict (project_id, user_id) do update set role = excluded.role;

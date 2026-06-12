@@ -31,6 +31,7 @@ Ultima revision: 2026-06-12
 - [x] PA-25 Unificar accesos a restauracion/registro desde Games y juegos, y listar usuarios en la zona privada.
 - [x] PA-26 Normalizar tamaño y separacion de los controles de acceso de Monitor Bingo e Infiltrado.
 - [x] PA-27 Permitir acceso por nombre de usuario en Monitor Bingo e Infiltrado.
+- [x] PA-28 Eliminar accesos especiales demo y exigir usuarios reales de Supabase en Monitor Bingo e Infiltrado.
 
 ## Prioridad Media
 
@@ -86,8 +87,8 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-03 Comprobar que los botones `Volver a Games` regresan a `games.html`.
 - [ ] PR-04 En Bingo carton: seleccionar partida, marcar numeros iniciados, limpiar y verificar persistencia.
 - [ ] PR-05 En Bingo carton: comprobar cambio libre sin partida o no iniciada y bloqueo cuando `iniciada = true`.
-- [ ] PR-06 En Monitor Bingo: entrar como `demobingo` y admin; iniciar, pausar, reanudar, reiniciar y crear nueva partida.
-- [ ] PR-07 En Infiltrado: entrar como `demo` y admin; elegir categoria, configurar jugadores, revelar roles, recargar y finalizar.
+- [ ] PR-06 En Monitor Bingo: entrar con nombre de usuario o correo autorizado; iniciar, pausar, reanudar, reiniciar y crear nueva partida.
+- [ ] PR-07 En Infiltrado: entrar con nombre de usuario o correo autorizado; elegir categoria, configurar jugadores, revelar roles, recargar y finalizar.
 - [ ] PR-08 En ValentinaPlay: abrir cada juego y validar reinicio/victoria/flujo principal.
 - [ ] PR-09 En Privado: iniciar/cerrar sesion y comprobar recordatorio de formula.
 - [ ] PR-10 Enviar contacto desde Webs; comprobar fila en `webs_contact_messages` y recepcion del email.

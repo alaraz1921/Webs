@@ -59,26 +59,7 @@ La migracion `20260611120000_bingo_partidas.sql`:
 - Permite lectura publica para que el carton no necesite login.
 - Restringe crear, iniciar y reiniciar partidas a administradores o miembros `owner`/`editor` de Bingo.
 
-Supabase Auth necesita un email aunque el formulario del monitor permita escribir el alias `demobingo`.
-
-Para crear el usuario solicitado:
-
-1. Ir a `Authentication` -> `Users` -> `Add user`.
-2. Crear `demobingo@alaraz1921.com` con contraseña `bingo123` y confirmar el usuario.
-3. En `SQL Editor`, ejecutar:
-
-```sql
-insert into public.project_members (project_id, user_id, role)
-select ap.id, au.id, 'editor'
-from public.app_projects ap
-join auth.users au on lower(au.email) = 'demobingo@alaraz1921.com'
-where ap.slug = 'bingo'
-on conflict (project_id, user_id) do update set role = excluded.role;
-```
-
-El formulario del monitor acepta `demobingo` y lo transforma internamente en ese email. Los usuarios cuyo perfil tenga `role = 'admin'` tambien pueden acceder sin pertenecer expresamente al proyecto.
-
-La contraseña demo debe cambiarse antes de usar el monitor en un entorno real.
+El formulario del Monitor acepta el correo o el nombre guardado en `profiles.username`. Siempre exige la contraseña real de Supabase Auth. Pueden acceder los administradores y los miembros `owner` o `editor` del proyecto.
 
 Si Supabase muestra `relation "bingo_partidas" already exists`, actualizar el repositorio y volver a ejecutar el archivo completo. La version actual reutiliza la tabla existente y completa columnas, permisos y politicas sin borrarla.
 
@@ -86,13 +67,7 @@ Si Supabase muestra `relation "bingo_partidas" already exists`, actualizar el re
 
 La migracion `20260611150000_infiltrado_supabase.sql` crea el proyecto `infiltrado`, las tablas `infiltrado_palabras`, `infiltrado_partidas` e `infiltrado_jugadores`, y carga las categorias Lugares, Cosas y Profesiones.
 
-Para crear el usuario demo:
-
-1. Ir a `Authentication` -> `Users` -> `Add user`.
-2. Crear `demo@alaraz1921.com` con la contraseña tecnica `demo123`.
-3. Ejecutar de nuevo la migracion completa para asignar el usuario al proyecto.
-
-El formulario acepta las credenciales visibles `demo` / `123` y las convierte internamente en `demo@alaraz1921.com` / `demo123`. Los administradores tambien pueden entrar con su email y contraseña habituales.
+El formulario de Infiltrado acepta el correo o el nombre guardado en `profiles.username`. Siempre exige la contraseña real de Supabase Auth. Pueden acceder los administradores y los miembros asignados al proyecto.
 
 ## Registro compartido de Games
 

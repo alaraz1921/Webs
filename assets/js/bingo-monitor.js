@@ -1,5 +1,4 @@
 const bingoClient = window.websSupabase;
-const DEMO_BINGO_EMAIL = 'demobingo@alaraz1921.com';
 const GAMES_AUTH_TIME_KEY = 'games_auth_time';
 const AUTH_DURATION_MS = 24 * 60 * 60 * 1000;
 
@@ -9,13 +8,8 @@ let intervalo = null;
 let enMarcha = false;
 let partidaActual = null;
 
-function normalizarUsuario(usuario) {
-    const valor = usuario.trim().toLowerCase();
-    return valor.includes('@') ? valor : valor === 'demobingo' ? DEMO_BINGO_EMAIL : valor;
-}
-
 async function resolverEmailAccesoBingo(usuario) {
-    const identificador = normalizarUsuario(usuario);
+    const identificador = usuario.trim().toLowerCase();
     if (identificador.includes('@')) return identificador;
 
     const { data, error } = await bingoClient.rpc('resolve_games_login_email', {

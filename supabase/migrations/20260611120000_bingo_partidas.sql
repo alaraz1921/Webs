@@ -99,13 +99,3 @@ on public.bingo_partidas
 for delete
 to authenticated
 using (public.can_manage_bingo());
-
--- Supabase Auth necesita un email aunque la interfaz use el alias "demobingo".
--- Tras crear demobingo@alaraz1921.com en Authentication, ejecutar este bloque
--- para asignarle acceso de editor al proyecto Bingo.
-insert into public.project_members (project_id, user_id, role)
-select ap.id, au.id, 'editor'
-from public.app_projects ap
-join auth.users au on lower(au.email) = 'demobingo@alaraz1921.com'
-where ap.slug = 'bingo'
-on conflict (project_id, user_id) do update set role = excluded.role;

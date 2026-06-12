@@ -238,7 +238,8 @@ bingo_partida_id
 `Bingo/monitor.html`:
 
 - Requiere Supabase Auth y acceso al proyecto `bingo`.
-- Acepta el alias `demobingo` o el email del usuario administrador.
+- Acepta el nombre de usuario o correo de cualquier usuario autorizado creado en Supabase.
+- Siempre valida la contraseña real configurada en Supabase Auth; no existen accesos demo especiales.
 - El rol `admin` y los miembros `owner` o `editor` del proyecto pueden gestionarlo.
 - La validacion propia del Monitor caduca a las 24 horas y obliga a introducir de nuevo usuario y clave.
 - El acceso iniciado desde `games.html` tambien permite entrar al Monitor durante esas 24 horas.
@@ -263,7 +264,7 @@ Base de datos y PWA:
 `infiltrado/index.html`:
 
 - Acceso mediante Supabase Auth para administradores y miembros del proyecto `infiltrado`.
-- El alias `demo` se convierte internamente en `demo@alaraz1921.com`.
+- Acepta nombre de usuario o correo y siempre valida la contraseña real configurada en Supabase Auth.
 - La validacion propia de Infiltrado caduca a las 24 horas y obliga a introducir de nuevo usuario y clave.
 - El acceso iniciado desde `games.html` tambien permite entrar a Infiltrado durante esas 24 horas.
 - Configuracion de jugadores, infiltrados y tipo de palabra, incluyendo `Aleatoria`.
@@ -455,7 +456,7 @@ Riesgos y deuda:
 - `assets/styles.css` es grande y mezcla muchos dominios.
 - Dependencia de CDN para fuentes, Tailwind y Supabase JS.
 - No hay tests automatizados.
-- La migracion de Bingo y el usuario `demobingo` deben configurarse manualmente en Supabase antes de usar el monitor.
+- Las migraciones de Bingo, Infiltrado y registro compartido de Games deben aplicarse manualmente en Supabase.
 - La zona privada de Webs aun no lista proyectos reales.
 - Quedan comentarios/textos mojibake en algunas partes de CSS/documentacion.
 - Las Edge Functions y secretos deben configurarse manualmente en Supabase.

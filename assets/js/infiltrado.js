@@ -1,5 +1,4 @@
 const infiltradoClient = window.websSupabase;
-const DEMO_EMAIL = 'demo@alaraz1921.com';
 const GAMES_AUTH_TIME_KEY = 'games_auth_time';
 const AUTH_DURATION_MS = 24 * 60 * 60 * 1000;
 
@@ -21,13 +20,8 @@ for (let numero = 3; numero <= 20; numero++) {
     selectP.appendChild(opcion);
 }
 
-function normalizarUsuario(usuario) {
-    const valor = usuario.trim().toLowerCase();
-    return valor.includes('@') ? valor : valor === 'demo' ? DEMO_EMAIL : valor;
-}
-
 async function resolverEmailAccesoInfiltrado(usuario) {
-    const identificador = normalizarUsuario(usuario);
+    const identificador = usuario.trim().toLowerCase();
     if (identificador.includes('@')) return identificador;
 
     const { data, error } = await infiltradoClient.rpc('resolve_games_login_email', {
@@ -62,13 +56,11 @@ async function iniciarSesion(event) {
     boton.disabled = true;
     boton.textContent = 'ENTRANDO...';
 
-    const usuarioIntroducido = document.getElementById('infiltradoUsuario').value.trim().toLowerCase();
-    const claveIntroducida = document.getElementById('infiltradoClave').value;
-    const email = await resolverEmailAccesoInfiltrado(usuarioIntroducido);
+    const email = await resolverEmailAccesoInfiltrado(document.getElementById('infiltradoUsuario').value);
     const resultado = email
         ? await infiltradoClient.auth.signInWithPassword({
             email,
-            password: usuarioIntroducido === 'demo' && claveIntroducida === '123' ? 'demo123' : claveIntroducida
+            password: document.getElementById('infiltradoClave').value
         })
         : { error: true };
 
