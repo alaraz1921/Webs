@@ -33,6 +33,7 @@ Ultima revision: 2026-06-12
 - [x] PA-27 Permitir acceso por nombre de usuario en Monitor Bingo e Infiltrado.
 - [x] PA-28 Eliminar accesos especiales demo y exigir usuarios reales de Supabase en Monitor Bingo e Infiltrado.
 - [x] PA-29 Añadir animaciones discretas de entrada al hacer scroll en la portada y `games.html`.
+- [x] PA-30 Ralentizar las animaciones de entrada y aplicarlas también a `coming-soon.html`.
 
 ## Prioridad Media
 

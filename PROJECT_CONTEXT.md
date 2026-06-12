@@ -50,7 +50,7 @@ Aunque comparten repositorio y GitHub Pages, no deben compartir tablas, claves n
 - Se creo `coming-soon.html` como pagina compartida para proyectos en desarrollo.
 - Las paginas propias de Webs comparten un `title` y una descripcion orientados a proyectos web, eventos y experiencias digitales.
 - La portada presenta el mensaje principal de eventos y proyectos, el subtitulo `Nothing Gonna Change My World` y un texto introductorio antes del contacto.
-- La portada y `games.html` usan entradas discretas al aparecer en pantalla mediante `assets/js/scroll-reveal.js`, respetando `prefers-reduced-motion`.
+- La portada, `games.html` y `coming-soon.html` usan entradas discretas y pausadas al aparecer en pantalla mediante `assets/js/scroll-reveal.js`, respetando `prefers-reduced-motion`.
 - El contacto guarda en `webs_contact_messages` y envia aviso mediante `notify-webs-contact`.
 - Bingo, Monitor, Infiltrado, Privado y Games comparten fondo y cabecera visual.
 - Los juegos vuelven a `games.html`.
