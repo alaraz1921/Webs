@@ -95,3 +95,4 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [x] IM-07 Colocar ayuda de Bingo e Infiltrado en la parte inferior.
 - [ ] IM-08 Añadir indicadores operativos para avisar si una Edge Function de email falla aunque el mensaje quede guardado.
 - [x] IM-09 Preparar Bingo e Infiltrado como PWA con manifest, iconos y service worker.
+- [ ] IM-10 Registro con perfil para los dos juegos.
