@@ -26,6 +26,17 @@ function normalizarUsuario(usuario) {
     return valor.includes('@') ? valor : valor === 'demo' ? DEMO_EMAIL : valor;
 }
 
+async function resolverEmailAccesoInfiltrado(usuario) {
+    const identificador = normalizarUsuario(usuario);
+    if (identificador.includes('@')) return identificador;
+
+    const { data, error } = await infiltradoClient.rpc('resolve_games_login_email', {
+        p_identifier: identificador
+    });
+
+    return error ? null : data;
+}
+
 function sesionInfiltradoVigente() {
     const inicioSesion = Number(localStorage.getItem(GAMES_AUTH_TIME_KEY));
     return Number.isFinite(inicioSesion)
@@ -53,12 +64,15 @@ async function iniciarSesion(event) {
 
     const usuarioIntroducido = document.getElementById('infiltradoUsuario').value.trim().toLowerCase();
     const claveIntroducida = document.getElementById('infiltradoClave').value;
-    const { error } = await infiltradoClient.auth.signInWithPassword({
-        email: normalizarUsuario(usuarioIntroducido),
-        password: usuarioIntroducido === 'demo' && claveIntroducida === '123' ? 'demo123' : claveIntroducida
-    });
+    const email = await resolverEmailAccesoInfiltrado(usuarioIntroducido);
+    const resultado = email
+        ? await infiltradoClient.auth.signInWithPassword({
+            email,
+            password: usuarioIntroducido === 'demo' && claveIntroducida === '123' ? 'demo123' : claveIntroducida
+        })
+        : { error: true };
 
-    if (error || !(await usuarioPuedeUsarInfiltrado())) {
+    if (resultado.error || !(await usuarioPuedeUsarInfiltrado())) {
         await infiltradoClient.auth.signOut();
         errorBox.style.display = 'block';
         boton.disabled = false;

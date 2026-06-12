@@ -14,6 +14,17 @@ function normalizarUsuario(usuario) {
     return valor.includes('@') ? valor : valor === 'demobingo' ? DEMO_BINGO_EMAIL : valor;
 }
 
+async function resolverEmailAccesoBingo(usuario) {
+    const identificador = normalizarUsuario(usuario);
+    if (identificador.includes('@')) return identificador;
+
+    const { data, error } = await bingoClient.rpc('resolve_games_login_email', {
+        p_identifier: identificador
+    });
+
+    return error ? null : data;
+}
+
 function sesionBingoVigente() {
     const inicioSesion = Number(localStorage.getItem(GAMES_AUTH_TIME_KEY));
     return Number.isFinite(inicioSesion)
@@ -60,12 +71,15 @@ async function iniciarSesion(event) {
     submitButton.disabled = true;
     submitButton.textContent = 'ENTRANDO...';
 
-    const { error } = await bingoClient.auth.signInWithPassword({
-        email: normalizarUsuario(document.getElementById('bingoUsuario').value),
-        password: document.getElementById('bingoClave').value
-    });
+    const email = await resolverEmailAccesoBingo(document.getElementById('bingoUsuario').value);
+    const resultado = email
+        ? await bingoClient.auth.signInWithPassword({
+            email,
+            password: document.getElementById('bingoClave').value
+        })
+        : { error: true };
 
-    if (error || !(await usuarioPuedeGestionarBingo())) {
+    if (resultado.error || !(await usuarioPuedeGestionarBingo())) {
         await bingoClient.auth.signOut();
         errorBox.textContent = 'USUARIO O CLAVE INCORRECTOS';
         errorBox.style.display = 'block';

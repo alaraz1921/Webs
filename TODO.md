@@ -30,6 +30,7 @@ Ultima revision: 2026-06-12
 - [x] PA-24 Preparar aviso administrativo por email para cada nuevo usuario de Supabase Auth.
 - [x] PA-25 Unificar accesos a restauracion/registro desde Games y juegos, y listar usuarios en la zona privada.
 - [x] PA-26 Normalizar tamaño y separacion de los controles de acceso de Monitor Bingo e Infiltrado.
+- [x] PA-27 Permitir acceso por nombre de usuario en Monitor Bingo e Infiltrado.
 
 ## Prioridad Media
 
