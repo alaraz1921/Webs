@@ -52,6 +52,7 @@
         }
 
         renderSecondaryLocation(data);
+        renderAttendanceLink(eventData);
         setPanelImage('.hero', data.heroImageUrl);
         setPanelImage('.image-panel', data.detailImageUrl);
         updatePageMetadata(eventData, data);
@@ -115,6 +116,21 @@
         row.hidden = !String(value || '').trim();
         if (!row.hidden) setText(valueSelector, value);
         return !row.hidden;
+    }
+
+    function renderAttendanceLink(eventData) {
+        const section = document.querySelector('#attendance-cta');
+        const link = document.querySelector('#attendance-link');
+        const slug = String(eventData?.public_slug || '').trim();
+        if (!section || !link) return;
+
+        section.hidden = !slug;
+        if (!slug) {
+            link.removeAttribute('href');
+            return;
+        }
+
+        link.href = eventContext.buildEventUrl('invitacion.html', slug);
     }
 
     function startCountdown(dateValue) {

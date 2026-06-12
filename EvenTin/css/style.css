@@ -826,6 +826,27 @@ a {
     min-width: 0;
 }
 
+.attendance-cta {
+    display: flex;
+    justify-content: center;
+    padding: 24px 0 32px;
+}
+
+.attendance-cta[hidden] {
+    display: none;
+}
+
+.attendance-cta .secondary-button {
+    width: min(100%, 420px);
+}
+
+@media (min-width: 760px) {
+    .attendance-cta .secondary-button {
+        width: auto;
+        min-width: 280px;
+    }
+}
+
 .event-details {
     display: grid;
     gap: 18px;
