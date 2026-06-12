@@ -27,6 +27,7 @@ Ultima revision: 2026-06-12
 - [x] PA-21 Permitir acceso por alias y añadir restauracion de contraseña en Games.
 - [x] PA-22 Situar la restauracion de contraseña en la pantalla de login de Games.
 - [x] PA-23 Añadir proteccion anti-spam no visual al formulario de contacto de la portada.
+- [x] PA-24 Preparar aviso administrativo por email para cada nuevo usuario de Supabase Auth.
 
 ## Prioridad Media
 
@@ -50,6 +51,7 @@ Ultima revision: 2026-06-12
 - [x] PM-18 Convertir `PROYECTOS` en enlace directo y añadir separadores al texto de presentacion.
 - [ ] PM-19 Ejecutar `20260612100000_games_self_registration.sql`, activar `Confirm email` y permitir la redireccion a `games.html` en Supabase.
 - [ ] PM-20 Ejecutar `20260612120000_games_username_password_recovery.sql` y permitir la URL de recuperacion en Supabase.
+- [ ] PM-21 Desplegar `notify-new-user`, configurar sus secrets/Vault y ejecutar `20260612150000_notify_new_user.sql`.
 
 ## Prioridad Baja
 
@@ -92,6 +94,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-14 Probar registro, confirmacion de correo, login compartido, cierre de sesion y acceso a Monitor Bingo e Infiltrado desde Games.
 - [ ] PR-15 Probar login por usuario y correo, solicitud de restauracion y cambio de contraseña desde el enlace recibido.
 - [ ] PR-16 Probar validaciones, tiempo minimo y honeypot del formulario de contacto sin generar mensajes ni emails bloqueados.
+- [ ] PR-17 Crear un usuario nuevo y comprobar confirmacion al usuario, aviso al administrador y logs de `notify-new-user`.
 
 ## Ideas De Mejora
 

@@ -27,6 +27,7 @@ Opcion sencilla desde el panel de Supabase:
    - `migrations/20260611150000_infiltrado_supabase.sql`
    - `migrations/20260612100000_games_self_registration.sql`
    - `migrations/20260612120000_games_username_password_recovery.sql`
+   - `migrations/20260612150000_notify_new_user.sql`
 5. Comprobar que no hay errores en el resultado.
 
 ## Crear el primer usuario
@@ -123,6 +124,22 @@ Los correos se personalizan desde `Authentication` -> `Email Templates`:
 - `Reset password` para el correo de restauracion.
 
 Si las plantillas construyen enlaces personalizados y usan la redireccion facilitada por la web, revisar que empleen `{{ .RedirectTo }}`. Para produccion se recomienda configurar un SMTP propio; el servicio de prueba de Supabase tiene limites bajos de envio.
+
+## Aviso de nuevos usuarios
+
+La Edge Function `notify-new-user` y la migracion `20260612150000_notify_new_user.sql` envian un aviso administrativo mediante Resend después de insertar un usuario en `auth.users`.
+
+- El trigger usa `pg_net`, por lo que el aviso se ejecuta de forma asincrona.
+- Los errores quedan en logs y nunca bloquean el registro.
+- La funcion usa `RESEND_API_KEY`, `ADMIN_NOTIFICATION_EMAIL`, `FROM_EMAIL` y `NEW_USER_WEBHOOK_SECRET`.
+- El trigger obtiene el secreto compartido desde Supabase Vault.
+- La funcion no se invoca desde el frontend.
+
+Las instrucciones completas para configurarla y desplegarla desde la web estan en:
+
+```text
+supabase/functions/notify-new-user/README.md
+```
 
 ## Contacto de Webs
 

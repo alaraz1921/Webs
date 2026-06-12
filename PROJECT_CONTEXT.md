@@ -112,7 +112,9 @@ No existen:
 |-- supabase/
 |   |-- README.md
 |   |-- migrations/
-|   `-- functions/notify-webs-contact/
+|   `-- functions/
+|       |-- notify-webs-contact/
+|       `-- notify-new-user/
 `-- EvenTin/
     |-- index.html
     |-- evento.html
@@ -317,6 +319,7 @@ Funciones/RPC:
 Edge Function:
 
 - `notify-webs-contact`
+- `notify-new-user`: recibe asincronamente altas de `auth.users` y avisa al administrador mediante Resend.
 
 Migraciones:
 
@@ -328,6 +331,7 @@ Migraciones:
 - `20260611150000_infiltrado_supabase.sql`
 - `20260612100000_games_self_registration.sql`
 - `20260612120000_games_username_password_recovery.sql`
+- `20260612150000_notify_new_user.sql`
 
 Configuracion manual necesaria para el registro de Games:
 
