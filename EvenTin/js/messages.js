@@ -3,6 +3,7 @@
     const status = document.getElementById('public-message-status');
     const client = window.eventSupabase;
     const eventContext = window.eventContext;
+    const antiSpam = window.eventAntiSpam.createGuard(form);
 
     if (!eventContext?.hasRequestedEvent()) {
         return;
@@ -37,25 +38,34 @@
         event.preventDefault();
         showStatus('', false);
 
+        const formData = new FormData(form);
+        const authorName = String(formData.get('author_name')).trim();
+        const message = String(formData.get('message')).trim();
+        const validation = antiSpam.validate({ name: authorName, message });
+
+        if (validation.blocked) {
+            if (!validation.silent) showStatus(validation.message, true);
+            return;
+        }
+
         if (!client || !eventContext) {
             showStatus('No se pudo conectar con el servicio. Intentalo de nuevo mas tarde.', true);
             return;
         }
 
         try {
-            const formData = new FormData(form);
             const { event: eventData } = await eventContext.getEvent();
             const { data: messageId, error: rpcError } = await client.rpc('eventin_submit_public_message', {
                 p_event_id: eventData.id,
-                p_author_name: String(formData.get('author_name')).trim(),
-                p_message: String(formData.get('message')).trim()
+                p_author_name: authorName,
+                p_message: message
             });
 
             if (rpcError?.code === 'PGRST202') {
                 await client.from('eventin_public_messages').insert({
                     event_id: eventData.id,
-                    author_name: String(formData.get('author_name')).trim(),
-                    message: String(formData.get('message')).trim()
+                    author_name: authorName,
+                    message
                 }).throwOnError();
             } else if (rpcError) {
                 throw rpcError;

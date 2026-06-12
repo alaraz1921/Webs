@@ -1042,6 +1042,17 @@ fieldset {
     color: #b42318;
 }
 
+.form-honeypot {
+    position: absolute !important;
+    left: -10000px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 .simple-page {
     min-height: 100vh;
     display: grid;

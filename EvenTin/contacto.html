@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/supabaseClient.js"></script>
+    <script src="js/antiSpam.js"></script>
     <script src="js/contact.js" defer></script>
     <script src="js/reveal.js" defer></script>
 </head>
@@ -29,6 +30,9 @@
             <p>Cuéntanos qué tienes en mente y te ayudaremos a darle forma.</p>
         </header>
         <form id="contact-form" class="form-card contact-page-form">
+            <div class="form-honeypot" aria-hidden="true">
+                <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+            </div>
             <label>Nombre<input type="text" name="nombre" autocomplete="name" required></label>
             <label>Email<input type="email" name="email" autocomplete="email" required></label>
             <label>Asunto<input type="text" name="asunto" required></label>
