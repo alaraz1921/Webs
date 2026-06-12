@@ -942,13 +942,13 @@ body.games-page .games-home-link:hover {
     background: #64748b;
 }
 
-/* Entradas discretas compartidas por portada, Games y proyectos en desarrollo. */
+/* Entradas discretas compartidas por portada, Games y paginas de proyectos. */
 body.reveal-enabled [data-reveal] {
     opacity: 0;
     transform: translateY(18px);
     transition:
-        opacity 0.95s ease var(--reveal-delay, 0ms),
-        transform 0.95s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
+        opacity 1.2s ease var(--reveal-delay, 0ms),
+        transform 1.2s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
     will-change: opacity, transform;
 }
 
