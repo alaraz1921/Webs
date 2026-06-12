@@ -120,7 +120,11 @@ userTrigger.addEventListener('click', () => {
 
 document.getElementById('games-open-login').addEventListener('click', () => mostrarPantallaAutenticacion('login'));
 document.getElementById('games-open-register').addEventListener('click', () => mostrarPantallaAutenticacion('register'));
-document.getElementById('games-open-recovery').addEventListener('click', () => mostrarPantallaAutenticacion('recovery'));
+document.getElementById('games-open-recovery').addEventListener('click', (event) => {
+    event.preventDefault();
+    mostrarPantallaAutenticacion('recovery');
+});
+document.getElementById('games-login-open-register').addEventListener('click', () => mostrarPantallaAutenticacion('register'));
 document.querySelectorAll('[data-close-auth]').forEach((boton) => boton.addEventListener('click', cerrarPantallasAutenticacion));
 
 loginForm.addEventListener('submit', async (event) => {
@@ -263,5 +267,10 @@ document.addEventListener('keydown', (event) => {
 gamesClient.auth.onAuthStateChange((event) => {
     if (event === 'PASSWORD_RECOVERY') mostrarPantallaAutenticacion('new-password');
 });
+
+const pantallaSolicitada = new URLSearchParams(window.location.search).get('auth');
+if (['login', 'register', 'recovery'].includes(pantallaSolicitada)) {
+    mostrarPantallaAutenticacion(pantallaSolicitada);
+}
 
 cargarSesion();

@@ -164,6 +164,7 @@ Concentrador de juegos:
 - Infiltrado.
 
 - Incluye un icono de usuario con inicio de sesion por alias o correo, registro, restauracion de contraseña desde el login y cierre de sesion.
+- Monitor Bingo e Infiltrado enlazan desde sus accesos a la restauracion y al nuevo registro de Games mediante `?auth=recovery` y `?auth=register`.
 - El registro usa Supabase Auth con confirmacion de correo y guarda el nombre visible en los metadatos del usuario.
 - Los registros creados desde Games reciben acceso automatico al Monitor de Bingo y a Infiltrado mediante `project_members`.
 - Games, Monitor Bingo e Infiltrado comparten una validacion local de sesion de 24 horas mediante `games_auth_time`.
@@ -208,8 +209,8 @@ Tipografias:
 
 - Login mediante Supabase Auth.
 - Usa `profiles`, `app_projects` y `project_members`.
-- Muestra recordatorio de formula de claves diarias.
-- Todavia no carga la lista real de proyectos accesibles.
+- El apartado Proyectos muestra la lista de usuarios registrados disponible según las politicas RLS de `profiles`.
+- Se ha eliminado el antiguo apartado Notas.
 
 ### Bingo
 

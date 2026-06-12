@@ -821,6 +821,31 @@ body.games-page .games-auth-card .games-auth-secondary {
     cursor: pointer;
 }
 
+body.games-page .games-auth-text-link,
+.auth-text-link {
+    display: block;
+    margin-top: 14px;
+    color: #93c5fd;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.auth-register-button {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 6px;
+    box-sizing: border-box;
+    background: #3b82f6;
+    color: #ffffff;
+    font-weight: 800;
+    text-align: center;
+    text-decoration: none;
+}
+
 body.games-page .games-auth-card button:disabled {
     cursor: wait;
     opacity: 0.6;
@@ -1772,6 +1797,23 @@ body.private-page {
     color: #ffffff;
 }
 
+body.private-page .private-users-list {
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+body.private-page .private-users-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+    color: #e2e8f0;
+    overflow-wrap: anywhere;
+}
+
+body.private-page .private-users-list li:last-child {
+    border-bottom: 0;
+}
+
 body.bingo-carton-page,
 body.bingo-monitor-page,
 body.infiltrado-page {
@@ -2096,10 +2138,6 @@ body.private-page h3 {
         width: 100%;
         box-sizing: border-box;
     }
-}
-
-#daily-access-formula {
-    white-space: pre-line;
 }
 
 /* Bingo con partidas Supabase */

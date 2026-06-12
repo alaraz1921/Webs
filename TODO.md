@@ -28,6 +28,7 @@ Ultima revision: 2026-06-12
 - [x] PA-22 Situar la restauracion de contraseña en la pantalla de login de Games.
 - [x] PA-23 Añadir proteccion anti-spam no visual al formulario de contacto de la portada.
 - [x] PA-24 Preparar aviso administrativo por email para cada nuevo usuario de Supabase Auth.
+- [x] PA-25 Unificar accesos a restauracion/registro desde Games y juegos, y listar usuarios en la zona privada.
 
 ## Prioridad Media
 
@@ -37,7 +38,7 @@ Ultima revision: 2026-06-12
 - [x] PM-04 Aplicar en Supabase Webs la migracion inicial de zona privada.
 - [x] PM-05 Aplicar en Supabase Webs las funciones de clave diaria.
 - [x] PM-06 Crear usuario privado en Supabase Auth y configurar acceso administrativo.
-- [ ] PM-07 Cargar en `Privado/index.html` los proyectos accesibles desde `app_projects` y `project_members`.
+- [x] PM-07 Mostrar en `Privado/index.html` la lista de usuarios registrados desde `profiles`.
 - [x] PM-08 Sustituir los `alert()` principales por modales propios.
 - [x] PM-09 Persistir los numeros cantados del Monitor Bingo por id de partida en `localStorage`.
 - [x] PM-10 Conectar el formulario de contacto de `index.html` a Supabase y aviso por email.
@@ -95,6 +96,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-15 Probar login por usuario y correo, solicitud de restauracion y cambio de contraseña desde el enlace recibido.
 - [ ] PR-16 Probar validaciones, tiempo minimo y honeypot del formulario de contacto sin generar mensajes ni emails bloqueados.
 - [ ] PR-17 Crear un usuario nuevo y comprobar confirmacion al usuario, aviso al administrador y logs de `notify-new-user`.
+- [ ] PR-18 Comprobar enlaces de restauracion/registro desde Games, Monitor e Infiltrado y listado de usuarios en Privado.
 
 ## Ideas De Mejora
 

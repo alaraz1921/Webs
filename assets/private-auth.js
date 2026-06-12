@@ -8,7 +8,7 @@ const authPanel = document.getElementById('private-auth-panel');
 const contentPanel = document.getElementById('private-content-panel');
 const userEmail = document.getElementById('private-user-email');
 const logoutButton = document.getElementById('private-logout');
-const dailyAccessFormula = document.getElementById('daily-access-formula');
+const usersList = document.getElementById('private-users-list');
 
 function showMessage(text, type = 'info') {
     messageBox.textContent = text;
@@ -26,25 +26,37 @@ function showPrivateContent(user) {
     authPanel.hidden = true;
     contentPanel.hidden = false;
     userEmail.textContent = user.email;
-    loadDailyAccessFormula();
+    loadRegisteredUsers();
 }
 
 function showLogin() {
     authPanel.hidden = false;
     contentPanel.hidden = true;
     userEmail.textContent = '';
-    dailyAccessFormula.textContent = 'Cargando recordatorio...';
+    usersList.innerHTML = '<li>Cargando usuarios...</li>';
 }
 
-async function loadDailyAccessFormula() {
-    const { data, error } = await supabaseClient.rpc('get_daily_access_formula_note');
+async function loadRegisteredUsers() {
+    const { data, error } = await supabaseClient
+        .from('profiles')
+        .select('display_name, email, created_at')
+        .order('created_at', { ascending: false });
 
     if (error) {
-        dailyAccessFormula.textContent = 'No se pudo cargar el recordatorio de claves.';
+        usersList.innerHTML = '<li>No se pudo cargar la lista de usuarios.</li>';
         return;
     }
 
-    dailyAccessFormula.textContent = data;
+    usersList.innerHTML = '';
+    data.forEach((profile) => {
+        const item = document.createElement('li');
+        const nombre = profile.display_name || profile.email || 'Usuario';
+        const email = profile.email ? ` · ${profile.email}` : '';
+        item.textContent = `${nombre}${email}`;
+        usersList.appendChild(item);
+    });
+
+    if (!data.length) usersList.innerHTML = '<li>No hay usuarios registrados.</li>';
 }
 
 async function loadSession() {
