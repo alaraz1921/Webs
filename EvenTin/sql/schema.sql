@@ -29,8 +29,12 @@ create table if not exists public.eventin_events (
     event_code text unique check (event_code ~ '^[0-9]{6}$'),
     event_type text not null default 'communion' references public.eventin_event_types(key),
     event_date timestamptz not null,
+    location_title text,
     location_name text,
     maps_url text,
+    location2_title text,
+    location2_name text,
+    maps2_url text,
     is_active boolean not null default true,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
@@ -42,6 +46,8 @@ create table if not exists public.eventin_event_settings (
     subtitle text,
     display_date text,
     display_time text,
+    display_date2 text,
+    display_time2 text,
     presentation_title text,
     presentation_text text,
     hero_image_url text,
@@ -126,7 +132,13 @@ alter table public.eventin_events add column if not exists event_code text;
 alter table public.eventin_gallery_settings add column if not exists collaborative_available boolean not null default false;
 alter table public.eventin_gallery_images add column if not exists thumbnail_storage_path text unique;
 alter table public.eventin_events add column if not exists event_type text not null default 'communion';
+alter table if exists public.eventin_events add column if not exists location_title text;
+alter table if exists public.eventin_events add column if not exists location2_title text;
+alter table if exists public.eventin_events add column if not exists location2_name text;
+alter table if exists public.eventin_events add column if not exists maps2_url text;
 alter table public.eventin_event_settings add column if not exists main_title text;
+alter table if exists public.eventin_event_settings add column if not exists display_date2 text;
+alter table if exists public.eventin_event_settings add column if not exists display_time2 text;
 alter table public.eventin_event_settings add column if not exists palette_key text not null default 'clasica';
 alter table public.eventin_event_settings alter column palette_key set default 'clasica';
 update public.eventin_event_settings

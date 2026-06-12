@@ -24,8 +24,12 @@
                 id: config.defaultEventId,
                 title: config.fallbackEvent.title,
                 event_date: config.fallbackEvent.eventDate,
+                location_title: '',
                 location_name: config.fallbackEvent.place,
                 maps_url: config.fallbackEvent.mapsUrl,
+                location2_title: '',
+                location2_name: '',
+                maps2_url: '',
                 public_slug: config.defaultEventSlug,
                 event_code: config.defaultEventCode
             },
@@ -34,6 +38,8 @@
                 subtitle: config.fallbackEvent.subtitle,
                 display_date: config.fallbackEvent.displayDate,
                 display_time: config.fallbackEvent.displayTime,
+                display_date2: '',
+                display_time2: '',
                 presentation_title: config.fallbackEvent.presentationTitle,
                 presentation_text: config.fallbackEvent.presentationText,
                 hero_image_url: '',
@@ -56,8 +62,8 @@
 
         const isCodeLookup = /^\d{6}$/.test(requestedKey);
         const eventColumns = isCodeLookup
-            ? 'id,title,event_date,location_name,maps_url,public_slug,event_code'
-            : 'id,title,event_date,location_name,maps_url,public_slug';
+            ? 'id,title,event_date,location_title,location_name,maps_url,location2_title,location2_name,maps2_url,public_slug,event_code'
+            : 'id,title,event_date,location_title,location_name,maps_url,location2_title,location2_name,maps2_url,public_slug';
         let eventQuery = client
             .from('eventin_events')
             .select(eventColumns)
@@ -77,7 +83,7 @@
 
         const { data: settings } = await client
             .from('eventin_event_settings')
-            .select('main_title,subtitle,display_date,display_time,presentation_title,presentation_text,hero_image_url,detail_image_url,palette_key')
+            .select('main_title,subtitle,display_date,display_time,display_date2,display_time2,presentation_title,presentation_text,hero_image_url,detail_image_url,palette_key')
             .eq('event_id', eventData.id)
             .maybeSingle();
 

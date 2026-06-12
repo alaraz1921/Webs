@@ -21,8 +21,14 @@
             eventDate: valueOrFallback(eventData?.event_date, fallback.eventDate),
             displayDate: valueOrFallback(settings?.display_date, fallback.displayDate),
             displayTime: valueOrFallback(settings?.display_time, fallback.displayTime),
+            locationTitle: String(valueOrFallback(eventData?.location_title, '')).trim() || 'Cuándo y dónde',
             place: valueOrFallback(eventData?.location_name, fallback.place),
             mapsUrl: valueOrFallback(eventData?.maps_url, fallback.mapsUrl),
+            location2Title: String(valueOrFallback(eventData?.location2_title, '')).trim(),
+            displayDate2: valueOrFallback(settings?.display_date2, ''),
+            displayTime2: valueOrFallback(settings?.display_time2, ''),
+            place2: valueOrFallback(eventData?.location2_name, ''),
+            mapsUrl2: valueOrFallback(eventData?.maps2_url, ''),
             presentationTitle: valueOrFallback(settings?.presentation_title, fallback.presentationTitle),
             presentationText: valueOrFallback(settings?.presentation_text, fallback.presentationText),
             heroImageUrl: valueOrFallback(settings?.hero_image_url, ''),
@@ -35,6 +41,7 @@
         setText('[data-event-subtitle]', data.subtitle);
         setText('[data-presentation-title]', data.presentationTitle);
         setText('[data-presentation-text]', data.presentationText);
+        setText('#event-info-title', data.locationTitle);
         setText('[data-event-date]', data.displayDate);
         setText('[data-event-time]', data.displayTime);
         setText('[data-event-place]', data.place);
@@ -44,6 +51,7 @@
             mapLink.href = data.mapsUrl;
         }
 
+        renderSecondaryLocation(data);
         setPanelImage('.hero', data.heroImageUrl);
         setPanelImage('.image-panel', data.detailImageUrl);
         updatePageMetadata(eventData, data);
@@ -77,6 +85,36 @@
         if (element) {
             element.textContent = value;
         }
+    }
+
+    function renderSecondaryLocation(data) {
+        const card = document.querySelector('#event-info-secondary');
+        if (!card) return;
+
+        card.hidden = !data.location2Title;
+        if (card.hidden) return;
+
+        setText('#event-info-secondary-title', data.location2Title);
+        const hasDate = setOptionalDetail('[data-event-detail2-date]', '[data-event-date2]', data.displayDate2);
+        const hasTime = setOptionalDetail('[data-event-detail2-time]', '[data-event-time2]', data.displayTime2);
+        const hasPlace = setOptionalDetail('[data-event-detail2-place]', '[data-event-place2]', data.place2);
+        const details = card.querySelector('.event-details');
+        if (details) details.hidden = !hasDate && !hasTime && !hasPlace;
+
+        const mapLink = card.querySelector('[data-event-map2]');
+        if (mapLink) {
+            mapLink.hidden = !String(data.mapsUrl2 || '').trim();
+            if (!mapLink.hidden) mapLink.href = data.mapsUrl2;
+        }
+    }
+
+    function setOptionalDetail(rowSelector, valueSelector, value) {
+        const row = document.querySelector(rowSelector);
+        if (!row) return false;
+
+        row.hidden = !String(value || '').trim();
+        if (!row.hidden) setText(valueSelector, value);
+        return !row.hidden;
     }
 
     function startCountdown(dateValue) {
@@ -117,13 +155,19 @@
             applyEvent({
                 title: config.fallbackEvent.title,
                 event_date: config.fallbackEvent.eventDate,
+                location_title: '',
                 location_name: config.fallbackEvent.place,
-                maps_url: config.fallbackEvent.mapsUrl
+                maps_url: config.fallbackEvent.mapsUrl,
+                location2_title: '',
+                location2_name: '',
+                maps2_url: ''
             }, {
                 main_title: config.fallbackEvent.title,
                 subtitle: config.fallbackEvent.subtitle,
                 display_date: config.fallbackEvent.displayDate,
                 display_time: config.fallbackEvent.displayTime,
+                display_date2: '',
+                display_time2: '',
                 presentation_title: config.fallbackEvent.presentationTitle,
                 presentation_text: config.fallbackEvent.presentationText,
                 palette_key: config.fallbackEvent.paletteKey || 'clasica'

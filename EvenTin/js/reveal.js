@@ -82,7 +82,7 @@
 
         staggerChildren(
             scope,
-            ".showcase-benefits article, .style-gallery figure, .showcase-type-grid article, .showcase-final article, .showcase-mini-features > span, .event-details > div, .gallery-grid > *, .memories-preview > *, .message-item, .guest-card",
+            ".showcase-benefits article, .style-gallery figure, .showcase-type-grid article, .showcase-final article, .showcase-mini-features > span, .event-locations-section .event-card, .event-details > div, .gallery-grid > *, .memories-preview > *, .message-item, .guest-card",
             120
         );
     };

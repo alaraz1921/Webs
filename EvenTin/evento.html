@@ -60,23 +60,43 @@
             <div class="image-panel" aria-hidden="true"></div>
         </section>
 
-        <section class="section event-card" aria-labelledby="event-info-title">
-            <h2 id="event-info-title">Cuándo y dónde</h2>
-            <dl class="event-details">
-                <div>
-                    <dt>Fecha</dt>
-                    <dd data-event-date>Domingo, 15 de junio de 2026</dd>
-                </div>
-                <div>
-                    <dt>Hora</dt>
-                    <dd data-event-time>12:00</dd>
-                </div>
-                <div>
-                    <dt>Lugar</dt>
-                    <dd data-event-place>Parroquia por confirmar</dd>
-                </div>
-            </dl>
-            <a class="secondary-link" data-event-map href="#" target="_blank" rel="noopener">Ver en Google Maps</a>
+        <section class="section event-locations-section" aria-label="Datos del evento">
+            <article class="event-card" aria-labelledby="event-info-title">
+                <h2 id="event-info-title">Cuándo y dónde</h2>
+                <dl class="event-details">
+                    <div>
+                        <dt>Fecha</dt>
+                        <dd data-event-date>Domingo, 15 de junio de 2026</dd>
+                    </div>
+                    <div>
+                        <dt>Hora</dt>
+                        <dd data-event-time>12:00</dd>
+                    </div>
+                    <div>
+                        <dt>Lugar</dt>
+                        <dd data-event-place>Parroquia por confirmar</dd>
+                    </div>
+                </dl>
+                <a class="secondary-link" data-event-map href="#" target="_blank" rel="noopener">Ver en Google Maps</a>
+            </article>
+            <article id="event-info-secondary" class="event-card" aria-labelledby="event-info-secondary-title" hidden>
+                <h2 id="event-info-secondary-title"></h2>
+                <dl class="event-details">
+                    <div data-event-detail2-date>
+                        <dt>Fecha</dt>
+                        <dd data-event-date2></dd>
+                    </div>
+                    <div data-event-detail2-time>
+                        <dt>Hora</dt>
+                        <dd data-event-time2></dd>
+                    </div>
+                    <div data-event-detail2-place>
+                        <dt>Lugar</dt>
+                        <dd data-event-place2></dd>
+                    </div>
+                </dl>
+                <a class="secondary-link outline-secondary-button" data-event-map2 href="#" target="_blank" rel="noopener">Ver en Google Maps</a>
+            </article>
         </section>
 
         <section class="section memories-section" aria-labelledby="memories-title">

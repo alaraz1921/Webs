@@ -815,6 +815,16 @@ a {
     padding: 30px;
 }
 
+.event-locations-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 24px;
+}
+
+.event-locations-section .event-card {
+    min-width: 0;
+}
+
 .event-details {
     display: grid;
     gap: 18px;
@@ -1412,6 +1422,10 @@ th {
     }
 
     .event-details div:last-child {
+        border-right: 0;
+    }
+
+    .event-details div:not([hidden]):not(:has(~ div:not([hidden]))) {
         border-right: 0;
     }
 

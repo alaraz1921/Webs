@@ -715,7 +715,7 @@
     async function loadEvents() {
         const query = client
             .from('eventin_events')
-            .select('id,title,event_date,public_slug,event_code,event_type,location_name,maps_url')
+            .select('id,title,event_date,public_slug,event_code,event_type,location_title,location_name,maps_url,location2_title,location2_name,maps2_url')
             .order('created_at', { ascending: true });
         const { data, error } = isAdmin()
             ? await query
@@ -809,7 +809,7 @@
             : 'Editar evento';
         const { data: settings } = await client
             .from('eventin_event_settings')
-            .select('main_title,subtitle,display_date,display_time,presentation_title,presentation_text,hero_image_url,detail_image_url,palette_key')
+            .select('main_title,subtitle,display_date,display_time,display_date2,display_time2,presentation_title,presentation_text,hero_image_url,detail_image_url,palette_key')
             .eq('event_id', eventId)
             .maybeSingle();
 
@@ -817,12 +817,18 @@
         settingsForm.elements.event_code.value = eventData?.event_code || '';
         settingsForm.elements.event_code.readOnly = true;
         settingsForm.elements.event_date.value = toInputDateTime(eventData?.event_date);
+        settingsForm.elements.location_title.value = eventData?.location_title || '';
         settingsForm.elements.location_name.value = eventData?.location_name || '';
         settingsForm.elements.maps_url.value = eventData?.maps_url || '';
+        settingsForm.elements.location2_title.value = eventData?.location2_title || '';
+        settingsForm.elements.location2_name.value = eventData?.location2_name || '';
+        settingsForm.elements.maps2_url.value = eventData?.maps2_url || '';
         settingsForm.elements.main_title.value = settings?.main_title ?? eventData?.title ?? '';
         settingsForm.elements.subtitle.value = settings?.subtitle ?? '';
         settingsForm.elements.display_date.value = settings?.display_date ?? '';
         settingsForm.elements.display_time.value = settings?.display_time ?? '';
+        settingsForm.elements.display_date2.value = settings?.display_date2 ?? '';
+        settingsForm.elements.display_time2.value = settings?.display_time2 ?? '';
         settingsForm.elements.presentation_title.value = settings?.presentation_title ?? '';
         settingsForm.elements.presentation_text.value = settings?.presentation_text ?? '';
         settingsForm.elements.hero_image_url.value = settings?.hero_image_url || '';
@@ -1173,8 +1179,12 @@
                 title: String(formData.get('title') || '').trim(),
                 event_type: String(formData.get('event_type') || 'communion'),
                 event_date: new Date(String(formData.get('event_date'))).toISOString(),
+                location_title: String(formData.get('location_title') || '').trim(),
                 location_name: String(formData.get('location_name') || '').trim(),
-                maps_url: String(formData.get('maps_url') || '').trim()
+                maps_url: String(formData.get('maps_url') || '').trim(),
+                location2_title: String(formData.get('location2_title') || '').trim(),
+                location2_name: String(formData.get('location2_name') || '').trim(),
+                maps2_url: String(formData.get('maps2_url') || '').trim()
             };
 
 
@@ -1201,6 +1211,8 @@
                     subtitle: String(formData.get('subtitle') ?? '').trim(),
                     display_date: String(formData.get('display_date') ?? '').trim(),
                     display_time: String(formData.get('display_time') ?? '').trim(),
+                    display_date2: String(formData.get('display_date2') ?? '').trim(),
+                    display_time2: String(formData.get('display_time2') ?? '').trim(),
                     presentation_title: String(formData.get('presentation_title') ?? '').trim(),
                     presentation_text: String(formData.get('presentation_text') ?? '').trim(),
                     hero_image_url: imageUrls.hero_image_url,
