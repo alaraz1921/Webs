@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bingo-v7';
+const CACHE_NAME = 'bingo-v8';
 const APP_SHELL = [
   './carton.html',
   './monitor.html',
