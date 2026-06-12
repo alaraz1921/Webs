@@ -25,6 +25,7 @@ Ultima revision: 2026-06-12
 - [x] PA-19 Destacar el nombre del jugador frente a la etiqueta `Tu turno` durante el revelado de roles de Infiltrado.
 - [x] PA-20 Añadir cuenta compartida, login y solicitud de registro con confirmacion de correo en `games.html`.
 - [x] PA-21 Permitir acceso por alias y añadir restauracion de contraseña en Games.
+- [x] PA-22 Situar la restauracion de contraseña en la pantalla de login de Games.
 
 ## Prioridad Media
 
