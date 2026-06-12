@@ -159,10 +159,11 @@ Concentrador de juegos:
 - Bingo.
 - Infiltrado.
 
-- Incluye un icono de usuario con inicio de sesion, registro y cierre de sesion.
+- Incluye un icono de usuario con inicio de sesion por alias o correo, registro, restauracion de contraseña y cierre de sesion.
 - El registro usa Supabase Auth con confirmacion de correo y guarda el nombre visible en los metadatos del usuario.
 - Los registros creados desde Games reciben acceso automatico al Monitor de Bingo y a Infiltrado mediante `project_members`.
 - Games, Monitor Bingo e Infiltrado comparten una validacion local de sesion de 24 horas mediante `games_auth_time`.
+- `profiles.username` guarda alias unicos y la RPC `resolve_games_login_email(text)` permite iniciar sesion por alias.
 
 Los botones de vuelta de Bingo, Monitor e Infiltrado regresan a `games.html` y se ocultan cuando el juego se ejecuta como PWA instalada. Desde `games.html` se vuelve a la portada.
 
@@ -324,12 +325,15 @@ Migraciones:
 - `20260611120000_bingo_partidas.sql`
 - `20260611150000_infiltrado_supabase.sql`
 - `20260612100000_games_self_registration.sql`
+- `20260612120000_games_username_password_recovery.sql`
 
 Configuracion manual necesaria para el registro de Games:
 
 - Activar `Confirm email` en Supabase Auth.
 - Permitir `https://www.alaraz1921.com/games.html` como URL de redireccion.
+- Permitir `https://www.alaraz1921.com/games.html?recovery=1` como URL de redireccion.
 - Ejecutar `20260612100000_games_self_registration.sql`.
+- Ejecutar `20260612120000_games_username_password_recovery.sql`.
 
 No usar tablas `eventin_*` en este proyecto Supabase. Son restos candidatos a borrar si existen y estan vacios.
 

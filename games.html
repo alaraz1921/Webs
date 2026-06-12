@@ -71,8 +71,8 @@
             <h2>CONTROL DE ACCESO</h2>
             <p>Inicia sesión para acceder a tus juegos.</p>
             <form id="games-login-form">
-                <label for="games-login-email">Correo</label>
-                <input id="games-login-email" type="email" autocomplete="username" required>
+                <label for="games-login-identifier">Usuario o correo</label>
+                <input id="games-login-identifier" type="text" autocomplete="username" required>
                 <label for="games-login-password">Contraseña</label>
                 <input id="games-login-password" type="password" autocomplete="current-password" required>
                 <button type="submit">ENTRAR</button>
@@ -92,16 +92,54 @@
             <p>Recibirás un correo de Supabase para confirmar tu cuenta.</p>
             <form id="games-register-form">
                 <label for="games-register-user">Usuario</label>
-                <input id="games-register-user" type="text" autocomplete="nickname" maxlength="40" required>
+                <input id="games-register-user" type="text" autocomplete="nickname" minlength="3" maxlength="30" pattern="[A-Za-z0-9_-]+" required>
                 <label for="games-register-email">Correo</label>
                 <input id="games-register-email" type="email" autocomplete="email" required>
                 <label for="games-register-password">Contraseña</label>
                 <input id="games-register-password" type="password" autocomplete="new-password" minlength="6" required>
                 <button type="submit">SOLICITAR REGISTRO</button>
+                <button id="games-open-recovery" class="games-auth-secondary" type="button">RESTAURAR CONTRASEÑA</button>
             </form>
             <p id="games-register-message" class="games-auth-message" hidden></p>
         </div>
         <button class="games-auth-back" type="button" data-close-auth>Volver a Games</button>
+    </section>
+
+    <section id="games-recovery-screen" class="games-auth-screen" hidden>
+        <header class="app-page-header login-page-title">
+            <p class="app-page-kicker">alaraz1921</p>
+            <h1>RECUPERAR</h1>
+        </header>
+        <div class="games-auth-card">
+            <h2>RESTAURAR CONTRASEÑA</h2>
+            <p>Te enviaremos un enlace para crear una nueva contraseña.</p>
+            <form id="games-recovery-form">
+                <label for="games-recovery-email">Correo electrónico</label>
+                <input id="games-recovery-email" type="email" autocomplete="email" required>
+                <button type="submit">ENVIAR ENLACE</button>
+            </form>
+            <p id="games-recovery-message" class="games-auth-message" hidden></p>
+        </div>
+        <button class="games-auth-back" type="button" data-close-auth>Volver a Games</button>
+    </section>
+
+    <section id="games-new-password-screen" class="games-auth-screen" hidden>
+        <header class="app-page-header login-page-title">
+            <p class="app-page-kicker">alaraz1921</p>
+            <h1>NUEVA CLAVE</h1>
+        </header>
+        <div class="games-auth-card">
+            <h2>CAMBIAR CONTRASEÑA</h2>
+            <p>Introduce y confirma tu nueva contraseña.</p>
+            <form id="games-new-password-form">
+                <label for="games-new-password">Nueva contraseña</label>
+                <input id="games-new-password" type="password" autocomplete="new-password" minlength="6" required>
+                <label for="games-new-password-confirm">Confirmar contraseña</label>
+                <input id="games-new-password-confirm" type="password" autocomplete="new-password" minlength="6" required>
+                <button type="submit">GUARDAR CONTRASEÑA</button>
+            </form>
+            <p id="games-new-password-message" class="games-auth-message" hidden></p>
+        </div>
     </section>
 
     <script src="assets/supabase-client.js"></script>

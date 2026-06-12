@@ -26,6 +26,7 @@ Opcion sencilla desde el panel de Supabase:
    - `migrations/20260611120000_bingo_partidas.sql`
    - `migrations/20260611150000_infiltrado_supabase.sql`
    - `migrations/20260612100000_games_self_registration.sql`
+   - `migrations/20260612120000_games_username_password_recovery.sql`
 5. Comprobar que no hay errores en el resultado.
 
 ## Crear el primer usuario
@@ -103,6 +104,25 @@ Para que Supabase valide el correo:
 3. Añadir `https://www.alaraz1921.com/games.html` a las URLs de redireccion permitidas si no esta incluida por la configuracion general del sitio.
 
 El usuario no podra iniciar sesion hasta confirmar el enlace enviado por Supabase. La sesion compartida de Games caduca localmente a las 24 horas.
+
+La migracion `20260612120000_games_username_password_recovery.sql`:
+
+- Añade un nombre de usuario unico a `profiles`.
+- Permite resolver el usuario durante el login de Games sin exponer la tabla completa.
+- Prepara el flujo de restauracion de contraseña mediante Supabase Auth.
+
+Para la restauracion, añadir tambien esta URL a las redirecciones permitidas:
+
+```text
+https://www.alaraz1921.com/games.html?recovery=1
+```
+
+Los correos se personalizan desde `Authentication` -> `Email Templates`:
+
+- `Confirm signup` para el correo de alta.
+- `Reset password` para el correo de restauracion.
+
+Si las plantillas construyen enlaces personalizados y usan la redireccion facilitada por la web, revisar que empleen `{{ .RedirectTo }}`. Para produccion se recomienda configurar un SMTP propio; el servicio de prueba de Supabase tiene limites bajos de envio.
 
 ## Contacto de Webs
 

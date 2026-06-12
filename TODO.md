@@ -24,6 +24,7 @@ Ultima revision: 2026-06-12
 - [x] PA-18 Reforzar la deteccion del modo instalado y renombrar las PWA como `Bingo Alaraz1921` e `Infiltrado Alaraz1921`.
 - [x] PA-19 Destacar el nombre del jugador frente a la etiqueta `Tu turno` durante el revelado de roles de Infiltrado.
 - [x] PA-20 Añadir cuenta compartida, login y solicitud de registro con confirmacion de correo en `games.html`.
+- [x] PA-21 Permitir acceso por alias y añadir restauracion de contraseña en Games.
 
 ## Prioridad Media
 
@@ -46,6 +47,7 @@ Ultima revision: 2026-06-12
 - [x] PM-17 Crear `proyectos.html` y actualizar el mensaje editorial y metadatos comunes de Webs.
 - [x] PM-18 Convertir `PROYECTOS` en enlace directo y añadir separadores al texto de presentacion.
 - [ ] PM-19 Ejecutar `20260612100000_games_self_registration.sql`, activar `Confirm email` y permitir la redireccion a `games.html` en Supabase.
+- [ ] PM-20 Ejecutar `20260612120000_games_username_password_recovery.sql` y permitir la URL de recuperacion en Supabase.
 
 ## Prioridad Baja
 
@@ -86,6 +88,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-12 Ejecutar el flujo manual completo indicado en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-13 Probar `proyectos.html`; comprobar que EvenTin abre su pagina publicada y que EvenPic y Subastas Solidarias abren `coming-soon.html`.
 - [ ] PR-14 Probar registro, confirmacion de correo, login compartido, cierre de sesion y acceso a Monitor Bingo e Infiltrado desde Games.
+- [ ] PR-15 Probar login por usuario y correo, solicitud de restauracion y cambio de contraseña desde el enlace recibido.
 
 ## Ideas De Mejora
 
