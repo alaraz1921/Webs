@@ -12,6 +12,7 @@ let items = [];
 let zonas = [];
 let cajas = [];
 let currentItem = null;
+let currentCreateContext = {};
 let toastTimer = null;
 
 function escapeHtml(value = '') {
@@ -189,6 +190,7 @@ function handleListAction(event) {
 
 function openForm(item = null, defaults = {}) {
     currentItem = item;
+    currentCreateContext = item ? {} : { ...defaults };
     const form = document.getElementById('entity-form');
     form.reset();
     fillSelect('zona_id', zonas, 'Sin zona');
@@ -210,6 +212,7 @@ function openForm(item = null, defaults = {}) {
 function closeForm() {
     document.getElementById('form-panel').hidden = true;
     currentItem = null;
+    currentCreateContext = {};
 }
 
 async function saveItem(event) {
@@ -217,6 +220,7 @@ async function saveItem(event) {
     const submit = event.target.querySelector('[type="submit"]');
     submit.disabled = true;
     const id = document.getElementById('entity-id').value;
+    const createContext = { ...currentCreateContext };
     const payload = { user_id: currentUser.id };
     config[entityType].fields.forEach((field) => {
         const value = document.getElementById(field)?.value.trim();
@@ -234,14 +238,70 @@ async function saveItem(event) {
     closeForm();
     await fetchRelations();
     await loadItems();
+    const repeatContext = getRepeatContext(createContext, payload);
+    if (!id && repeatContext && window.confirm(repeatContext.question)) {
+        openForm(null, repeatContext.defaults);
+        return;
+    }
     await showDetail(result.data.id);
+}
+
+function getRepeatContext(createContext, payload) {
+    if (entityType === 'caja' && createContext.zona_id && payload.zona_id) {
+        return {
+            question: 'Caja creada. ¿Quieres crear otra caja en esta misma zona?',
+            defaults: { zona_id: payload.zona_id }
+        };
+    }
+    if (entityType === 'objeto' && createContext.caja_id && payload.caja_id) {
+        return {
+            question: 'Objeto creado. ¿Quieres crear otro objeto en esta misma caja?',
+            defaults: { caja_id: payload.caja_id, zona_id: payload.zona_id }
+        };
+    }
+    return null;
+}
+
+async function loadRelatedItems(item) {
+    if (entityType === 'zona') {
+        const { data, error } = await supabaseClient.from('trastero_cajas').select('id,nombre,ubicacion,notas').eq('zona_id', item.id).order('nombre');
+        if (error) throw error;
+        return { label: 'Cajas en esta zona', itemLabel: 'caja', url: 'cajas.html', items: data || [] };
+    }
+    if (entityType === 'caja') {
+        const { data, error } = await supabaseClient.from('trastero_objetos').select('id,nombre,notas').eq('caja_id', item.id).order('nombre');
+        if (error) throw error;
+        return { label: 'Objetos en esta caja', itemLabel: 'objeto', url: 'objetos.html', items: data || [] };
+    }
+    return null;
+}
+
+function renderRelatedItems(related) {
+    if (!related) return '';
+    const cards = related.items.length ? related.items.map((item) => `
+        <article class="entity-card">
+            <span class="entity-type">${related.itemLabel}</span>
+            <h3>${escapeHtml(item.nombre)}</h3>
+            ${item.ubicacion ? `<p class="meta-line">${escapeHtml(item.ubicacion)}</p>` : ''}
+            <p>${formatNotes(item.notas)}</p>
+            <div class="card-actions"><a class="button button-small" href="${related.url}?id=${item.id}">Ver ficha</a></div>
+        </article>`).join('') : `<p class="empty-state">No hay ${related.itemLabel === 'caja' ? 'cajas' : 'objetos'} asociados.</p>`;
+    return `<div class="related-items"><h3>${related.label}</h3><div class="card-list">${cards}</div></div>`;
 }
 
 async function showDetail(id) {
     const item = items.find((candidate) => String(candidate.id) === String(id));
     if (!item) return;
     currentItem = item;
-    const photos = await loadPhotos(item.id);
+    let photos;
+    let related;
+    try {
+        [photos, related] = await Promise.all([loadPhotos(item.id), loadRelatedItems(item)]);
+    } catch (error) {
+        showToast(`No se pudieron cargar los elementos relacionados: ${error.message}`, true);
+        photos = await loadPhotos(item.id);
+        related = null;
+    }
     const extraActions = entityType === 'zona'
         ? `<a class="button button-small button-success" href="cajas.html?new=1&zona_id=${item.id}">Crear caja en esta zona</a><a class="button button-small button-success" href="objetos.html?new=1&zona_id=${item.id}">Crear objeto en esta zona</a>`
         : entityType === 'caja'
@@ -257,6 +317,7 @@ async function showDetail(id) {
             ${extraActions}
             <button class="button button-small button-danger" type="button" data-action="delete">Eliminar</button>
         </div>
+        ${renderRelatedItems(related)}
         <div class="photo-upload">
             <h3>Fotos</h3>
             <p class="help-text">Las imágenes se comprimen antes de subirlas.</p>

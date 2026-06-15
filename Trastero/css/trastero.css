@@ -149,6 +149,8 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); outline
 .entity-type { color: var(--gold); font-size: .74rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .meta-line { color: var(--accent) !important; font-size: .88rem; font-weight: 700; }
 .detail-notes { white-space: pre-wrap; }
+.related-items { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border); }
+.related-items > h3 { margin: 0 0 14px; color: var(--accent); text-transform: uppercase; }
 
 .photos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px; margin-top: 14px; }
 .photo-card { overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); }

@@ -224,6 +224,8 @@ Tipografias:
 - Acceso exclusivo para usuarios autenticados con rol `admin` o `trastero`.
 - Cada usuario solo puede gestionar sus propios registros mediante RLS y validaciones de relaciones.
 - Incluye busqueda global, CRUD completo, creacion contextual y fotos comprimidas antes de subir.
+- La creacion contextual permite encadenar nuevas cajas en la misma zona y nuevos objetos en la misma caja.
+- Las fichas de zona muestran sus cajas y las fichas de caja muestran sus objetos, con acceso directo.
 - El bucket privado `trastero-fotos` usa carpetas por usuario y URLs firmadas.
 - SQL operativo: `Trastero/trastero.sql`.
 - Migracion: `supabase/migrations/20260616090000_trastero.sql`.
