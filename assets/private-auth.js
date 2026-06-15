@@ -22,10 +22,22 @@ function setLoading(isLoading) {
     submitButton.textContent = isLoading ? 'ENTRANDO...' : 'ENTRAR';
 }
 
-function showPrivateContent(user) {
+async function showPrivateContent(user) {
     authPanel.hidden = true;
     contentPanel.hidden = false;
     userEmail.textContent = user.email;
+    const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+    const canAccessTrastero = ['admin', 'trastero'].includes(profile?.role);
+    document.getElementById('trastero-project-link').hidden = !canAccessTrastero;
+    const next = new URLSearchParams(window.location.search).get('next');
+    if (canAccessTrastero && next?.startsWith('../Trastero/')) {
+        window.location.replace(next);
+        return;
+    }
     loadRegisteredUsers();
 }
 
@@ -34,6 +46,7 @@ function showLogin() {
     contentPanel.hidden = true;
     userEmail.textContent = '';
     usersList.innerHTML = '<li>Cargando usuarios...</li>';
+    document.getElementById('trastero-project-link').hidden = true;
 }
 
 async function loadRegisteredUsers() {

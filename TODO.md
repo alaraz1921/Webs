@@ -138,3 +138,9 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] IM-08 Añadir indicadores operativos para avisar si una Edge Function de email falla aunque el mensaje quede guardado.
 - [x] IM-09 Preparar Bingo e Infiltrado como PWA con manifest, iconos y service worker.
 - [x] IM-10 Registro con perfil para los dos juegos.
+# Trastero
+
+- [x] Crear aplicacion privada responsive para zonas, cajas, objetos y fotos.
+- [x] Añadir busqueda global y creacion contextual entre elementos.
+- [x] Preparar migracion con RLS por usuario, rol `admin`/`trastero` y Storage privado.
+- [ ] Ejecutar `supabase/migrations/20260616090000_trastero.sql` en Supabase.

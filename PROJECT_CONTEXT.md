@@ -215,6 +215,18 @@ Tipografias:
 - Usa `profiles`, `app_projects` y `project_members`.
 - El apartado Proyectos muestra la lista de usuarios registrados disponible según las politicas RLS de `profiles`.
 - Se ha eliminado el antiguo apartado Notas.
+- Muestra acceso a `Trastero/` para perfiles con rol `admin` o `trastero`.
+
+### Trastero
+
+`Trastero/` es una aplicacion privada multipagina para gestionar zonas, cajas, objetos y fotos:
+
+- Acceso exclusivo para usuarios autenticados con rol `admin` o `trastero`.
+- Cada usuario solo puede gestionar sus propios registros mediante RLS y validaciones de relaciones.
+- Incluye busqueda global, CRUD completo, creacion contextual y fotos comprimidas antes de subir.
+- El bucket privado `trastero-fotos` usa carpetas por usuario y URLs firmadas.
+- SQL operativo: `Trastero/trastero.sql`.
+- Migracion: `supabase/migrations/20260616090000_trastero.sql`.
 
 ### Bingo
 
@@ -339,6 +351,10 @@ Tablas usadas:
 - `infiltrado_jugadores`
 - `infiltrado_palabras_usadas`
 - `infiltrado_resultados`
+- `trastero_zonas`
+- `trastero_cajas`
+- `trastero_objetos`
+- `trastero_fotos`
 
 Funciones/RPC:
 
@@ -377,6 +393,7 @@ Migraciones:
 - `20260615190000_infiltrado_online_retry_resolution.sql`
 - `20260615200000_infiltrado_online_leave.sql`
 - `20260615210000_infiltrado_online_round_flow.sql`
+- `20260616090000_trastero.sql`
 
 Configuracion manual necesaria para el registro de Games:
 
