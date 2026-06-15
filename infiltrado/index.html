@@ -81,7 +81,7 @@
                 </svg>
                 <h3>En línea</h3>
                 <p>Cada jugador consulta su rol desde su propio móvil.</p>
-                <button type="button" onclick="abrirModoOnlineAutenticado()">Jugar</button>
+                <button type="button" onclick="abrirModoOnlineDesdeSeleccion()">Jugar</button>
             </article>
         </div>
     </div>
@@ -112,7 +112,7 @@
         <button type="button" onclick="actualizarSalaOnline()">Actualizar</button>
         <button id="online-start-button" type="button" onclick="iniciarPartidaOnline()" hidden>Iniciar partida</button>
         <button id="online-wait-button" class="btn-secondary" type="button" onclick="actualizarSalaOnline()" hidden>Ir a sala de espera</button>
-        <button class="btn-danger" type="button" onclick="salirPartidaOnline()">Salir de la sala</button>
+        <button class="btn-danger" type="button" onclick="solicitarAbandonarPartidaOnline()">Abandonar partida</button>
     </div>
 
     <div id="screen-online-role" class="screen online-screen">

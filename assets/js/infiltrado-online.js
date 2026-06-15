@@ -26,6 +26,15 @@ function abrirModoOnlineAutenticado() {
     cambiarPantallaVisual('screen-online-menu');
 }
 
+async function abrirModoOnlineDesdeSeleccion() {
+    const { data } = await infiltradoClient.auth.getSession();
+    if (data.session?.user && sesionInfiltradoVigente()) {
+        abrirModoOnlineAutenticado();
+    } else {
+        abrirAccesoOnlineInvitado();
+    }
+}
+
 function abrirAccesoOnlineInvitado() {
     accesoOnlineAutenticado = false;
     document.getElementById('online-create-button').hidden = true;
@@ -493,14 +502,45 @@ function volverSalaOnlineFinalizada() {
     renderizarSalaOnline();
 }
 
-async function salirPartidaOnline() {
-    limpiarSesionOnline();
-    const { data } = await infiltradoClient.auth.getSession();
-    if (accesoOnlineAutenticado || (data.session?.user && sesionInfiltradoVigente())) {
-        mostrarSeleccionModoInfiltrado();
-    } else {
-        abrirAccesoOnlineInvitado();
+function solicitarAbandonarPartidaOnline() {
+    const esAnfitrion = Boolean(estadoOnline?.es_anfitrion);
+    document.getElementById('modal-title').textContent = 'Abandonar partida';
+    document.getElementById('modal-message').textContent = esAnfitrion
+        ? 'Eres el anfitrión. Si abandonas, la partida se eliminará por completo para todos los jugadores.'
+        : '¿Quieres abandonar esta partida y volver a la selección de tipo de juego?';
+    const contenedor = document.getElementById('modal-buttons');
+    contenedor.innerHTML = '';
+
+    const confirmar = document.createElement('button');
+    confirmar.textContent = esAnfitrion ? 'Eliminar y abandonar' : 'Abandonar';
+    confirmar.className = 'btn-danger';
+    confirmar.onclick = abandonarPartidaOnline;
+    contenedor.appendChild(confirmar);
+
+    const cancelar = document.createElement('button');
+    cancelar.textContent = 'Cancelar';
+    cancelar.onclick = cerrarModal;
+    contenedor.appendChild(cancelar);
+    document.getElementById('custom-modal').style.display = 'flex';
+}
+
+async function abandonarPartidaOnline() {
+    const codigo = localStorage.getItem(INFILTRADO_ONLINE_CODE_KEY);
+    const { data, error } = await infiltradoClient.rpc('infiltrado_online_leave', {
+        p_partida_id: estadoOnline.partida_id,
+        p_player_token: localStorage.getItem(INFILTRADO_ONLINE_TOKEN_KEY)
+    });
+
+    if (error || !data?.ok) {
+        abrirModal('No se pudo abandonar', data?.message || 'Inténtalo de nuevo.');
+        return;
     }
+
+    cerrarModal();
+    if (codigo) eliminarRegistroSesionOnline(codigo);
+    limpiarSesionOnline();
+    accesoOnlineAutenticado = false;
+    cambiarPantallaVisual('screen-mode');
 }
 
 function iniciarActualizacionOnline() {

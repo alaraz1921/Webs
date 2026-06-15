@@ -284,6 +284,7 @@ Base de datos y PWA:
 - El anfitrion usa Supabase Realtime para cambios de sala y todos los clientes mantienen actualizacion periodica/manual como respaldo.
 - Durante una ronda iniciada, las actualizaciones de estado no reconstruyen la pantalla de rol para no cerrar los desplegables del anfitrion.
 - El anfitrion resuelve la ronda desde la tarjeta de rol: un fallo mantiene la partida iniciada para volver a intentarlo y un acierto muestra confirmacion antes de regresar a la lista de jugadores.
+- Desde la lista de jugadores se puede abandonar con confirmacion: un invitado elimina solo su jugador y el anfitrion autenticado elimina por completo la partida y sus datos relacionados.
 - La PWA `Infiltrado Alaraz1921` usa manifest, service worker y el icono de espia proporcionado.
 - El boton de instalacion aparece solo despues del login y muestra instrucciones especificas en iOS.
 - En modo PWA se ocultan los controles de vuelta a `games.html`. La deteccion combina modos de visualizacion instalados y la marca `?pwa=1` del manifiesto.
@@ -344,6 +345,7 @@ Funciones/RPC:
 - `infiltrado_online_finish(uuid, text, bigint, bigint)`
 - `infiltrado_online_remove_player(uuid, text, bigint)`
 - `infiltrado_online_resume_host(text)`
+- `infiltrado_online_leave(uuid, text)`
 
 Edge Function:
 
@@ -365,6 +367,7 @@ Migraciones:
 - `20260615150000_infiltrado_online.sql`
 - `20260615170000_infiltrado_online_resume.sql`
 - `20260615190000_infiltrado_online_retry_resolution.sql`
+- `20260615200000_infiltrado_online_leave.sql`
 
 Configuracion manual necesaria para el registro de Games:
 
