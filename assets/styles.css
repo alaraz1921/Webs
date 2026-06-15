@@ -2281,6 +2281,162 @@ body.infiltrado-page .infiltrado-install-button {
     color: #ffffff;
 }
 
+/* Infiltrado online */
+body.infiltrado-page .btn-online-guest,
+body.infiltrado-page .btn-secondary {
+    background: #475569;
+    color: #ffffff;
+}
+
+body.infiltrado-page .infiltrado-mode-grid {
+    display: grid;
+    gap: 14px;
+}
+
+body.infiltrado-page .infiltrado-mode-card {
+    padding: 18px;
+    border: 2px solid #3a506b;
+    border-radius: 14px;
+    background: #15213b;
+    text-align: center;
+}
+
+body.infiltrado-page .infiltrado-mode-card svg {
+    width: 46px;
+    height: 46px;
+    fill: none;
+    stroke: #4cc9f0;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+body.infiltrado-page .infiltrado-mode-card h3,
+body.infiltrado-page .online-host-resolution h3 {
+    margin: 10px 0 6px;
+    color: #ffffff;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+}
+
+body.infiltrado-page .infiltrado-mode-card p {
+    min-height: 45px;
+    margin-bottom: 12px;
+}
+
+body.infiltrado-page .online-status {
+    margin: 0 0 5px;
+    color: #ffb703;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+body.infiltrado-page .online-host-config {
+    padding: 12px;
+    border: 1px solid #3a506b;
+    border-radius: 10px;
+    background: rgba(11, 19, 43, 0.55);
+    text-align: left;
+}
+
+body.infiltrado-page .online-host-config[hidden],
+body.infiltrado-page .online-host-resolution[hidden],
+body.infiltrado-page #online-start-button[hidden],
+body.infiltrado-page #online-wait-button[hidden] {
+    display: none;
+}
+
+body.infiltrado-page .online-players-list {
+    margin: 18px 0;
+    padding: 0;
+    list-style: none;
+}
+
+body.infiltrado-page .online-players-list li {
+    display: flex;
+    min-height: 48px;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    border: 1px solid #3a506b;
+    border-radius: 8px;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: #15213b;
+    color: #ffffff;
+    font-weight: 700;
+    text-align: left;
+}
+
+body.infiltrado-page .online-remove-player {
+    width: auto;
+    min-width: 78px;
+    margin: 0;
+    padding: 8px 10px;
+    background: #f72585;
+    color: #ffffff;
+    font-size: 0.76rem;
+}
+
+body.infiltrado-page .online-role-card {
+    display: grid;
+    min-height: 150px;
+    margin: 20px 0;
+    padding: 24px;
+    border: 3px solid #4cc9f0;
+    border-radius: 14px;
+    background: #2a3a5c;
+    color: #ffb703;
+    font-size: clamp(1.8rem, 9vw, 2.8rem);
+    font-weight: 900;
+    overflow-wrap: anywhere;
+    place-items: center;
+    text-transform: uppercase;
+}
+
+body.infiltrado-page .online-host-resolution,
+body.infiltrado-page .online-final-summary {
+    margin: 18px 0;
+    padding: 16px;
+    border: 1px solid #3a506b;
+    border-radius: 10px;
+    background: rgba(11, 19, 43, 0.55);
+}
+
+body.infiltrado-page .online-final-summary p {
+    margin: 8px 0;
+    text-align: left;
+}
+
+body.infiltrado-page .online-final-summary strong {
+    color: #ffb703;
+}
+
+body.infiltrado-page .online-modal-field {
+    display: block;
+    color: #cbd5e1;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+body.infiltrado-page .online-modal-field input {
+    margin: 6px 0 4px;
+    text-transform: none;
+}
+
+@media (min-width: 560px) {
+    body.infiltrado-page #screen-mode {
+        max-width: 620px;
+    }
+
+    body.infiltrado-page .infiltrado-mode-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 .pwa-install-control[hidden] {
     display: none !important;
 }

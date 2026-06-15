@@ -28,6 +28,8 @@ Opcion sencilla desde el panel de Supabase:
    - `migrations/20260612100000_games_self_registration.sql`
    - `migrations/20260612120000_games_username_password_recovery.sql`
    - `migrations/20260612150000_notify_new_user.sql`
+   - `migrations/20260615120000_infiltrado_palabras_usadas.sql`
+   - `migrations/20260615150000_infiltrado_online.sql`
 5. Comprobar que no hay errores en el resultado.
 
 ## Crear el primer usuario
@@ -41,6 +43,8 @@ Opcion sencilla desde el panel de Supabase:
 - `profiles`: perfil asociado a `auth.users`.
 - `app_projects`: proyectos o secciones privadas.
 - `project_members`: permisos de usuarios por proyecto.
+- `infiltrado_partidas`, `infiltrado_jugadores`, `infiltrado_palabras` e `infiltrado_palabras_usadas`: estado y catálogo del juego.
+- `infiltrado_resultados`: resultados de las rondas online.
 
 Todas las tablas tienen RLS activado.
 
@@ -69,7 +73,11 @@ La migracion `20260611150000_infiltrado_supabase.sql` crea el proyecto `infiltra
 
 La migracion `20260615120000_infiltrado_palabras_usadas.sql` crea `infiltrado_palabras_usadas`. Cada ronda registra su palabra para evitar repeticiones dentro de la partida temporal. Al eliminar la partida, su historial se borra automaticamente por cascada.
 
+La migracion `20260615150000_infiltrado_online.sql` amplía las tablas existentes para el modo online, elimina la limitacion de una partida por anfitrion, crea `infiltrado_resultados`, habilita Realtime y añade RPC seguras para invitados identificados mediante código y `player_token`. Al finalizar una ronda guarda el resultado y limpia las palabras usadas.
+
 El formulario de Infiltrado acepta el correo o el nombre guardado en `profiles.username`. Siempre exige la contraseña real de Supabase Auth. Pueden acceder los administradores y los miembros asignados al proyecto.
+
+Para activar el modo online, ejecutar `20260615150000_infiltrado_online.sql` después de las migraciones anteriores de Infiltrado. Los invitados no necesitan Auth ni permisos directos sobre tablas; deben usar exclusivamente las RPC concedidas a `anon`.
 
 ## Registro compartido de Games
 

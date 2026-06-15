@@ -1,4 +1,4 @@
-const CACHE_NAME = 'infiltrado-v11';
+const CACHE_NAME = 'infiltrado-v12';
 const APP_SHELL = [
   './',
   './index.html',
@@ -7,7 +7,8 @@ const APP_SHELL = [
   './icons/infiltrado-icon-512.png',
   '../assets/styles.css',
   '../assets/supabase-client.js',
-  '../assets/js/infiltrado.js'
+  '../assets/js/infiltrado.js',
+  '../assets/js/infiltrado-online.js'
 ];
 
 self.addEventListener('install', (event) => {

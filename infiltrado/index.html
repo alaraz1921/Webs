@@ -46,6 +46,7 @@
                 <input type="text" id="infiltradoUsuario" placeholder="Usuario o email" autocomplete="username" required>
                 <input type="password" id="infiltradoClave" placeholder="Clave" autocomplete="current-password" required>
                 <button class="btn-entrar" type="submit">ENTRAR</button>
+                <button class="btn-online-guest" type="button" onclick="abrirAccesoOnlineInvitado()">UNIRSE A PARTIDA ONLINE</button>
                 <a class="auth-text-link" href="../games.html?auth=recovery">Restaurar contraseña</a>
                 <a class="auth-register-button" href="../games.html?auth=register">NUEVO REGISTRO</a>
             </form>
@@ -59,6 +60,79 @@
             </svg>
             <span>Volver a Games</span>
         </a>
+    </div>
+
+    <div id="screen-mode" class="screen">
+        <h2>Elige el modo de juego</h2>
+        <div class="infiltrado-mode-grid">
+            <article class="infiltrado-mode-card">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="7" y="3" width="10" height="18" rx="2"></rect>
+                    <path d="M4 9a8 8 0 0 1 2-4M20 15a8 8 0 0 1-2 4M4 5v4h4M20 19v-4h-4"></path>
+                </svg>
+                <h3>Sin conexión</h3>
+                <p>Juega pasando un único móvil entre todos los participantes.</p>
+                <button type="button" onclick="iniciarModoOffline()">Jugar</button>
+            </article>
+            <article class="infiltrado-mode-card">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M3 12h18M12 3c3 3 4 6 4 9s-1 6-4 9c-3-3-4-6-4-9s1-6 4-9Z"></path>
+                </svg>
+                <h3>En línea</h3>
+                <p>Cada jugador consulta su rol desde su propio móvil.</p>
+                <button type="button" onclick="abrirModoOnlineAutenticado()">Jugar</button>
+            </article>
+        </div>
+    </div>
+
+    <div id="screen-online-menu" class="screen">
+        <h2>Modo en línea</h2>
+        <p>Crea una sala o únete con el código de tres cifras del anfitrión.</p>
+        <button id="online-create-button" type="button" onclick="solicitarCrearPartidaOnline()">Crear partida</button>
+        <button type="button" onclick="solicitarUnirsePartidaOnline()">Unirse a partida</button>
+        <button id="online-mode-back" class="btn-secondary" type="button" onclick="volverDesdeMenuOnline()">Volver</button>
+    </div>
+
+    <div id="screen-online-lobby" class="screen online-screen">
+        <p id="online-lobby-status" class="online-status">Sala de partida</p>
+        <h2 id="online-lobby-title">Partida ---</h2>
+        <div id="online-host-config" class="online-host-config" hidden>
+            <label for="online-total-infiltrados">¿Cuántos infiltrados?</label>
+            <select id="online-total-infiltrados">
+                <option value="1">1 Infiltrado</option>
+                <option value="2">2 Infiltrados</option>
+            </select>
+            <label for="online-tipo-palabra">Tipo de palabra</label>
+            <select id="online-tipo-palabra">
+                <option value="Aleatoria">Aleatoria</option>
+            </select>
+        </div>
+        <ul id="online-players-list" class="online-players-list"></ul>
+        <button type="button" onclick="actualizarSalaOnline()">Actualizar</button>
+        <button id="online-start-button" type="button" onclick="iniciarPartidaOnline()" hidden>Iniciar partida</button>
+        <button id="online-wait-button" class="btn-secondary" type="button" onclick="actualizarSalaOnline()" hidden>Ir a sala de espera</button>
+        <button class="btn-danger" type="button" onclick="salirPartidaOnline()">Salir de la sala</button>
+    </div>
+
+    <div id="screen-online-role" class="screen online-screen">
+        <p id="online-role-player" class="online-status"></p>
+        <h2 id="online-role-heading">Tu palabra es</h2>
+        <div id="online-role-value" class="online-role-card"></div>
+        <p>Debatid con el resto de jugadores e intentad descubrir a los infiltrados.</p>
+        <div id="online-host-resolution" class="online-host-resolution" hidden>
+            <h3>¿Quién era el infiltrado?</h3>
+            <div id="online-suspect-selects"></div>
+            <button type="button" onclick="finalizarPartidaOnline()">Finalizar partida</button>
+        </div>
+        <button class="btn-secondary" type="button" onclick="actualizarSalaOnline()">Actualizar estado</button>
+    </div>
+
+    <div id="screen-online-final" class="screen online-screen">
+        <h2>Partida finalizada</h2>
+        <div id="online-final-summary" class="online-final-summary"></div>
+        <button type="button" onclick="volverSalaOnlineFinalizada()">Volver a la lista de jugadores</button>
+        <button class="btn-secondary" type="button" onclick="actualizarSalaOnline()">Actualizar estado</button>
     </div>
 
     <div id="screen-config" class="screen">
@@ -117,5 +191,6 @@
 
     <script src="../assets/supabase-client.js"></script>
     <script src="../assets/js/infiltrado.js"></script>
+    <script src="../assets/js/infiltrado-online.js"></script>
 </body>
 </html>

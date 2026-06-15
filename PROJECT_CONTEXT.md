@@ -53,6 +53,7 @@ Aunque comparten repositorio y GitHub Pages, no deben compartir tablas, claves n
 - La portada, `games.html`, `proyectos.html` y `coming-soon.html` usan entradas discretas y pausadas al aparecer en pantalla mediante `assets/js/scroll-reveal.js`, respetando `prefers-reduced-motion`.
 - El contacto guarda en `webs_contact_messages` y envia aviso mediante `notify-webs-contact`.
 - Bingo, Monitor, Infiltrado, Privado y Games comparten fondo y cabecera visual.
+- Infiltrado ofrece modo local compatible con el flujo anterior y modo online multi-dispositivo con anfitrion autenticado e invitados por codigo/token.
 - Los juegos vuelven a `games.html`.
 - `supabase/.temp/` esta ignorado mediante `.gitignore`.
 
@@ -266,6 +267,7 @@ Base de datos y PWA:
 
 - Acceso mediante Supabase Auth para administradores y miembros del proyecto `infiltrado`.
 - Acepta nombre de usuario o correo y siempre valida la contraseña real configurada en Supabase Auth.
+- Tras el login permite elegir entre modo `Sin conexion` y `En linea`; los invitados pueden unirse al modo online sin cuenta.
 - La validacion propia de Infiltrado caduca a las 24 horas y obliga a introducir de nuevo usuario y clave.
 - El acceso iniciado desde `games.html` tambien permite entrar a Infiltrado durante esas 24 horas.
 - Configuracion de jugadores, infiltrados y tipo de palabra, incluyendo `Aleatoria`.
@@ -274,6 +276,10 @@ Base de datos y PWA:
 - Las palabras se cargan desde `infiltrado_palabras`.
 - La partida temporal se guarda en `infiltrado_partidas`, sus jugadores en `infiltrado_jugadores` y las palabras ya utilizadas en `infiltrado_palabras_usadas`.
 - Las rondas repetidas conservan la misma partida temporal y excluyen palabras anteriores; al reiniciar desde cero se elimina la partida y su historial por cascada.
+- El modo online reutiliza esas tablas, añade `infiltrado_resultados` y usa RPC seguras para crear, unirse, consultar estado, iniciar, finalizar y eliminar jugadores.
+- Al finalizar una ronda online se guarda el resultado y se limpia su historial de palabras usadas.
+- Los invitados se identifican mediante `player_token` en `localStorage`; solo reciben su propio rol y no tienen lectura publica directa de las tablas.
+- El anfitrion usa Supabase Realtime para cambios de sala y todos los clientes mantienen actualizacion periodica/manual como respaldo.
 - La PWA `Infiltrado Alaraz1921` usa manifest, service worker y el icono de espia proporcionado.
 - El boton de instalacion aparece solo despues del login y muestra instrucciones especificas en iOS.
 - En modo PWA se ocultan los controles de vuelta a `games.html`. La deteccion combina modos de visualizacion instalados y la marca `?pwa=1` del manifiesto.
@@ -321,11 +327,18 @@ Tablas usadas:
 - `infiltrado_partidas`
 - `infiltrado_jugadores`
 - `infiltrado_palabras_usadas`
+- `infiltrado_resultados`
 
 Funciones/RPC:
 
 - `validate_daily_access_code(text, text)`
 - `get_daily_access_formula_note()`
+- `infiltrado_online_create(text)`
+- `infiltrado_online_join(text, text)`
+- `infiltrado_online_state(text, text)`
+- `infiltrado_online_start(uuid, text, integer, text)`
+- `infiltrado_online_finish(uuid, text, bigint, bigint)`
+- `infiltrado_online_remove_player(uuid, text, bigint)`
 
 Edge Function:
 
@@ -344,6 +357,7 @@ Migraciones:
 - `20260612120000_games_username_password_recovery.sql`
 - `20260612150000_notify_new_user.sql`
 - `20260615120000_infiltrado_palabras_usadas.sql`
+- `20260615150000_infiltrado_online.sql`
 
 Configuracion manual necesaria para el registro de Games:
 

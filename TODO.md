@@ -36,6 +36,7 @@ Ultima revision: 2026-06-15
 - [x] PA-30 Ralentizar las animaciones de entrada y aplicarlas también a `coming-soon.html`.
 - [x] PA-31 Pausar más las animaciones de entrada y aplicarlas también a `proyectos.html`.
 - [x] PA-32 Evitar palabras ocultas repetidas durante una partida de Infiltrado mediante historial temporal en Supabase.
+- [x] PA-33 Añadir modo online multi-dispositivo a Infiltrado reutilizando las tablas existentes y acceso invitado por token.
 
 ## Prioridad Media
 
@@ -60,6 +61,7 @@ Ultima revision: 2026-06-15
 - [ ] PM-19 Ejecutar `20260612100000_games_self_registration.sql`, activar `Confirm email` y permitir la redireccion a `games.html` en Supabase.
 - [ ] PM-20 Ejecutar `20260612120000_games_username_password_recovery.sql` y permitir la URL de recuperacion en Supabase.
 - [ ] PM-21 Desplegar `notify-new-user`, configurar sus secrets/Vault y ejecutar `20260612150000_notify_new_user.sql`.
+- [ ] PM-22 Ejecutar `20260615150000_infiltrado_online.sql` en Supabase y validar el flujo online con varios dispositivos.
 
 ## Prioridad Baja
 
@@ -92,7 +94,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-04 En Bingo carton: seleccionar partida, marcar numeros iniciados, limpiar y verificar persistencia.
 - [ ] PR-05 En Bingo carton: comprobar cambio libre sin partida o no iniciada y bloqueo cuando `iniciada = true`.
 - [ ] PR-06 En Monitor Bingo: entrar con nombre de usuario o correo autorizado; iniciar, pausar, reanudar, reiniciar y crear nueva partida.
-- [ ] PR-07 En Infiltrado: entrar con nombre de usuario o correo autorizado; repetir rondas sin palabras duplicadas y comprobar que reiniciar desde cero elimina el historial.
+- [ ] PR-07 En Infiltrado local: entrar con nombre de usuario o correo autorizado; repetir rondas sin palabras duplicadas y comprobar que reiniciar desde cero elimina el historial.
 - [ ] PR-08 En ValentinaPlay: abrir cada juego y validar reinicio/victoria/flujo principal.
 - [ ] PR-09 En Privado: iniciar/cerrar sesion y comprobar recordatorio de formula.
 - [ ] PR-10 Enviar contacto desde Webs; comprobar fila en `webs_contact_messages` y recepcion del email.
@@ -104,6 +106,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-16 Probar validaciones, tiempo minimo y honeypot del formulario de contacto sin generar mensajes ni emails bloqueados.
 - [ ] PR-17 Crear un usuario nuevo y comprobar confirmacion al usuario, aviso al administrador y logs de `notify-new-user`.
 - [ ] PR-18 Comprobar enlaces de restauracion/registro desde Games, Monitor e Infiltrado y listado de usuarios en Privado.
+- [ ] PR-19 En Infiltrado online: crear sala, unir invitados sin cuenta, iniciar, comprobar roles privados, finalizar, mostrar resultado y eliminar jugadores.
 
 ## Ideas De Mejora
 

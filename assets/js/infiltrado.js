@@ -78,6 +78,8 @@ async function iniciarSesion(event) {
 }
 
 async function comprobarSesion() {
+    if (typeof restaurarSesionOnline === 'function' && await restaurarSesionOnline()) return;
+
     const { data } = await infiltradoClient.auth.getSession();
     if (data.session?.user && sesionInfiltradoVigente() && await usuarioPuedeUsarInfiltrado()) {
         await iniciarAplicacion();
@@ -96,6 +98,14 @@ async function iniciarAplicacion() {
     actualizarBotonInstalacionPwa();
     await cargarCategorias();
     restaurarConfiguracionBase();
+    if (typeof mostrarSeleccionModoInfiltrado === 'function') {
+        mostrarSeleccionModoInfiltrado();
+    } else {
+        await cargarPartidaTemporal();
+    }
+}
+
+async function iniciarModoOffline() {
     await cargarPartidaTemporal();
 }
 
@@ -110,29 +120,44 @@ async function cargarCategorias() {
         return;
     }
 
-    const select = document.getElementById('tipoPalabra');
+    const selects = [document.getElementById('tipoPalabra'), document.getElementById('online-tipo-palabra')].filter(Boolean);
     [...new Set(data.map((fila) => fila.tipo))].forEach((tipo) => {
-        if ([...select.options].some((opcion) => opcion.value === tipo)) return;
-        const opcion = document.createElement('option');
-        opcion.value = tipo;
-        opcion.textContent = tipo;
-        select.appendChild(opcion);
+        selects.forEach((select) => {
+            if ([...select.options].some((opcion) => opcion.value === tipo)) return;
+            const opcion = document.createElement('option');
+            opcion.value = tipo;
+            opcion.textContent = tipo;
+            select.appendChild(opcion);
+        });
     });
 }
 
+function faltaColumnaModo(error) {
+    return Boolean(error) && /modo/i.test(`${error.message || ''} ${error.details || ''}`);
+}
+
 async function cargarPartidaTemporal() {
-    const { data: partidas, error } = await infiltradoClient
+    let resultado = await infiltradoClient
         .from('infiltrado_partidas')
         .select('id, numero_jugadores, numero_infiltrados, tipo_palabra, palabra_oculta, fase, jugador_actual')
+        .eq('modo', 'offline')
         .limit(1);
 
-    if (error || !partidas?.length) {
+    // Mantiene operativo el modo local mientras se aplica la migración online.
+    if (faltaColumnaModo(resultado.error)) {
+        resultado = await infiltradoClient
+            .from('infiltrado_partidas')
+            .select('id, numero_jugadores, numero_infiltrados, tipo_palabra, palabra_oculta, fase, jugador_actual')
+            .limit(1);
+    }
+
+    if (resultado.error || !resultado.data?.length) {
         faseActual = 'CONFIGURACION';
         cambiarPantallaVisual('screen-config');
         return;
     }
 
-    const partida = partidas[0];
+    const partida = resultado.data[0];
     partidaActualId = partida.id;
     faseActual = partida.fase;
     jugadorActualIndex = partida.jugador_actual;
@@ -349,7 +374,7 @@ async function guardarPartidaTemporal(tipoPalabra, numeroInfiltrados) {
         updated_at: new Date().toISOString()
     };
 
-    const resultado = partidaActualId
+    let resultado = partidaActualId
         ? await infiltradoClient
             .from('infiltrado_partidas')
             .update(datosPartida)
@@ -358,9 +383,17 @@ async function guardarPartidaTemporal(tipoPalabra, numeroInfiltrados) {
             .single()
         : await infiltradoClient
             .from('infiltrado_partidas')
+            .insert({ ...datosPartida, modo: 'offline' })
+            .select('id')
+            .single();
+
+    if (!partidaActualId && faltaColumnaModo(resultado.error)) {
+        resultado = await infiltradoClient
+            .from('infiltrado_partidas')
             .insert(datosPartida)
             .select('id')
             .single();
+    }
 
     if (resultado.error) {
         abrirModal('Error', 'No se pudo guardar la partida.');
@@ -411,8 +444,11 @@ async function actualizarProgreso() {
 }
 
 async function eliminarPartidaTemporal() {
-    const { data } = await infiltradoClient.from('infiltrado_partidas').select('id').limit(1);
-    if (data?.length) await infiltradoClient.from('infiltrado_partidas').delete().eq('id', data[0].id);
+    let resultado = await infiltradoClient.from('infiltrado_partidas').select('id').eq('modo', 'offline').limit(1);
+    if (faltaColumnaModo(resultado.error)) {
+        resultado = await infiltradoClient.from('infiltrado_partidas').select('id').limit(1);
+    }
+    if (resultado.data?.length) await infiltradoClient.from('infiltrado_partidas').delete().eq('id', resultado.data[0].id);
     partidaActualId = null;
 }
 

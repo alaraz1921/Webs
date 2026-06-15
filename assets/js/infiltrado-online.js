@@ -1,0 +1,411 @@
+const INFILTRADO_ONLINE_TOKEN_KEY = 'infiltrado_online_player_token';
+const INFILTRADO_ONLINE_CODE_KEY = 'infiltrado_online_codigo';
+const INFILTRADO_ONLINE_PARTIDA_KEY = 'infiltrado_online_partida_id';
+const INFILTRADO_ONLINE_POLL_MS = 5000;
+
+// El token identifica al jugador invitado sin crear una cuenta de Supabase Auth.
+let estadoOnline = null;
+let canalOnline = null;
+let intervaloOnline = null;
+let accesoOnlineAutenticado = false;
+let mostrarSalaTrasFinal = false;
+let actualizacionOnlineEnCurso = false;
+
+function mostrarSeleccionModoInfiltrado() {
+    detenerActualizacionOnline();
+    accesoOnlineAutenticado = true;
+    cambiarPantallaVisual('screen-mode');
+}
+
+function abrirModoOnlineAutenticado() {
+    accesoOnlineAutenticado = true;
+    document.getElementById('online-create-button').hidden = false;
+    document.getElementById('online-mode-back').hidden = false;
+    cambiarPantallaVisual('screen-online-menu');
+}
+
+function abrirAccesoOnlineInvitado() {
+    accesoOnlineAutenticado = false;
+    document.getElementById('online-create-button').hidden = true;
+    document.getElementById('online-mode-back').hidden = false;
+    cambiarPantallaVisual('screen-online-menu');
+}
+
+function volverDesdeMenuOnline() {
+    if (accesoOnlineAutenticado) {
+        cambiarPantallaVisual('screen-mode');
+    } else {
+        cambiarPantallaVisual('screen-lock');
+    }
+}
+
+function generarCampoModal(id, etiqueta, opciones = {}) {
+    const wrapper = document.createElement('label');
+    wrapper.className = 'online-modal-field';
+    wrapper.textContent = etiqueta;
+
+    const input = document.createElement('input');
+    input.id = id;
+    input.type = opciones.type || 'text';
+    input.placeholder = opciones.placeholder || '';
+    input.maxLength = opciones.maxLength || 80;
+    input.autocomplete = opciones.autocomplete || 'off';
+    if (opciones.inputMode) input.inputMode = opciones.inputMode;
+    wrapper.appendChild(input);
+    return wrapper;
+}
+
+function abrirFormularioOnline(titulo, mensaje, campos, confirmar) {
+    document.getElementById('modal-title').textContent = titulo;
+    document.getElementById('modal-message').textContent = mensaje;
+    const contenedor = document.getElementById('modal-buttons');
+    contenedor.innerHTML = '';
+
+    campos.forEach((campo) => contenedor.appendChild(generarCampoModal(campo.id, campo.etiqueta, campo)));
+
+    const botonConfirmar = document.createElement('button');
+    botonConfirmar.textContent = 'Confirmar';
+    botonConfirmar.onclick = async () => {
+        botonConfirmar.disabled = true;
+        await confirmar();
+        botonConfirmar.disabled = false;
+    };
+    contenedor.appendChild(botonConfirmar);
+
+    const cancelar = document.createElement('button');
+    cancelar.textContent = 'Cancelar';
+    cancelar.className = 'btn-danger';
+    cancelar.onclick = cerrarModal;
+    contenedor.appendChild(cancelar);
+
+    document.getElementById('custom-modal').style.display = 'flex';
+    window.setTimeout(() => document.getElementById(campos[0].id)?.focus(), 50);
+}
+
+function solicitarCrearPartidaOnline() {
+    abrirFormularioOnline(
+        'Crear partida online',
+        'Indica el nombre con el que aparecerás como anfitrión.',
+        [{ id: 'online-modal-name', etiqueta: 'Nombre del jugador', autocomplete: 'nickname' }],
+        crearPartidaOnline
+    );
+}
+
+async function crearPartidaOnline() {
+    const nombre = document.getElementById('online-modal-name').value.trim();
+    if (nombre.length < 2) {
+        abrirModal('Nombre no válido', 'El nombre debe tener al menos 2 caracteres.');
+        return;
+    }
+
+    const { data, error } = await infiltradoClient.rpc('infiltrado_online_create', { p_nombre: nombre });
+    if (error || !data?.ok) {
+        abrirModal('Error', data?.message || 'No se pudo crear la partida online.');
+        return;
+    }
+
+    guardarSesionOnline(data.codigo_publico, data.player_token, data.partida_id);
+    cerrarModal();
+    await actualizarSalaOnline();
+}
+
+function solicitarUnirsePartidaOnline() {
+    abrirFormularioOnline(
+        'Unirse a partida',
+        'Introduce el código de tres cifras y tu nombre.',
+        [
+            { id: 'online-modal-code', etiqueta: 'Código de partida', inputMode: 'numeric', maxLength: 3, placeholder: '001' },
+            { id: 'online-modal-name', etiqueta: 'Nombre del jugador', autocomplete: 'nickname' }
+        ],
+        unirsePartidaOnline
+    );
+}
+
+async function unirsePartidaOnline() {
+    const codigoIntroducido = document.getElementById('online-modal-code').value.trim();
+    const codigo = codigoIntroducido.padStart(3, '0');
+    const nombre = document.getElementById('online-modal-name').value.trim();
+    if (!codigoIntroducido || !/^\d{3}$/.test(codigo) || nombre.length < 2) {
+        abrirModal('Datos no válidos', 'Comprueba el código y escribe un nombre de al menos 2 caracteres.');
+        return;
+    }
+
+    const { data, error } = await infiltradoClient.rpc('infiltrado_online_join', {
+        p_codigo: codigo,
+        p_nombre: nombre
+    });
+
+    if (error || !data?.ok) {
+        abrirModal('No se pudo entrar', data?.message || 'La partida no existe.');
+        return;
+    }
+
+    guardarSesionOnline(codigo, data.player_token, data.partida_id);
+    mostrarSalaTrasFinal = true;
+    cerrarModal();
+    await actualizarSalaOnline();
+}
+
+function guardarSesionOnline(codigo, token, partidaId) {
+    localStorage.setItem(INFILTRADO_ONLINE_CODE_KEY, codigo);
+    localStorage.setItem(INFILTRADO_ONLINE_TOKEN_KEY, token);
+    localStorage.setItem(INFILTRADO_ONLINE_PARTIDA_KEY, partidaId);
+    mostrarSalaTrasFinal = false;
+}
+
+function limpiarSesionOnline() {
+    localStorage.removeItem(INFILTRADO_ONLINE_CODE_KEY);
+    localStorage.removeItem(INFILTRADO_ONLINE_TOKEN_KEY);
+    localStorage.removeItem(INFILTRADO_ONLINE_PARTIDA_KEY);
+    estadoOnline = null;
+    detenerActualizacionOnline();
+}
+
+async function aplicarCaducidadAnfitrion(data) {
+    if (!data?.es_anfitrion || sesionInfiltradoVigente()) return data;
+
+    await infiltradoClient.auth.signOut();
+    localStorage.removeItem(GAMES_AUTH_TIME_KEY);
+    return { ...data, es_anfitrion: false };
+}
+
+async function restaurarSesionOnline() {
+    const codigo = localStorage.getItem(INFILTRADO_ONLINE_CODE_KEY);
+    const token = localStorage.getItem(INFILTRADO_ONLINE_TOKEN_KEY);
+    if (!codigo || !token) return false;
+
+    const { data, error } = await infiltradoClient.rpc('infiltrado_online_state', {
+        p_codigo: codigo,
+        p_player_token: token
+    });
+
+    if (error) return false;
+    if (!data?.ok) {
+        limpiarSesionOnline();
+        return false;
+    }
+
+    estadoOnline = await aplicarCaducidadAnfitrion(data);
+    accesoOnlineAutenticado = Boolean(estadoOnline.es_anfitrion);
+    if (estadoOnline.es_anfitrion) await cargarCategorias();
+    renderizarEstadoOnline();
+    iniciarActualizacionOnline();
+    return true;
+}
+
+async function actualizarSalaOnline() {
+    if (actualizacionOnlineEnCurso) return;
+    const codigo = localStorage.getItem(INFILTRADO_ONLINE_CODE_KEY);
+    const token = localStorage.getItem(INFILTRADO_ONLINE_TOKEN_KEY);
+    if (!codigo || !token) {
+        abrirAccesoOnlineInvitado();
+        return;
+    }
+
+    actualizacionOnlineEnCurso = true;
+    try {
+        const { data, error } = await infiltradoClient.rpc('infiltrado_online_state', {
+            p_codigo: codigo,
+            p_player_token: token
+        });
+
+        if (error) {
+            console.warn('No se pudo actualizar la sala online.', error);
+            return;
+        }
+        if (!data?.ok) {
+            const mensaje = data?.message || 'El acceso a la sala ya no es válido.';
+            limpiarSesionOnline();
+            abrirModal('Sala no disponible', mensaje);
+            abrirAccesoOnlineInvitado();
+            return;
+        }
+
+        estadoOnline = await aplicarCaducidadAnfitrion(data);
+        renderizarEstadoOnline();
+        iniciarActualizacionOnline();
+    } finally {
+        actualizacionOnlineEnCurso = false;
+    }
+}
+
+function renderizarEstadoOnline() {
+    if (!estadoOnline) return;
+
+    if (estadoOnline.estado_online === 'started') {
+        renderizarRolOnline();
+    } else if (estadoOnline.estado_online === 'finished' && !mostrarSalaTrasFinal && !estadoOnline.jugador_nuevo_tras_final) {
+        renderizarFinalOnline();
+    } else {
+        renderizarSalaOnline();
+    }
+}
+
+function renderizarSalaOnline() {
+    cambiarPantallaVisual('screen-online-lobby');
+    document.getElementById('online-lobby-title').textContent = `Partida ${estadoOnline.codigo_publico}`;
+    document.getElementById('online-lobby-status').textContent = estadoOnline.estado_online === 'finished'
+        ? 'Partida finalizada · lista abierta'
+        : estadoOnline.es_anfitrion ? 'Sala de partida' : 'ESPERANDO JUGADORES';
+
+    const lista = document.getElementById('online-players-list');
+    lista.innerHTML = '';
+    estadoOnline.jugadores.forEach((jugador) => {
+        const item = document.createElement('li');
+        const nombre = document.createElement('span');
+        nombre.textContent = `${jugador.es_anfitrion ? 'ANFITRIÓN · ' : ''}${jugador.nombre}`;
+        item.appendChild(nombre);
+
+        if (estadoOnline.es_anfitrion && !jugador.es_anfitrion) {
+            const eliminar = document.createElement('button');
+            eliminar.type = 'button';
+            eliminar.className = 'online-remove-player';
+            eliminar.textContent = 'Eliminar';
+            eliminar.onclick = () => eliminarJugadorOnline(jugador.id);
+            item.appendChild(eliminar);
+        }
+        lista.appendChild(item);
+    });
+
+    const configuracion = document.getElementById('online-host-config');
+    configuracion.hidden = !estadoOnline.es_anfitrion;
+    document.getElementById('online-start-button').hidden = !estadoOnline.es_anfitrion;
+    document.getElementById('online-wait-button').hidden = estadoOnline.es_anfitrion;
+    document.getElementById('online-total-infiltrados').value = String(estadoOnline.numero_infiltrados || 1);
+    document.getElementById('online-tipo-palabra').value = estadoOnline.tipo_palabra || 'Aleatoria';
+}
+
+function renderizarRolOnline() {
+    cambiarPantallaVisual('screen-online-role');
+    document.getElementById('online-role-player').textContent = `${estadoOnline.nombre_jugador} · Partida ${estadoOnline.codigo_publico}`;
+    const esInfiltrado = estadoOnline.rol === 'infiltrado';
+    document.getElementById('online-role-heading').textContent = esInfiltrado ? 'Eres el infiltrado' : 'Tu palabra es';
+    document.getElementById('online-role-value').textContent = esInfiltrado ? 'INFILTRADO' : estadoOnline.palabra_oculta;
+
+    const resolucion = document.getElementById('online-host-resolution');
+    resolucion.hidden = !estadoOnline.es_anfitrion;
+    if (!estadoOnline.es_anfitrion) return;
+
+    const contenedor = document.getElementById('online-suspect-selects');
+    contenedor.innerHTML = '';
+    for (let indice = 0; indice < estadoOnline.numero_infiltrados; indice++) {
+        const select = document.createElement('select');
+        select.className = 'online-suspect-select';
+        select.innerHTML = `<option value="">Selecciona infiltrado ${indice + 1}</option>`;
+        estadoOnline.jugadores.forEach((jugador) => {
+            const opcion = document.createElement('option');
+            opcion.value = jugador.id;
+            opcion.textContent = jugador.nombre;
+            select.appendChild(opcion);
+        });
+        contenedor.appendChild(select);
+    }
+}
+
+function renderizarFinalOnline() {
+    cambiarPantallaVisual('screen-online-final');
+    const resumen = document.getElementById('online-final-summary');
+    const resultado = estadoOnline.resultado || {};
+    resumen.innerHTML = '';
+
+    [
+        ['Infiltrados reales', (resultado.infiltrados_reales || []).join(', ') || '---'],
+        ['Seleccionados', (resultado.seleccionados || []).join(', ') || '---'],
+        ['Resultado', resultado.acierto ? 'CORRECTO' : 'INCORRECTO'],
+        ['Palabra secreta', estadoOnline.palabra_oculta || '---']
+    ].forEach(([titulo, valor]) => {
+        const bloque = document.createElement('p');
+        const etiqueta = document.createElement('strong');
+        etiqueta.textContent = `${titulo}: `;
+        bloque.append(etiqueta, document.createTextNode(valor));
+        resumen.appendChild(bloque);
+    });
+}
+
+async function iniciarPartidaOnline() {
+    const { data, error } = await infiltradoClient.rpc('infiltrado_online_start', {
+        p_partida_id: estadoOnline.partida_id,
+        p_player_token: localStorage.getItem(INFILTRADO_ONLINE_TOKEN_KEY),
+        p_numero_infiltrados: Number(document.getElementById('online-total-infiltrados').value),
+        p_tipo_palabra: document.getElementById('online-tipo-palabra').value
+    });
+
+    if (error || !data?.ok) {
+        abrirModal('No se pudo iniciar', data?.message || 'Comprueba que haya suficientes jugadores.');
+        return;
+    }
+
+    mostrarSalaTrasFinal = false;
+    await actualizarSalaOnline();
+}
+
+async function finalizarPartidaOnline() {
+    const seleccionados = Array.from(document.querySelectorAll('.online-suspect-select')).map((select) => Number(select.value) || null);
+    if (seleccionados.filter(Boolean).length !== estadoOnline.numero_infiltrados) {
+        abrirModal('Selección incompleta', 'Selecciona quiénes crees que eran los infiltrados.');
+        return;
+    }
+
+    const { data, error } = await infiltradoClient.rpc('infiltrado_online_finish', {
+        p_partida_id: estadoOnline.partida_id,
+        p_player_token: localStorage.getItem(INFILTRADO_ONLINE_TOKEN_KEY),
+        p_sospechoso_1: seleccionados[0],
+        p_sospechoso_2: seleccionados[1] || null
+    });
+
+    if (error || !data?.ok) {
+        abrirModal('No se pudo finalizar', data?.message || 'Inténtalo de nuevo.');
+        return;
+    }
+
+    mostrarSalaTrasFinal = false;
+    await actualizarSalaOnline();
+}
+
+async function eliminarJugadorOnline(jugadorId) {
+    const { data, error } = await infiltradoClient.rpc('infiltrado_online_remove_player', {
+        p_partida_id: estadoOnline.partida_id,
+        p_player_token: localStorage.getItem(INFILTRADO_ONLINE_TOKEN_KEY),
+        p_jugador_id: jugadorId
+    });
+
+    if (error || !data?.ok) {
+        abrirModal('No se pudo eliminar', data?.message || 'Inténtalo de nuevo.');
+        return;
+    }
+    await actualizarSalaOnline();
+}
+
+function volverSalaOnlineFinalizada() {
+    mostrarSalaTrasFinal = true;
+    renderizarSalaOnline();
+}
+
+async function salirPartidaOnline() {
+    limpiarSesionOnline();
+    const { data } = await infiltradoClient.auth.getSession();
+    if (accesoOnlineAutenticado || (data.session?.user && sesionInfiltradoVigente())) {
+        mostrarSeleccionModoInfiltrado();
+    } else {
+        abrirAccesoOnlineInvitado();
+    }
+}
+
+function iniciarActualizacionOnline() {
+    if (!intervaloOnline) intervaloOnline = window.setInterval(actualizarSalaOnline, INFILTRADO_ONLINE_POLL_MS);
+    if (!estadoOnline?.es_anfitrion || canalOnline) return;
+
+    // Realtime acelera los cambios del anfitrión; el sondeo periódico permanece como respaldo.
+    canalOnline = infiltradoClient
+        .channel(`infiltrado-online-${estadoOnline.partida_id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'infiltrado_jugadores', filter: `partida_id=eq.${estadoOnline.partida_id}` }, actualizarSalaOnline)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'infiltrado_partidas', filter: `id=eq.${estadoOnline.partida_id}` }, actualizarSalaOnline)
+        .subscribe();
+}
+
+function detenerActualizacionOnline() {
+    if (intervaloOnline) window.clearInterval(intervaloOnline);
+    intervaloOnline = null;
+    if (canalOnline) infiltradoClient.removeChannel(canalOnline);
+    canalOnline = null;
+}
