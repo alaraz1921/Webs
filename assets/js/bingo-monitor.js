@@ -41,6 +41,7 @@ function estaInstaladaPwa() {
 
 function actualizarNavegacionPwa() {
     const modoPwa = estaInstaladaPwa();
+    document.documentElement.classList.toggle('pwa-standalone', modoPwa);
     document.body.classList.toggle('pwa-standalone', modoPwa);
     document.querySelectorAll('.hide-in-pwa').forEach((control) => {
         control.hidden = modoPwa;
@@ -249,13 +250,13 @@ function detenerCanto() {
 function actualizarBotonControl() {
     const boton = document.getElementById('btnControl');
     if (!partidaActual?.iniciada) {
-        boton.textContent = 'INICIAR PARTIDA';
+        boton.textContent = 'EMPEZAR';
         boton.className = 'btn-comenzar';
     } else if (enMarcha) {
-        boton.textContent = 'PAUSAR CANTO';
+        boton.textContent = 'PAUSAR';
         boton.className = 'btn-pausar';
     } else {
-        boton.textContent = 'REANUDAR CANTO';
+        boton.textContent = 'REANUDAR';
         boton.className = 'btn-comenzar';
     }
 }
@@ -309,6 +310,12 @@ function solicitarVolverGames() {
     });
 }
 
+function solicitarVolverCarton() {
+    mostrarConfirmacionMonitor('¿Quieres salir del monitor y volver al cartón de Bingo?', () => {
+        window.location.href = 'carton.html';
+    });
+}
+
 function mostrarConfirmacionMonitor(texto, callback) {
     document.getElementById('textoMonitorModalConfirm').textContent = texto;
     const modal = document.getElementById('monitorModalConfirm');
@@ -343,4 +350,13 @@ window.addEventListener('load', () => {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js');
     }
+});
+
+window.addEventListener('pageshow', actualizarNavegacionPwa);
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) actualizarNavegacionPwa();
+});
+
+['standalone', 'fullscreen', 'minimal-ui'].forEach((modo) => {
+    window.matchMedia(`(display-mode: ${modo})`).addEventListener?.('change', actualizarNavegacionPwa);
 });

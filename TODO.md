@@ -43,6 +43,7 @@ Ultima revision: 2026-06-15
 - [x] PA-37 Validar codigos antes de pedir nombre, mejorar avisos de fin de ronda y añadir controles contextuales en Infiltrado online.
 - [x] PA-38 Separar `Terminar partida` del anfitrion y `Abandonar partida` de invitados en las pantallas online correspondientes.
 - [x] PA-39 Reforzar la ocultacion de `Volver a Games` al iniciar y reanudar la PWA de Infiltrado.
+- [x] PA-40 Reorganizar los controles del Monitor Bingo, añadir vuelta al carton y reforzar la ocultacion de Games en su PWA.
 
 ## Prioridad Media
 
@@ -123,6 +124,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-23 En Infiltrado online: probar codigo inexistente, resolucion correcta, fin manual del anfitrion y los avisos previos a la lista abierta.
 - [ ] PR-24 En Infiltrado online: comprobar que solo el anfitrion puede terminar desde la lista y que un invitado abandona desde su tarjeta para introducir otro codigo.
 - [ ] PR-25 Abrir y reanudar la PWA instalada de Infiltrado y comprobar que nunca aparece `Volver a Games`.
+- [ ] PR-26 En Monitor Bingo: probar Empezar/Pausar/Reanudar, Reiniciar, Nuevo Id, Ir a Carton y comprobar que la PWA oculta `Volver a Games`.
 
 ## Ideas De Mejora
 

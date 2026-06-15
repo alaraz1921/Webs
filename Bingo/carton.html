@@ -11,6 +11,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Bingo Alaraz1921">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script>
+        if (new URLSearchParams(window.location.search).get('pwa') === '1'
+            || window.matchMedia('(display-mode: standalone)').matches
+            || window.matchMedia('(display-mode: fullscreen)').matches
+            || window.matchMedia('(display-mode: minimal-ui)').matches
+            || window.navigator.standalone === true) {
+            document.documentElement.classList.add('pwa-standalone');
+        }
+    </script>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/bingo-icon-192.png" type="image/png">
     <link rel="apple-touch-icon" href="icons/bingo-icon-192.png">

@@ -1408,6 +1408,7 @@ body.bingo-monitor-page * { box-sizing: border-box; margin: 0; padding: 0; font-
         body.bingo-monitor-page .cantado { background-color: #f59e0b !important; color: #0f172a !important; border-color: #f59e0b; font-size: 1.1rem; }
 
         body.bingo-monitor-page .panel-botones { display: flex; flex-direction: column; width: 100%; max-width: 450px; gap: 8px; margin-top: 12px; }
+        body.bingo-monitor-page .monitor-button-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
         body.bingo-monitor-page button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; text-align: center; }
         body.bingo-monitor-page .btn-comenzar { background-color: #22c55e; }
         body.bingo-monitor-page .btn-pausar { background-color: #eab308; color: #0f172a; }
@@ -2236,6 +2237,10 @@ body.bingo-monitor-page .btn-reiniciar {
 
 body.bingo-monitor-page .btn-nueva-monitor {
     background-color: #ef4444;
+}
+
+body.bingo-monitor-page .btn-ir-carton {
+    background-color: #475569;
 }
 
 body.bingo-monitor-page #bingoLoginForm {

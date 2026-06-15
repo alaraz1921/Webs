@@ -247,6 +247,7 @@ bingo_partida_id
 - El acceso iniciado desde `games.html` tambien permite entrar al Monitor durante esas 24 horas.
 - Crea partidas, inicia el bloqueo de cartones y reinicia una partida conservando su id.
 - Persiste los numeros cantados por id de partida en `localStorage`.
+- Organiza los controles en dos filas: `Empezar/Reanudar/Pausar` con `Reiniciar`, y `Nuevo Id` con `Ir a Carton`; este ultimo vuelve al carton con confirmacion.
 
 Base de datos y PWA:
 
@@ -260,6 +261,7 @@ Base de datos y PWA:
 - El carton ofrece instalacion PWA desde el panel de botones y desde su menu superior.
 - Los controles de instalacion aparecen solo cuando existe instalacion nativa disponible o en iOS, y se ocultan tras instalar.
 - En modo PWA se ocultan los controles de vuelta a `games.html` tanto en el carton como en el Monitor. La deteccion combina modos de visualizacion instalados y la marca `?pwa=1` del manifiesto.
+- La ocultacion de `Volver a Games` se aplica antes de pintar las paginas de Bingo y se revalida al reanudar o cambiar el modo de visualizacion de la PWA.
 
 ### Infiltrado
 

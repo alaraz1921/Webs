@@ -304,6 +304,7 @@ function estaInstaladaPwa() {
 
 function actualizarNavegacionPwa() {
     const modoPwa = estaInstaladaPwa();
+    document.documentElement.classList.toggle('pwa-standalone', modoPwa);
     document.body.classList.toggle('pwa-standalone', modoPwa);
     document.querySelectorAll('.hide-in-pwa').forEach((control) => {
         control.hidden = modoPwa;
@@ -359,4 +360,13 @@ window.addEventListener('load', async () => {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js');
     }
+});
+
+window.addEventListener('pageshow', actualizarNavegacionPwa);
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) actualizarNavegacionPwa();
+});
+
+['standalone', 'fullscreen', 'minimal-ui'].forEach((modo) => {
+    window.matchMedia(`(display-mode: ${modo})`).addEventListener?.('change', actualizarNavegacionPwa);
 });
