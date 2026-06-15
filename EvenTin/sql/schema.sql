@@ -113,6 +113,7 @@ create table if not exists public.eventin_gallery_settings (
     collaborative_enabled boolean not null default false,
     collaborative_token text unique not null default encode(gen_random_bytes(24), 'hex'),
     collaborative_key_hash text,
+    collaborative_access_key text,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
@@ -130,6 +131,7 @@ create table if not exists public.eventin_gallery_images (
 alter table public.eventin_events add column if not exists public_slug text;
 alter table public.eventin_events add column if not exists event_code text;
 alter table public.eventin_gallery_settings add column if not exists collaborative_available boolean not null default false;
+alter table public.eventin_gallery_settings add column if not exists collaborative_access_key text;
 alter table public.eventin_gallery_images add column if not exists thumbnail_storage_path text unique;
 alter table public.eventin_events add column if not exists event_type text not null default 'communion';
 alter table if exists public.eventin_events add column if not exists location_title text;
@@ -540,13 +542,14 @@ begin
     where event_id = p_event_id;
 
     if not found then
-        return jsonb_build_object('available', false, 'enabled', false, 'token', null);
+        return jsonb_build_object('available', false, 'enabled', false, 'token', null, 'access_key', null);
     end if;
 
     return jsonb_build_object(
         'available', settings_record.collaborative_available,
         'enabled', settings_record.collaborative_enabled,
-        'token', settings_record.collaborative_token
+        'token', settings_record.collaborative_token,
+        'access_key', settings_record.collaborative_access_key
     );
 end;
 $$;
@@ -588,13 +591,18 @@ begin
         collaborative_key_hash = case
             when clean_key is null then collaborative_key_hash
             else extensions.crypt(clean_key, extensions.gen_salt('bf'))
+        end,
+        collaborative_access_key = case
+            when clean_key is null then collaborative_access_key
+            else clean_key
         end
     where event_id = p_event_id
     returning * into settings_record;
 
     return jsonb_build_object(
         'enabled', settings_record.collaborative_enabled,
-        'token', settings_record.collaborative_token
+        'token', settings_record.collaborative_token,
+        'access_key', settings_record.collaborative_access_key
     );
 end;
 $$;

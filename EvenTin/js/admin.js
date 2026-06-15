@@ -790,6 +790,7 @@
         collaborativeGalleryAvailableField.hidden = !isAdmin();
         settingsForm.elements.collaborative_gallery_available.checked = Boolean(data?.available);
         collaborativeGalleryForm.elements.enabled.checked = Boolean(data?.enabled);
+        collaborativeGalleryForm.elements.access_key.value = data?.access_key || '';
         collaborativeGalleryActions.hidden = !data?.token;
         if (data?.token) {
             const url = getCollaborativeGalleryUrl(data.token);
@@ -1134,7 +1135,7 @@
                 throw error;
             }
 
-            collaborativeGalleryForm.elements.access_key.value = '';
+            collaborativeGalleryForm.elements.access_key.value = data?.access_key || '';
             collaborativeGalleryActions.hidden = !data?.token;
             if (data?.token) {
                 const url = getCollaborativeGalleryUrl(data.token);
