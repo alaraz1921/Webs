@@ -31,6 +31,7 @@ Opcion sencilla desde el panel de Supabase:
    - `migrations/20260615120000_infiltrado_palabras_usadas.sql`
    - `migrations/20260615150000_infiltrado_online.sql`
    - `migrations/20260615170000_infiltrado_online_resume.sql`
+   - `migrations/20260615190000_infiltrado_online_retry_resolution.sql`
 5. Comprobar que no hay errores en el resultado.
 
 ## Crear el primer usuario
@@ -78,9 +79,11 @@ La migracion `20260615150000_infiltrado_online.sql` amplía las tablas existente
 
 La migracion `20260615170000_infiltrado_online_resume.sql` añade la recuperación segura del anfitrion por codigo. Si el usuario autenticado creó la partida, recupera su `player_token` sin pedir de nuevo el nombre.
 
+La migracion `20260615190000_infiltrado_online_retry_resolution.sql` permite al anfitrion volver a intentar una resolucion incorrecta. La partida solo se marca como finalizada cuando identifica correctamente a todos los infiltrados.
+
 El formulario de Infiltrado acepta el correo o el nombre guardado en `profiles.username`. Siempre exige la contraseña real de Supabase Auth. Pueden acceder los administradores y los miembros asignados al proyecto.
 
-Para activar el modo online, ejecutar `20260615150000_infiltrado_online.sql` y después `20260615170000_infiltrado_online_resume.sql`. Los invitados no necesitan Auth ni permisos directos sobre tablas; deben usar exclusivamente las RPC concedidas a `anon`.
+Para activar el modo online, ejecutar `20260615150000_infiltrado_online.sql`, `20260615170000_infiltrado_online_resume.sql` y `20260615190000_infiltrado_online_retry_resolution.sql`, en ese orden. Los invitados no necesitan Auth ni permisos directos sobre tablas; deben usar exclusivamente las RPC concedidas a `anon`.
 
 ## Registro compartido de Games
 

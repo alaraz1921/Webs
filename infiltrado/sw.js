@@ -1,4 +1,4 @@
-const CACHE_NAME = 'infiltrado-v13';
+const CACHE_NAME = 'infiltrado-v14';
 const APP_SHELL = [
   './',
   './index.html',

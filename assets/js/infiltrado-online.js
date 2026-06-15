@@ -11,6 +11,7 @@ let intervaloOnline = null;
 let accesoOnlineAutenticado = false;
 let mostrarSalaTrasFinal = false;
 let actualizacionOnlineEnCurso = false;
+let resolucionOnlineEnCurso = false;
 
 function mostrarSeleccionModoInfiltrado() {
     detenerActualizacionOnline();
@@ -313,6 +314,8 @@ function renderizarEstadoOnline() {
     if (estadoOnline.estado_online === 'started') {
         if (document.getElementById('screen-online-role').classList.contains('active')) return;
         renderizarRolOnline();
+    } else if (estadoOnline.estado_online === 'finished' && resolucionOnlineEnCurso) {
+        return;
     } else if (estadoOnline.estado_online === 'finished' && !mostrarSalaTrasFinal && !estadoOnline.jugador_nuevo_tras_final) {
         renderizarFinalOnline();
     } else {
@@ -424,7 +427,12 @@ async function finalizarPartidaOnline() {
         abrirModal('Selección incompleta', 'Selecciona quiénes crees que eran los infiltrados.');
         return;
     }
+    if (new Set(seleccionados).size !== seleccionados.length) {
+        abrirModal('Selección no válida', 'Selecciona una persona distinta por cada infiltrado.');
+        return;
+    }
 
+    resolucionOnlineEnCurso = true;
     const { data, error } = await infiltradoClient.rpc('infiltrado_online_finish', {
         p_partida_id: estadoOnline.partida_id,
         p_player_token: localStorage.getItem(INFILTRADO_ONLINE_TOKEN_KEY),
@@ -433,12 +441,37 @@ async function finalizarPartidaOnline() {
     });
 
     if (error || !data?.ok) {
-        abrirModal('No se pudo finalizar', data?.message || 'Inténtalo de nuevo.');
+        resolucionOnlineEnCurso = false;
+        abrirModal('No se pudo resolver', data?.message || 'Inténtalo de nuevo.');
         return;
     }
 
-    mostrarSalaTrasFinal = false;
-    await actualizarSalaOnline();
+    if (!data.acierto) {
+        resolucionOnlineEnCurso = false;
+        abrirModal('Resultado incorrecto', 'Los jugadores seleccionados no son todos los infiltrados. Puedes volver a intentarlo.');
+        return;
+    }
+
+    abrirModalResolucionCorrecta();
+}
+
+function abrirModalResolucionCorrecta() {
+    document.getElementById('modal-title').textContent = 'Resultado correcto';
+    document.getElementById('modal-message').textContent = 'Habéis descubierto a todos los infiltrados.';
+    const contenedor = document.getElementById('modal-buttons');
+    contenedor.innerHTML = '';
+
+    const aceptar = document.createElement('button');
+    aceptar.textContent = 'Aceptar';
+    aceptar.onclick = async () => {
+        cerrarModal();
+        resolucionOnlineEnCurso = false;
+        mostrarSalaTrasFinal = true;
+        renderizarSalaOnline();
+        await actualizarSalaOnline();
+    };
+    contenedor.appendChild(aceptar);
+    document.getElementById('custom-modal').style.display = 'flex';
 }
 
 async function eliminarJugadorOnline(jugadorId) {

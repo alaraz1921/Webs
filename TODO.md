@@ -38,6 +38,7 @@ Ultima revision: 2026-06-15
 - [x] PA-32 Evitar palabras ocultas repetidas durante una partida de Infiltrado mediante historial temporal en Supabase.
 - [x] PA-33 Añadir modo online multi-dispositivo a Infiltrado reutilizando las tablas existentes y acceso invitado por token.
 - [x] PA-34 Reanudar identidades online sin duplicados, recuperar al anfitrion por login y estabilizar los desplegables durante el refresco.
+- [x] PA-35 Permitir al anfitrion reintentar la resolucion online hasta acertar y volver despues a la lista de jugadores.
 
 ## Prioridad Media
 
@@ -64,6 +65,7 @@ Ultima revision: 2026-06-15
 - [ ] PM-21 Desplegar `notify-new-user`, configurar sus secrets/Vault y ejecutar `20260612150000_notify_new_user.sql`.
 - [ ] PM-22 Ejecutar `20260615150000_infiltrado_online.sql` en Supabase y validar el flujo online con varios dispositivos.
 - [ ] PM-23 Ejecutar `20260615170000_infiltrado_online_resume.sql` para permitir recuperar una sala como anfitrion por codigo.
+- [ ] PM-24 Ejecutar `20260615190000_infiltrado_online_retry_resolution.sql` para mantener activa la partida online tras una resolucion incorrecta.
 
 ## Prioridad Baja
 
@@ -110,6 +112,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-18 Comprobar enlaces de restauracion/registro desde Games, Monitor e Infiltrado y listado de usuarios en Privado.
 - [ ] PR-19 En Infiltrado online: crear sala, unir invitados sin cuenta, iniciar, comprobar roles privados, finalizar, mostrar resultado y eliminar jugadores.
 - [ ] PR-20 En Infiltrado online: reentrar como anfitrion e invitado sin indicar nombre ni duplicar jugadores y comprobar que el refresco no cierra desplegables.
+- [ ] PR-21 En Infiltrado online: resolver incorrectamente y reintentar; al acertar, aceptar el modal y comprobar la vuelta a la lista de jugadores.
 
 ## Ideas De Mejora
 
