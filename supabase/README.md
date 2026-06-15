@@ -67,6 +67,8 @@ Si Supabase muestra `relation "bingo_partidas" already exists`, actualizar el re
 
 La migracion `20260611150000_infiltrado_supabase.sql` crea el proyecto `infiltrado`, las tablas `infiltrado_palabras`, `infiltrado_partidas` e `infiltrado_jugadores`, y carga las categorias Lugares, Cosas y Profesiones.
 
+La migracion `20260615120000_infiltrado_palabras_usadas.sql` crea `infiltrado_palabras_usadas`. Cada ronda registra su palabra para evitar repeticiones dentro de la partida temporal. Al eliminar la partida, su historial se borra automaticamente por cascada.
+
 El formulario de Infiltrado acepta el correo o el nombre guardado en `profiles.username`. Siempre exige la contraseña real de Supabase Auth. Pueden acceder los administradores y los miembros asignados al proyecto.
 
 ## Registro compartido de Games

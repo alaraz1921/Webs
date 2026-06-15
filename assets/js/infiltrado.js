@@ -281,7 +281,21 @@ async function obtenerPalabraSecreta(tipoSeleccionado) {
 
     const { data, error } = await consulta;
     if (error || !data?.length) throw new Error('No hay palabras disponibles para este tipo.');
-    return data[Math.floor(Math.random() * data.length)].palabra;
+
+    let palabrasUsadas = new Set();
+    if (partidaActualId) {
+        const { data: filasUsadas, error: usadasError } = await infiltradoClient
+            .from('infiltrado_palabras_usadas')
+            .select('palabra')
+            .eq('partida_id', partidaActualId);
+
+        if (usadasError) throw new Error('No se pudo consultar el historial de palabras.');
+        palabrasUsadas = new Set(filasUsadas.map((fila) => fila.palabra));
+    }
+
+    const disponibles = data.filter((fila) => !palabrasUsadas.has(fila.palabra));
+    if (!disponibles.length) throw new Error('Ya se han usado todas las palabras disponibles para este tipo.');
+    return disponibles[Math.floor(Math.random() * disponibles.length)];
 }
 
 async function ejecutarMezclaYAsignacion() {
@@ -295,7 +309,8 @@ async function ejecutarMezclaYAsignacion() {
     }
 
     try {
-        lugarSecreto = await obtenerPalabraSecreta(tipoPalabra);
+        const palabraSeleccionada = await obtenerPalabraSecreta(tipoPalabra);
+        lugarSecreto = palabraSeleccionada.palabra;
     } catch (error) {
         abrirModal('Error', error.message);
         return;
@@ -324,26 +339,45 @@ function construirRoles() {
 }
 
 async function guardarPartidaTemporal(tipoPalabra, numeroInfiltrados) {
-    await eliminarPartidaTemporal();
-    const { data, error } = await infiltradoClient
-        .from('infiltrado_partidas')
-        .insert({
-            numero_jugadores: jugadores.length,
-            numero_infiltrados: numeroInfiltrados,
-            tipo_palabra: tipoPalabra,
-            palabra_oculta: lugarSecreto,
-            fase: faseActual,
-            jugador_actual: jugadorActualIndex
-        })
-        .select('id')
-        .single();
+    const datosPartida = {
+        numero_jugadores: jugadores.length,
+        numero_infiltrados: numeroInfiltrados,
+        tipo_palabra: tipoPalabra,
+        palabra_oculta: lugarSecreto,
+        fase: faseActual,
+        jugador_actual: jugadorActualIndex,
+        updated_at: new Date().toISOString()
+    };
 
-    if (error) {
+    const resultado = partidaActualId
+        ? await infiltradoClient
+            .from('infiltrado_partidas')
+            .update(datosPartida)
+            .eq('id', partidaActualId)
+            .select('id')
+            .single()
+        : await infiltradoClient
+            .from('infiltrado_partidas')
+            .insert(datosPartida)
+            .select('id')
+            .single();
+
+    if (resultado.error) {
         abrirModal('Error', 'No se pudo guardar la partida.');
         return false;
     }
 
-    partidaActualId = data.id;
+    partidaActualId = resultado.data.id;
+    const { error: eliminarJugadoresError } = await infiltradoClient
+        .from('infiltrado_jugadores')
+        .delete()
+        .eq('partida_id', partidaActualId);
+
+    if (eliminarJugadoresError) {
+        abrirModal('Error', 'No se pudieron actualizar los jugadores.');
+        return false;
+    }
+
     const filas = jugadores.map((nombre, orden) => ({
         partida_id: partidaActualId,
         nombre,
@@ -355,6 +389,16 @@ async function guardarPartidaTemporal(tipoPalabra, numeroInfiltrados) {
         abrirModal('Error', 'No se pudieron guardar los jugadores.');
         return false;
     }
+
+    const { error: palabraError } = await infiltradoClient
+        .from('infiltrado_palabras_usadas')
+        .insert({ partida_id: partidaActualId, palabra: lugarSecreto });
+
+    if (palabraError) {
+        abrirModal('Error', 'No se pudo guardar el historial de palabras.');
+        return false;
+    }
+
     return true;
 }
 

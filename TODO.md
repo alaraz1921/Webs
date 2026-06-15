@@ -1,6 +1,6 @@
 # TODO
 
-Ultima revision: 2026-06-12
+Ultima revision: 2026-06-15
 
 ## Prioridad Alta
 
@@ -35,6 +35,7 @@ Ultima revision: 2026-06-12
 - [x] PA-29 Añadir animaciones discretas de entrada al hacer scroll en la portada y `games.html`.
 - [x] PA-30 Ralentizar las animaciones de entrada y aplicarlas también a `coming-soon.html`.
 - [x] PA-31 Pausar más las animaciones de entrada y aplicarlas también a `proyectos.html`.
+- [x] PA-32 Evitar palabras ocultas repetidas durante una partida de Infiltrado mediante historial temporal en Supabase.
 
 ## Prioridad Media
 
@@ -91,7 +92,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-04 En Bingo carton: seleccionar partida, marcar numeros iniciados, limpiar y verificar persistencia.
 - [ ] PR-05 En Bingo carton: comprobar cambio libre sin partida o no iniciada y bloqueo cuando `iniciada = true`.
 - [ ] PR-06 En Monitor Bingo: entrar con nombre de usuario o correo autorizado; iniciar, pausar, reanudar, reiniciar y crear nueva partida.
-- [ ] PR-07 En Infiltrado: entrar con nombre de usuario o correo autorizado; elegir categoria, configurar jugadores, revelar roles, recargar y finalizar.
+- [ ] PR-07 En Infiltrado: entrar con nombre de usuario o correo autorizado; repetir rondas sin palabras duplicadas y comprobar que reiniciar desde cero elimina el historial.
 - [ ] PR-08 En ValentinaPlay: abrir cada juego y validar reinicio/victoria/flujo principal.
 - [ ] PR-09 En Privado: iniciar/cerrar sesion y comprobar recordatorio de formula.
 - [ ] PR-10 Enviar contacto desde Webs; comprobar fila en `webs_contact_messages` y recepcion del email.

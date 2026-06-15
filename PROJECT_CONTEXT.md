@@ -1,6 +1,6 @@
 # PROJECT_CONTEXT
 
-Ultima actualizacion: 2026-06-12
+Ultima actualizacion: 2026-06-15
 
 ## Resumen
 
@@ -272,7 +272,8 @@ Base de datos y PWA:
 - Sorteo y revelado individual, destacando en amarillo el nombre del jugador de cada turno.
 - Resolucion mediante desplegables de participantes.
 - Las palabras se cargan desde `infiltrado_palabras`.
-- La partida temporal se guarda en `infiltrado_partidas` y sus jugadores en `infiltrado_jugadores`.
+- La partida temporal se guarda en `infiltrado_partidas`, sus jugadores en `infiltrado_jugadores` y las palabras ya utilizadas en `infiltrado_palabras_usadas`.
+- Las rondas repetidas conservan la misma partida temporal y excluyen palabras anteriores; al reiniciar desde cero se elimina la partida y su historial por cascada.
 - La PWA `Infiltrado Alaraz1921` usa manifest, service worker y el icono de espia proporcionado.
 - El boton de instalacion aparece solo despues del login y muestra instrucciones especificas en iOS.
 - En modo PWA se ocultan los controles de vuelta a `games.html`. La deteccion combina modos de visualizacion instalados y la marca `?pwa=1` del manifiesto.
@@ -315,6 +316,11 @@ Tablas usadas:
 - `app_projects`
 - `project_members`
 - `webs_contact_messages`
+- `bingo_partidas`
+- `infiltrado_palabras`
+- `infiltrado_partidas`
+- `infiltrado_jugadores`
+- `infiltrado_palabras_usadas`
 
 Funciones/RPC:
 
@@ -337,6 +343,7 @@ Migraciones:
 - `20260612100000_games_self_registration.sql`
 - `20260612120000_games_username_password_recovery.sql`
 - `20260612150000_notify_new_user.sql`
+- `20260615120000_infiltrado_palabras_usadas.sql`
 
 Configuracion manual necesaria para el registro de Games:
 
