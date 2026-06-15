@@ -291,6 +291,7 @@ Base de datos y PWA:
 - La PWA `Infiltrado Alaraz1921` usa manifest, service worker y el icono de espia proporcionado.
 - El boton de instalacion aparece solo despues del login y muestra instrucciones especificas en iOS.
 - En modo PWA se ocultan los controles de vuelta a `games.html`. La deteccion combina modos de visualizacion instalados y la marca `?pwa=1` del manifiesto.
+- La ocultacion de `Volver a Games` se aplica antes de pintar la pagina y se revalida al reanudar o cambiar el modo de visualizacion de la PWA.
 
 ### ValentinaPlay
 

@@ -2455,6 +2455,7 @@ body.infiltrado-page .online-modal-field input {
     display: none !important;
 }
 
+html.pwa-standalone .hide-in-pwa,
 body.pwa-standalone .hide-in-pwa {
     display: none !important;
 }
