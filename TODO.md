@@ -41,6 +41,7 @@ Ultima revision: 2026-06-15
 - [x] PA-35 Permitir al anfitrion reintentar la resolucion online hasta acertar y volver despues a la lista de jugadores.
 - [x] PA-36 Permitir abandonar una partida online con confirmacion y eliminarla por completo si abandona el anfitrion.
 - [x] PA-37 Validar codigos antes de pedir nombre, mejorar avisos de fin de ronda y añadir controles contextuales en Infiltrado online.
+- [x] PA-38 Separar `Terminar partida` del anfitrion y `Abandonar partida` de invitados en las pantallas online correspondientes.
 
 ## Prioridad Media
 
@@ -119,6 +120,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-21 En Infiltrado online: resolver incorrectamente y reintentar; al acertar, aceptar el modal y comprobar la vuelta a la lista de jugadores.
 - [ ] PR-22 En Infiltrado online: abandonar como invitado y como anfitrion; comprobar que el anfitrion elimina la partida para todos.
 - [ ] PR-23 En Infiltrado online: probar codigo inexistente, resolucion correcta, fin manual del anfitrion y los avisos previos a la lista abierta.
+- [ ] PR-24 En Infiltrado online: comprobar que solo el anfitrion puede terminar desde la lista y que un invitado abandona desde su tarjeta para introducir otro codigo.
 
 ## Ideas De Mejora
 

@@ -2364,7 +2364,9 @@ body.infiltrado-page .online-host-config {
 
 body.infiltrado-page .online-host-config[hidden],
 body.infiltrado-page .online-host-resolution[hidden],
-body.infiltrado-page #online-start-button[hidden] {
+body.infiltrado-page #online-start-button[hidden],
+body.infiltrado-page #online-host-end-game[hidden],
+body.infiltrado-page #online-guest-leave-game[hidden] {
     display: none;
 }
 

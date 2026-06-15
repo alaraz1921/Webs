@@ -110,7 +110,7 @@
         </div>
         <ul id="online-players-list" class="online-players-list"></ul>
         <button id="online-start-button" type="button" onclick="iniciarPartidaOnline()" hidden>Iniciar partida</button>
-        <button class="btn-danger" type="button" onclick="solicitarAbandonarPartidaOnline()">Abandonar partida</button>
+        <button id="online-host-end-game" class="btn-danger" type="button" onclick="solicitarTerminarPartidaOnline()" hidden>Terminar partida</button>
     </div>
 
     <div id="screen-online-role" class="screen online-screen">
@@ -124,6 +124,7 @@
             <button type="button" onclick="finalizarPartidaOnline()">RESOLVER</button>
             <button class="btn-danger" type="button" onclick="solicitarTerminarRondaOnline()">TERMINAR RONDA</button>
         </div>
+        <button id="online-guest-leave-game" class="btn-danger" type="button" onclick="solicitarAbandonarPartidaOnline()" hidden>Abandonar partida</button>
     </div>
 
     <div id="screen-config" class="screen">

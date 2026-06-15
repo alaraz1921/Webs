@@ -284,7 +284,7 @@ Base de datos y PWA:
 - El anfitrion usa Supabase Realtime para cambios de sala y todos los clientes mantienen actualizacion periodica/manual como respaldo.
 - Durante una ronda iniciada, las actualizaciones de estado no reconstruyen la pantalla de rol para no cerrar los desplegables del anfitrion.
 - El anfitrion resuelve la ronda desde la tarjeta de rol: un fallo mantiene la partida iniciada para volver a intentarlo y un acierto muestra confirmacion antes de regresar a la lista de jugadores.
-- Desde la lista de jugadores se puede abandonar con confirmacion: un invitado elimina solo su jugador y el anfitrion autenticado elimina por completo la partida y sus datos relacionados.
+- En el flujo online, el anfitrion dispone de `Terminar partida` solo en la lista de jugadores; los invitados pueden `Abandonar partida` desde la tarjeta de rol y reciben directamente el formulario para introducir otro codigo.
 - Antes de pedir el nombre de un nuevo invitado se valida que el codigo corresponda a una partida disponible.
 - Al terminar una ronda, los jugadores reciben un modal con el resultado antes de volver a la lista abierta; el anfitrion tambien puede terminarla sin resolver.
 - En la lista abierta y la tarjeta de rol, Ayuda y Actualizar se muestran como iconos contextuales sobre el acceso a Games.
