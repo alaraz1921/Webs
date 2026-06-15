@@ -40,6 +40,7 @@ Ultima revision: 2026-06-15
 - [x] PA-34 Reanudar identidades online sin duplicados, recuperar al anfitrion por login y estabilizar los desplegables durante el refresco.
 - [x] PA-35 Permitir al anfitrion reintentar la resolucion online hasta acertar y volver despues a la lista de jugadores.
 - [x] PA-36 Permitir abandonar una partida online con confirmacion y eliminarla por completo si abandona el anfitrion.
+- [x] PA-37 Validar codigos antes de pedir nombre, mejorar avisos de fin de ronda y añadir controles contextuales en Infiltrado online.
 
 ## Prioridad Media
 
@@ -68,6 +69,7 @@ Ultima revision: 2026-06-15
 - [ ] PM-23 Ejecutar `20260615170000_infiltrado_online_resume.sql` para permitir recuperar una sala como anfitrion por codigo.
 - [ ] PM-24 Ejecutar `20260615190000_infiltrado_online_retry_resolution.sql` para mantener activa la partida online tras una resolucion incorrecta.
 - [ ] PM-25 Ejecutar `20260615200000_infiltrado_online_leave.sql` para habilitar el abandono seguro de partidas online.
+- [ ] PM-26 Ejecutar `20260615210000_infiltrado_online_round_flow.sql` para validar codigos y habilitar los nuevos finales de ronda online.
 
 ## Prioridad Baja
 
@@ -116,6 +118,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-20 En Infiltrado online: reentrar como anfitrion e invitado sin indicar nombre ni duplicar jugadores y comprobar que el refresco no cierra desplegables.
 - [ ] PR-21 En Infiltrado online: resolver incorrectamente y reintentar; al acertar, aceptar el modal y comprobar la vuelta a la lista de jugadores.
 - [ ] PR-22 En Infiltrado online: abandonar como invitado y como anfitrion; comprobar que el anfitrion elimina la partida para todos.
+- [ ] PR-23 En Infiltrado online: probar codigo inexistente, resolucion correcta, fin manual del anfitrion y los avisos previos a la lista abierta.
 
 ## Ideas De Mejora
 

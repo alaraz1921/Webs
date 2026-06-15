@@ -1612,6 +1612,29 @@ body.infiltrado-page .help-button-bottom {
     margin: 10px auto 0;
 }
 
+body.infiltrado-page .online-context-actions {
+    display: flex;
+    margin: 12px auto 0;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+body.infiltrado-page .online-context-actions[hidden],
+body.infiltrado-page #infiltrado-general-help[hidden] {
+    display: none;
+}
+
+body.infiltrado-page .online-refresh-button svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 @keyframes bounce {
     0%, 20%, 50%, 80%, 100% {
         transform: translateY(0);
@@ -2341,8 +2364,7 @@ body.infiltrado-page .online-host-config {
 
 body.infiltrado-page .online-host-config[hidden],
 body.infiltrado-page .online-host-resolution[hidden],
-body.infiltrado-page #online-start-button[hidden],
-body.infiltrado-page #online-wait-button[hidden] {
+body.infiltrado-page #online-start-button[hidden] {
     display: none;
 }
 
@@ -2395,22 +2417,12 @@ body.infiltrado-page .online-role-card {
     text-transform: uppercase;
 }
 
-body.infiltrado-page .online-host-resolution,
-body.infiltrado-page .online-final-summary {
+body.infiltrado-page .online-host-resolution {
     margin: 18px 0;
     padding: 16px;
     border: 1px solid #3a506b;
     border-radius: 10px;
     background: rgba(11, 19, 43, 0.55);
-}
-
-body.infiltrado-page .online-final-summary p {
-    margin: 8px 0;
-    text-align: left;
-}
-
-body.infiltrado-page .online-final-summary strong {
-    color: #ffb703;
 }
 
 body.infiltrado-page .online-modal-field {

@@ -12,6 +12,13 @@ let accesoOnlineAutenticado = false;
 let mostrarSalaTrasFinal = false;
 let actualizacionOnlineEnCurso = false;
 let resolucionOnlineEnCurso = false;
+let avisoFinOnlineVisible = false;
+
+function actualizarControlesContextualesInfiltrado(idPantalla) {
+    const mostrarControlesOnline = ['screen-online-lobby', 'screen-online-role'].includes(idPantalla);
+    document.getElementById('online-context-actions').hidden = !mostrarControlesOnline;
+    document.getElementById('infiltrado-general-help').hidden = mostrarControlesOnline;
+}
 
 function mostrarSeleccionModoInfiltrado() {
     detenerActualizacionOnline();
@@ -143,7 +150,21 @@ async function accederPartidaOnlinePorCodigo() {
         return;
     }
 
+    const validacion = await validarCodigoPartidaOnline(codigo);
+    if (!validacion.ok) {
+        abrirModal('No se pudo entrar', validacion.message);
+        return;
+    }
+
     solicitarNombreNuevoJugador(codigo);
+}
+
+async function validarCodigoPartidaOnline(codigo) {
+    const { data, error } = await infiltradoClient.rpc('infiltrado_online_exists', { p_codigo: codigo });
+    if (error || !data?.ok) {
+        return { ok: false, message: data?.message || 'La partida no existe.' };
+    }
+    return { ok: true };
 }
 
 function solicitarNombreNuevoJugador(codigo) {
@@ -321,12 +342,14 @@ function renderizarEstadoOnline() {
     if (!estadoOnline) return;
 
     if (estadoOnline.estado_online === 'started') {
+        mostrarSalaTrasFinal = false;
+        avisoFinOnlineVisible = false;
         if (document.getElementById('screen-online-role').classList.contains('active')) return;
         renderizarRolOnline();
     } else if (estadoOnline.estado_online === 'finished' && resolucionOnlineEnCurso) {
         return;
     } else if (estadoOnline.estado_online === 'finished' && !mostrarSalaTrasFinal && !estadoOnline.jugador_nuevo_tras_final) {
-        renderizarFinalOnline();
+        mostrarAvisoFinRondaOnline();
     } else {
         renderizarSalaOnline();
     }
@@ -361,7 +384,6 @@ function renderizarSalaOnline() {
     const configuracion = document.getElementById('online-host-config');
     configuracion.hidden = !estadoOnline.es_anfitrion;
     document.getElementById('online-start-button').hidden = !estadoOnline.es_anfitrion;
-    document.getElementById('online-wait-button').hidden = estadoOnline.es_anfitrion;
     document.getElementById('online-total-infiltrados').value = String(estadoOnline.numero_infiltrados || 1);
     document.getElementById('online-tipo-palabra').value = estadoOnline.tipo_palabra || 'Aleatoria';
 }
@@ -393,24 +415,29 @@ function renderizarRolOnline() {
     }
 }
 
-function renderizarFinalOnline() {
-    cambiarPantallaVisual('screen-online-final');
-    const resumen = document.getElementById('online-final-summary');
-    const resultado = estadoOnline.resultado || {};
-    resumen.innerHTML = '';
+function mostrarAvisoFinRondaOnline() {
+    if (avisoFinOnlineVisible) return;
+    avisoFinOnlineVisible = true;
 
-    [
-        ['Infiltrados reales', (resultado.infiltrados_reales || []).join(', ') || '---'],
-        ['Seleccionados', (resultado.seleccionados || []).join(', ') || '---'],
-        ['Resultado', resultado.acierto ? 'CORRECTO' : 'INCORRECTO'],
-        ['Palabra secreta', estadoOnline.palabra_oculta || '---']
-    ].forEach(([titulo, valor]) => {
-        const bloque = document.createElement('p');
-        const etiqueta = document.createElement('strong');
-        etiqueta.textContent = `${titulo}: `;
-        bloque.append(etiqueta, document.createTextNode(valor));
-        resumen.appendChild(bloque);
-    });
+    const finalizadaPorAnfitrion = estadoOnline.finalizacion_online === 'host_ended';
+    const infiltrados = (estadoOnline.resultado?.infiltrados_reales || []).join(' y ') || '---';
+    document.getElementById('modal-title').textContent = 'Ronda terminada';
+    document.getElementById('modal-message').textContent = finalizadaPorAnfitrion
+        ? 'El anfitrión ha finalizado esta ronda. Continuar a la sala de espera de jugadores.'
+        : `Ronda terminada. Infiltrado: ${infiltrados}. Palabra secreta: ${estadoOnline.palabra_oculta || '---'}`;
+    const contenedor = document.getElementById('modal-buttons');
+    contenedor.innerHTML = '';
+
+    const aceptar = document.createElement('button');
+    aceptar.textContent = 'Aceptar';
+    aceptar.onclick = () => {
+        cerrarModal();
+        avisoFinOnlineVisible = false;
+        mostrarSalaTrasFinal = true;
+        renderizarSalaOnline();
+    };
+    contenedor.appendChild(aceptar);
+    document.getElementById('custom-modal').style.display = 'flex';
 }
 
 async function iniciarPartidaOnline() {
@@ -427,6 +454,7 @@ async function iniciarPartidaOnline() {
     }
 
     mostrarSalaTrasFinal = false;
+    avisoFinOnlineVisible = false;
     await actualizarSalaOnline();
 }
 
@@ -461,26 +489,48 @@ async function finalizarPartidaOnline() {
         return;
     }
 
-    abrirModalResolucionCorrecta();
+    resolucionOnlineEnCurso = false;
+    await actualizarSalaOnline();
 }
 
-function abrirModalResolucionCorrecta() {
-    document.getElementById('modal-title').textContent = 'Resultado correcto';
-    document.getElementById('modal-message').textContent = 'Habéis descubierto a todos los infiltrados.';
+function solicitarTerminarRondaOnline() {
+    document.getElementById('modal-title').textContent = 'Terminar ronda';
+    document.getElementById('modal-message').textContent = '¿Quieres terminar esta ronda sin resolver quiénes son los infiltrados?';
     const contenedor = document.getElementById('modal-buttons');
     contenedor.innerHTML = '';
 
-    const aceptar = document.createElement('button');
-    aceptar.textContent = 'Aceptar';
-    aceptar.onclick = async () => {
-        cerrarModal();
-        resolucionOnlineEnCurso = false;
-        mostrarSalaTrasFinal = true;
-        renderizarSalaOnline();
-        await actualizarSalaOnline();
-    };
-    contenedor.appendChild(aceptar);
+    const confirmar = document.createElement('button');
+    confirmar.textContent = 'Terminar ronda';
+    confirmar.className = 'btn-danger';
+    confirmar.onclick = terminarRondaOnline;
+    contenedor.appendChild(confirmar);
+
+    const cancelar = document.createElement('button');
+    cancelar.textContent = 'Cancelar';
+    cancelar.onclick = cerrarModal;
+    contenedor.appendChild(cancelar);
     document.getElementById('custom-modal').style.display = 'flex';
+}
+
+async function terminarRondaOnline() {
+    resolucionOnlineEnCurso = true;
+    const { data, error } = await infiltradoClient.rpc('infiltrado_online_end_round', {
+        p_partida_id: estadoOnline.partida_id,
+        p_player_token: localStorage.getItem(INFILTRADO_ONLINE_TOKEN_KEY)
+    });
+
+    if (error || !data?.ok) {
+        resolucionOnlineEnCurso = false;
+        abrirModal('No se pudo terminar', data?.message || 'Inténtalo de nuevo.');
+        return;
+    }
+
+    cerrarModal();
+    resolucionOnlineEnCurso = false;
+    mostrarSalaTrasFinal = true;
+    estadoOnline = { ...estadoOnline, estado_online: 'finished', finalizacion_online: 'host_ended' };
+    renderizarSalaOnline();
+    await actualizarSalaOnline();
 }
 
 async function eliminarJugadorOnline(jugadorId) {
@@ -495,11 +545,6 @@ async function eliminarJugadorOnline(jugadorId) {
         return;
     }
     await actualizarSalaOnline();
-}
-
-function volverSalaOnlineFinalizada() {
-    mostrarSalaTrasFinal = true;
-    renderizarSalaOnline();
 }
 
 function solicitarAbandonarPartidaOnline() {

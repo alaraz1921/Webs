@@ -191,6 +191,9 @@ async function cargarPartidaTemporal() {
 function cambiarPantallaVisual(idPantalla) {
     document.querySelectorAll('.screen').forEach((pantalla) => pantalla.classList.remove('active'));
     document.getElementById(idPantalla).classList.add('active');
+    if (typeof actualizarControlesContextualesInfiltrado === 'function') {
+        actualizarControlesContextualesInfiltrado(idPantalla);
+    }
 }
 
 function guardarConfiguracionBase() {

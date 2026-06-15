@@ -109,9 +109,7 @@
             </select>
         </div>
         <ul id="online-players-list" class="online-players-list"></ul>
-        <button type="button" onclick="actualizarSalaOnline()">Actualizar</button>
         <button id="online-start-button" type="button" onclick="iniciarPartidaOnline()" hidden>Iniciar partida</button>
-        <button id="online-wait-button" class="btn-secondary" type="button" onclick="actualizarSalaOnline()" hidden>Ir a sala de espera</button>
         <button class="btn-danger" type="button" onclick="solicitarAbandonarPartidaOnline()">Abandonar partida</button>
     </div>
 
@@ -124,15 +122,8 @@
             <h3>¿Quién era el infiltrado?</h3>
             <div id="online-suspect-selects"></div>
             <button type="button" onclick="finalizarPartidaOnline()">RESOLVER</button>
+            <button class="btn-danger" type="button" onclick="solicitarTerminarRondaOnline()">TERMINAR RONDA</button>
         </div>
-        <button class="btn-secondary" type="button" onclick="actualizarSalaOnline()">Actualizar estado</button>
-    </div>
-
-    <div id="screen-online-final" class="screen online-screen">
-        <h2>Partida finalizada</h2>
-        <div id="online-final-summary" class="online-final-summary"></div>
-        <button type="button" onclick="volverSalaOnlineFinalizada()">Volver a la lista de jugadores</button>
-        <button class="btn-secondary" type="button" onclick="actualizarSalaOnline()">Actualizar estado</button>
     </div>
 
     <div id="screen-config" class="screen">
@@ -177,6 +168,17 @@
     </div>
 
     <div class="infiltrado-footer-actions">
+        <div id="online-context-actions" class="online-context-actions" hidden>
+            <button class="help-button online-refresh-button" type="button" onclick="actualizarSalaOnline()" aria-label="Actualizar estado" title="Actualizar estado">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20 6v5h-5"></path>
+                    <path d="M4 18v-5h5"></path>
+                    <path d="M18.5 9A7 7 0 0 0 6.2 6.2L4 8"></path>
+                    <path d="M5.5 15A7 7 0 0 0 17.8 17.8L20 16"></path>
+                </svg>
+            </button>
+            <button class="help-button" type="button" onclick="mostrarAyudaInfiltrado()" aria-label="Ayuda de El Infiltrado" title="Ayuda">?</button>
+        </div>
         <a class="infiltrado-home-link btn-principal btn-home hide-in-pwa" href="../games.html" onclick="solicitarVolverGamesInfiltrado(event)">
             <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 11.5 12 4l9 7.5"></path>
@@ -185,7 +187,7 @@
             </svg>
             <span>Volver a Games</span>
         </a>
-        <button class="help-button help-button-bottom" type="button" onclick="mostrarAyudaInfiltrado()" aria-label="Ayuda de El Infiltrado">?</button>
+        <button id="infiltrado-general-help" class="help-button help-button-bottom" type="button" onclick="mostrarAyudaInfiltrado()" aria-label="Ayuda de El Infiltrado">?</button>
         <button class="infiltrado-install-button pwa-install-control" type="button" onclick="solicitarInstalacionPwa()" hidden>Instalar aplicación</button>
     </div>
 
