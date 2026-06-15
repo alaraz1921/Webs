@@ -37,6 +37,7 @@ Ultima revision: 2026-06-15
 - [x] PA-31 Pausar más las animaciones de entrada y aplicarlas también a `proyectos.html`.
 - [x] PA-32 Evitar palabras ocultas repetidas durante una partida de Infiltrado mediante historial temporal en Supabase.
 - [x] PA-33 Añadir modo online multi-dispositivo a Infiltrado reutilizando las tablas existentes y acceso invitado por token.
+- [x] PA-34 Reanudar identidades online sin duplicados, recuperar al anfitrion por login y estabilizar los desplegables durante el refresco.
 
 ## Prioridad Media
 
@@ -62,6 +63,7 @@ Ultima revision: 2026-06-15
 - [ ] PM-20 Ejecutar `20260612120000_games_username_password_recovery.sql` y permitir la URL de recuperacion en Supabase.
 - [ ] PM-21 Desplegar `notify-new-user`, configurar sus secrets/Vault y ejecutar `20260612150000_notify_new_user.sql`.
 - [ ] PM-22 Ejecutar `20260615150000_infiltrado_online.sql` en Supabase y validar el flujo online con varios dispositivos.
+- [ ] PM-23 Ejecutar `20260615170000_infiltrado_online_resume.sql` para permitir recuperar una sala como anfitrion por codigo.
 
 ## Prioridad Baja
 
@@ -107,6 +109,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-17 Crear un usuario nuevo y comprobar confirmacion al usuario, aviso al administrador y logs de `notify-new-user`.
 - [ ] PR-18 Comprobar enlaces de restauracion/registro desde Games, Monitor e Infiltrado y listado de usuarios en Privado.
 - [ ] PR-19 En Infiltrado online: crear sala, unir invitados sin cuenta, iniciar, comprobar roles privados, finalizar, mostrar resultado y eliminar jugadores.
+- [ ] PR-20 En Infiltrado online: reentrar como anfitrion e invitado sin indicar nombre ni duplicar jugadores y comprobar que el refresco no cierra desplegables.
 
 ## Ideas De Mejora
 

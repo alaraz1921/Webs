@@ -1,6 +1,7 @@
 const INFILTRADO_ONLINE_TOKEN_KEY = 'infiltrado_online_player_token';
 const INFILTRADO_ONLINE_CODE_KEY = 'infiltrado_online_codigo';
 const INFILTRADO_ONLINE_PARTIDA_KEY = 'infiltrado_online_partida_id';
+const INFILTRADO_ONLINE_SESSIONS_KEY = 'infiltrado_online_sessions';
 const INFILTRADO_ONLINE_POLL_MS = 5000;
 
 // El token identifica al jugador invitado sin crear una cuenta de Supabase Auth.
@@ -112,21 +113,42 @@ async function crearPartidaOnline() {
 function solicitarUnirsePartidaOnline() {
     abrirFormularioOnline(
         'Unirse a partida',
-        'Introduce el código de tres cifras y tu nombre.',
-        [
-            { id: 'online-modal-code', etiqueta: 'Código de partida', inputMode: 'numeric', maxLength: 3, placeholder: '001' },
-            { id: 'online-modal-name', etiqueta: 'Nombre del jugador', autocomplete: 'nickname' }
-        ],
-        unirsePartidaOnline
+        'Introduce el código de tres cifras.',
+        [{ id: 'online-modal-code', etiqueta: 'Código de partida', inputMode: 'numeric', maxLength: 3, placeholder: '001' }],
+        accederPartidaOnlinePorCodigo
     );
 }
 
-async function unirsePartidaOnline() {
+async function accederPartidaOnlinePorCodigo() {
     const codigoIntroducido = document.getElementById('online-modal-code').value.trim();
     const codigo = codigoIntroducido.padStart(3, '0');
+    if (!codigoIntroducido || !/^\d{3}$/.test(codigo)) {
+        abrirModal('Código no válido', 'Introduce un código de partida de tres cifras.');
+        return;
+    }
+
+    if (await reanudarComoAnfitrion(codigo) || await reanudarSesionGuardada(codigo)) {
+        cerrarModal();
+        await actualizarSalaOnline();
+        return;
+    }
+
+    solicitarNombreNuevoJugador(codigo);
+}
+
+function solicitarNombreNuevoJugador(codigo) {
+    abrirFormularioOnline(
+        'Unirse a partida',
+        `Partida ${codigo}. Indica el nombre con el que aparecerás.`,
+        [{ id: 'online-modal-name', etiqueta: 'Nombre del jugador', autocomplete: 'nickname' }],
+        () => unirsePartidaOnline(codigo)
+    );
+}
+
+async function unirsePartidaOnline(codigo) {
     const nombre = document.getElementById('online-modal-name').value.trim();
-    if (!codigoIntroducido || !/^\d{3}$/.test(codigo) || nombre.length < 2) {
-        abrirModal('Datos no válidos', 'Comprueba el código y escribe un nombre de al menos 2 caracteres.');
+    if (nombre.length < 2) {
+        abrirModal('Nombre no válido', 'El nombre debe tener al menos 2 caracteres.');
         return;
     }
 
@@ -146,19 +168,75 @@ async function unirsePartidaOnline() {
     await actualizarSalaOnline();
 }
 
+function leerSesionesOnline() {
+    try {
+        return JSON.parse(localStorage.getItem(INFILTRADO_ONLINE_SESSIONS_KEY) || '{}');
+    } catch {
+        return {};
+    }
+}
+
+function guardarRegistroSesionOnline(codigo, token, partidaId) {
+    const sesiones = leerSesionesOnline();
+    sesiones[codigo] = { playerToken: token, partidaId };
+    localStorage.setItem(INFILTRADO_ONLINE_SESSIONS_KEY, JSON.stringify(sesiones));
+}
+
+function eliminarRegistroSesionOnline(codigo) {
+    const sesiones = leerSesionesOnline();
+    delete sesiones[codigo];
+    localStorage.setItem(INFILTRADO_ONLINE_SESSIONS_KEY, JSON.stringify(sesiones));
+}
+
 function guardarSesionOnline(codigo, token, partidaId) {
     localStorage.setItem(INFILTRADO_ONLINE_CODE_KEY, codigo);
     localStorage.setItem(INFILTRADO_ONLINE_TOKEN_KEY, token);
     localStorage.setItem(INFILTRADO_ONLINE_PARTIDA_KEY, partidaId);
+    guardarRegistroSesionOnline(codigo, token, partidaId);
     mostrarSalaTrasFinal = false;
 }
 
-function limpiarSesionOnline() {
+function limpiarSesionOnline(olvidarSesion = false) {
+    const codigo = localStorage.getItem(INFILTRADO_ONLINE_CODE_KEY);
+    if (olvidarSesion && codigo) eliminarRegistroSesionOnline(codigo);
     localStorage.removeItem(INFILTRADO_ONLINE_CODE_KEY);
     localStorage.removeItem(INFILTRADO_ONLINE_TOKEN_KEY);
     localStorage.removeItem(INFILTRADO_ONLINE_PARTIDA_KEY);
     estadoOnline = null;
     detenerActualizacionOnline();
+}
+
+async function validarSesionOnline(codigo, token, partidaId) {
+    const { data, error } = await infiltradoClient.rpc('infiltrado_online_state', {
+        p_codigo: codigo,
+        p_player_token: token
+    });
+
+    if (error || !data?.ok) return false;
+    guardarSesionOnline(codigo, token, partidaId || data.partida_id);
+    estadoOnline = await aplicarCaducidadAnfitrion(data);
+    accesoOnlineAutenticado = Boolean(estadoOnline.es_anfitrion);
+    return true;
+}
+
+async function reanudarComoAnfitrion(codigo) {
+    const { data: sesion } = await infiltradoClient.auth.getSession();
+    if (!sesion.session?.user || !sesionInfiltradoVigente()) return false;
+
+    const { data, error } = await infiltradoClient.rpc('infiltrado_online_resume_host', { p_codigo: codigo });
+    if (error || !data?.ok) return false;
+    guardarSesionOnline(codigo, data.player_token, data.partida_id);
+    accesoOnlineAutenticado = true;
+    return true;
+}
+
+async function reanudarSesionGuardada(codigo) {
+    const sesion = leerSesionesOnline()[codigo];
+    if (!sesion?.playerToken) return false;
+
+    const valida = await validarSesionOnline(codigo, sesion.playerToken, sesion.partidaId);
+    if (!valida) eliminarRegistroSesionOnline(codigo);
+    return valida;
 }
 
 async function aplicarCaducidadAnfitrion(data) {
@@ -181,7 +259,7 @@ async function restaurarSesionOnline() {
 
     if (error) return false;
     if (!data?.ok) {
-        limpiarSesionOnline();
+        limpiarSesionOnline(true);
         return false;
     }
 
@@ -215,7 +293,7 @@ async function actualizarSalaOnline() {
         }
         if (!data?.ok) {
             const mensaje = data?.message || 'El acceso a la sala ya no es válido.';
-            limpiarSesionOnline();
+            limpiarSesionOnline(true);
             abrirModal('Sala no disponible', mensaje);
             abrirAccesoOnlineInvitado();
             return;
@@ -233,6 +311,7 @@ function renderizarEstadoOnline() {
     if (!estadoOnline) return;
 
     if (estadoOnline.estado_online === 'started') {
+        if (document.getElementById('screen-online-role').classList.contains('active')) return;
         renderizarRolOnline();
     } else if (estadoOnline.estado_online === 'finished' && !mostrarSalaTrasFinal && !estadoOnline.jugador_nuevo_tras_final) {
         renderizarFinalOnline();

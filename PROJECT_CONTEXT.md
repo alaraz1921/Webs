@@ -279,7 +279,10 @@ Base de datos y PWA:
 - El modo online reutiliza esas tablas, añade `infiltrado_resultados` y usa RPC seguras para crear, unirse, consultar estado, iniciar, finalizar y eliminar jugadores.
 - Al finalizar una ronda online se guarda el resultado y se limpia su historial de palabras usadas.
 - Los invitados se identifican mediante `player_token` en `localStorage`; solo reciben su propio rol y no tienen lectura publica directa de las tablas.
+- Las identidades online se conservan localmente por codigo de partida para reanudar salas sin crear jugadores duplicados.
+- Si el usuario autenticado es el creador de una partida, puede recuperarla por codigo y entrar directamente como anfitrion sin indicar nombre.
 - El anfitrion usa Supabase Realtime para cambios de sala y todos los clientes mantienen actualizacion periodica/manual como respaldo.
+- Durante una ronda iniciada, las actualizaciones de estado no reconstruyen la pantalla de rol para no cerrar los desplegables del anfitrion.
 - La PWA `Infiltrado Alaraz1921` usa manifest, service worker y el icono de espia proporcionado.
 - El boton de instalacion aparece solo despues del login y muestra instrucciones especificas en iOS.
 - En modo PWA se ocultan los controles de vuelta a `games.html`. La deteccion combina modos de visualizacion instalados y la marca `?pwa=1` del manifiesto.
@@ -339,6 +342,7 @@ Funciones/RPC:
 - `infiltrado_online_start(uuid, text, integer, text)`
 - `infiltrado_online_finish(uuid, text, bigint, bigint)`
 - `infiltrado_online_remove_player(uuid, text, bigint)`
+- `infiltrado_online_resume_host(text)`
 
 Edge Function:
 
@@ -358,6 +362,7 @@ Migraciones:
 - `20260612150000_notify_new_user.sql`
 - `20260615120000_infiltrado_palabras_usadas.sql`
 - `20260615150000_infiltrado_online.sql`
+- `20260615170000_infiltrado_online_resume.sql`
 
 Configuracion manual necesaria para el registro de Games:
 
