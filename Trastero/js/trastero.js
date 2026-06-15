@@ -40,6 +40,37 @@ function relationName(collection, id) {
     return collection.find((item) => String(item.id) === String(id))?.nombre || '';
 }
 
+function entityInitial(type = entityType) {
+    return { zona: 'Z', caja: 'C', objeto: 'O' }[type] || 'T';
+}
+
+function formatDate(value) {
+    if (!value) return '-';
+    return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value));
+}
+
+async function attachThumbnails(collection, type = entityType) {
+    if (!collection.length) return collection;
+    const ids = collection.map((item) => item.id);
+    const { data, error } = await supabaseClient
+        .from('trastero_fotos')
+        .select('relacion_id,storage_path,thumbnail_path,created_at')
+        .eq('tipo', type)
+        .in('relacion_id', ids)
+        .order('created_at', { ascending: true });
+    if (error || !data?.length) return collection;
+    const firstPhotoByItem = new Map();
+    data.forEach((photo) => {
+        if (!firstPhotoByItem.has(String(photo.relacion_id))) firstPhotoByItem.set(String(photo.relacion_id), photo);
+    });
+    const paths = [...firstPhotoByItem.values()].map((photo) => photo.thumbnail_path || photo.storage_path);
+    const signed = await supabaseClient.storage.from('trastero-fotos').createSignedUrls(paths, 3600);
+    if (signed.error) return collection;
+    const urlByItem = new Map();
+    [...firstPhotoByItem.keys()].forEach((id, index) => urlByItem.set(id, signed.data[index]?.signedUrl || ''));
+    return collection.map((item) => ({ ...item, thumbnail_url: urlByItem.get(String(item.id)) || '' }));
+}
+
 async function requireAccess() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session?.user) {
@@ -152,7 +183,7 @@ async function loadItems() {
         showToast('No se pudieron cargar los datos.', true);
         return;
     }
-    items = data || [];
+    items = await attachThumbnails(data || []);
     renderList();
 }
 
@@ -168,16 +199,22 @@ function renderList() {
     const term = document.getElementById('list-filter').value.trim().toLowerCase();
     const filtered = items.filter((item) => [item.nombre, item.notas, item.ubicacion, itemMeta(item)].some((value) => String(value || '').toLowerCase().includes(term)));
     document.getElementById('entity-list').innerHTML = filtered.length ? filtered.map((item) => `
-        <article class="entity-card">
-            <span class="entity-type">${config[entityType].label}</span>
-            <h3>${escapeHtml(item.nombre)}</h3>
-            ${itemMeta(item) ? `<p class="meta-line">${escapeHtml(itemMeta(item))}</p>` : ''}
-            <p>${formatNotes(item.notas)}</p>
-            <div class="card-actions">
-                <button class="button button-small" type="button" data-action="view" data-id="${item.id}">Ver ficha</button>
-                <button class="button button-small button-muted" type="button" data-action="edit" data-id="${item.id}">Editar</button>
-            </div>
+        <article class="entity-card entity-list-row">
+            ${renderThumbnail(item, entityType)}
+            <button class="entity-list-content" type="button" data-action="view" data-id="${item.id}">
+                <span class="entity-type">${config[entityType].label}</span>
+                <strong>${escapeHtml(item.nombre)}</strong>
+                ${itemMeta(item) ? `<span class="meta-line">${escapeHtml(itemMeta(item))}</span>` : ''}
+                <span class="entity-summary">${item.notas ? escapeHtml(item.notas) : 'Sin notas'}</span>
+            </button>
+            <button class="row-action" type="button" data-action="edit" data-id="${item.id}" aria-label="Editar">Editar</button>
         </article>`).join('') : '<p class="empty-state">No hay elementos que mostrar.</p>';
+}
+
+function renderThumbnail(item, type = entityType, className = 'entity-thumbnail') {
+    return item.thumbnail_url
+        ? `<img class="${className}" src="${escapeHtml(item.thumbnail_url)}" alt="" loading="lazy">`
+        : `<span class="${className} thumbnail-placeholder" aria-hidden="true">${entityInitial(type)}</span>`;
 }
 
 function handleListAction(event) {
@@ -266,12 +303,12 @@ async function loadRelatedItems(item) {
     if (entityType === 'zona') {
         const { data, error } = await supabaseClient.from('trastero_cajas').select('id,nombre,ubicacion,notas').eq('zona_id', item.id).order('nombre');
         if (error) throw error;
-        return { label: 'Cajas en esta zona', itemLabel: 'caja', url: 'cajas.html', items: data || [] };
+        return { label: 'Cajas en esta zona', itemLabel: 'caja', url: 'cajas.html', createUrl: `cajas.html?new=1&zona_id=${item.id}`, createLabel: 'Añadir caja', items: await attachThumbnails(data || [], 'caja') };
     }
     if (entityType === 'caja') {
         const { data, error } = await supabaseClient.from('trastero_objetos').select('id,nombre,notas').eq('caja_id', item.id).order('nombre');
         if (error) throw error;
-        return { label: 'Objetos en esta caja', itemLabel: 'objeto', url: 'objetos.html', items: data || [] };
+        return { label: 'Objetos en esta caja', itemLabel: 'objeto', url: 'objetos.html', createUrl: `objetos.html?new=1&caja_id=${item.id}${item.zona_id ? `&zona_id=${item.zona_id}` : ''}`, createLabel: 'Añadir objeto', items: await attachThumbnails(data || [], 'objeto') };
     }
     return null;
 }
@@ -279,17 +316,15 @@ async function loadRelatedItems(item) {
 function renderRelatedItems(related) {
     if (!related) return '';
     const cards = related.items.length ? related.items.map((item) => `
-        <article class="entity-card">
-            <span class="entity-type">${related.itemLabel}</span>
-            <h3>${escapeHtml(item.nombre)}</h3>
-            ${item.ubicacion ? `<p class="meta-line">${escapeHtml(item.ubicacion)}</p>` : ''}
-            <p>${formatNotes(item.notas)}</p>
-            <div class="card-actions"><a class="button button-small" href="${related.url}?id=${item.id}">Ver ficha</a></div>
-        </article>`).join('') : `<p class="empty-state">No hay ${related.itemLabel === 'caja' ? 'cajas' : 'objetos'} asociados.</p>`;
-    return `<div class="related-items"><h3>${related.label}</h3><div class="card-list">${cards}</div></div>`;
+        <a class="related-row" href="${related.url}?id=${item.id}">
+            ${renderThumbnail(item, related.itemLabel, 'related-thumbnail')}
+            <span class="related-copy"><strong>${escapeHtml(item.nombre)}</strong><span>${escapeHtml(item.ubicacion || item.notas || 'Sin notas')}</span></span>
+            <span class="related-chevron" aria-hidden="true">›</span>
+        </a>`).join('') : `<p class="empty-state">No hay ${related.itemLabel === 'caja' ? 'cajas' : 'objetos'} asociados.</p>`;
+    return `<section class="detail-card related-items"><div class="detail-card-heading"><h3>${related.label} (${related.items.length})</h3><a href="${related.createUrl}">+ ${related.createLabel}</a></div><div class="related-list">${cards}</div></section>`;
 }
 
-async function showDetail(id) {
+async function showDetailLegacy(id) {
     const item = items.find((candidate) => String(candidate.id) === String(id));
     if (!item) return;
     currentItem = item;
@@ -329,6 +364,69 @@ async function showDetail(id) {
     panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function renderInfoRows(item) {
+    const rows = [];
+    if (entityType !== 'zona') rows.push(['Zona', relationName(zonas, item.zona_id) || 'Sin zona']);
+    if (entityType === 'objeto') rows.push(['Caja', relationName(cajas, item.caja_id) || 'Sin caja']);
+    if (entityType === 'caja') rows.push(['Ubicación', item.ubicacion || 'Sin ubicación']);
+    rows.push(['Notas', item.notas || 'Sin notas']);
+    rows.push(['Creado', formatDate(item.created_at)]);
+    rows.push(['Actualizado', formatDate(item.updated_at)]);
+    return rows.map(([label, value]) => `<div class="info-row"><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join('');
+}
+
+async function showDetail(id) {
+    const item = items.find((candidate) => String(candidate.id) === String(id));
+    if (!item) return;
+    currentItem = item;
+    let photos;
+    let related;
+    try {
+        [photos, related] = await Promise.all([loadPhotos(item.id), loadRelatedItems(item)]);
+    } catch (error) {
+        showToast(`No se pudieron cargar los elementos relacionados: ${error.message}`, true);
+        photos = await loadPhotos(item.id);
+        related = null;
+    }
+    const extraActions = entityType === 'zona'
+        ? `<a class="button button-success" href="cajas.html?new=1&zona_id=${item.id}">Crear caja</a><a class="button button-success" href="objetos.html?new=1&zona_id=${item.id}">Crear objeto</a>`
+        : entityType === 'caja'
+            ? `<a class="button button-success" href="objetos.html?new=1&caja_id=${item.id}${item.zona_id ? `&zona_id=${item.zona_id}` : ''}">Crear objeto</a>`
+            : '';
+    const mainPhoto = photos[0]?.signed_url || '';
+    const locationLines = [];
+    if (item.zona_id) locationLines.push(`<span><b>Zona</b> ${escapeHtml(relationName(zonas, item.zona_id))}</span>`);
+    if (item.caja_id) locationLines.push(`<span><b>Caja</b> ${escapeHtml(relationName(cajas, item.caja_id))}</span>`);
+    if (item.ubicacion) locationLines.push(`<span><b>Ubicación</b> ${escapeHtml(item.ubicacion)}</span>`);
+    const panel = document.getElementById('detail-panel');
+    panel.classList.add('detail-panel');
+    panel.innerHTML = `
+        <div class="detail-topbar"><button class="detail-back" type="button" data-action="close-detail" aria-label="Cerrar ficha">‹</button><span class="detail-type-mark">${entityInitial()}</span><strong>${config[entityType].label}</strong></div>
+        <section class="detail-card detail-hero">
+            ${mainPhoto ? `<img class="detail-main-photo" src="${escapeHtml(mainPhoto)}" alt="Foto de ${escapeHtml(item.nombre)}">` : `<span class="detail-main-photo thumbnail-placeholder">${entityInitial()}</span>`}
+            <div class="detail-hero-copy">
+                <div class="detail-title-row"><h2>${escapeHtml(item.nombre)}</h2><button class="photo-count-button" type="button" data-action="focus-photos">Fotos (${photos.length})</button></div>
+                <div class="detail-locations">${locationLines.join('') || '<span>Sin ubicación asignada</span>'}</div>
+            </div>
+            <div class="detail-notes-card"><h3>Notas</h3><p>${formatNotes(item.notas)}</p><button type="button" data-action="edit-detail">Editar</button></div>
+        </section>
+        <section class="detail-card detail-information"><h3>Información</h3>${renderInfoRows(item)}</section>
+        ${renderRelatedItems(related)}
+        <section id="detail-photos" class="detail-card photo-upload">
+            <div class="detail-card-heading"><h3>Fotos (${photos.length})</h3><label class="photo-add-button" for="photo-input">+ Añadir foto</label></div>
+            <p class="help-text">Las imágenes se comprimen antes de subirlas.</p>
+            <input id="photo-input" class="sr-only" type="file" accept="image/*" capture="environment">
+            <div class="photos-grid">${renderPhotos(photos)}</div>
+        </section>
+        <div class="detail-actions">
+            <button class="button detail-edit" type="button" data-action="edit-detail">Editar</button>
+            <button class="button detail-delete" type="button" data-action="delete">Eliminar</button>
+            ${extraActions}
+        </div>`;
+    panel.hidden = false;
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function handleDetailAction(event) {
     const action = event.target.closest('[data-action]')?.dataset.action;
     if (!action) return;
@@ -336,12 +434,13 @@ function handleDetailAction(event) {
     if (action === 'edit-detail') openForm(currentItem);
     if (action === 'delete') deleteItem();
     if (action === 'delete-photo') deletePhoto(event.target.closest('[data-photo-id]'));
+    if (action === 'focus-photos') document.getElementById('detail-photos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function deleteItem() {
     if (!currentItem || !window.confirm(`¿Eliminar "${currentItem.nombre}"? Las fotos asociadas también se eliminarán.`)) return;
     const photos = await loadPhotos(currentItem.id);
-    if (photos.length) await supabaseClient.storage.from('trastero-fotos').remove(photos.map((photo) => photo.storage_path));
+    if (photos.length) await supabaseClient.storage.from('trastero-fotos').remove(photos.flatMap((photo) => [photo.storage_path, photo.thumbnail_path].filter(Boolean)));
     if (photos.length) await supabaseClient.from('trastero_fotos').delete().eq('tipo', entityType).eq('relacion_id', currentItem.id);
     const { error } = await supabaseClient.from(config[entityType].table).delete().eq('id', currentItem.id);
     if (error) {
@@ -362,17 +461,23 @@ async function loadPhotos(relationId) {
     }
     const photos = data || [];
     if (!photos.length) return photos;
-    const signed = await supabaseClient.storage.from('trastero-fotos').createSignedUrls(photos.map((photo) => photo.storage_path), 3600);
+    const paths = photos.flatMap((photo) => [photo.storage_path, photo.thumbnail_path].filter(Boolean));
+    const signed = await supabaseClient.storage.from('trastero-fotos').createSignedUrls(paths, 3600);
     if (signed.error) {
         showToast('No se pudieron preparar las miniaturas.', true);
         return photos;
     }
-    return photos.map((photo, index) => ({ ...photo, signed_url: signed.data[index]?.signedUrl || '' }));
+    let signedIndex = 0;
+    return photos.map((photo) => {
+        const signedUrl = signed.data[signedIndex++]?.signedUrl || '';
+        const thumbnailUrl = photo.thumbnail_path ? signed.data[signedIndex++]?.signedUrl || signedUrl : signedUrl;
+        return { ...photo, signed_url: signedUrl, thumbnail_url: thumbnailUrl };
+    });
 }
 
 function renderPhotos(photos) {
     if (!photos.length) return '<p class="empty-state">Todavía no hay fotos.</p>';
-    return photos.map((photo) => `<figure class="photo-card"><img src="${escapeHtml(photo.signed_url)}" alt="Foto de ${escapeHtml(currentItem.nombre)}" loading="lazy"><div class="photo-actions"><button class="button button-small button-danger" type="button" data-action="delete-photo" data-photo-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}">Eliminar</button></div></figure>`).join('');
+    return photos.map((photo) => `<figure class="photo-card"><a href="${escapeHtml(photo.signed_url)}" target="_blank" rel="noopener"><img src="${escapeHtml(photo.thumbnail_url)}" alt="Foto de ${escapeHtml(currentItem.nombre)}" loading="lazy"></a><div class="photo-actions"><button class="button button-small button-danger" type="button" data-action="delete-photo" data-photo-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-thumbnail-path="${escapeHtml(photo.thumbnail_path || '')}">Eliminar</button></div></figure>`).join('');
 }
 
 async function optimizeImage(file, maxBytes = 300 * 1024) {
@@ -405,19 +510,41 @@ async function optimizeImage(file, maxBytes = 300 * 1024) {
     return blob;
 }
 
+async function createThumbnail(file) {
+    const bitmap = await createImageBitmap(file);
+    const size = 320;
+    const scale = Math.max(size / bitmap.width, size / bitmap.height);
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    canvas.getContext('2d').drawImage(bitmap, Math.round((size - width) / 2), Math.round((size - height) / 2), width, height);
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', .72));
+    bitmap.close();
+    return blob;
+}
+
 document.addEventListener('change', async (event) => {
     if (event.target.id !== 'photo-input' || !event.target.files[0] || !currentItem) return;
     const input = event.target;
     input.disabled = true;
     try {
-        const optimized = await optimizeImage(input.files[0]);
+        const [optimized, thumbnail] = await Promise.all([optimizeImage(input.files[0]), createThumbnail(input.files[0])]);
         const folder = `${entityType}s`;
-        const path = `${currentUser.id}/${folder}/${currentItem.id}/${crypto.randomUUID()}.jpg`;
+        const photoId = crypto.randomUUID();
+        const path = `${currentUser.id}/${folder}/${currentItem.id}/${photoId}.jpg`;
+        const thumbnailPath = `${currentUser.id}/${folder}/${currentItem.id}/thumbs/${photoId}.jpg`;
         const upload = await supabaseClient.storage.from('trastero-fotos').upload(path, optimized, { contentType: 'image/jpeg', upsert: false });
         if (upload.error) throw upload.error;
-        const record = await supabaseClient.from('trastero_fotos').insert({ user_id: currentUser.id, tipo: entityType, relacion_id: currentItem.id, storage_path: path });
-        if (record.error) {
+        const thumbnailUpload = await supabaseClient.storage.from('trastero-fotos').upload(thumbnailPath, thumbnail, { contentType: 'image/jpeg', upsert: false });
+        if (thumbnailUpload.error) {
             await supabaseClient.storage.from('trastero-fotos').remove([path]);
+            throw thumbnailUpload.error;
+        }
+        const record = await supabaseClient.from('trastero_fotos').insert({ user_id: currentUser.id, tipo: entityType, relacion_id: currentItem.id, storage_path: path, thumbnail_path: thumbnailPath });
+        if (record.error) {
+            await supabaseClient.storage.from('trastero-fotos').remove([path, thumbnailPath]);
             throw record.error;
         }
         showToast('Foto añadida.');
@@ -431,7 +558,8 @@ document.addEventListener('change', async (event) => {
 
 async function deletePhoto(button) {
     if (!button || !window.confirm('¿Eliminar esta foto?')) return;
-    const storageResult = await supabaseClient.storage.from('trastero-fotos').remove([button.dataset.path]);
+    const paths = [button.dataset.path, button.dataset.thumbnailPath].filter(Boolean);
+    const storageResult = await supabaseClient.storage.from('trastero-fotos').remove(paths);
     if (storageResult.error) {
         showToast(`No se pudo eliminar la foto: ${storageResult.error.message}`, true);
         return;

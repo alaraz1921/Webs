@@ -226,6 +226,8 @@ Tipografias:
 - Incluye busqueda global, CRUD completo, creacion contextual y fotos comprimidas antes de subir.
 - La creacion contextual permite encadenar nuevas cajas en la misma zona y nuevos objetos en la misma caja.
 - Las fichas de zona muestran sus cajas y las fichas de caja muestran sus objetos, con acceso directo.
+- Las fichas siguen una estructura visual móvil con foto destacada, información, relacionados y acciones inferiores.
+- Cada nueva foto genera una miniatura cuadrada independiente para fichas y listados relacionados.
 - El bucket privado `trastero-fotos` usa carpetas por usuario y URLs firmadas.
 - SQL operativo: `Trastero/trastero.sql`.
 - Migracion: `supabase/migrations/20260616090000_trastero.sql`.
@@ -396,6 +398,7 @@ Migraciones:
 - `20260615200000_infiltrado_online_leave.sql`
 - `20260615210000_infiltrado_online_round_flow.sql`
 - `20260616090000_trastero.sql`
+- `20260616110000_trastero_thumbnails.sql`
 
 Configuracion manual necesaria para el registro de Games:
 

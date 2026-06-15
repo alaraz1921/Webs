@@ -1,5 +1,6 @@
 -- Ejecutar en el SQL Editor del proyecto Supabase de Webs.
--- La migracion equivalente vive en supabase/migrations/20260616090000_trastero.sql.
+-- Las migraciones equivalentes viven en supabase/migrations/20260616090000_trastero.sql
+-- y supabase/migrations/20260616110000_trastero_thumbnails.sql.
 
 begin;
 
@@ -70,8 +71,12 @@ create table if not exists public.trastero_fotos (
     tipo text not null check (tipo in ('zona', 'caja', 'objeto')),
     relacion_id bigint not null,
     storage_path text not null unique,
+    thumbnail_path text unique,
     created_at timestamptz not null default now()
 );
+
+alter table public.trastero_fotos
+    add column if not exists thumbnail_path text;
 
 create index if not exists trastero_zonas_user_id_idx on public.trastero_zonas(user_id);
 create index if not exists trastero_cajas_user_id_idx on public.trastero_cajas(user_id);
