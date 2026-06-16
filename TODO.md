@@ -144,6 +144,9 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [x] Añadir busqueda global y creacion contextual entre elementos.
 - [x] Agilizar la creacion repetida dentro de una zona o caja y mostrar elementos relacionados en sus fichas.
 - [x] Rediseñar las fichas y generar miniaturas para fotos y listados relacionados.
+- [x] Añadir espacios como nivel superior y separar listados/fichas en vistas independientes.
+- [x] Crear `Trastero/sql/` con los SQL del proyecto.
 - [x] Preparar migracion con RLS por usuario, rol `admin`/`trastero` y Storage privado.
 - [ ] Ejecutar `supabase/migrations/20260616090000_trastero.sql` en Supabase.
 - [ ] Ejecutar `supabase/migrations/20260616110000_trastero_thumbnails.sql` en Supabase.
+- [ ] Ejecutar `supabase/migrations/20260616130000_trastero_espacios.sql` en Supabase.
