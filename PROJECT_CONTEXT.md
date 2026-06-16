@@ -231,9 +231,7 @@ Tipografias:
 - Las fichas siguen una estructura visual móvil con foto destacada, información, relacionados y acciones inferiores.
 - Cada nueva foto genera una miniatura cuadrada independiente para fichas y listados relacionados.
 - El bucket privado `trastero-fotos` usa carpetas por usuario y URLs firmadas.
-- SQL operativo: `Trastero/trastero.sql`.
-- Copia de SQL del proyecto: `Trastero/sql/`.
-- Migracion: `supabase/migrations/20260616090000_trastero.sql`.
+- SQL operativo: migraciones `supabase/migrations/20260616*_trastero*.sql`.
 
 ### Bingo
 
@@ -404,6 +402,7 @@ Migraciones:
 - `20260616090000_trastero.sql`
 - `20260616110000_trastero_thumbnails.sql`
 - `20260616130000_trastero_espacios.sql`
+- `20260616150000_trastero_foto_principal.sql`
 
 Configuracion manual necesaria para el registro de Games:
 

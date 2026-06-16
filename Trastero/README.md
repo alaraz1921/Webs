@@ -4,8 +4,8 @@ Aplicacion privada para gestionar espacios, zonas, cajas, objetos y sus fotos.
 
 ## Puesta en marcha
 
-1. En una instalacion nueva, ejecutar `sql/trastero.sql` o aplicar las migraciones en orden.
-2. En una instalacion existente de Trastero, aplicar `20260616110000_trastero_thumbnails.sql` y despues `20260616130000_trastero_espacios.sql`.
+1. Aplicar las migraciones de Trastero desde `../supabase/migrations/` en orden cronologico.
+2. En una instalacion existente de Trastero, aplicar las migraciones pendientes desde `20260616110000_trastero_thumbnails.sql` en adelante.
 3. Asignar en `public.profiles.role` el valor `admin` o `trastero` a cada usuario autorizado.
 4. Acceder desde `Privado/index.html` y pulsar `Abrir Trastero`.
 
@@ -15,7 +15,7 @@ Cada nueva foto genera dos archivos: una imagen optimizada de hasta aproximadame
 
 La jerarquia de trabajo es `Espacio -> Zonas -> Cajas -> Objetos`. Al entrar en Trastero se selecciona el espacio activo; todas las listas, busquedas y altas quedan filtradas por ese espacio.
 
-Los SQL propios del proyecto se guardan tambien en `Trastero/sql/`.
+La fuente unica de SQL del proyecto es `supabase/migrations/`, junto al resto de migraciones de Webs.
 
 ## Configuracion
 
