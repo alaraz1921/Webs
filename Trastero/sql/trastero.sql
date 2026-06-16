@@ -1,6 +1,7 @@
 -- Ejecutar en el SQL Editor del proyecto Supabase de Webs.
 -- Las migraciones equivalentes viven en supabase/migrations/20260616090000_trastero.sql
--- y supabase/migrations/20260616110000_trastero_thumbnails.sql.
+-- supabase/migrations/20260616110000_trastero_thumbnails.sql
+-- y supabase/migrations/20260616150000_trastero_foto_principal.sql.
 
 begin;
 
@@ -85,11 +86,13 @@ create table if not exists public.trastero_fotos (
     relacion_id bigint not null,
     storage_path text not null unique,
     thumbnail_path text unique,
+    es_principal boolean not null default false,
     created_at timestamptz not null default now()
 );
 
 alter table public.trastero_fotos
-    add column if not exists thumbnail_path text;
+    add column if not exists thumbnail_path text,
+    add column if not exists es_principal boolean not null default false;
 
 create index if not exists trastero_espacios_user_id_idx on public.trastero_espacios(user_id);
 create index if not exists trastero_zonas_user_id_idx on public.trastero_zonas(user_id);
@@ -103,6 +106,7 @@ create index if not exists trastero_objetos_zona_id_idx on public.trastero_objet
 create index if not exists trastero_objetos_caja_id_idx on public.trastero_objetos(caja_id);
 create index if not exists trastero_fotos_user_id_idx on public.trastero_fotos(user_id);
 create index if not exists trastero_fotos_tipo_relacion_idx on public.trastero_fotos(tipo, relacion_id);
+create index if not exists trastero_fotos_principal_idx on public.trastero_fotos(tipo, relacion_id, es_principal);
 
 drop trigger if exists trastero_espacios_updated_at on public.trastero_espacios;
 create trigger trastero_espacios_updated_at before update on public.trastero_espacios

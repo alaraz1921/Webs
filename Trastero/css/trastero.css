@@ -182,8 +182,11 @@ input:focus, textarea:focus, select:focus { border-color: #1671e8; outline: none
 .meta-line { color: #475569 !important; font-size: .88rem; font-weight: 700; }
 .photos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px; margin-top: 14px; }
 .photo-card { overflow: hidden; border: 1px solid #e2e8f0; border-radius: 10px; background: white; }
+.photo-card { position: relative; }
+.photo-primary { border-color: #1671e8; box-shadow: 0 0 0 3px rgba(22, 113, 232, .12); }
 .photo-card img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
-.photo-actions { padding: 8px; }
+.photo-actions { flex-wrap: wrap; padding: 8px; }
+.primary-badge { position: absolute; top: 8px; left: 8px; padding: 5px 8px; border-radius: 999px; background: #1671e8; color: white; font-size: .72rem; font-weight: 900; }
 .toast { position: fixed; right: 18px; bottom: 18px; z-index: 50; max-width: min(420px, calc(100vw - 36px)); padding: 13px 16px; border-radius: 9px; background: var(--success); color: white; font-weight: 800; box-shadow: 0 10px 24px rgba(0,0,0,.35); }
 .toast.error { background: var(--danger); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
@@ -218,6 +221,7 @@ input:focus, textarea:focus, select:focus { border-color: #1671e8; outline: none
 .info-row:last-child { border-bottom: 0; }
 .info-row span { color: #64748b; }
 .info-row strong { color: #1e293b; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+.inline-edit-button { width: 32px; height: 32px; margin-left: 8px; border: 1px solid #bfdbfe; border-radius: 9px; background: #eaf3ff; color: #1671e8; cursor: pointer; font-weight: 900; }
 .detail-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .detail-card-heading a { color: #1671e8; font-weight: 800; text-decoration: none; }
 .related-list { display: grid; }
@@ -235,6 +239,12 @@ input:focus, textarea:focus, select:focus { border-color: #1671e8; outline: none
 .detail-actions .button { display: flex; min-height: 54px; align-items: center; justify-content: center; text-align: center; }
 .detail-edit { background: #dbeafe; color: #1671e8; }
 .detail-delete { background: #fee2e2; color: #dc2626; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 80; display: grid; padding: 18px; background: rgba(15, 23, 42, .58); place-items: center; }
+.modal-card { width: min(100%, 460px); padding: 22px; border: 1px solid #dbe2ea; border-radius: 18px; background: white; color: var(--ink); box-shadow: 0 24px 70px rgba(0,0,0,.32); }
+.modal-card h2 { margin: 0 0 12px; font-size: 1.35rem; text-transform: none; }
+.modal-body p { margin: 0 0 14px; color: #475569; line-height: 1.5; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.modal-actions .button { min-width: 118px; }
 
 @media (max-width: 760px) {
     body.trastero-page { padding: 0; background: var(--app-bg); }
@@ -272,4 +282,5 @@ input:focus, textarea:focus, select:focus { border-color: #1671e8; outline: none
     .detail-actions .button-success { grid-column: 1 / -1; }
     .related-row { grid-template-columns: 58px minmax(0, 1fr) auto; }
     .related-thumbnail { width: 58px; height: 58px; }
+    .modal-actions { display: grid; grid-template-columns: 1fr; }
 }

@@ -27,6 +27,73 @@ function queryParam(name) {
     return new URLSearchParams(window.location.search).get(name);
 }
 
+function getSafeReturnUrl() {
+    const returnUrl = queryParam('returnUrl');
+    if (!returnUrl) return '';
+    try {
+        const url = new URL(returnUrl, window.location.href);
+        const pageName = url.pathname.split('/').pop();
+        if (url.origin !== window.location.origin) return '';
+        if (!['zonas.html', 'cajas.html', 'objetos.html'].includes(pageName)) return '';
+        if (!url.searchParams.get('id')) return '';
+        return `${pageName}?id=${encodeURIComponent(url.searchParams.get('id'))}`;
+    } catch {
+        return '';
+    }
+}
+
+function currentDetailUrl() {
+    return currentItem ? `${config[entityType].page}?id=${encodeURIComponent(currentItem.id)}` : config[entityType].page;
+}
+
+function openModal({ title, body, actions = [] }) {
+    let backdrop = document.getElementById('app-modal');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'app-modal';
+        backdrop.className = 'modal-backdrop';
+        document.body.appendChild(backdrop);
+    }
+    backdrop.innerHTML = `
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <h2 id="modal-title">${escapeHtml(title)}</h2>
+            <div class="modal-body">${body}</div>
+            <div class="modal-actions">
+                ${actions.map((action, index) => `<button class="button ${action.className || 'button-muted'}" type="button" data-modal-action="${index}">${escapeHtml(action.label)}</button>`).join('')}
+            </div>
+        </div>`;
+    backdrop.hidden = false;
+    return new Promise((resolve) => {
+        const close = (value) => {
+            backdrop.hidden = true;
+            backdrop.onclick = null;
+            document.removeEventListener('keydown', onKeydown);
+            resolve(value);
+        };
+        const onKeydown = (event) => {
+            if (event.key === 'Escape') close(null);
+        };
+        document.addEventListener('keydown', onKeydown);
+        backdrop.onclick = (event) => {
+            if (event.target === backdrop) close(null);
+            const button = event.target.closest('[data-modal-action]');
+            if (button) close(actions[Number(button.dataset.modalAction)]?.value ?? null);
+        };
+        backdrop.querySelector('button')?.focus();
+    });
+}
+
+function confirmDialog(title, message, confirmLabel = 'Confirmar', danger = false) {
+    return openModal({
+        title,
+        body: `<p>${escapeHtml(message)}</p>`,
+        actions: [
+            { label: 'Cancelar', value: false, className: 'button-muted' },
+            { label: confirmLabel, value: true, className: danger ? 'button-danger' : 'button' }
+        ]
+    });
+}
+
 function getSelectedSpaceId() {
     return localStorage.getItem(spaceKey);
 }
@@ -137,9 +204,10 @@ async function attachThumbnails(collection, type = entityType) {
     const ids = collection.map((item) => item.id);
     const { data, error } = await supabaseClient
         .from('trastero_fotos')
-        .select('relacion_id,storage_path,thumbnail_path,created_at')
+        .select('relacion_id,storage_path,thumbnail_path,created_at,es_principal')
         .eq('tipo', type)
         .in('relacion_id', ids)
+        .order('es_principal', { ascending: false })
         .order('created_at', { ascending: true });
     if (error || !data?.length) return collection;
     const firstPhotoByItem = new Map();
@@ -422,6 +490,10 @@ function handleListAction(event) {
     }
 }
 
+function renderSelectOptions(collection, selectedId, emptyLabel) {
+    return `<option value="">${escapeHtml(emptyLabel)}</option>${collection.map((item) => `<option value="${item.id}" ${String(item.id) === String(selectedId || '') ? 'selected' : ''}>${escapeHtml(item.nombre)}</option>`).join('')}`;
+}
+
 function openForm(item = null, defaults = {}) {
     currentItem = item;
     currentCreateContext = item ? {} : { ...defaults };
@@ -473,7 +545,7 @@ async function saveItem(event) {
     await fetchRelations();
     await loadItems();
     const repeatContext = getRepeatContext(createContext, payload);
-    if (!id && repeatContext && window.confirm(repeatContext.question)) {
+    if (!id && repeatContext && await confirmDialog('Crear otro elemento', repeatContext.question, 'Crear otro')) {
         openForm(null, repeatContext.defaults);
         return;
     }
@@ -502,8 +574,9 @@ async function loadRelatedItems(item) {
 
 function renderRelatedItems(related) {
     if (!related) return '';
+    const returnUrl = encodeURIComponent(currentDetailUrl());
     const rows = related.items.length ? related.items.map((item) => `
-        <a class="related-row ${related.itemLabel === 'objeto' ? 'compact-related-row' : ''}" href="${related.url}?id=${item.id}">
+        <a class="related-row ${related.itemLabel === 'objeto' ? 'compact-related-row' : ''}" href="${related.url}?id=${item.id}&returnUrl=${returnUrl}">
             ${renderThumbnail(item, related.itemLabel, 'related-thumbnail')}
             <span class="related-copy"><strong>${escapeHtml(item.nombre)}</strong><span>${escapeHtml(item.ubicacion || item.notas || 'Sin notas')}</span></span>
             <span class="related-chevron" aria-hidden="true">›</span>
@@ -513,14 +586,19 @@ function renderRelatedItems(related) {
 
 function renderInfoRows(item) {
     const rows = [];
-    rows.push(['Espacio', currentSpace.nombre]);
-    if (entityType !== 'zona') rows.push(['Zona', relationName(zonas, item.zona_id) || 'Sin zona']);
-    if (entityType === 'objeto') rows.push(['Caja', relationName(cajas, item.caja_id) || 'Sin caja']);
-    if (entityType === 'caja') rows.push(['Ubicación', item.ubicacion || 'Sin ubicación']);
-    rows.push(['Notas', item.notas || 'Sin notas']);
-    rows.push(['Creado', formatDate(item.created_at)]);
-    rows.push(['Actualizado', formatDate(item.updated_at)]);
-    return rows.map(([label, value]) => `<div class="info-row"><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join('');
+    rows.push({ label: 'Espacio', value: currentSpace.nombre });
+    if (entityType === 'caja') rows.push({ label: 'Zona', value: relationName(zonas, item.zona_id) || 'Sin zona', action: 'move-zone' });
+    else if (entityType === 'objeto') rows.push({ label: 'Zona', value: relationName(zonas, item.zona_id) || 'Sin zona', action: 'move-object-zone' });
+    if (entityType === 'objeto') rows.push({ label: 'Caja', value: relationName(cajas, item.caja_id) || 'Sin caja', action: 'move-box' });
+    if (entityType === 'caja') rows.push({ label: 'Ubicación', value: item.ubicacion || 'Sin ubicación' });
+    rows.push({ label: 'Notas', value: item.notas || 'Sin notas' });
+    rows.push({ label: 'Creado', value: formatDate(item.created_at) });
+    rows.push({ label: 'Actualizado', value: formatDate(item.updated_at) });
+    return rows.map((row) => `
+        <div class="info-row">
+            <span>${row.label}</span>
+            <strong>${escapeHtml(row.value)}${row.action ? `<button class="inline-edit-button" type="button" data-action="${row.action}" aria-label="Cambiar ${escapeHtml(row.label.toLowerCase())}">✎</button>` : ''}</strong>
+        </div>`).join('');
 }
 
 async function showDetail(id) {
@@ -577,15 +655,19 @@ async function showDetail(id) {
 function handleDetailAction(event) {
     const action = event.target.closest('[data-action]')?.dataset.action;
     if (!action) return;
-    if (action === 'back-list') window.location.href = config[entityType].page;
+    if (action === 'back-list') window.location.href = getSafeReturnUrl() || config[entityType].page;
     if (action === 'edit-detail') openForm(currentItem);
     if (action === 'delete') deleteItem();
     if (action === 'delete-photo') deletePhoto(event.target.closest('[data-photo-id]'));
+    if (action === 'set-primary-photo') setPrimaryPhoto(event.target.closest('[data-photo-id]')?.dataset.photoId);
+    if (action === 'move-zone') openMoveBoxZoneModal();
+    if (action === 'move-object-zone') openMoveObjectZoneModal();
+    if (action === 'move-box') openMoveObjectBoxModal();
     if (action === 'focus-photos') document.getElementById('detail-photos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function deleteItem() {
-    if (!currentItem || !window.confirm(`¿Eliminar "${currentItem.nombre}"? Las fotos asociadas también se eliminarán.`)) return;
+    if (!currentItem || !await confirmDialog('Eliminar elemento', `¿Eliminar "${currentItem.nombre}"? Las fotos asociadas también se eliminarán.`, 'Eliminar', true)) return;
     const photos = await loadPhotos(currentItem.id);
     if (photos.length) await supabaseClient.storage.from(storageBucket).remove(photos.flatMap((photo) => [photo.storage_path, photo.thumbnail_path].filter(Boolean)));
     if (photos.length) await supabaseClient.from('trastero_fotos').delete().eq('tipo', entityType).eq('relacion_id', currentItem.id);
@@ -595,11 +677,11 @@ async function deleteItem() {
         return;
     }
     showToast(`${config[entityType].label} eliminada.`);
-    window.location.href = config[entityType].page;
+    window.location.href = getSafeReturnUrl() || config[entityType].page;
 }
 
 async function loadPhotos(relationId) {
-    const { data, error } = await supabaseClient.from('trastero_fotos').select('*').eq('tipo', entityType).eq('relacion_id', relationId).order('created_at', { ascending: false });
+    const { data, error } = await supabaseClient.from('trastero_fotos').select('*').eq('tipo', entityType).eq('relacion_id', relationId).order('es_principal', { ascending: false }).order('created_at', { ascending: false });
     if (error) {
         showToast('No se pudieron cargar las fotos.', true);
         return [];
@@ -619,7 +701,100 @@ async function loadPhotos(relationId) {
 
 function renderPhotos(photos) {
     if (!photos.length) return '<p class="empty-state">Todavía no hay fotos.</p>';
-    return photos.map((photo) => `<figure class="photo-card"><a href="${escapeHtml(photo.signed_url)}" target="_blank" rel="noopener"><img src="${escapeHtml(photo.thumbnail_url)}" alt="Foto de ${escapeHtml(currentItem.nombre)}" loading="lazy"></a><div class="photo-actions"><button class="button button-small button-danger" type="button" data-action="delete-photo" data-photo-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-thumbnail-path="${escapeHtml(photo.thumbnail_path || '')}">Eliminar</button></div></figure>`).join('');
+    return photos.map((photo) => `<figure class="photo-card ${photo.es_principal ? 'photo-primary' : ''}"><a href="${escapeHtml(photo.signed_url)}" target="_blank" rel="noopener"><img src="${escapeHtml(photo.thumbnail_url)}" alt="Foto de ${escapeHtml(currentItem.nombre)}" loading="lazy"></a>${photo.es_principal ? '<span class="primary-badge">Principal</span>' : ''}<div class="photo-actions">${photo.es_principal ? '' : `<button class="button button-small button-muted" type="button" data-action="set-primary-photo" data-photo-id="${photo.id}">Principal</button>`}<button class="button button-small button-danger" type="button" data-action="delete-photo" data-photo-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-thumbnail-path="${escapeHtml(photo.thumbnail_path || '')}">Eliminar</button></div></figure>`).join('');
+}
+
+async function setPrimaryPhoto(photoId) {
+    if (!photoId || !currentItem) return;
+    const clear = await supabaseClient.from('trastero_fotos').update({ es_principal: false }).eq('tipo', entityType).eq('relacion_id', currentItem.id);
+    if (clear.error) {
+        showToast(`No se pudo preparar la foto principal: ${clear.error.message}`, true);
+        return;
+    }
+    const result = await supabaseClient.from('trastero_fotos').update({ es_principal: true }).eq('id', photoId);
+    if (result.error) {
+        showToast(`No se pudo marcar la foto principal: ${result.error.message}`, true);
+        return;
+    }
+    showToast('Foto principal actualizada.');
+    await showDetail(currentItem.id);
+}
+
+async function openMoveBoxZoneModal() {
+    if (!currentItem || entityType !== 'caja') return;
+    const value = await openModal({
+        title: 'Mover caja',
+        body: `<label for="move-zone-select">Zona</label><select id="move-zone-select">${renderSelectOptions(zonas, currentItem.zona_id, 'Sin zona')}</select>`,
+        actions: [
+            { label: 'Cancelar', value: null, className: 'button-muted' },
+            { label: 'Guardar', value: 'save', className: 'button' }
+        ]
+    });
+    if (value !== 'save') return;
+    const selectedZoneId = document.getElementById('move-zone-select')?.value || null;
+    const targetName = relationName(zonas, selectedZoneId) || 'Sin zona';
+    if (!await confirmDialog('Confirmar cambio', `¿Mover "${currentItem.nombre}" a "${targetName}"?`, 'Guardar cambio')) return;
+    const { error } = await supabaseClient.from('trastero_cajas').update({ zona_id: selectedZoneId }).eq('id', currentItem.id);
+    if (error) {
+        showToast(`No se pudo mover la caja: ${error.message}`, true);
+        return;
+    }
+    showToast('Caja movida.');
+    await fetchRelations();
+    await loadItems();
+    await showDetail(currentItem.id);
+}
+
+async function openMoveObjectZoneModal() {
+    if (!currentItem || entityType !== 'objeto') return;
+    const value = await openModal({
+        title: 'Mover objeto de zona',
+        body: `<p class="help-text">Al cambiar la zona, el objeto quedará sin caja.</p><label for="move-object-zone-select">Zona</label><select id="move-object-zone-select">${renderSelectOptions(zonas, currentItem.zona_id, 'Sin zona')}</select>`,
+        actions: [
+            { label: 'Cancelar', value: null, className: 'button-muted' },
+            { label: 'Guardar', value: 'save', className: 'button' }
+        ]
+    });
+    if (value !== 'save') return;
+    const selectedZoneId = document.getElementById('move-object-zone-select')?.value || null;
+    const targetName = relationName(zonas, selectedZoneId) || 'Sin zona';
+    if (!await confirmDialog('Confirmar cambio', `¿Mover "${currentItem.nombre}" a "${targetName}" y dejarlo sin caja?`, 'Guardar cambio')) return;
+    const { error } = await supabaseClient.from('trastero_objetos').update({ zona_id: selectedZoneId, caja_id: null }).eq('id', currentItem.id);
+    if (error) {
+        showToast(`No se pudo mover el objeto: ${error.message}`, true);
+        return;
+    }
+    showToast('Objeto movido.');
+    await fetchRelations();
+    await loadItems();
+    await showDetail(currentItem.id);
+}
+
+async function openMoveObjectBoxModal() {
+    if (!currentItem || entityType !== 'objeto') return;
+    const availableBoxes = cajas.filter((box) => String(box.zona_id || '') === String(currentItem.zona_id || ''));
+    const value = await openModal({
+        title: 'Mover objeto de caja',
+        body: `<label for="move-box-select">Caja</label><select id="move-box-select">${renderSelectOptions(availableBoxes, currentItem.caja_id, 'Sin caja')}</select>`,
+        actions: [
+            { label: 'Cancelar', value: null, className: 'button-muted' },
+            { label: 'Guardar', value: 'save', className: 'button' }
+        ]
+    });
+    if (value !== 'save') return;
+    const selectedBoxId = document.getElementById('move-box-select')?.value || null;
+    const selectedBox = availableBoxes.find((box) => String(box.id) === String(selectedBoxId));
+    const targetName = selectedBox?.nombre || 'Sin caja';
+    if (!await confirmDialog('Confirmar cambio', `¿Mover "${currentItem.nombre}" a "${targetName}"?`, 'Guardar cambio')) return;
+    const { error } = await supabaseClient.from('trastero_objetos').update({ caja_id: selectedBoxId }).eq('id', currentItem.id);
+    if (error) {
+        showToast(`No se pudo mover el objeto: ${error.message}`, true);
+        return;
+    }
+    showToast('Objeto movido.');
+    await fetchRelations();
+    await loadItems();
+    await showDetail(currentItem.id);
 }
 
 async function optimizeImage(file, maxBytes = 300 * 1024) {
@@ -683,7 +858,8 @@ document.addEventListener('change', async (event) => {
             await supabaseClient.storage.from(storageBucket).remove([path]);
             throw thumbnailUpload.error;
         }
-        const record = await supabaseClient.from('trastero_fotos').insert({ user_id: currentUser.id, tipo: entityType, relacion_id: currentItem.id, storage_path: path, thumbnail_path: thumbnailPath });
+        const { count } = await supabaseClient.from('trastero_fotos').select('id', { count: 'exact', head: true }).eq('tipo', entityType).eq('relacion_id', currentItem.id);
+        const record = await supabaseClient.from('trastero_fotos').insert({ user_id: currentUser.id, tipo: entityType, relacion_id: currentItem.id, storage_path: path, thumbnail_path: thumbnailPath, es_principal: !count });
         if (record.error) {
             await supabaseClient.storage.from(storageBucket).remove([path, thumbnailPath]);
             throw record.error;
@@ -698,7 +874,7 @@ document.addEventListener('change', async (event) => {
 });
 
 async function deletePhoto(button) {
-    if (!button || !window.confirm('¿Eliminar esta foto?')) return;
+    if (!button || !await confirmDialog('Eliminar foto', '¿Eliminar esta foto?', 'Eliminar', true)) return;
     const paths = [button.dataset.path, button.dataset.thumbnailPath].filter(Boolean);
     const storageResult = await supabaseClient.storage.from(storageBucket).remove(paths);
     if (storageResult.error) {
