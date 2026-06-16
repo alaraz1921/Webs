@@ -11,8 +11,7 @@
 <body class="trastero-page" data-page="cajas" data-entity="caja">
     <div id="app-loading" class="app-loading">Comprobando acceso...</div>
     <main id="app-shell" class="app-shell" hidden>
-        <header class="compact-header"><div><p class="app-kicker">Trastero</p><h1>Cajas</h1></div><button id="logout-button" class="button button-muted" type="button">Cerrar sesión</button></header>
-        <nav class="app-nav" aria-label="Navegación de Trastero"><a href="index.html">Inicio</a><a href="zonas.html">Zonas</a><a class="active" href="cajas.html">Cajas</a><a href="objetos.html">Objetos</a></nav>
+        <header class="compact-header"><a class="space-home-link" href="index.html" aria-label="Volver al inicio del espacio">⌂</a><div><p class="app-kicker">Trastero</p><h1>Cajas</h1></div></header>
         <section class="panel">
             <div class="section-heading"><div><p class="eyebrow">Almacenamiento</p><h2>Tus cajas</h2></div><button class="button" type="button" data-action="new">Nueva caja</button></div>
             <input id="list-filter" class="search-input" type="search" placeholder="Filtrar cajas..." autocomplete="off">
@@ -30,7 +29,6 @@
                 <div class="form-actions"><button class="button" type="submit">Guardar caja</button><button class="button button-muted" type="button" data-action="close-form">Cancelar</button></div>
             </form>
         </section>
-        <a class="back-link" href="../Privado/index.html">Volver a la zona privada</a>
     </main>
     <div id="toast" class="toast" hidden></div>
     <script src="../assets/supabase-client.js"></script><script src="js/trastero.js"></script>

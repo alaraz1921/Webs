@@ -371,8 +371,8 @@ async function initEntityPage() {
     if (requestedId) {
         document.getElementById('entity-list').closest('.panel').hidden = true;
         document.getElementById('form-panel').hidden = true;
-        document.querySelector('.app-nav').hidden = true;
-        document.querySelector('.back-link').hidden = true;
+        document.querySelector('.app-nav')?.setAttribute('hidden', '');
+        document.querySelector('.back-link')?.setAttribute('hidden', '');
         await showDetail(requestedId);
         return;
     }
