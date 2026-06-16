@@ -27,24 +27,21 @@ alter table public.trastero_zonas add column if not exists espacio_id bigint ref
 alter table public.trastero_cajas add column if not exists espacio_id bigint references public.trastero_espacios(id) on delete cascade;
 alter table public.trastero_objetos add column if not exists espacio_id bigint references public.trastero_espacios(id) on delete cascade;
 
-with usuarios as (
+insert into public.trastero_espacios (user_id, nombre)
+select user_id, 'Mi casa'
+from (
     select user_id from public.trastero_zonas
     union
     select user_id from public.trastero_cajas
     union
     select user_id from public.trastero_objetos
-),
-creados as (
-    insert into public.trastero_espacios (user_id, nombre)
-    select user_id, 'Mi casa'
-    from usuarios u
-    where not exists (
-        select 1 from public.trastero_espacios e
-        where e.user_id = u.user_id
-    )
-    returning id, user_id
-),
-preferidos as (
+) usuarios
+where not exists (
+    select 1 from public.trastero_espacios e
+    where e.user_id = usuarios.user_id
+);
+
+with preferidos as (
     select distinct on (user_id) user_id, id
     from public.trastero_espacios
     order by user_id, id
