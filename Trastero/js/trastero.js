@@ -1,12 +1,17 @@
 const supabaseClient = window.websSupabase;
 const storageBucket = 'trastero-fotos';
 const folderIcon = 'assets/folder-box.png';
+const searchIcon = 'assets/search.png';
+const scanIcon = 'assets/scan.png';
+const photoIcon = 'assets/photo.png';
 
 let currentUser = null;
 let folders = [];
 let items = [];
 let folderCovers = new Map();
 let itemCovers = new Map();
+let folderPhotoMap = new Map();
+let itemPhotoMap = new Map();
 let toastTimer = null;
 let searchOpen = false;
 
@@ -60,35 +65,52 @@ async function loadData() {
     if (folderResult.error || itemResult.error) throw folderResult.error || itemResult.error;
     folders = folderResult.data || [];
     items = itemResult.data || [];
-    [folderCovers, itemCovers] = await Promise.all([
-        loadCovers('carpeta', folders.map((folder) => folder.id)),
-        loadCovers('item', items.map((item) => item.id))
+    [folderPhotoMap, itemPhotoMap] = await Promise.all([
+        loadPhotoMap('carpeta', folders.map((folder) => folder.id)),
+        loadPhotoMap('item', items.map((item) => item.id))
     ]);
+    folderCovers = coverMap(folderPhotoMap);
+    itemCovers = coverMap(itemPhotoMap);
 }
 
-async function loadCovers(type, ids) {
+function coverMap(photoMap) {
+    const map = new Map();
+    photoMap.forEach((photos, id) => {
+        if (photos.length) map.set(id, photos[0]);
+    });
+    return map;
+}
+
+async function loadPhotoMap(type, ids) {
     const map = new Map();
     if (!ids.length) return map;
     const { data, error } = await supabaseClient
         .from('trastero_fotos')
-        .select('id,relacion_id,storage_path,es_portada,created_at')
+        .select('*')
         .eq('tipo', type)
         .in('relacion_id', ids)
         .order('es_portada', { ascending: false })
         .order('created_at', { ascending: false });
     if (error || !data?.length) return map;
-    const firstByRelation = new Map();
-    data.forEach((photo) => {
-        const key = String(photo.relacion_id);
-        if (!firstByRelation.has(key)) firstByRelation.set(key, photo);
-    });
-    const paths = [...firstByRelation.values()].map((photo) => photo.storage_path);
+    const paths = [...new Set(data.flatMap((photo) => [photo.storage_path, photo.thumbnail_path || photo.storage_path]).filter(Boolean))];
     const signed = await supabaseClient.storage.from(storageBucket).createSignedUrls(paths, 3600);
     if (signed.error) return map;
-    [...firstByRelation.entries()].forEach(([id, photo], index) => {
-        map.set(id, { ...photo, url: signed.data[index]?.signedUrl || '' });
+    const signedByPath = new Map(paths.map((path, index) => [path, signed.data[index]?.signedUrl || '']));
+    data.forEach((photo) => {
+        const key = String(photo.relacion_id);
+        if (!map.has(key)) map.set(key, []);
+        map.get(key).push({
+            ...photo,
+            url: signedByPath.get(photo.storage_path) || '',
+            thumbUrl: signedByPath.get(photo.thumbnail_path || photo.storage_path) || ''
+        });
     });
     return map;
+}
+
+function photosFor(type, relationId) {
+    const map = type === 'carpeta' ? folderPhotoMap : itemPhotoMap;
+    return map.get(String(relationId)) || [];
 }
 
 function folderById(id) {
@@ -156,6 +178,8 @@ function renderFolderView(folderId = '') {
     const childItems = itemsOf(folderId);
     const title = currentFolder?.nombre || 'Items';
     const backTarget = currentFolder?.parent_id || '';
+    const folderPhotos = currentFolder ? photosFor('carpeta', currentFolder.id) : [];
+    const folderCover = folderPhotos[0]?.url || '';
     const shell = document.getElementById('app-shell');
     shell.innerHTML = `
         <section class="screen folder-screen">
@@ -163,15 +187,17 @@ function renderFolderView(folderId = '') {
                 <div class="topbar-actions">
                     ${currentFolder ? `<button class="round-button" type="button" data-action="go-folder" data-id="${backTarget}" aria-label="Volver">←</button>` : `<button class="round-button" type="button" data-action="open-tree" aria-label="Arbol de carpetas">▧</button>`}
                     <div class="pill-button" aria-label="Acciones">
-                        <button class="icon-only-inline" type="button" data-action="toggle-search" aria-label="Buscar">⌕</button>
-                        <button class="icon-only-inline" type="button" data-action="scan-code" aria-label="Escanear">▥</button>
+                        <button class="icon-only-inline" type="button" data-action="toggle-search" aria-label="Buscar"><img class="action-icon" src="${searchIcon}" alt=""></button>
+                        <button class="icon-only-inline" type="button" data-action="scan-code" aria-label="Escanear"><img class="action-icon" src="${scanIcon}" alt=""></button>
                         <button class="icon-only-inline" type="button" data-action="folder-menu" data-id="${folderId}" aria-label="Menu">•••</button>
                     </div>
                 </div>
+                ${currentFolder && folderCover ? `<section class="folder-hero"><img src="${escapeHtml(folderCover)}" alt="Foto de ${escapeHtml(title)}"></section>` : ''}
                 <div class="title-block">
                     <h1>${escapeHtml(title)}</h1>
                     ${currentFolder ? `<div class="breadcrumb">${escapeHtml(pathLabel(folderId, 'Inicio'))}</div>` : ''}
                 </div>
+                ${currentFolder ? renderPhotoStack('carpeta', currentFolder.id) : ''}
             </header>
             ${searchOpen ? renderSearchPanel() : ''}
             <section class="stats">
@@ -187,7 +213,7 @@ function renderFolderView(folderId = '') {
 
 function renderRows(childFolders, childItems) {
     const folderRows = childFolders.map((folder) => {
-        const cover = folderCovers.get(String(folder.id))?.url || '';
+        const cover = folderCovers.get(String(folder.id))?.thumbUrl || folderCovers.get(String(folder.id))?.url || '';
         const folderCount = childrenOf(folder.id).length;
         const itemCount = itemsOf(folder.id).length;
         return `
@@ -206,7 +232,7 @@ function renderRows(childFolders, childItems) {
             </article>`;
     }).join('');
     const itemRows = childItems.map((item) => {
-        const cover = itemCovers.get(String(item.id))?.url || '';
+        const cover = itemCovers.get(String(item.id))?.thumbUrl || itemCovers.get(String(item.id))?.url || '';
         return `
             <article class="content-row" role="button" tabindex="0" data-action="go-item" data-id="${item.id}">
                 ${cover ? `<img class="thumb item-thumb" src="${escapeHtml(cover)}" alt="">` : '<span class="thumb item-thumb">◻</span>'}
@@ -219,6 +245,21 @@ function renderRows(childFolders, childItems) {
             </article>`;
     }).join('');
     return folderRows || itemRows ? `${folderRows}${itemRows}` : '<p class="empty-state">No hay carpetas ni items en este nivel.</p>';
+}
+
+function renderPhotoStack(type, relationId) {
+    const photos = photosFor(type, relationId);
+    if (!photos.length) return '';
+    const visible = photos.slice(0, 3);
+    const extra = photos.length - visible.length;
+    return `
+        <button class="photo-stack" type="button" data-action="open-photos" data-type="${type}" data-id="${relationId}" aria-label="Abrir galeria">
+            ${visible.map((photo, index) => `
+                <span class="photo-stack-item">
+                    <img src="${escapeHtml(photo.thumbUrl || photo.url)}" alt="">
+                    ${index === 2 && extra > 0 ? `<span class="photo-stack-more">+${extra}</span>` : ''}
+                </span>`).join('')}
+        </button>`;
 }
 
 function renderSearchPanel() {
@@ -236,7 +277,8 @@ function renderItemDetail(itemId) {
         return;
     }
     const folder = item.carpeta_id ? folderById(item.carpeta_id) : null;
-    const cover = itemCovers.get(String(item.id))?.url || '';
+    const itemPhotos = photosFor('item', item.id);
+    const cover = itemPhotos[0]?.url || '';
     const shell = document.getElementById('app-shell');
     shell.innerHTML = `
         <section class="screen item-screen">
@@ -247,15 +289,15 @@ function renderItemDetail(itemId) {
             <section class="item-hero">
                 ${cover ? `<img src="${escapeHtml(cover)}" alt="Foto de ${escapeHtml(item.nombre)}">` : '<div class="hero-empty">Enhance visibility with great images</div>'}
                 <div class="hero-tools">
-                    <div class="segmented"><button class="active" type="button" data-action="open-photos" data-type="item" data-id="${item.id}">▧</button><button type="button" data-action="scan-code">▥</button></div>
-                    <label class="photo-add" for="photo-input">▧+</label>
-                    <input id="photo-input" class="sr-only" type="file" accept="image/*" capture="environment" data-photo-type="item" data-photo-id="${item.id}">
+                    <div class="segmented"><button class="active" type="button" data-action="open-photos" data-type="item" data-id="${item.id}"><img class="action-icon" src="${photoIcon}" alt=""></button><button type="button" data-action="scan-code"><img class="action-icon" src="${scanIcon}" alt=""></button></div>
+                    <button class="photo-add" type="button" data-action="open-photos" data-type="item" data-id="${item.id}"><img class="action-icon" src="${photoIcon}" alt=""></button>
                 </div>
             </section>
             <section class="item-info">
                 <div>
                     <div class="item-location">▰ ${escapeHtml(folder?.nombre || 'Root Level Items')}</div>
                     <h1 class="item-name">${escapeHtml(item.nombre)}</h1>
+                    ${renderPhotoStack('item', item.id)}
                 </div>
                 <div class="move-action"><button type="button" data-action="move-item" data-id="${item.id}">⇥</button><span>Move</span></div>
             </section>
@@ -345,7 +387,6 @@ function openRowMenu(type, id) {
     openSheet(entity.nombre, [
         { id: 'edit', label: 'Editar', handler: () => type === 'folder' ? openFolderForm(entity) : openItemForm(entity) },
         { id: 'move', label: 'Mover', handler: () => type === 'folder' ? moveFolder(entity) : moveItem(entity) },
-        { id: 'photos', label: 'Fotos', handler: () => openPhotos(type === 'folder' ? 'carpeta' : 'item', entity.id) },
         { id: 'delete', label: 'Eliminar', className: 'button-danger', handler: () => deleteEntity(type, entity) },
         { id: 'cancel', label: 'Cancelar', className: 'button-muted', handler: () => {} }
     ]);
@@ -364,7 +405,7 @@ function openFolderForm(folder = null, defaultParentId = '') {
             <label for="folder-notes">Notas</label>
             <textarea id="folder-notes">${escapeHtml(folder?.notas || '')}</textarea>
             <label for="folder-photo">Foto/portada</label>
-            <input id="folder-photo" type="file" accept="image/*" capture="environment">
+            <input id="folder-photo" type="file" accept="image/*">
             <div class="form-actions"><button class="button" type="submit">Guardar</button><button class="button button-muted" type="button" data-action="close-overlay">Cancelar</button></div>
         </form>`);
     modal.querySelector('#pick-folder-parent').addEventListener('click', () => {
@@ -417,7 +458,7 @@ function openItemForm(item = null, defaultFolderId = '') {
             <label for="item-notes">Notas</label>
             <textarea id="item-notes">${escapeHtml(item?.notas || '')}</textarea>
             <label for="item-photo">Foto/portada</label>
-            <input id="item-photo" type="file" accept="image/*" capture="environment">
+            <input id="item-photo" type="file" accept="image/*">
             <div class="form-actions"><button class="button" type="submit">Guardar</button><button class="button button-muted" type="button" data-action="close-overlay">Cancelar</button></div>
         </form>`);
     modal.querySelector('#pick-item-folder').addEventListener('click', () => {
@@ -582,7 +623,7 @@ async function deleteEntity(type, entity) {
     if (!await confirmAction(`Eliminar ${label}`, `Eliminar "${entity.nombre}"?`)) return;
     const photos = type === 'folder' ? await collectFolderTreePhotos(entity.id) : await collectPhotos('item', [entity.id]);
     if (photos.length) {
-        await supabaseClient.storage.from(storageBucket).remove(photos.map((photo) => photo.storage_path));
+        await supabaseClient.storage.from(storageBucket).remove(photoPaths(photos));
         await supabaseClient.from('trastero_fotos').delete().in('id', photos.map((photo) => photo.id));
     }
     const table = type === 'folder' ? 'trastero_carpetas' : 'trastero_items';
@@ -597,8 +638,12 @@ async function deleteEntity(type, entity) {
 
 async function collectPhotos(type, ids) {
     if (!ids.length) return [];
-    const { data, error } = await supabaseClient.from('trastero_fotos').select('id,storage_path').eq('tipo', type).in('relacion_id', ids);
+    const { data, error } = await supabaseClient.from('trastero_fotos').select('id,storage_path,thumbnail_path').eq('tipo', type).in('relacion_id', ids);
     return error ? [] : data || [];
+}
+
+function photoPaths(photos) {
+    return [...new Set(photos.flatMap((photo) => [photo.storage_path, photo.thumbnail_path]).filter(Boolean))];
 }
 
 async function collectFolderTreePhotos(folderId) {
@@ -614,15 +659,15 @@ async function collectFolderTreePhotos(folderId) {
 async function openPhotos(type, relationId) {
     const photos = await loadPhotos(type, relationId);
     const modal = openModal('Fotos', `
-        <label class="button" for="modal-photo-input">Añadir foto</label>
-        <input id="modal-photo-input" class="sr-only" type="file" accept="image/*" capture="environment" data-photo-type="${type}" data-photo-id="${relationId}">
+        <label class="button photo-upload-button" for="modal-photo-input"><img class="action-icon" src="${photoIcon}" alt="">Añadir foto</label>
+        <input id="modal-photo-input" class="sr-only" type="file" accept="image/*" data-photo-type="${type}" data-photo-id="${relationId}">
         <div class="photos-list">${photos.length ? photos.map((photo) => `
             <article class="search-result">
-                <img class="thumb" src="${escapeHtml(photo.url)}" alt="">
+                <a href="${escapeHtml(photo.url)}" target="_blank" rel="noopener"><img class="thumb" src="${escapeHtml(photo.thumbUrl || photo.url)}" alt=""></a>
                 <strong>${photo.es_portada ? 'Portada' : 'Foto'}</strong>
                 <div class="form-actions">
                     ${photo.es_portada ? '' : `<button class="button button-success" type="button" data-action="set-cover" data-id="${photo.id}" data-photo-type="${type}" data-relation-id="${relationId}">Portada</button>`}
-                    <button class="button button-danger" type="button" data-action="delete-photo" data-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-photo-type="${type}" data-relation-id="${relationId}">Eliminar</button>
+                    <button class="button button-danger" type="button" data-action="delete-photo" data-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-thumbnail-path="${escapeHtml(photo.thumbnail_path || '')}" data-photo-type="${type}" data-relation-id="${relationId}">Eliminar</button>
                 </div>
             </article>`).join('') : '<p class="empty-state">Todavia no hay fotos.</p>'}</div>`);
     modal.querySelector('#modal-photo-input').addEventListener('change', handlePhotoInput);
@@ -631,9 +676,15 @@ async function openPhotos(type, relationId) {
 async function loadPhotos(type, relationId) {
     const { data, error } = await supabaseClient.from('trastero_fotos').select('*').eq('tipo', type).eq('relacion_id', relationId).order('es_portada', { ascending: false }).order('created_at', { ascending: false });
     if (error || !data?.length) return [];
-    const signed = await supabaseClient.storage.from(storageBucket).createSignedUrls(data.map((photo) => photo.storage_path), 3600);
+    const paths = [...new Set(data.flatMap((photo) => [photo.storage_path, photo.thumbnail_path || photo.storage_path]).filter(Boolean))];
+    const signed = await supabaseClient.storage.from(storageBucket).createSignedUrls(paths, 3600);
     if (signed.error) return data;
-    return data.map((photo, index) => ({ ...photo, url: signed.data[index]?.signedUrl || '' }));
+    const signedByPath = new Map(paths.map((path, index) => [path, signed.data[index]?.signedUrl || '']));
+    return data.map((photo) => ({
+        ...photo,
+        url: signedByPath.get(photo.storage_path) || '',
+        thumbUrl: signedByPath.get(photo.thumbnail_path || photo.storage_path) || ''
+    }));
 }
 
 async function handlePhotoInput(event) {
@@ -652,39 +703,53 @@ async function handlePhotoInput(event) {
 }
 
 async function uploadPhoto(type, relationId, file) {
-    const optimized = await optimizeImage(file);
+    const optimized = await optimizeImage(file, { maxBytes: 300 * 1024, maxDimension: 1800 });
+    const thumbnail = await optimizeImage(file, { maxBytes: 35 * 1024, maxDimension: 420, initialQuality: .78 });
     const folder = type === 'carpeta' ? 'carpetas' : 'items';
     const photoId = crypto.randomUUID();
     const path = `${currentUser.id}/${folder}/${relationId}/${photoId}.jpg`;
+    const thumbnailPath = `${currentUser.id}/${folder}/${relationId}/thumbs/${photoId}.jpg`;
     const upload = await supabaseClient.storage.from(storageBucket).upload(path, optimized, { contentType: 'image/jpeg', upsert: false });
     if (upload.error) throw upload.error;
-    const { count } = await supabaseClient.from('trastero_fotos').select('id', { count: 'exact', head: true }).eq('tipo', type).eq('relacion_id', relationId);
-    const record = await supabaseClient.from('trastero_fotos').insert({ user_id: currentUser.id, tipo: type, relacion_id: relationId, storage_path: path, es_portada: !count });
-    if (record.error) {
+    const thumbUpload = await supabaseClient.storage.from(storageBucket).upload(thumbnailPath, thumbnail, { contentType: 'image/jpeg', upsert: false });
+    if (thumbUpload.error) {
         await supabaseClient.storage.from(storageBucket).remove([path]);
+        throw thumbUpload.error;
+    }
+    const { count } = await supabaseClient.from('trastero_fotos').select('id', { count: 'exact', head: true }).eq('tipo', type).eq('relacion_id', relationId);
+    const record = await supabaseClient.from('trastero_fotos').insert({ user_id: currentUser.id, tipo: type, relacion_id: relationId, storage_path: path, thumbnail_path: thumbnailPath, es_portada: !count });
+    if (record.error) {
+        await supabaseClient.storage.from(storageBucket).remove([path, thumbnailPath]);
         throw record.error;
     }
 }
 
-async function optimizeImage(file, maxBytes = 300 * 1024) {
+async function optimizeImage(file, { maxBytes = 300 * 1024, maxDimension = 1800, initialQuality = .84 } = {}) {
     const bitmap = await createImageBitmap(file);
-    const maxDimension = 1800;
-    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.round(bitmap.width * scale);
-    canvas.height = Math.round(bitmap.height * scale);
-    const context = canvas.getContext('2d');
-    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    let scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
     let blob;
-    let quality = .84;
-    for (let attempt = 0; attempt < 14; attempt += 1) {
-        blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
-        if (blob.size <= maxBytes) break;
-        quality = Math.max(.32, quality - .08);
+    let quality = initialQuality;
+    let canvas;
+    let context;
+    for (let sizeAttempt = 0; sizeAttempt < 8; sizeAttempt += 1) {
+        canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        context = canvas.getContext('2d');
+        context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        quality = initialQuality;
+        for (let qualityAttempt = 0; qualityAttempt < 10; qualityAttempt += 1) {
+            blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+            if (blob.size <= maxBytes) break;
+            quality = Math.max(.28, quality - .07);
+        }
+        if (blob.size <= maxBytes || Math.max(canvas.width, canvas.height) <= 180) break;
+        scale *= .78;
     }
     bitmap.close();
     return blob;
 }
+
 
 async function setCover(photoId, type, relationId) {
     const clear = await supabaseClient.from('trastero_fotos').update({ es_portada: false }).eq('tipo', type).eq('relacion_id', relationId);
@@ -701,9 +766,9 @@ async function setCover(photoId, type, relationId) {
     }
 }
 
-async function deletePhoto(photoId, path) {
+async function deletePhoto(photoId, path, thumbnailPath = '') {
     if (!await confirmAction('Eliminar foto', 'Eliminar esta foto?')) return;
-    await supabaseClient.storage.from(storageBucket).remove([path]);
+    await supabaseClient.storage.from(storageBucket).remove([...new Set([path, thumbnailPath].filter(Boolean))]);
     const { error } = await supabaseClient.from('trastero_fotos').delete().eq('id', photoId);
     if (error) showToast(`No se pudo eliminar: ${error.message}`, true);
     else {
@@ -749,7 +814,7 @@ document.addEventListener('click', async (event) => {
     if (action === 'move-item') moveItem(itemById(actionElement.dataset.id));
     if (action === 'open-photos') openPhotos(actionElement.dataset.type, actionElement.dataset.id);
     if (action === 'set-cover') setCover(actionElement.dataset.id, actionElement.dataset.photoType, actionElement.dataset.relationId);
-    if (action === 'delete-photo') deletePhoto(actionElement.dataset.id, actionElement.dataset.path);
+    if (action === 'delete-photo') deletePhoto(actionElement.dataset.id, actionElement.dataset.path, actionElement.dataset.thumbnailPath);
 });
 
 document.addEventListener('input', (event) => {
