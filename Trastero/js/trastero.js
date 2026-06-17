@@ -16,6 +16,8 @@ let folderPhotoMap = new Map();
 let itemPhotoMap = new Map();
 let toastTimer = null;
 let searchOpen = false;
+let activeGalleryPhotos = [];
+let activeGalleryIndex = 0;
 
 function escapeHtml(value = '') {
     return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
@@ -678,19 +680,57 @@ async function collectFolderTreePhotos(folderId) {
 
 async function openPhotos(type, relationId) {
     const photos = await loadPhotos(type, relationId);
+    activeGalleryPhotos = photos;
     const modal = openModal('Fotos', `
         <label class="button photo-upload-button" for="modal-photo-input"><img class="action-icon" src="${photoIcon}" alt="">Añadir foto</label>
         <input id="modal-photo-input" class="sr-only" type="file" accept="image/*" data-photo-type="${type}" data-photo-id="${relationId}">
-        <div class="photos-list">${photos.length ? photos.map((photo) => `
-            <article class="search-result">
-                <a href="${escapeHtml(photo.url)}" target="_blank" rel="noopener"><img class="thumb" src="${escapeHtml(photo.thumbUrl || photo.url)}" alt=""></a>
-                <strong>${photo.es_portada ? 'Portada' : 'Foto'}</strong>
-                <div class="form-actions">
-                    ${photo.es_portada ? '' : `<button class="button button-success" type="button" data-action="set-cover" data-id="${photo.id}" data-photo-type="${type}" data-relation-id="${relationId}">Portada</button>`}
-                    <button class="button button-danger" type="button" data-action="delete-photo" data-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-thumbnail-path="${escapeHtml(photo.thumbnail_path || '')}" data-photo-type="${type}" data-relation-id="${relationId}">Eliminar</button>
+        <div class="photos-list">${photos.length ? photos.map((photo, index) => `
+            <article class="photo-tile">
+                <button class="photo-thumb-button" type="button" data-action="open-photo-viewer" data-index="${index}" aria-label="Ver foto">
+                    <img src="${escapeHtml(photo.thumbUrl || photo.url)}" alt="">
+                    ${photo.es_portada ? '<span class="cover-badge">Portada</span>' : ''}
+                </button>
+                <div class="photo-tile-actions">
+                    ${photo.es_portada ? '' : `<button class="photo-icon-action cover-action" type="button" data-action="set-cover" data-id="${photo.id}" data-photo-type="${type}" data-relation-id="${relationId}" aria-label="Poner como portada">×</button>`}
+                    <button class="photo-icon-action delete-action" type="button" data-action="delete-photo" data-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-thumbnail-path="${escapeHtml(photo.thumbnail_path || '')}" data-photo-type="${type}" data-relation-id="${relationId}" aria-label="Eliminar foto">🗑</button>
                 </div>
             </article>`).join('') : '<p class="empty-state">Todavia no hay fotos.</p>'}</div>`);
     modal.querySelector('#modal-photo-input').addEventListener('change', handlePhotoInput);
+}
+
+function openPhotoViewer(index = 0) {
+    if (!activeGalleryPhotos.length) return;
+    activeGalleryIndex = Math.max(0, Math.min(Number(index) || 0, activeGalleryPhotos.length - 1));
+    renderPhotoViewer();
+}
+
+function renderPhotoViewer() {
+    document.querySelector('.photo-viewer-backdrop')?.remove();
+    const photo = activeGalleryPhotos[activeGalleryIndex];
+    const backdrop = document.createElement('div');
+    backdrop.className = 'photo-viewer-backdrop';
+    backdrop.innerHTML = `
+        <section class="photo-viewer">
+            <button class="photo-viewer-close" type="button" data-action="close-photo-viewer" aria-label="Cerrar">×</button>
+            <button class="photo-viewer-nav photo-viewer-prev" type="button" data-action="photo-viewer-prev" aria-label="Anterior" ${activeGalleryPhotos.length < 2 ? 'disabled' : ''}>‹</button>
+            <img src="${escapeHtml(photo.url || photo.thumbUrl)}" alt="">
+            <button class="photo-viewer-nav photo-viewer-next" type="button" data-action="photo-viewer-next" aria-label="Siguiente" ${activeGalleryPhotos.length < 2 ? 'disabled' : ''}>›</button>
+            <div class="photo-viewer-count">${activeGalleryIndex + 1} / ${activeGalleryPhotos.length}</div>
+        </section>`;
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', (event) => {
+        if (event.target === backdrop) closePhotoViewer();
+    });
+}
+
+function closePhotoViewer() {
+    document.querySelector('.photo-viewer-backdrop')?.remove();
+}
+
+function stepPhotoViewer(direction) {
+    if (!activeGalleryPhotos.length) return;
+    activeGalleryIndex = (activeGalleryIndex + direction + activeGalleryPhotos.length) % activeGalleryPhotos.length;
+    renderPhotoViewer();
 }
 
 async function loadPhotos(type, relationId) {
@@ -833,6 +873,10 @@ document.addEventListener('click', async (event) => {
     }
     if (action === 'move-item') moveItem(itemById(actionElement.dataset.id));
     if (action === 'open-photos') openPhotos(actionElement.dataset.type, actionElement.dataset.id);
+    if (action === 'open-photo-viewer') openPhotoViewer(actionElement.dataset.index);
+    if (action === 'close-photo-viewer') closePhotoViewer();
+    if (action === 'photo-viewer-prev') stepPhotoViewer(-1);
+    if (action === 'photo-viewer-next') stepPhotoViewer(1);
     if (action === 'set-cover') setCover(actionElement.dataset.id, actionElement.dataset.photoType, actionElement.dataset.relationId);
     if (action === 'delete-photo') deletePhoto(actionElement.dataset.id, actionElement.dataset.path, actionElement.dataset.thumbnailPath);
 });
