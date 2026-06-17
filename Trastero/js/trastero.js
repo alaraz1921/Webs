@@ -691,7 +691,7 @@ async function openPhotos(type, relationId) {
                     ${photo.es_portada ? '<span class="cover-badge">Portada</span>' : ''}
                 </button>
                 <div class="photo-tile-actions">
-                    ${photo.es_portada ? '' : `<button class="photo-icon-action cover-action" type="button" data-action="set-cover" data-id="${photo.id}" data-photo-type="${type}" data-relation-id="${relationId}" aria-label="Poner como portada">×</button>`}
+                    ${photo.es_portada ? '' : `<button class="photo-icon-action cover-action" type="button" data-action="set-cover" data-id="${photo.id}" data-photo-type="${type}" data-relation-id="${relationId}" aria-label="Poner como portada">✓</button>`}
                     <button class="photo-icon-action delete-action" type="button" data-action="delete-photo" data-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-thumbnail-path="${escapeHtml(photo.thumbnail_path || '')}" data-photo-type="${type}" data-relation-id="${relationId}" aria-label="Eliminar foto">🗑</button>
                 </div>
             </article>`).join('') : '<p class="empty-state">Todavia no hay fotos.</p>'}</div>`);
