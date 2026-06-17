@@ -181,29 +181,22 @@ function renderFolderView(folderId = '') {
     const title = currentFolder?.nombre || 'Items';
     const backTarget = currentFolder?.parent_id || '';
     const folderPhotos = currentFolder ? photosFor('carpeta', currentFolder.id) : [];
-    const folderCover = folderPhotos[0]?.url || '';
     const shell = document.getElementById('app-shell');
     shell.innerHTML = `
         <section class="screen folder-screen">
-            <header class="topbar">
-                <div class="topbar-actions">
-                    ${currentFolder ? `<button class="round-button" type="button" data-action="go-folder" data-id="${backTarget}" aria-label="Volver">←</button>` : `<button class="round-button" type="button" data-action="open-tree" aria-label="Arbol de carpetas"><img class="round-icon" src="${folderTreeIcon}" alt=""></button>`}
-                    <div class="pill-button" aria-label="Acciones">
-                        <button class="icon-only-inline" type="button" data-action="toggle-search" aria-label="Buscar"><img class="action-icon" src="${searchIcon}" alt=""></button>
-                        <button class="icon-only-inline" type="button" data-action="scan-code" aria-label="Escanear"><img class="action-icon" src="${scanIcon}" alt=""></button>
-                        <button class="icon-only-inline" type="button" data-action="folder-menu" data-id="${folderId}" aria-label="Menu">•••</button>
-                    </div>
-                </div>
-                ${currentFolder && folderCover ? `<section class="folder-hero"><img src="${escapeHtml(folderCover)}" alt="Foto de ${escapeHtml(title)}"></section>` : ''}
-                <div class="title-block">
-                    <h1>${escapeHtml(title)}</h1>
-                    ${currentFolder ? `<div class="breadcrumb">${escapeHtml(pathLabel(folderId, 'Inicio'))}</div>` : ''}
-                    ${currentFolder?.codigo ? `<div class="entity-code">id: ${escapeHtml(currentFolder.codigo)}</div>` : ''}
-                </div>
-                ${currentFolder ? renderPhotoStack('carpeta', currentFolder.id) : ''}
-                ${currentFolder && !folderPhotos.length ? renderPhotoPrompt('carpeta', currentFolder.id) : ''}
-            </header>
-            ${searchOpen ? renderSearchPanel() : ''}
+            ${renderEntityHeader({
+                type: 'carpeta',
+                id: currentFolder?.id || '',
+                title,
+                code: currentFolder?.codigo || '',
+                path: currentFolder ? pathLabel(folderId, 'Inicio') : '',
+                photos: folderPhotos,
+                backAction: currentFolder
+                    ? `<button class="round-button" type="button" data-action="go-folder" data-id="${backTarget}" aria-label="Volver">←</button>`
+                    : `<button class="round-button" type="button" data-action="open-tree" aria-label="Arbol de carpetas"><img class="round-icon" src="${folderTreeIcon}" alt=""></button>`,
+                menuAction: `<button class="icon-only-inline" type="button" data-action="folder-menu" data-id="${folderId}" aria-label="Menu">•••</button>`,
+                showPhotoControls: Boolean(currentFolder)
+            })}
             <section class="stats">
                 <div class="stat"><span>Folders</span><strong>${childFolders.length}</strong></div>
                 <div class="stat"><span>Items</span><strong>${childItems.length}</strong></div>
@@ -252,6 +245,30 @@ function renderRows(childFolders, childItems) {
     return folderRows || itemRows ? `${folderRows}${itemRows}` : '<p class="empty-state">No hay carpetas ni items en este nivel.</p>';
 }
 
+function renderEntityHeader({ type, id, title, code = '', path = '', photos = [], backAction, menuAction, showPhotoControls = true }) {
+    const cover = photos[0]?.url || '';
+    return `
+        <header class="topbar">
+            <div class="topbar-actions">
+                ${backAction}
+                <div class="pill-button" aria-label="Acciones">
+                    <button class="icon-only-inline search-trigger" type="button" data-action="toggle-search" aria-label="Buscar"><img class="action-icon" src="${searchIcon}" alt=""></button>
+                    <button class="icon-only-inline" type="button" data-action="scan-code" aria-label="Escanear"><img class="action-icon" src="${scanIcon}" alt=""></button>
+                    ${menuAction}
+                </div>
+            </div>
+            ${searchOpen ? renderSearchPanel() : ''}
+            ${cover ? `<section class="folder-hero"><img src="${escapeHtml(cover)}" alt="Foto de ${escapeHtml(title)}"></section>` : ''}
+            <div class="title-block">
+                <h1>${escapeHtml(title)}</h1>
+                ${path ? `<div class="breadcrumb">${escapeHtml(path)}</div>` : ''}
+                ${code ? `<div class="entity-code">id: ${escapeHtml(code)}</div>` : ''}
+            </div>
+            ${showPhotoControls ? renderPhotoStack(type, id) : ''}
+            ${showPhotoControls && !photos.length ? renderPhotoPrompt(type, id) : ''}
+        </header>`;
+}
+
 function renderPhotoStack(type, relationId) {
     const photos = photosFor(type, relationId);
     if (!photos.length) return '';
@@ -290,28 +307,20 @@ function renderItemDetail(itemId) {
     }
     const folder = item.carpeta_id ? folderById(item.carpeta_id) : null;
     const itemPhotos = photosFor('item', item.id);
-    const cover = itemPhotos[0]?.url || '';
     const shell = document.getElementById('app-shell');
     shell.innerHTML = `
         <section class="screen item-screen">
-            <header class="topbar">
-                <button class="round-button" type="button" data-action="go-folder" data-id="${item.carpeta_id || ''}" aria-label="Volver">←</button>
-                <button class="round-button" type="button" data-action="row-menu" data-type="item" data-id="${item.id}" aria-label="Menu">•••</button>
-            </header>
-            <section class="item-hero">
-                ${cover ? `<img src="${escapeHtml(cover)}" alt="Foto de ${escapeHtml(item.nombre)}">` : `<div class="hero-empty"><img src="${itemIcon}" alt=""></div>`}
-            </section>
-            <section class="item-header-info">
-                <div class="title-block">
-                    <h1>${escapeHtml(item.nombre)}</h1>
-                    <div class="breadcrumb">${escapeHtml(pathLabel(item.carpeta_id, 'Root Level Items'))}</div>
-                    ${item.codigo ? `<div class="entity-code">id: ${escapeHtml(item.codigo)}</div>` : ''}
-                </div>
-                ${renderPhotoStack('item', item.id)}
-                ${!itemPhotos.length ? renderPhotoPrompt('item', item.id) : ''}
-            </section>
+            ${renderEntityHeader({
+                type: 'item',
+                id: item.id,
+                title: item.nombre,
+                code: item.codigo || '',
+                path: pathLabel(item.carpeta_id, 'Root Level Items'),
+                photos: itemPhotos,
+                backAction: `<button class="round-button" type="button" data-action="go-folder" data-id="${item.carpeta_id || ''}" aria-label="Volver">←</button>`,
+                menuAction: `<button class="icon-only-inline" type="button" data-action="row-menu" data-type="item" data-id="${item.id}" aria-label="Menu">•••</button>`
+            })}
             <section class="detail-grid">
-                <div class="detail-row"><span>Ruta</span><strong>${escapeHtml(pathLabel(item.carpeta_id, 'Root Level Items'))}</strong></div>
                 <div class="detail-row"><span>Cantidad</span><strong>${escapeHtml(formatQuantity(item))}</strong></div>
                 <div class="detail-row"><span>Notas</span><strong>${escapeHtml(item.notas || 'Sin notas')}</strong></div>
             </section>
