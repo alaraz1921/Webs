@@ -1,5 +1,6 @@
 const supabaseClient = window.websSupabase;
 const storageBucket = 'trastero-fotos';
+const folderIcon = 'assets/folder-box.png';
 
 let currentUser = null;
 let folders = [];
@@ -159,17 +160,17 @@ function renderFolderView(folderId = '') {
     shell.innerHTML = `
         <section class="screen folder-screen">
             <header class="topbar">
-                <div class="topbar-left">
+                <div class="topbar-actions">
                     ${currentFolder ? `<button class="round-button" type="button" data-action="go-folder" data-id="${backTarget}" aria-label="Volver">←</button>` : `<button class="round-button" type="button" data-action="open-tree" aria-label="Arbol de carpetas">▧</button>`}
-                    <div class="title-block">
-                        <h1>${escapeHtml(title)}</h1>
-                        ${currentFolder ? `<div class="breadcrumb">${escapeHtml(pathLabel(folderId, 'Inicio'))}</div>` : ''}
+                    <div class="pill-button" aria-label="Acciones">
+                        <button class="icon-only-inline" type="button" data-action="toggle-search" aria-label="Buscar">⌕</button>
+                        <button class="icon-only-inline" type="button" data-action="scan-code" aria-label="Escanear">▥</button>
+                        <button class="icon-only-inline" type="button" data-action="folder-menu" data-id="${folderId}" aria-label="Menu">•••</button>
                     </div>
                 </div>
-                <div class="pill-button" aria-label="Acciones">
-                    <button class="icon-only-inline" type="button" data-action="toggle-search" aria-label="Buscar">⌕</button>
-                    <button class="icon-only-inline" type="button" data-action="scan-code" aria-label="Escanear">▥</button>
-                    <button class="icon-only-inline" type="button" data-action="folder-menu" data-id="${folderId}" aria-label="Menu">•••</button>
+                <div class="title-block">
+                    <h1>${escapeHtml(title)}</h1>
+                    ${currentFolder ? `<div class="breadcrumb">${escapeHtml(pathLabel(folderId, 'Inicio'))}</div>` : ''}
                 </div>
             </header>
             ${searchOpen ? renderSearchPanel() : ''}
@@ -191,11 +192,15 @@ function renderRows(childFolders, childItems) {
         const itemCount = itemsOf(folder.id).length;
         return `
             <article class="content-row" role="button" tabindex="0" data-action="go-folder" data-id="${folder.id}">
-                ${cover ? `<img class="thumb" src="${escapeHtml(cover)}" alt="">` : '<span class="thumb">▰</span>'}
+                ${cover ? `<img class="thumb" src="${escapeHtml(cover)}" alt="">` : `<img class="thumb thumb-placeholder" src="${folderIcon}" alt="">`}
                 <div class="row-copy">
-                    ${folder.codigo ? `<span class="code">${escapeHtml(folder.codigo)}</span>` : ''}
+                    ${folder.codigo ? `<span class="code">Cod.: ${escapeHtml(folder.codigo)}</span>` : ''}
                     <strong class="row-title">${escapeHtml(folder.nombre)}</strong>
-                    <span class="row-meta">▱ ${folderCount} | ${itemCount} items</span>
+                    <span class="row-meta">
+                        <span class="meta-part"><img class="meta-icon" src="${folderIcon}" alt="">${folderCount}</span>
+                        <span class="meta-separator">|</span>
+                        <span>${itemCount} items</span>
+                    </span>
                 </div>
                 <button class="row-menu" type="button" data-action="row-menu" data-type="folder" data-id="${folder.id}" aria-label="Menu">•••</button>
             </article>`;
@@ -206,7 +211,7 @@ function renderRows(childFolders, childItems) {
             <article class="content-row" role="button" tabindex="0" data-action="go-item" data-id="${item.id}">
                 ${cover ? `<img class="thumb item-thumb" src="${escapeHtml(cover)}" alt="">` : '<span class="thumb item-thumb">◻</span>'}
                 <div class="row-copy">
-                    ${item.codigo ? `<span class="code">${escapeHtml(item.codigo)}</span>` : ''}
+                    ${item.codigo ? `<span class="code">Cod.: ${escapeHtml(item.codigo)}</span>` : ''}
                     <strong class="row-title">${escapeHtml(item.nombre)}</strong>
                     <span class="row-meta">${escapeHtml(formatQuantity(item))}</span>
                 </div>
