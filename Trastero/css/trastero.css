@@ -51,6 +51,7 @@ body.trastero-page {
 .title-block h1 { margin: 0; overflow-wrap: anywhere; font-size: clamp(2.1rem, 8vw, 3.7rem); font-weight: 850; letter-spacing: -.05em; line-height: .98; }
 .folder-screen .title-block h1 { font-size: clamp(1.75rem, 7.6vw, 2.55rem); letter-spacing: -.04em; }
 .breadcrumb { overflow: hidden; max-width: 100%; margin-top: 6px; color: var(--muted); font-size: .95rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.entity-code { margin-top: 8px; color: var(--muted); font-size: .9rem; font-weight: 900; letter-spacing: .04em; }
 
 .round-button, .pill-button, .icon-only {
     border: 1px solid rgba(255,255,255,.85);
@@ -71,6 +72,8 @@ body.trastero-page {
 .stats { display: flex; gap: clamp(44px, 17vw, 86px); padding: 0 28px 24px; border-bottom: 1px solid var(--line); }
 .stat span { display: block; color: var(--muted); font-size: clamp(1.1rem, 4vw, 1.65rem); }
 .stat strong { display: block; margin-top: 10px; color: #5d6272; font-size: clamp(1.55rem, 5.7vw, 2.25rem); font-weight: 850; }
+.notes-panel { padding: 18px 28px; border-bottom: 1px solid var(--line); color: #3f4352; font-size: 1rem; font-weight: 700; line-height: 1.45; }
+.notes-panel strong { color: var(--ink); font-weight: 900; }
 
 .content-list { display: grid; }
 .content-row {
@@ -169,11 +172,9 @@ body.trastero-page {
     place-items: center;
 }
 
-.item-info { display: grid; grid-template-columns: minmax(0, 1fr) 108px; gap: 22px; padding: 42px 28px; }
-.item-location { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 1.25rem; font-weight: 700; }
-.item-name { margin: 18px 0 0; font-size: clamp(2.4rem, 10vw, 4.4rem); font-weight: 900; letter-spacing: -.06em; line-height: .95; }
-.move-action { display: grid; gap: 14px; justify-items: center; color: var(--ink); font-size: 1.2rem; font-weight: 900; }
-.move-action button { width: 90px; height: 90px; border: 0; border-radius: 50%; background: #f6f6f9; color: var(--ink); font-size: 2rem; }
+.item-header-info { padding: 34px 28px 24px; }
+.item-header-info .title-block { margin-top: 8px; }
+.item-header-info .title-block h1 { font-size: clamp(1.75rem, 7.6vw, 2.55rem); letter-spacing: -.04em; }
 .detail-grid { display: grid; gap: 1px; margin: 0 28px 28px; overflow: hidden; border-radius: 18px; background: var(--line); }
 .detail-row { display: grid; grid-template-columns: 120px 1fr; gap: 14px; padding: 18px; background: white; }
 .detail-row span { color: var(--muted); font-weight: 800; }

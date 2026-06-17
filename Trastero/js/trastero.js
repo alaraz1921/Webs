@@ -198,6 +198,7 @@ function renderFolderView(folderId = '') {
                 <div class="title-block">
                     <h1>${escapeHtml(title)}</h1>
                     ${currentFolder ? `<div class="breadcrumb">${escapeHtml(pathLabel(folderId, 'Inicio'))}</div>` : ''}
+                    ${currentFolder?.codigo ? `<div class="entity-code">id: ${escapeHtml(currentFolder.codigo)}</div>` : ''}
                 </div>
                 ${currentFolder ? renderPhotoStack('carpeta', currentFolder.id) : ''}
                 ${currentFolder && !folderPhotos.length ? renderPhotoPrompt('carpeta', currentFolder.id) : ''}
@@ -207,6 +208,7 @@ function renderFolderView(folderId = '') {
                 <div class="stat"><span>Folders</span><strong>${childFolders.length}</strong></div>
                 <div class="stat"><span>Items</span><strong>${childItems.length}</strong></div>
             </section>
+            ${currentFolder?.notas ? `<section class="notes-panel"><strong>Notas:</strong> ${escapeHtml(currentFolder.notas)}</section>` : ''}
             <section class="content-list">
                 ${renderRows(childFolders, childItems)}
             </section>
@@ -299,17 +301,16 @@ function renderItemDetail(itemId) {
             <section class="item-hero">
                 ${cover ? `<img src="${escapeHtml(cover)}" alt="Foto de ${escapeHtml(item.nombre)}">` : `<div class="hero-empty"><img src="${itemIcon}" alt=""></div>`}
             </section>
-            <section class="item-info">
-                <div>
-                    <div class="item-location">▰ ${escapeHtml(folder?.nombre || 'Root Level Items')}</div>
-                    <h1 class="item-name">${escapeHtml(item.nombre)}</h1>
-                    ${renderPhotoStack('item', item.id)}
-                    ${!itemPhotos.length ? renderPhotoPrompt('item', item.id) : ''}
+            <section class="item-header-info">
+                <div class="title-block">
+                    <h1>${escapeHtml(item.nombre)}</h1>
+                    <div class="breadcrumb">${escapeHtml(pathLabel(item.carpeta_id, 'Root Level Items'))}</div>
+                    ${item.codigo ? `<div class="entity-code">id: ${escapeHtml(item.codigo)}</div>` : ''}
                 </div>
-                <div class="move-action"><button type="button" data-action="move-item" data-id="${item.id}">⇥</button><span>Move</span></div>
+                ${renderPhotoStack('item', item.id)}
+                ${!itemPhotos.length ? renderPhotoPrompt('item', item.id) : ''}
             </section>
             <section class="detail-grid">
-                ${item.codigo ? `<div class="detail-row"><span>Codigo</span><strong>${escapeHtml(item.codigo)}</strong></div>` : ''}
                 <div class="detail-row"><span>Ruta</span><strong>${escapeHtml(pathLabel(item.carpeta_id, 'Root Level Items'))}</strong></div>
                 <div class="detail-row"><span>Cantidad</span><strong>${escapeHtml(formatQuantity(item))}</strong></div>
                 <div class="detail-row"><span>Notas</span><strong>${escapeHtml(item.notas || 'Sin notas')}</strong></div>
