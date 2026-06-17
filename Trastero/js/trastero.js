@@ -1,6 +1,8 @@
 const supabaseClient = window.websSupabase;
 const storageBucket = 'trastero-fotos';
 const folderIcon = 'assets/folder-box.png';
+const folderTreeIcon = 'assets/folder-tree.png';
+const itemIcon = 'assets/item-box.png';
 const searchIcon = 'assets/search.png';
 const scanIcon = 'assets/scan.png';
 const photoIcon = 'assets/photo.png';
@@ -185,7 +187,7 @@ function renderFolderView(folderId = '') {
         <section class="screen folder-screen">
             <header class="topbar">
                 <div class="topbar-actions">
-                    ${currentFolder ? `<button class="round-button" type="button" data-action="go-folder" data-id="${backTarget}" aria-label="Volver">←</button>` : `<button class="round-button" type="button" data-action="open-tree" aria-label="Arbol de carpetas">▧</button>`}
+                    ${currentFolder ? `<button class="round-button" type="button" data-action="go-folder" data-id="${backTarget}" aria-label="Volver">←</button>` : `<button class="round-button" type="button" data-action="open-tree" aria-label="Arbol de carpetas"><img class="round-icon" src="${folderTreeIcon}" alt=""></button>`}
                     <div class="pill-button" aria-label="Acciones">
                         <button class="icon-only-inline" type="button" data-action="toggle-search" aria-label="Buscar"><img class="action-icon" src="${searchIcon}" alt=""></button>
                         <button class="icon-only-inline" type="button" data-action="scan-code" aria-label="Escanear"><img class="action-icon" src="${scanIcon}" alt=""></button>
@@ -198,6 +200,7 @@ function renderFolderView(folderId = '') {
                     ${currentFolder ? `<div class="breadcrumb">${escapeHtml(pathLabel(folderId, 'Inicio'))}</div>` : ''}
                 </div>
                 ${currentFolder ? renderPhotoStack('carpeta', currentFolder.id) : ''}
+                ${currentFolder && !folderPhotos.length ? renderPhotoPrompt('carpeta', currentFolder.id) : ''}
             </header>
             ${searchOpen ? renderSearchPanel() : ''}
             <section class="stats">
@@ -235,7 +238,7 @@ function renderRows(childFolders, childItems) {
         const cover = itemCovers.get(String(item.id))?.thumbUrl || itemCovers.get(String(item.id))?.url || '';
         return `
             <article class="content-row" role="button" tabindex="0" data-action="go-item" data-id="${item.id}">
-                ${cover ? `<img class="thumb item-thumb" src="${escapeHtml(cover)}" alt="">` : '<span class="thumb item-thumb">◻</span>'}
+                ${cover ? `<img class="thumb item-thumb" src="${escapeHtml(cover)}" alt="">` : `<img class="thumb item-thumb thumb-placeholder" src="${itemIcon}" alt="">`}
                 <div class="row-copy">
                     ${item.codigo ? `<span class="code">Cod.: ${escapeHtml(item.codigo)}</span>` : ''}
                     <strong class="row-title">${escapeHtml(item.nombre)}</strong>
@@ -259,6 +262,13 @@ function renderPhotoStack(type, relationId) {
                     <img src="${escapeHtml(photo.thumbUrl || photo.url)}" alt="">
                     ${index === 2 && extra > 0 ? `<span class="photo-stack-more">+${extra}</span>` : ''}
                 </span>`).join('')}
+        </button>`;
+}
+
+function renderPhotoPrompt(type, relationId) {
+    return `
+        <button class="photo-empty-action" type="button" data-action="open-photos" data-type="${type}" data-id="${relationId}" aria-label="Añadir foto">
+            <img class="action-icon" src="${photoIcon}" alt="">
         </button>`;
 }
 
@@ -287,17 +297,14 @@ function renderItemDetail(itemId) {
                 <button class="round-button" type="button" data-action="row-menu" data-type="item" data-id="${item.id}" aria-label="Menu">•••</button>
             </header>
             <section class="item-hero">
-                ${cover ? `<img src="${escapeHtml(cover)}" alt="Foto de ${escapeHtml(item.nombre)}">` : '<div class="hero-empty">Enhance visibility with great images</div>'}
-                <div class="hero-tools">
-                    <div class="segmented"><button class="active" type="button" data-action="open-photos" data-type="item" data-id="${item.id}"><img class="action-icon" src="${photoIcon}" alt=""></button><button type="button" data-action="scan-code"><img class="action-icon" src="${scanIcon}" alt=""></button></div>
-                    <button class="photo-add" type="button" data-action="open-photos" data-type="item" data-id="${item.id}"><img class="action-icon" src="${photoIcon}" alt=""></button>
-                </div>
+                ${cover ? `<img src="${escapeHtml(cover)}" alt="Foto de ${escapeHtml(item.nombre)}">` : `<div class="hero-empty"><img src="${itemIcon}" alt=""></div>`}
             </section>
             <section class="item-info">
                 <div>
                     <div class="item-location">▰ ${escapeHtml(folder?.nombre || 'Root Level Items')}</div>
                     <h1 class="item-name">${escapeHtml(item.nombre)}</h1>
                     ${renderPhotoStack('item', item.id)}
+                    ${!itemPhotos.length ? renderPhotoPrompt('item', item.id) : ''}
                 </div>
                 <div class="move-action"><button type="button" data-action="move-item" data-id="${item.id}">⇥</button><span>Move</span></div>
             </section>

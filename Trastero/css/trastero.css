@@ -59,6 +59,7 @@ body.trastero-page {
     box-shadow: 0 16px 45px rgba(22, 24, 35, .10);
 }
 .round-button { display: grid; flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; font-size: 1.65rem; place-items: center; }
+.round-icon { display: block; width: 34px; height: 34px; object-fit: contain; }
 .pill-button { display: flex; min-height: 54px; align-items: center; gap: 16px; padding: 0 18px; border-radius: 999px; font-size: 1.25rem; }
 .icon-only { display: grid; width: 54px; height: 54px; border-radius: 50%; font-size: 1.5rem; place-items: center; }
 .icon-only-inline { display: grid; border: 0; background: transparent; color: var(--ink); font-size: 1.45rem; font-weight: 900; place-items: center; }
@@ -97,7 +98,7 @@ body.trastero-page {
     object-fit: cover;
     place-items: center;
 }
-.thumb-placeholder { padding: 0; background: #81879f; object-fit: cover; }
+.thumb-placeholder { padding: 0; background: #81879f; object-fit: contain; }
 .item-thumb { background: #e4e6ef; color: #a2a8bb; }
 .row-copy { min-width: 0; }
 .code { display: block; margin-bottom: 8px; color: var(--muted); font-size: 1rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
@@ -114,7 +115,8 @@ body.trastero-page {
 
 .item-hero { min-height: 360px; background: #f5f5f7; position: relative; }
 .item-hero img { width: 100%; height: 360px; object-fit: cover; }
-.hero-empty { display: grid; min-height: 360px; color: #676b7a; font-size: 1.25rem; font-weight: 800; place-items: center; }
+.hero-empty { display: grid; min-height: 360px; place-items: center; }
+.hero-empty img { width: min(70%, 280px); height: auto; object-fit: contain; }
 .hero-tools { position: absolute; right: 28px; bottom: 28px; left: 28px; display: flex; justify-content: space-between; pointer-events: none; }
 .segmented, .photo-add { display: flex; align-items: center; min-height: 62px; border: 1px solid white; border-radius: 999px; background: rgba(255,255,255,.86); box-shadow: 0 10px 34px rgba(22,24,35,.10); pointer-events: auto; }
 .segmented button, .photo-add { border: 0; background: transparent; color: var(--ink); font-size: 1.45rem; font-weight: 900; }
@@ -152,6 +154,18 @@ body.trastero-page {
     color: white;
     font-size: 1.4rem;
     font-weight: 900;
+    place-items: center;
+}
+.photo-empty-action {
+    display: grid;
+    width: 74px;
+    height: 74px;
+    margin: 14px 0 0 auto;
+    border: 0;
+    border-radius: 50%;
+    background: #f6f6f9;
+    color: var(--ink);
+    box-shadow: 0 12px 34px rgba(22,24,35,.08);
     place-items: center;
 }
 
@@ -232,6 +246,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--folder); outline
     .topbar-actions { gap: 12px; }
     .topbar-left { gap: 12px; }
     .round-button { width: 54px; height: 54px; font-size: 1.35rem; }
+    .round-icon { width: 31px; height: 31px; }
     .pill-button { min-height: 50px; gap: 12px; padding: 0 14px; }
     .icon-only-inline { font-size: 1.1rem; }
     .action-icon { width: 1.5em; height: 1.5em; }
@@ -247,5 +262,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--folder); outline
     .photo-stack { margin-top: 14px; }
     .photo-stack-item { width: 90px; height: 90px; border-radius: 18px; }
     .photo-stack-item + .photo-stack-item { margin-left: -16px; }
+    .photo-empty-action { width: 62px; height: 62px; margin-top: 10px; }
     .fab { width: 72px; height: 72px; font-size: 2.55rem; right: 24px; bottom: 24px; }
 }
