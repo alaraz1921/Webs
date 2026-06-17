@@ -3,54 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Gestion privada de zonas, cajas y objetos almacenados.">
+    <meta name="description" content="Inventario privado por carpetas e items.">
     <title>Trastero | Alaraz1921</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/trastero.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="trastero-page" data-page="inicio">
+<body class="trastero-page">
     <div id="app-loading" class="app-loading">Comprobando acceso...</div>
-    <main id="app-shell" class="app-shell" hidden>
-        <header class="app-header">
-            <div>
-                <p class="app-kicker">alaraz1921</p>
-                <h1>Trastero</h1>
-                <p class="app-subtitle">Encuentra lo que guardaste y dónde lo guardaste.</p>
-            </div>
-            <button id="logout-button" class="button button-muted" type="button">Cerrar sesión</button>
-        </header>
-
-        <nav class="app-nav" aria-label="Navegación de Trastero">
-            <a class="active" href="index.html">Inicio</a>
-            <a href="zonas.html">Zonas</a>
-            <a href="cajas.html">Cajas</a>
-            <a href="objetos.html">Objetos</a>
-        </nav>
-
-        <section class="dashboard-grid">
-            <a class="dashboard-card" href="zonas.html"><strong id="count-zonas">-</strong><span>Gestionar zonas</span></a>
-            <a class="dashboard-card" href="cajas.html"><strong id="count-cajas">-</strong><span>Gestionar cajas</span></a>
-            <a class="dashboard-card" href="objetos.html"><strong id="count-objetos">-</strong><span>Gestionar objetos</span></a>
-        </section>
-
-        <section class="panel">
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow">Búsqueda global</p>
-                    <h2>¿Qué estás buscando?</h2>
-                </div>
-            </div>
-            <label class="sr-only" for="global-search">Buscar en zonas, cajas y objetos</label>
-            <input id="global-search" class="search-input" type="search" placeholder="Nombre, notas o ubicación..." autocomplete="off">
-            <p id="search-help" class="help-text">Escribe al menos dos caracteres.</p>
-            <div id="search-results" class="card-list"></div>
-        </section>
-
-        <a class="back-link" href="../Privado/index.html">Volver a la zona privada</a>
-    </main>
+    <main id="app-shell" class="app-shell" hidden></main>
     <div id="toast" class="toast" hidden></div>
     <script src="../assets/supabase-client.js"></script>
     <script src="js/trastero.js"></script>

@@ -1,19 +1,19 @@
 # Trastero
 
-Aplicacion privada para gestionar espacios, zonas, cajas, objetos y sus fotos.
+Aplicacion privada para gestionar un inventario domestico con carpetas anidadas, items y fotos.
 
 ## Puesta en marcha
 
-1. Aplicar las migraciones de Trastero desde `../supabase/migrations/` en orden cronologico.
-2. En una instalacion existente de Trastero, aplicar las migraciones pendientes desde `20260616110000_trastero_thumbnails.sql` en adelante.
-3. Asignar en `public.profiles.role` el valor `admin` o `trastero` a cada usuario autorizado.
+1. Aplicar `../supabase/migrations/20260617090000_trastero_carpetas_items.sql`.
+2. Esta migracion sustituye la estructura antigua de espacios/zonas/cajas/objetos.
+3. Asignar en `public.profiles.role` el valor `admin` a cada usuario autorizado.
 4. Acceder desde `Privado/index.html` y pulsar `Abrir Trastero`.
 
-El SQL crea el bucket privado `trastero-fotos`; no es necesario crearlo manualmente. Las fotos se guardan bajo `{user_id}/{tipo}s/{relacion_id}/...`, y las politicas de Storage impiden el acceso entre usuarios.
+El SQL crea o actualiza el bucket privado `trastero-fotos`; no es necesario crearlo manualmente. Las fotos se guardan bajo `{user_id}/carpetas/{id}/...` o `{user_id}/items/{id}/...`, y las politicas de Storage impiden el acceso entre usuarios.
 
-Cada nueva foto genera dos archivos: una imagen optimizada de hasta aproximadamente 300 KB y una miniatura cuadrada de 320 px para fichas y listados. Las fotos antiguas sin miniatura siguen mostrandose usando la imagen principal como respaldo.
+Cada nueva foto se optimiza en navegador hasta aproximadamente 300 KB antes de subirla. Puede marcarse una foto como portada para listados y ficha.
 
-La jerarquia de trabajo es `Espacio -> Zonas -> Cajas -> Objetos`. Al entrar en Trastero se selecciona el espacio activo; todas las listas, busquedas y altas quedan filtradas por ese espacio.
+La jerarquia de trabajo es libre: una carpeta puede contener carpetas hijas e items, sin limite practico de profundidad.
 
 La fuente unica de SQL del proyecto es `supabase/migrations/`, junto al resto de migraciones de Webs.
 
@@ -23,7 +23,7 @@ La aplicacion reutiliza `../assets/supabase-client.js`; no necesita variables ad
 
 ## Seguridad
 
-- El frontend comprueba que el usuario autenticado tenga rol `admin` o `trastero`.
+- El frontend comprueba que el usuario autenticado tenga rol `admin`.
 - RLS exige ese rol y `auth.uid() = user_id` en todas las tablas.
-- Los triggers impiden asociar espacios, zonas, cajas, objetos o fotos pertenecientes a otro usuario.
-- El bucket es privado y las miniaturas usan URLs firmadas temporales.
+- Los triggers impiden asociar carpetas, items o fotos pertenecientes a otro usuario.
+- El bucket es privado y las portadas usan URLs firmadas temporales.

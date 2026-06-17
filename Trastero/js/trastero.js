@@ -1,106 +1,28 @@
 const supabaseClient = window.websSupabase;
-const page = document.body.dataset.page;
-const entityType = document.body.dataset.entity;
-const config = {
-    zona: { table: 'trastero_zonas', plural: 'zonas', label: 'Zona', fields: ['nombre', 'notas'], page: 'zonas.html', type: 'zona' },
-    caja: { table: 'trastero_cajas', plural: 'cajas', label: 'Caja', fields: ['nombre', 'zona_id', 'ubicacion', 'notas'], page: 'cajas.html', type: 'caja' },
-    objeto: { table: 'trastero_objetos', plural: 'objetos', label: 'Objeto', fields: ['nombre', 'zona_id', 'caja_id', 'notas'], page: 'objetos.html', type: 'objeto' }
-};
 const storageBucket = 'trastero-fotos';
-const spaceKey = 'trastero_selected_space_id';
 
 let currentUser = null;
-let currentSpace = null;
-let spaces = [];
+let folders = [];
 let items = [];
-let zonas = [];
-let cajas = [];
-let currentItem = null;
-let currentCreateContext = {};
+let folderCovers = new Map();
+let itemCovers = new Map();
 let toastTimer = null;
+let searchOpen = false;
 
 function escapeHtml(value = '') {
     return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
 }
 
-function queryParam(name) {
-    return new URLSearchParams(window.location.search).get(name);
+function params() {
+    return new URLSearchParams(window.location.search);
 }
 
-function getSafeReturnUrl() {
-    const returnUrl = queryParam('returnUrl');
-    if (!returnUrl) return '';
-    try {
-        const url = new URL(returnUrl, window.location.href);
-        const pageName = url.pathname.split('/').pop();
-        if (url.origin !== window.location.origin) return '';
-        if (!['zonas.html', 'cajas.html', 'objetos.html'].includes(pageName)) return '';
-        if (!url.searchParams.get('id')) return '';
-        return `${pageName}?id=${encodeURIComponent(url.searchParams.get('id'))}`;
-    } catch {
-        return '';
-    }
-}
-
-function currentDetailUrl() {
-    return currentItem ? `${config[entityType].page}?id=${encodeURIComponent(currentItem.id)}` : config[entityType].page;
-}
-
-function openModal({ title, body, actions = [] }) {
-    let backdrop = document.getElementById('app-modal');
-    if (!backdrop) {
-        backdrop = document.createElement('div');
-        backdrop.id = 'app-modal';
-        backdrop.className = 'modal-backdrop';
-        document.body.appendChild(backdrop);
-    }
-    backdrop.innerHTML = `
-        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-            <h2 id="modal-title">${escapeHtml(title)}</h2>
-            <div class="modal-body">${body}</div>
-            <div class="modal-actions">
-                ${actions.map((action, index) => `<button class="button ${action.className || 'button-muted'}" type="button" data-modal-action="${index}">${escapeHtml(action.label)}</button>`).join('')}
-            </div>
-        </div>`;
-    backdrop.hidden = false;
-    return new Promise((resolve) => {
-        const close = (value) => {
-            backdrop.hidden = true;
-            backdrop.onclick = null;
-            document.removeEventListener('keydown', onKeydown);
-            resolve(value);
-        };
-        const onKeydown = (event) => {
-            if (event.key === 'Escape') close(null);
-        };
-        document.addEventListener('keydown', onKeydown);
-        backdrop.onclick = (event) => {
-            if (event.target === backdrop) close(null);
-            const button = event.target.closest('[data-modal-action]');
-            if (button) close(actions[Number(button.dataset.modalAction)]?.value ?? null);
-        };
-        backdrop.querySelector('button')?.focus();
-    });
-}
-
-function confirmDialog(title, message, confirmLabel = 'Confirmar', danger = false) {
-    return openModal({
-        title,
-        body: `<p>${escapeHtml(message)}</p>`,
-        actions: [
-            { label: 'Cancelar', value: false, className: 'button-muted' },
-            { label: confirmLabel, value: true, className: danger ? 'button-danger' : 'button' }
-        ]
-    });
-}
-
-function getSelectedSpaceId() {
-    return localStorage.getItem(spaceKey);
-}
-
-function setSelectedSpaceId(id) {
-    if (id) localStorage.setItem(spaceKey, String(id));
-    else localStorage.removeItem(spaceKey);
+function currentRoute() {
+    const query = params();
+    return {
+        folderId: query.get('folder'),
+        itemId: query.get('item')
+    };
 }
 
 function showToast(message, error = false) {
@@ -109,43 +31,18 @@ function showToast(message, error = false) {
     toast.className = `toast${error ? ' error' : ''}`;
     toast.hidden = false;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toast.hidden = true; }, 4200);
-}
-
-function entityInitial(type = entityType) {
-    return { zona: 'Z', caja: 'C', objeto: 'O', espacio: 'E' }[type] || 'T';
-}
-
-function formatDate(value) {
-    if (!value) return '-';
-    return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value));
-}
-
-function relationName(collection, id) {
-    return collection.find((item) => String(item.id) === String(id))?.nombre || '';
-}
-
-function formatNotes(value) {
-    return value ? escapeHtml(value) : '<span class="help-text">Sin notas</span>';
-}
-
-function itemMeta(item) {
-    const parts = [];
-    if (item.zona_id) parts.push(`Zona: ${relationName(zonas, item.zona_id)}`);
-    if (item.caja_id) parts.push(`Caja: ${relationName(cajas, item.caja_id)}`);
-    if (item.ubicacion) parts.push(item.ubicacion);
-    return parts.join(' · ');
+    toastTimer = setTimeout(() => { toast.hidden = true; }, 3600);
 }
 
 async function requireAccess() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session?.user) {
-        window.location.replace(`../Privado/index.html?next=${encodeURIComponent(`../Trastero/${page === 'inicio' ? 'index' : page}.html`)}`);
+        window.location.replace(`../Privado/index.html?next=${encodeURIComponent('../Trastero/index.html')}`);
         return false;
     }
     const { data: profile, error } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
-    if (error || !['admin', 'trastero'].includes(profile?.role)) {
-        document.getElementById('app-loading').textContent = 'No tienes permiso para acceder a Trastero.';
+    if (error || profile?.role !== 'admin') {
+        document.getElementById('app-loading').textContent = 'No tienes permiso de administrador para acceder a Trastero.';
         return false;
     }
     currentUser = session.user;
@@ -154,647 +51,581 @@ async function requireAccess() {
     return true;
 }
 
-async function loadSpaces() {
-    const { data, error } = await supabaseClient.from('trastero_espacios').select('*').order('nombre');
-    if (error) throw error;
-    spaces = await attachSpaceThumbnails(data || []);
-    currentSpace = spaces.find((space) => String(space.id) === String(getSelectedSpaceId())) || spaces[0] || null;
-    if (currentSpace) setSelectedSpaceId(currentSpace.id);
-}
-
-async function attachSpaceThumbnails(collection) {
-    const paths = collection.map((space) => space.thumbnail_path || space.foto_path).filter(Boolean);
-    if (!paths.length) return collection;
-    const signed = await supabaseClient.storage.from(storageBucket).createSignedUrls(paths, 3600);
-    if (signed.error) return collection;
-    let index = 0;
-    return collection.map((space) => {
-        if (!space.thumbnail_path && !space.foto_path) return space;
-        return { ...space, thumbnail_url: signed.data[index++]?.signedUrl || '' };
-    });
-}
-
-async function ensureSpaceForEntityPage() {
-    await loadSpaces();
-    if (!currentSpace) {
-        window.location.replace('index.html');
-        return false;
-    }
-    return true;
-}
-
-async function fetchRelations() {
-    const [zonasResult, cajasResult] = await Promise.all([
-        supabaseClient.from('trastero_zonas').select('id,nombre,espacio_id').eq('espacio_id', currentSpace.id).order('nombre'),
-        supabaseClient.from('trastero_cajas').select('id,nombre,zona_id,espacio_id').eq('espacio_id', currentSpace.id).order('nombre')
+async function loadData() {
+    const [folderResult, itemResult] = await Promise.all([
+        supabaseClient.from('trastero_carpetas').select('*').order('nombre'),
+        supabaseClient.from('trastero_items').select('*').order('nombre')
     ]);
-    if (zonasResult.error || cajasResult.error) throw zonasResult.error || cajasResult.error;
-    zonas = zonasResult.data || [];
-    cajas = cajasResult.data || [];
+    if (folderResult.error || itemResult.error) throw folderResult.error || itemResult.error;
+    folders = folderResult.data || [];
+    items = itemResult.data || [];
+    [folderCovers, itemCovers] = await Promise.all([
+        loadCovers('carpeta', folders.map((folder) => folder.id)),
+        loadCovers('item', items.map((item) => item.id))
+    ]);
 }
 
-function fillSelect(id, collection, emptyLabel) {
-    const select = document.getElementById(id);
-    if (!select) return;
-    select.innerHTML = `<option value="">${emptyLabel}</option>${collection.map((item) => `<option value="${item.id}">${escapeHtml(item.nombre)}</option>`).join('')}`;
-}
-
-async function attachThumbnails(collection, type = entityType) {
-    if (!collection.length) return collection;
-    const ids = collection.map((item) => item.id);
+async function loadCovers(type, ids) {
+    const map = new Map();
+    if (!ids.length) return map;
     const { data, error } = await supabaseClient
         .from('trastero_fotos')
-        .select('relacion_id,storage_path,thumbnail_path,created_at,es_principal')
+        .select('id,relacion_id,storage_path,es_portada,created_at')
         .eq('tipo', type)
         .in('relacion_id', ids)
-        .order('es_principal', { ascending: false })
-        .order('created_at', { ascending: true });
-    if (error || !data?.length) return collection;
-    const firstPhotoByItem = new Map();
+        .order('es_portada', { ascending: false })
+        .order('created_at', { ascending: false });
+    if (error || !data?.length) return map;
+    const firstByRelation = new Map();
     data.forEach((photo) => {
-        if (!firstPhotoByItem.has(String(photo.relacion_id))) firstPhotoByItem.set(String(photo.relacion_id), photo);
+        const key = String(photo.relacion_id);
+        if (!firstByRelation.has(key)) firstByRelation.set(key, photo);
     });
-    const paths = [...firstPhotoByItem.values()].map((photo) => photo.thumbnail_path || photo.storage_path);
+    const paths = [...firstByRelation.values()].map((photo) => photo.storage_path);
     const signed = await supabaseClient.storage.from(storageBucket).createSignedUrls(paths, 3600);
-    if (signed.error) return collection;
-    const urlByItem = new Map();
-    [...firstPhotoByItem.keys()].forEach((id, index) => urlByItem.set(id, signed.data[index]?.signedUrl || ''));
-    return collection.map((item) => ({ ...item, thumbnail_url: urlByItem.get(String(item.id)) || '' }));
+    if (signed.error) return map;
+    [...firstByRelation.entries()].forEach(([id, photo], index) => {
+        map.set(id, { ...photo, url: signed.data[index]?.signedUrl || '' });
+    });
+    return map;
 }
 
-async function initHome() {
-    await loadSpaces();
-    if (!currentSpace) {
-        renderSpaceChooser();
+function folderById(id) {
+    return folders.find((folder) => String(folder.id) === String(id)) || null;
+}
+
+function itemById(id) {
+    return items.find((item) => String(item.id) === String(id)) || null;
+}
+
+function childrenOf(parentId) {
+    return folders.filter((folder) => String(folder.parent_id || '') === String(parentId || ''));
+}
+
+function itemsOf(folderId) {
+    return items.filter((item) => String(item.carpeta_id || '') === String(folderId || ''));
+}
+
+function pathToFolder(folderId) {
+    const path = [];
+    let cursor = folderById(folderId);
+    const guard = new Set();
+    while (cursor && !guard.has(String(cursor.id))) {
+        path.unshift(cursor);
+        guard.add(String(cursor.id));
+        cursor = cursor.parent_id ? folderById(cursor.parent_id) : null;
+    }
+    return path;
+}
+
+function pathLabel(folderId, fallback = 'Root Level Items') {
+    const path = pathToFolder(folderId);
+    return path.length ? path.map((folder) => folder.nombre).join(' / ') : fallback;
+}
+
+function navigateToFolder(folderId = '') {
+    const url = folderId ? `index.html?folder=${encodeURIComponent(folderId)}` : 'index.html';
+    history.pushState({}, '', url);
+    renderCurrent();
+}
+
+function navigateToItem(itemId) {
+    history.pushState({}, '', `index.html?item=${encodeURIComponent(itemId)}`);
+    renderCurrent();
+}
+
+function formatQuantity(item) {
+    const quantity = item.cantidad ?? 1;
+    return `${Number(quantity).toLocaleString('es-ES')} ${item.unidad || 'unit'}`;
+}
+
+function renderCurrent() {
+    const route = currentRoute();
+    if (route.itemId) renderItemDetail(route.itemId);
+    else renderFolderView(route.folderId || '');
+}
+
+function renderFolderView(folderId = '') {
+    const currentFolder = folderId ? folderById(folderId) : null;
+    if (folderId && !currentFolder) {
+        navigateToFolder('');
         return;
     }
-    await renderDashboard();
-}
-
-function renderHomeFrame(content) {
+    const childFolders = childrenOf(folderId);
+    const childItems = itemsOf(folderId);
+    const title = currentFolder?.nombre || 'Items';
+    const backTarget = currentFolder?.parent_id || '';
     const shell = document.getElementById('app-shell');
-    shell.className = 'app-shell trastero-home-shell';
     shell.innerHTML = `
-        <header class="home-topbar">
-            <button class="home-icon-button" type="button" data-action="open-space-menu" aria-label="Menú">☰</button>
-            <div class="home-brand"><span class="home-logo">T</span><h1>Trastero</h1><p>${currentSpace ? escapeHtml(currentSpace.nombre) : 'Gestiona tus cosas, encuentra todo'}</p></div>
-            <button class="home-icon-button" type="button" data-action="open-user-menu" aria-label="Usuario">◎</button>
-        </header>
-        <div id="space-drawer" class="drawer" hidden>
-            <button class="drawer-close" type="button" data-action="close-menus">×</button>
-            <h2>Espacios</h2>
-            <div class="drawer-list">${spaces.map((space) => `<button type="button" data-action="select-space" data-id="${space.id}">${renderSpaceThumb(space)}<span>${escapeHtml(space.nombre)}</span></button>`).join('')}</div>
-            <button class="button" type="button" data-action="new-space">Crear espacio</button>
-        </div>
-        <div id="user-menu" class="drawer drawer-right" hidden>
-            <button class="drawer-close" type="button" data-action="close-menus">×</button>
-            <h2>Cuenta</h2>
-            <button type="button" data-action="private-home">Zona privada</button>
-            <button type="button" data-action="logout">Cerrar sesión</button>
-        </div>
-        <main class="home-content">${content}</main>
-        <section id="space-form-panel" class="detail-card space-form-panel" hidden>
-            <div class="detail-card-heading"><h3>Nuevo espacio</h3><button class="icon-button" type="button" data-action="close-space-form">×</button></div>
-            <form id="space-form">
-                <label for="space-name">Nombre</label>
-                <input id="space-name" required maxlength="150" placeholder="Casa, piso de la playa...">
-                <label for="space-photo">Foto</label>
-                <input id="space-photo" type="file" accept="image/*">
-                <button class="button" type="submit">Guardar espacio</button>
-            </form>
+        <section class="screen folder-screen">
+            <header class="topbar">
+                <div class="topbar-left">
+                    ${currentFolder ? `<button class="round-button" type="button" data-action="go-folder" data-id="${backTarget}" aria-label="Volver">←</button>` : `<button class="round-button" type="button" data-action="open-tree" aria-label="Arbol de carpetas">▧</button>`}
+                    <div class="title-block">
+                        <h1>${escapeHtml(title)}</h1>
+                        ${currentFolder ? `<div class="breadcrumb">${escapeHtml(pathLabel(folderId, 'Inicio'))}</div>` : ''}
+                    </div>
+                </div>
+                <div class="pill-button" aria-label="Acciones">
+                    <button class="icon-only-inline" type="button" data-action="toggle-search" aria-label="Buscar">⌕</button>
+                    <button class="icon-only-inline" type="button" data-action="scan-code" aria-label="Escanear">▥</button>
+                    <button class="icon-only-inline" type="button" data-action="folder-menu" data-id="${folderId}" aria-label="Menu">•••</button>
+                </div>
+            </header>
+            ${searchOpen ? renderSearchPanel() : ''}
+            <section class="stats">
+                <div class="stat"><span>Folders</span><strong>${childFolders.length}</strong></div>
+                <div class="stat"><span>Items</span><strong>${childItems.length}</strong></div>
+            </section>
+            <section class="content-list">
+                ${renderRows(childFolders, childItems)}
+            </section>
+            <button class="fab" type="button" data-action="open-create-sheet" data-parent="${folderId}" aria-label="Crear">+</button>
         </section>`;
-    bindHomeActions();
 }
 
-function renderSpaceThumb(space) {
-    return space.thumbnail_url ? `<img src="${escapeHtml(space.thumbnail_url)}" alt="">` : `<span>${entityInitial('espacio')}</span>`;
+function renderRows(childFolders, childItems) {
+    const folderRows = childFolders.map((folder) => {
+        const cover = folderCovers.get(String(folder.id))?.url || '';
+        const folderCount = childrenOf(folder.id).length;
+        const itemCount = itemsOf(folder.id).length;
+        return `
+            <article class="content-row" role="button" tabindex="0" data-action="go-folder" data-id="${folder.id}">
+                ${cover ? `<img class="thumb" src="${escapeHtml(cover)}" alt="">` : '<span class="thumb">▰</span>'}
+                <div class="row-copy">
+                    ${folder.codigo ? `<span class="code">${escapeHtml(folder.codigo)}</span>` : ''}
+                    <strong class="row-title">${escapeHtml(folder.nombre)}</strong>
+                    <span class="row-meta">▱ ${folderCount} | ${itemCount} unit</span>
+                </div>
+                <button class="row-menu" type="button" data-action="row-menu" data-type="folder" data-id="${folder.id}" aria-label="Menu">•••</button>
+            </article>`;
+    }).join('');
+    const itemRows = childItems.map((item) => {
+        const cover = itemCovers.get(String(item.id))?.url || '';
+        return `
+            <article class="content-row" role="button" tabindex="0" data-action="go-item" data-id="${item.id}">
+                ${cover ? `<img class="thumb item-thumb" src="${escapeHtml(cover)}" alt="">` : '<span class="thumb item-thumb">◻</span>'}
+                <div class="row-copy">
+                    ${item.codigo ? `<span class="code">${escapeHtml(item.codigo)}</span>` : ''}
+                    <strong class="row-title">${escapeHtml(item.nombre)}</strong>
+                    <span class="row-meta">${escapeHtml(formatQuantity(item))}</span>
+                </div>
+                <button class="row-menu" type="button" data-action="row-menu" data-type="item" data-id="${item.id}" aria-label="Menu">•••</button>
+            </article>`;
+    }).join('');
+    return folderRows || itemRows ? `${folderRows}${itemRows}` : '<p class="empty-state">No hay carpetas ni items en este nivel.</p>';
 }
 
-function renderSpaceChooser() {
-    renderHomeFrame(`
-        <section class="space-empty">
-            <h2>Elige tu espacio</h2>
-            <p>Crea un espacio para empezar a organizar zonas, cajas y objetos.</p>
-            <button class="button" type="button" data-action="new-space">Crear espacio</button>
-        </section>`);
-}
-
-async function renderDashboard() {
-    const [zones, boxes, objects] = await Promise.all([
-        countTable('trastero_zonas'),
-        countTable('trastero_cajas'),
-        countTable('trastero_objetos')
-    ]);
-    renderHomeFrame(`
-        <section class="home-search">
-            <input id="global-search" type="search" placeholder="Buscar en zonas, cajas u objetos..." autocomplete="off">
-            <p>Busca por nombres, notas, ubicación... en todo tu trastero</p>
+function renderSearchPanel() {
+    return `
+        <section class="search-panel">
+            <input id="global-search" type="search" placeholder="Buscar por nombre, codigo o notas..." autocomplete="off">
             <div id="search-results" class="search-results"></div>
-        </section>
-        <h2 class="home-section-title">Gestionar</h2>
-        <section class="manage-grid">
-            ${homeManageCard('zonas.html', 'Zonas', 'Gestiona las zonas de tu casa', `${zones} zonas`, 'blue')}
-            ${homeManageCard('cajas.html', 'Cajas', 'Gestiona tus cajas guardadas', `${boxes} cajas`, 'green')}
-            ${homeManageCard('objetos.html', 'Objetos', 'Gestiona los objetos que tienes', `${objects} objetos`, 'purple')}
-        </section>
-        <h2 class="home-section-title">Crear nuevo</h2>
-        <section class="create-grid">
-            <a class="create-card orange" href="cajas.html?new=1"><strong>Nueva caja</strong><span>Añade una nueva caja a tu trastero</span></a>
-            <a class="create-card purple" href="objetos.html?new=1"><strong>Nuevo objeto</strong><span>Añade un nuevo objeto a tu trastero</span></a>
-        </section>
-        <h2 class="home-section-title">Acceso rápido</h2>
-        <section class="quick-grid">
-            ${quickCard('zonas.html', 'Todas las zonas', 'Ver todas tus zonas')}
-            ${quickCard('cajas.html', 'Todas las cajas', 'Ver todas tus cajas')}
-            ${quickCard('objetos.html', 'Todos los objetos', 'Ver todos tus objetos')}
-        </section>`);
-    let timer;
-    document.getElementById('global-search').addEventListener('input', (event) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => globalSearch(event.target.value.trim()), 250);
+        </section>`;
+}
+
+function renderItemDetail(itemId) {
+    const item = itemById(itemId);
+    if (!item) {
+        navigateToFolder('');
+        return;
+    }
+    const folder = item.carpeta_id ? folderById(item.carpeta_id) : null;
+    const cover = itemCovers.get(String(item.id))?.url || '';
+    const shell = document.getElementById('app-shell');
+    shell.innerHTML = `
+        <section class="screen item-screen">
+            <header class="topbar">
+                <button class="round-button" type="button" data-action="go-folder" data-id="${item.carpeta_id || ''}" aria-label="Volver">←</button>
+                <button class="round-button" type="button" data-action="row-menu" data-type="item" data-id="${item.id}" aria-label="Menu">•••</button>
+            </header>
+            <section class="item-hero">
+                ${cover ? `<img src="${escapeHtml(cover)}" alt="Foto de ${escapeHtml(item.nombre)}">` : '<div class="hero-empty">Enhance visibility with great images</div>'}
+                <div class="hero-tools">
+                    <div class="segmented"><button class="active" type="button" data-action="open-photos" data-type="item" data-id="${item.id}">▧</button><button type="button" data-action="scan-code">▥</button></div>
+                    <label class="photo-add" for="photo-input">▧+</label>
+                    <input id="photo-input" class="sr-only" type="file" accept="image/*" capture="environment" data-photo-type="item" data-photo-id="${item.id}">
+                </div>
+            </section>
+            <section class="item-info">
+                <div>
+                    <div class="item-location">▰ ${escapeHtml(folder?.nombre || 'Root Level Items')}</div>
+                    <h1 class="item-name">${escapeHtml(item.nombre)}</h1>
+                </div>
+                <div class="move-action"><button type="button" data-action="move-item" data-id="${item.id}">⇥</button><span>Move</span></div>
+            </section>
+            <section class="detail-grid">
+                ${item.codigo ? `<div class="detail-row"><span>Codigo</span><strong>${escapeHtml(item.codigo)}</strong></div>` : ''}
+                <div class="detail-row"><span>Ruta</span><strong>${escapeHtml(pathLabel(item.carpeta_id, 'Root Level Items'))}</strong></div>
+                <div class="detail-row"><span>Cantidad</span><strong>${escapeHtml(formatQuantity(item))}</strong></div>
+                <div class="detail-row"><span>Notas</span><strong>${escapeHtml(item.notas || 'Sin notas')}</strong></div>
+            </section>
+        </section>`;
+}
+
+function renderSearchResults(term) {
+    const box = document.getElementById('search-results');
+    if (!box) return;
+    const normalized = term.trim().toLowerCase();
+    if (normalized.length < 2) {
+        box.innerHTML = '';
+        return;
+    }
+    const folderResults = folders.filter((folder) => [folder.nombre, folder.codigo, folder.notas].some((value) => String(value || '').toLowerCase().includes(normalized))).map((folder) => ({
+        type: 'folder',
+        id: folder.id,
+        title: folder.nombre,
+        code: folder.codigo,
+        path: pathLabel(folder.parent_id, 'Root Level Items')
+    }));
+    const itemResults = items.filter((item) => [item.nombre, item.codigo, item.notas].some((value) => String(value || '').toLowerCase().includes(normalized))).map((item) => ({
+        type: 'item',
+        id: item.id,
+        title: item.nombre,
+        code: item.codigo,
+        path: pathLabel(item.carpeta_id, 'Root Level Items')
+    }));
+    const results = [...folderResults, ...itemResults].slice(0, 30);
+    box.innerHTML = results.length ? results.map((result) => `
+        <button class="search-result" type="button" data-action="${result.type === 'folder' ? 'go-folder' : 'go-item'}" data-id="${result.id}">
+            <strong>${escapeHtml(result.title)}</strong>
+            <small>${escapeHtml(`${result.type === 'folder' ? 'Carpeta' : 'Item'}${result.code ? ` · ${result.code}` : ''}`)}</small>
+            <small>${escapeHtml(result.path)}</small>
+        </button>`).join('') : '<p class="empty-state">Sin resultados.</p>';
+}
+
+function openSheet(title, actions) {
+    closeOverlay();
+    const backdrop = document.createElement('div');
+    backdrop.className = 'sheet-backdrop';
+    backdrop.innerHTML = `<section class="sheet"><h2>${escapeHtml(title)}</h2><div class="sheet-actions">${actions.map((action) => `<button type="button" data-sheet-action="${escapeHtml(action.id)}" class="${action.className || ''}">${escapeHtml(action.label)}</button>`).join('')}</div></section>`;
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', (event) => {
+        if (event.target === backdrop) closeOverlay();
+        const button = event.target.closest('[data-sheet-action]');
+        if (!button) return;
+        const action = actions.find((candidate) => candidate.id === button.dataset.sheetAction);
+        closeOverlay();
+        action?.handler();
     });
 }
 
-async function countTable(table) {
-    const { count } = await supabaseClient.from(table).select('*', { count: 'exact', head: true }).eq('espacio_id', currentSpace.id);
-    return count || 0;
+function openModal(title, body) {
+    closeOverlay();
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML = `<section class="modal"><div class="modal-top"><h2>${escapeHtml(title)}</h2><button class="modal-close" type="button" data-action="close-overlay">×</button></div>${body}</section>`;
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', (event) => {
+        if (event.target === backdrop || event.target.closest('[data-action="close-overlay"]')) closeOverlay();
+    });
+    return backdrop;
 }
 
-function homeManageCard(href, title, text, count, tone) {
-    return `<a class="manage-card ${tone}" href="${href}"><span class="manage-icon">${title[0]}</span><b>›</b><strong>${title}</strong><p>${text}</p><em>${count}</em></a>`;
+function closeOverlay() {
+    document.querySelectorAll('.sheet-backdrop,.modal-backdrop').forEach((node) => node.remove());
 }
 
-function quickCard(href, title, text) {
-    return `<a class="quick-card" href="${href}"><span>${title[0]}</span><strong>${title}</strong><small>${text}</small><b>›</b></a>`;
-}
-
-function bindHomeActions() {
-    document.getElementById('app-shell').onclick = async (event) => {
-        const actionElement = event.target.closest('[data-action]');
-        if (!actionElement) return;
-        const action = actionElement.dataset.action;
-        if (action === 'open-space-menu') document.getElementById('space-drawer').hidden = false;
-        if (action === 'open-user-menu') document.getElementById('user-menu').hidden = false;
-        if (action === 'close-menus') closeMenus();
-        if (action === 'new-space') openSpaceForm();
-        if (action === 'close-space-form') closeSpaceForm();
-        if (action === 'select-space') {
-            setSelectedSpaceId(actionElement.dataset.id);
-            await initHome();
-        }
-        if (action === 'private-home') window.location.href = '../Privado/index.html';
-        if (action === 'logout') {
-            await supabaseClient.auth.signOut();
-            window.location.href = '../Privado/index.html';
-        }
-    };
-    document.getElementById('space-form')?.addEventListener('submit', saveSpace);
-}
-
-function closeMenus() {
-    document.getElementById('space-drawer')?.setAttribute('hidden', '');
-    document.getElementById('user-menu')?.setAttribute('hidden', '');
-}
-
-function openSpaceForm() {
-    closeMenus();
-    document.getElementById('space-form-panel').hidden = false;
-    document.getElementById('space-form-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function closeSpaceForm() {
-    document.getElementById('space-form-panel').hidden = true;
-}
-
-async function saveSpace(event) {
-    event.preventDefault();
-    const name = document.getElementById('space-name').value.trim();
-    const file = document.getElementById('space-photo').files[0];
-    const { data, error } = await supabaseClient.from('trastero_espacios').insert({ user_id: currentUser.id, nombre: name }).select().single();
-    if (error) {
-        showToast(`No se pudo crear el espacio: ${error.message}`, true);
-        return;
-    }
-    if (file) await uploadSpacePhoto(data.id, file);
-    setSelectedSpaceId(data.id);
-    showToast('Espacio creado.');
-    await initHome();
-}
-
-async function uploadSpacePhoto(spaceId, file) {
-    const [optimized, thumbnail] = await Promise.all([optimizeImage(file), createThumbnail(file)]);
-    const path = `${currentUser.id}/espacios/${spaceId}/foto.jpg`;
-    const thumbnailPath = `${currentUser.id}/espacios/${spaceId}/thumb.jpg`;
-    const upload = await supabaseClient.storage.from(storageBucket).upload(path, optimized, { contentType: 'image/jpeg', upsert: true });
-    if (upload.error) throw upload.error;
-    const thumbnailUpload = await supabaseClient.storage.from(storageBucket).upload(thumbnailPath, thumbnail, { contentType: 'image/jpeg', upsert: true });
-    if (thumbnailUpload.error) throw thumbnailUpload.error;
-    const { error } = await supabaseClient.from('trastero_espacios').update({ foto_path: path, thumbnail_path: thumbnailPath }).eq('id', spaceId);
-    if (error) throw error;
-}
-
-async function globalSearch(term) {
-    const resultsBox = document.getElementById('search-results');
-    if (!resultsBox) return;
-    if (term.length < 2) {
-        resultsBox.innerHTML = '';
-        return;
-    }
-    const safeTerm = term.replace(/[%_,()]/g, ' ');
-    const [zoneResult, boxResult, objectResult] = await Promise.all([
-        supabaseClient.from('trastero_zonas').select('*').eq('espacio_id', currentSpace.id).or(`nombre.ilike.%${safeTerm}%,notas.ilike.%${safeTerm}%`).limit(20),
-        supabaseClient.from('trastero_cajas').select('*').eq('espacio_id', currentSpace.id).or(`nombre.ilike.%${safeTerm}%,notas.ilike.%${safeTerm}%,ubicacion.ilike.%${safeTerm}%`).limit(20),
-        supabaseClient.from('trastero_objetos').select('*').eq('espacio_id', currentSpace.id).or(`nombre.ilike.%${safeTerm}%,notas.ilike.%${safeTerm}%`).limit(20)
+function openCreateSheet(parentId = '') {
+    openSheet('Crear nuevo', [
+        { id: 'folder', label: 'Crear carpeta', handler: () => openFolderForm(null, parentId) },
+        { id: 'item', label: 'Crear item', handler: () => openItemForm(null, parentId) },
+        { id: 'cancel', label: 'Cancelar', className: 'button-muted', handler: () => {} }
     ]);
-    const error = zoneResult.error || boxResult.error || objectResult.error;
-    if (error) {
-        resultsBox.innerHTML = '<p class="empty-state">No se pudo completar la búsqueda.</p>';
-        return;
-    }
-    const combined = [
-        ...zoneResult.data.map((item) => ({ ...item, tipo: 'zona', url: 'zonas.html' })),
-        ...boxResult.data.map((item) => ({ ...item, tipo: 'caja', url: 'cajas.html' })),
-        ...objectResult.data.map((item) => ({ ...item, tipo: 'objeto', url: 'objetos.html' }))
-    ];
-    resultsBox.innerHTML = combined.length ? combined.map((item) => `<a class="search-result-card" href="${item.url}?id=${item.id}"><strong>${escapeHtml(item.nombre)}</strong><span>${item.tipo}</span><small>${escapeHtml(item.ubicacion || item.notas || 'Sin notas')}</small></a>`).join('') : '<p class="empty-state">No hay coincidencias.</p>';
 }
 
-async function initEntityPage() {
-    if (!await ensureSpaceForEntityPage()) return;
-    await fetchRelations();
-    fillSelect('zona_id', zonas, 'Sin zona');
-    fillSelect('caja_id', cajas, 'Sin caja');
-    document.getElementById('caja_id')?.addEventListener('change', (event) => {
-        const selectedBox = cajas.find((box) => String(box.id) === event.target.value);
-        if (selectedBox?.zona_id) document.getElementById('zona_id').value = selectedBox.zona_id;
+function openRowMenu(type, id) {
+    const entity = type === 'folder' ? folderById(id) : itemById(id);
+    if (!entity) return;
+    openSheet(entity.nombre, [
+        { id: 'edit', label: 'Editar', handler: () => type === 'folder' ? openFolderForm(entity) : openItemForm(entity) },
+        { id: 'move', label: 'Mover', handler: () => type === 'folder' ? moveFolder(entity) : moveItem(entity) },
+        { id: 'photos', label: 'Fotos', handler: () => openPhotos(type === 'folder' ? 'carpeta' : 'item', entity.id) },
+        { id: 'delete', label: 'Eliminar', className: 'button-danger', handler: () => deleteEntity(type, entity) },
+        { id: 'cancel', label: 'Cancelar', className: 'button-muted', handler: () => {} }
+    ]);
+}
+
+function openFolderForm(folder = null, defaultParentId = '') {
+    let selectedParentId = folder ? folder.parent_id || '' : defaultParentId || '';
+    const modal = openModal(folder ? 'Editar carpeta' : 'Crear carpeta', `
+        <form id="folder-form">
+            <label for="folder-name">Nombre</label>
+            <input id="folder-name" required maxlength="180" value="${escapeHtml(folder?.nombre || '')}">
+            <label for="folder-code">Codigo</label>
+            <input id="folder-code" maxlength="80" value="${escapeHtml(folder?.codigo || '')}">
+            <label>Carpeta padre</label>
+            <div class="picker-row"><div id="folder-parent-label" class="picker-label">${escapeHtml(pathLabel(selectedParentId, 'Nivel raiz'))}</div><button class="button button-muted" type="button" id="pick-folder-parent">Elegir</button></div>
+            <label for="folder-notes">Notas</label>
+            <textarea id="folder-notes">${escapeHtml(folder?.notas || '')}</textarea>
+            <label for="folder-photo">Foto/portada</label>
+            <input id="folder-photo" type="file" accept="image/*" capture="environment">
+            <div class="form-actions"><button class="button" type="submit">Guardar</button><button class="button button-muted" type="button" data-action="close-overlay">Cancelar</button></div>
+        </form>`);
+    modal.querySelector('#pick-folder-parent').addEventListener('click', () => {
+        openFolderTree({
+            selectedId: selectedParentId,
+            excludeId: folder?.id,
+            onSelect: (id) => {
+                selectedParentId = id || '';
+                document.getElementById('folder-parent-label').textContent = pathLabel(selectedParentId, 'Nivel raiz');
+            }
+        });
     });
-    document.querySelector('[data-action="new"]').addEventListener('click', () => openForm());
-    document.querySelectorAll('[data-action="close-form"]').forEach((button) => button.addEventListener('click', closeForm));
-    document.getElementById('entity-form').addEventListener('submit', saveItem);
-    document.getElementById('list-filter').addEventListener('input', renderList);
-    document.getElementById('entity-list').addEventListener('click', handleListAction);
-    document.getElementById('detail-panel').addEventListener('click', handleDetailAction);
-    await loadItems();
-    const requestedId = queryParam('id');
-    if (requestedId) {
-        document.getElementById('entity-list').closest('.panel').hidden = true;
-        document.getElementById('form-panel').hidden = true;
-        document.querySelector('.app-nav')?.setAttribute('hidden', '');
-        document.querySelector('.back-link')?.setAttribute('hidden', '');
-        await showDetail(requestedId);
-        return;
-    }
-    if (queryParam('new') === '1') openForm(null, { zona_id: queryParam('zona_id'), caja_id: queryParam('caja_id') });
+    modal.querySelector('#folder-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const payload = {
+            user_id: currentUser.id,
+            parent_id: selectedParentId || null,
+            nombre: document.getElementById('folder-name').value.trim(),
+            codigo: document.getElementById('folder-code').value.trim() || null,
+            notas: document.getElementById('folder-notes').value.trim() || null
+        };
+        const result = folder
+            ? await supabaseClient.from('trastero_carpetas').update(payload).eq('id', folder.id).select().single()
+            : await supabaseClient.from('trastero_carpetas').insert(payload).select().single();
+        if (result.error) {
+            showToast(`No se pudo guardar: ${result.error.message}`, true);
+            return;
+        }
+        const file = document.getElementById('folder-photo').files[0];
+        if (file) await uploadPhoto('carpeta', result.data.id, file);
+        closeOverlay();
+        await refreshAndRender(folder ? null : result.data.id);
+    });
 }
 
-async function loadItems() {
-    const { data, error } = await supabaseClient.from(config[entityType].table).select('*').eq('espacio_id', currentSpace.id).order('nombre');
-    if (error) {
-        showToast('No se pudieron cargar los datos.', true);
-        return;
-    }
-    items = await attachThumbnails(data || []);
-    renderList();
+function openItemForm(item = null, defaultFolderId = '') {
+    let selectedFolderId = item ? item.carpeta_id || '' : defaultFolderId || '';
+    const modal = openModal(item ? 'Editar item' : 'Crear item', `
+        <form id="item-form">
+            <label for="item-name">Nombre</label>
+            <input id="item-name" required maxlength="180" value="${escapeHtml(item?.nombre || '')}">
+            <label for="item-code">Codigo</label>
+            <input id="item-code" maxlength="80" value="${escapeHtml(item?.codigo || '')}">
+            <label>Carpeta</label>
+            <div class="picker-row"><div id="item-folder-label" class="picker-label">${escapeHtml(pathLabel(selectedFolderId, 'Root Level Items'))}</div><button class="button button-muted" type="button" id="pick-item-folder">Elegir</button></div>
+            <label for="item-quantity">Cantidad</label>
+            <input id="item-quantity" type="number" step="0.01" value="${escapeHtml(item?.cantidad ?? 1)}">
+            <label for="item-unit">Unidad</label>
+            <input id="item-unit" maxlength="40" value="${escapeHtml(item?.unidad || 'unit')}">
+            <label for="item-notes">Notas</label>
+            <textarea id="item-notes">${escapeHtml(item?.notas || '')}</textarea>
+            <label for="item-photo">Foto/portada</label>
+            <input id="item-photo" type="file" accept="image/*" capture="environment">
+            <div class="form-actions"><button class="button" type="submit">Guardar</button><button class="button button-muted" type="button" data-action="close-overlay">Cancelar</button></div>
+        </form>`);
+    modal.querySelector('#pick-item-folder').addEventListener('click', () => {
+        openFolderTree({
+            selectedId: selectedFolderId,
+            onSelect: (id) => {
+                selectedFolderId = id || '';
+                document.getElementById('item-folder-label').textContent = pathLabel(selectedFolderId, 'Root Level Items');
+            }
+        });
+    });
+    modal.querySelector('#item-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const payload = {
+            user_id: currentUser.id,
+            carpeta_id: selectedFolderId || null,
+            nombre: document.getElementById('item-name').value.trim(),
+            codigo: document.getElementById('item-code').value.trim() || null,
+            cantidad: document.getElementById('item-quantity').value || 1,
+            unidad: document.getElementById('item-unit').value.trim() || 'unit',
+            notas: document.getElementById('item-notes').value.trim() || null
+        };
+        const result = item
+            ? await supabaseClient.from('trastero_items').update(payload).eq('id', item.id).select().single()
+            : await supabaseClient.from('trastero_items').insert(payload).select().single();
+        if (result.error) {
+            showToast(`No se pudo guardar: ${result.error.message}`, true);
+            return;
+        }
+        const file = document.getElementById('item-photo').files[0];
+        if (file) await uploadPhoto('item', result.data.id, file);
+        closeOverlay();
+        await refreshAndRender(null, result.data.id);
+    });
 }
 
-function renderList() {
-    const term = document.getElementById('list-filter').value.trim().toLowerCase();
-    const filtered = items.filter((item) => [item.nombre, item.notas, item.ubicacion, itemMeta(item)].some((value) => String(value || '').toLowerCase().includes(term)));
-    const compact = entityType === 'objeto';
-    document.getElementById('entity-list').innerHTML = filtered.length ? filtered.map((item) => `
-        <article class="entity-card entity-list-row ${compact ? 'compact-object-row' : ''}">
-            ${renderThumbnail(item, entityType)}
-            <button class="entity-list-content" type="button" data-action="view" data-id="${item.id}">
-                <span class="entity-type">${config[entityType].label}</span>
-                <strong>${escapeHtml(item.nombre)}</strong>
-                ${itemMeta(item) ? `<span class="meta-line">${escapeHtml(itemMeta(item))}</span>` : ''}
-                <span class="entity-summary">${item.notas ? escapeHtml(item.notas) : 'Sin notas'}</span>
+function flattenedFolders(parentId = '', level = 0, output = []) {
+    childrenOf(parentId).forEach((folder) => {
+        output.push({ ...folder, level });
+        flattenedFolders(folder.id, level + 1, output);
+    });
+    return output;
+}
+
+function descendantIds(folderId, output = new Set()) {
+    childrenOf(folderId).forEach((folder) => {
+        output.add(String(folder.id));
+        descendantIds(folder.id, output);
+    });
+    return output;
+}
+
+function openFolderTree({ selectedId = '', excludeId = '', onSelect = null } = {}) {
+    const disabled = excludeId ? descendantIds(excludeId) : new Set();
+    if (excludeId) disabled.add(String(excludeId));
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop tree-picker-backdrop';
+    backdrop.innerHTML = `<section class="modal"><div class="modal-top"><h2>Folders</h2><button class="modal-close" type="button" data-tree-close>×</button></div><input id="tree-search" type="search" placeholder="Search"><div id="tree-list" class="tree-list"></div></section>`;
+    document.body.appendChild(backdrop);
+    const modal = backdrop.querySelector('.modal');
+    const closeTree = () => backdrop.remove();
+    backdrop.addEventListener('click', (event) => {
+        if (event.target === backdrop || event.target.closest('[data-tree-close]')) closeTree();
+    });
+    const renderTree = () => {
+        const term = modal.querySelector('#tree-search').value.trim().toLowerCase();
+        const rows = flattenedFolders().filter((folder) => !term || [folder.nombre, folder.codigo, folder.notas].some((value) => String(value || '').toLowerCase().includes(term)));
+        modal.querySelector('#tree-list').innerHTML = `
+            <button class="tree-row ${!selectedId ? 'selected' : ''}" type="button" data-tree-id="">
+                <span>▣</span><span class="tree-copy"><span>Root Level Items</span></span>
             </button>
-            <button class="row-action" type="button" data-action="edit" data-id="${item.id}" aria-label="Editar">Editar</button>
-        </article>`).join('') : '<p class="empty-state">No hay elementos que mostrar.</p>';
-}
-
-function renderThumbnail(item, type = entityType, className = 'entity-thumbnail') {
-    return item.thumbnail_url
-        ? `<img class="${className}" src="${escapeHtml(item.thumbnail_url)}" alt="" loading="lazy">`
-        : `<span class="${className} thumbnail-placeholder" aria-hidden="true">${entityInitial(type)}</span>`;
-}
-
-function handleListAction(event) {
-    const button = event.target.closest('[data-action][data-id]');
-    if (!button) return;
-    if (button.dataset.action === 'view') window.location.href = `${config[entityType].page}?id=${button.dataset.id}`;
-    if (button.dataset.action === 'edit') {
-        const item = items.find((candidate) => String(candidate.id) === button.dataset.id);
-        openForm(item);
-    }
-}
-
-function renderSelectOptions(collection, selectedId, emptyLabel) {
-    return `<option value="">${escapeHtml(emptyLabel)}</option>${collection.map((item) => `<option value="${item.id}" ${String(item.id) === String(selectedId || '') ? 'selected' : ''}>${escapeHtml(item.nombre)}</option>`).join('')}`;
-}
-
-function openForm(item = null, defaults = {}) {
-    currentItem = item;
-    currentCreateContext = item ? {} : { ...defaults };
-    const form = document.getElementById('entity-form');
-    form.reset();
-    fillSelect('zona_id', zonas, 'Sin zona');
-    fillSelect('caja_id', cajas, 'Sin caja');
-    document.getElementById('entity-id').value = item?.id || '';
-    config[entityType].fields.forEach((field) => {
-        const input = document.getElementById(field);
-        if (input) input.value = item?.[field] ?? defaults[field] ?? '';
+            ${rows.map((folder) => `
+                <button class="tree-row ${String(folder.id) === String(selectedId) ? 'selected' : ''} ${disabled.has(String(folder.id)) ? 'disabled' : ''}" style="--level:${folder.level}" type="button" data-tree-id="${folder.id}" ${disabled.has(String(folder.id)) ? 'disabled' : ''}>
+                    <span class="tree-indent"></span><span class="tree-copy"><span>▰</span><span>${escapeHtml(folder.nombre)}</span></span>
+                </button>`).join('')}`;
+    };
+    renderTree();
+    modal.querySelector('#tree-search').addEventListener('input', renderTree);
+    modal.querySelector('#tree-list').addEventListener('click', (event) => {
+        const row = event.target.closest('[data-tree-id]');
+        if (!row || row.disabled) return;
+        const id = row.dataset.treeId;
+        closeTree();
+        if (onSelect) onSelect(id);
+        else navigateToFolder(id);
     });
-    if (entityType === 'objeto' && defaults.caja_id && !defaults.zona_id) {
-        const selectedBox = cajas.find((box) => String(box.id) === String(defaults.caja_id));
-        if (selectedBox?.zona_id) document.getElementById('zona_id').value = selectedBox.zona_id;
-    }
-    document.getElementById('form-title').textContent = `${item ? 'Editar' : 'Nuevo'} ${config[entityType].label.toLowerCase()}`;
-    document.getElementById('form-panel').hidden = false;
-    document.getElementById('form-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function closeForm() {
-    document.getElementById('form-panel').hidden = true;
-    currentItem = null;
-    currentCreateContext = {};
-}
-
-async function saveItem(event) {
-    event.preventDefault();
-    const submit = event.target.querySelector('[type="submit"]');
-    submit.disabled = true;
-    const id = document.getElementById('entity-id').value;
-    const createContext = { ...currentCreateContext };
-    const payload = { user_id: currentUser.id, espacio_id: currentSpace.id };
-    config[entityType].fields.forEach((field) => {
-        const value = document.getElementById(field)?.value.trim();
-        payload[field] = value || null;
+async function moveFolder(folder) {
+    openFolderTree({
+        selectedId: folder.parent_id || '',
+        excludeId: folder.id,
+        onSelect: async (parentId) => {
+            if (!await confirmAction('Mover carpeta', `Mover "${folder.nombre}" a ${pathLabel(parentId, 'Nivel raiz')}?`)) return;
+            const { error } = await supabaseClient.from('trastero_carpetas').update({ parent_id: parentId || null }).eq('id', folder.id);
+            if (error) showToast(`No se pudo mover: ${error.message}`, true);
+            else await refreshAndRender(folder.id);
+        }
     });
-    const result = id
-        ? await supabaseClient.from(config[entityType].table).update(payload).eq('id', id).select().single()
-        : await supabaseClient.from(config[entityType].table).insert(payload).select().single();
-    submit.disabled = false;
-    if (result.error) {
-        showToast(`No se pudo guardar: ${result.error.message}`, true);
-        return;
+}
+
+async function moveItem(item) {
+    openFolderTree({
+        selectedId: item.carpeta_id || '',
+        onSelect: async (folderId) => {
+            if (!await confirmAction('Mover item', `Mover "${item.nombre}" a ${pathLabel(folderId, 'Root Level Items')}?`)) return;
+            const { error } = await supabaseClient.from('trastero_items').update({ carpeta_id: folderId || null }).eq('id', item.id);
+            if (error) showToast(`No se pudo mover: ${error.message}`, true);
+            else await refreshAndRender(null, item.id);
+        }
+    });
+}
+
+function confirmAction(title, message) {
+    return new Promise((resolve) => {
+        const modal = openModal(title, `<p>${escapeHtml(message)}</p><div class="form-actions"><button class="button button-muted" type="button" data-confirm="no">Cancelar</button><button class="button" type="button" data-confirm="yes">Confirmar</button></div>`);
+        modal.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-confirm]');
+            if (!button) return;
+            const ok = button.dataset.confirm === 'yes';
+            closeOverlay();
+            resolve(ok);
+        });
+    });
+}
+
+async function deleteEntity(type, entity) {
+    const label = type === 'folder' ? 'carpeta' : 'item';
+    if (!await confirmAction(`Eliminar ${label}`, `Eliminar "${entity.nombre}"?`)) return;
+    const photos = type === 'folder' ? await collectFolderTreePhotos(entity.id) : await collectPhotos('item', [entity.id]);
+    if (photos.length) {
+        await supabaseClient.storage.from(storageBucket).remove(photos.map((photo) => photo.storage_path));
+        await supabaseClient.from('trastero_fotos').delete().in('id', photos.map((photo) => photo.id));
     }
-    showToast(`${config[entityType].label} guardada.`);
-    closeForm();
-    await fetchRelations();
-    await loadItems();
-    const repeatContext = getRepeatContext(createContext, payload);
-    if (!id && repeatContext && await confirmDialog('Crear otro elemento', repeatContext.question, 'Crear otro')) {
-        openForm(null, repeatContext.defaults);
-        return;
-    }
-    window.location.href = `${config[entityType].page}?id=${result.data.id}`;
-}
-
-function getRepeatContext(createContext, payload) {
-    if (entityType === 'caja' && createContext.zona_id && payload.zona_id) return { question: 'Caja creada. ¿Quieres crear otra caja en esta misma zona?', defaults: { zona_id: payload.zona_id } };
-    if (entityType === 'objeto' && createContext.caja_id && payload.caja_id) return { question: 'Objeto creado. ¿Quieres crear otro objeto en esta misma caja?', defaults: { caja_id: payload.caja_id, zona_id: payload.zona_id } };
-    return null;
-}
-
-async function loadRelatedItems(item) {
-    if (entityType === 'zona') {
-        const { data, error } = await supabaseClient.from('trastero_cajas').select('id,nombre,ubicacion,notas').eq('espacio_id', currentSpace.id).eq('zona_id', item.id).order('nombre');
-        if (error) throw error;
-        return { label: 'Cajas en esta zona', itemLabel: 'caja', url: 'cajas.html', createUrl: `cajas.html?new=1&zona_id=${item.id}`, createLabel: 'Añadir caja', items: await attachThumbnails(data || [], 'caja') };
-    }
-    if (entityType === 'caja') {
-        const { data, error } = await supabaseClient.from('trastero_objetos').select('id,nombre,notas').eq('espacio_id', currentSpace.id).eq('caja_id', item.id).order('nombre');
-        if (error) throw error;
-        return { label: 'Objetos en esta caja', itemLabel: 'objeto', url: 'objetos.html', createUrl: `objetos.html?new=1&caja_id=${item.id}${item.zona_id ? `&zona_id=${item.zona_id}` : ''}`, createLabel: 'Añadir objeto', items: await attachThumbnails(data || [], 'objeto') };
-    }
-    return null;
-}
-
-function renderRelatedItems(related) {
-    if (!related) return '';
-    const returnUrl = encodeURIComponent(currentDetailUrl());
-    const rows = related.items.length ? related.items.map((item) => `
-        <a class="related-row ${related.itemLabel === 'objeto' ? 'compact-related-row' : ''}" href="${related.url}?id=${item.id}&returnUrl=${returnUrl}">
-            ${renderThumbnail(item, related.itemLabel, 'related-thumbnail')}
-            <span class="related-copy"><strong>${escapeHtml(item.nombre)}</strong><span>${escapeHtml(item.ubicacion || item.notas || 'Sin notas')}</span></span>
-            <span class="related-chevron" aria-hidden="true">›</span>
-        </a>`).join('') : `<p class="empty-state">No hay ${related.itemLabel === 'caja' ? 'cajas' : 'objetos'} asociados.</p>`;
-    return `<section class="detail-card related-items"><div class="detail-card-heading"><h3>${related.label} (${related.items.length})</h3><a href="${related.createUrl}">+ ${related.createLabel}</a></div><div class="related-list">${rows}</div></section>`;
-}
-
-function renderInfoRows(item) {
-    const rows = [];
-    rows.push({ label: 'Espacio', value: currentSpace.nombre });
-    if (entityType === 'caja') rows.push({ label: 'Zona', value: relationName(zonas, item.zona_id) || 'Sin zona', action: 'move-zone' });
-    else if (entityType === 'objeto') rows.push({ label: 'Zona', value: relationName(zonas, item.zona_id) || 'Sin zona', action: 'move-object-zone' });
-    if (entityType === 'objeto') rows.push({ label: 'Caja', value: relationName(cajas, item.caja_id) || 'Sin caja', action: 'move-box' });
-    if (entityType === 'caja') rows.push({ label: 'Ubicación', value: item.ubicacion || 'Sin ubicación' });
-    rows.push({ label: 'Notas', value: item.notas || 'Sin notas' });
-    rows.push({ label: 'Creado', value: formatDate(item.created_at) });
-    rows.push({ label: 'Actualizado', value: formatDate(item.updated_at) });
-    return rows.map((row) => `
-        <div class="info-row">
-            <span>${row.label}</span>
-            <strong>${escapeHtml(row.value)}${row.action ? `<button class="inline-edit-button" type="button" data-action="${row.action}" aria-label="Cambiar ${escapeHtml(row.label.toLowerCase())}">✎</button>` : ''}</strong>
-        </div>`).join('');
-}
-
-async function showDetail(id) {
-    const { data: item, error } = await supabaseClient.from(config[entityType].table).select('*').eq('espacio_id', currentSpace.id).eq('id', id).single();
-    if (error || !item) {
-        showToast('No se pudo abrir la ficha.', true);
-        window.location.href = config[entityType].page;
-        return;
-    }
-    currentItem = item;
-    let photos;
-    let related;
-    try {
-        [photos, related] = await Promise.all([loadPhotos(item.id), loadRelatedItems(item)]);
-    } catch (loadError) {
-        showToast(`No se pudieron cargar los elementos relacionados: ${loadError.message}`, true);
-        photos = await loadPhotos(item.id);
-        related = null;
-    }
-    const extraActions = entityType === 'zona'
-        ? `<a class="button button-success" href="cajas.html?new=1&zona_id=${item.id}">Crear caja</a><a class="button button-success" href="objetos.html?new=1&zona_id=${item.id}">Crear objeto</a>`
-        : entityType === 'caja'
-            ? `<a class="button button-success" href="objetos.html?new=1&caja_id=${item.id}${item.zona_id ? `&zona_id=${item.zona_id}` : ''}">Crear objeto</a>`
-            : '';
-    const mainPhoto = photos[0]?.signed_url || '';
-    const locationLines = [];
-    if (item.zona_id) locationLines.push(`<span><b>Zona</b> ${escapeHtml(relationName(zonas, item.zona_id))}</span>`);
-    if (item.caja_id) locationLines.push(`<span><b>Caja</b> ${escapeHtml(relationName(cajas, item.caja_id))}</span>`);
-    if (item.ubicacion) locationLines.push(`<span><b>Ubicación</b> ${escapeHtml(item.ubicacion)}</span>`);
-    const panel = document.getElementById('detail-panel');
-    panel.classList.add('detail-panel');
-    panel.innerHTML = `
-        <div class="detail-topbar"><button class="detail-back" type="button" data-action="back-list" aria-label="Volver">‹</button><span class="detail-type-mark">${entityInitial()}</span><strong>${config[entityType].label}</strong></div>
-        <section class="detail-card detail-hero">
-            ${mainPhoto ? `<img class="detail-main-photo" src="${escapeHtml(mainPhoto)}" alt="Foto de ${escapeHtml(item.nombre)}">` : `<span class="detail-main-photo thumbnail-placeholder">${entityInitial()}</span>`}
-            <div class="detail-hero-copy">
-                <div class="detail-title-row"><h2>${escapeHtml(item.nombre)}</h2><button class="photo-count-button" type="button" data-action="focus-photos">Fotos (${photos.length})</button></div>
-                <div class="detail-locations">${locationLines.join('') || `<span><b>Espacio</b> ${escapeHtml(currentSpace.nombre)}</span>`}</div>
-            </div>
-            <div class="detail-notes-card"><h3>Notas</h3><p>${formatNotes(item.notas)}</p><button type="button" data-action="edit-detail">Editar</button></div>
-        </section>
-        <section class="detail-card detail-information"><h3>Información</h3>${renderInfoRows(item)}</section>
-        ${renderRelatedItems(related)}
-        <section id="detail-photos" class="detail-card photo-upload">
-            <div class="detail-card-heading"><h3>Fotos (${photos.length})</h3><label class="photo-add-button" for="photo-input">+ Añadir foto</label></div>
-            <p class="help-text">Las imágenes se comprimen antes de subirlas.</p>
-            <input id="photo-input" class="sr-only" type="file" accept="image/*" capture="environment">
-            <div class="photos-grid">${renderPhotos(photos)}</div>
-        </section>
-        <div class="detail-actions"><button class="button detail-edit" type="button" data-action="edit-detail">Editar</button><button class="button detail-delete" type="button" data-action="delete">Eliminar</button>${extraActions}</div>`;
-    panel.hidden = false;
-}
-
-function handleDetailAction(event) {
-    const action = event.target.closest('[data-action]')?.dataset.action;
-    if (!action) return;
-    if (action === 'back-list') window.location.href = getSafeReturnUrl() || config[entityType].page;
-    if (action === 'edit-detail') openForm(currentItem);
-    if (action === 'delete') deleteItem();
-    if (action === 'delete-photo') deletePhoto(event.target.closest('[data-photo-id]'));
-    if (action === 'set-primary-photo') setPrimaryPhoto(event.target.closest('[data-photo-id]')?.dataset.photoId);
-    if (action === 'move-zone') openMoveBoxZoneModal();
-    if (action === 'move-object-zone') openMoveObjectZoneModal();
-    if (action === 'move-box') openMoveObjectBoxModal();
-    if (action === 'focus-photos') document.getElementById('detail-photos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-async function deleteItem() {
-    if (!currentItem || !await confirmDialog('Eliminar elemento', `¿Eliminar "${currentItem.nombre}"? Las fotos asociadas también se eliminarán.`, 'Eliminar', true)) return;
-    const photos = await loadPhotos(currentItem.id);
-    if (photos.length) await supabaseClient.storage.from(storageBucket).remove(photos.flatMap((photo) => [photo.storage_path, photo.thumbnail_path].filter(Boolean)));
-    if (photos.length) await supabaseClient.from('trastero_fotos').delete().eq('tipo', entityType).eq('relacion_id', currentItem.id);
-    const { error } = await supabaseClient.from(config[entityType].table).delete().eq('id', currentItem.id);
+    const table = type === 'folder' ? 'trastero_carpetas' : 'trastero_items';
+    const { error } = await supabaseClient.from(table).delete().eq('id', entity.id);
     if (error) {
         showToast(`No se pudo eliminar: ${error.message}`, true);
         return;
     }
-    showToast(`${config[entityType].label} eliminada.`);
-    window.location.href = getSafeReturnUrl() || config[entityType].page;
+    showToast('Eliminado.');
+    await refreshAndRender(type === 'folder' ? entity.parent_id || '' : entity.carpeta_id || '');
 }
 
-async function loadPhotos(relationId) {
-    const { data, error } = await supabaseClient.from('trastero_fotos').select('*').eq('tipo', entityType).eq('relacion_id', relationId).order('es_principal', { ascending: false }).order('created_at', { ascending: false });
-    if (error) {
-        showToast('No se pudieron cargar las fotos.', true);
-        return [];
-    }
-    const photos = data || [];
-    if (!photos.length) return photos;
-    const paths = photos.flatMap((photo) => [photo.storage_path, photo.thumbnail_path].filter(Boolean));
-    const signed = await supabaseClient.storage.from(storageBucket).createSignedUrls(paths, 3600);
-    if (signed.error) return photos;
-    let signedIndex = 0;
-    return photos.map((photo) => {
-        const signedUrl = signed.data[signedIndex++]?.signedUrl || '';
-        const thumbnailUrl = photo.thumbnail_path ? signed.data[signedIndex++]?.signedUrl || signedUrl : signedUrl;
-        return { ...photo, signed_url: signedUrl, thumbnail_url: thumbnailUrl };
-    });
+async function collectPhotos(type, ids) {
+    if (!ids.length) return [];
+    const { data, error } = await supabaseClient.from('trastero_fotos').select('id,storage_path').eq('tipo', type).in('relacion_id', ids);
+    return error ? [] : data || [];
 }
 
-function renderPhotos(photos) {
-    if (!photos.length) return '<p class="empty-state">Todavía no hay fotos.</p>';
-    return photos.map((photo) => `<figure class="photo-card ${photo.es_principal ? 'photo-primary' : ''}"><a href="${escapeHtml(photo.signed_url)}" target="_blank" rel="noopener"><img src="${escapeHtml(photo.thumbnail_url)}" alt="Foto de ${escapeHtml(currentItem.nombre)}" loading="lazy"></a>${photo.es_principal ? '<span class="primary-badge">Principal</span>' : ''}<div class="photo-actions">${photo.es_principal ? '' : `<button class="button button-small button-muted" type="button" data-action="set-primary-photo" data-photo-id="${photo.id}">Principal</button>`}<button class="button button-small button-danger" type="button" data-action="delete-photo" data-photo-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-thumbnail-path="${escapeHtml(photo.thumbnail_path || '')}">Eliminar</button></div></figure>`).join('');
+async function collectFolderTreePhotos(folderId) {
+    const folderIds = [String(folderId), ...descendantIds(folderId)];
+    const itemIds = items.filter((item) => folderIds.includes(String(item.carpeta_id))).map((item) => item.id);
+    const [folderPhotos, itemPhotos] = await Promise.all([
+        collectPhotos('carpeta', folderIds),
+        collectPhotos('item', itemIds)
+    ]);
+    return [...folderPhotos, ...itemPhotos];
 }
 
-async function setPrimaryPhoto(photoId) {
-    if (!photoId || !currentItem) return;
-    const clear = await supabaseClient.from('trastero_fotos').update({ es_principal: false }).eq('tipo', entityType).eq('relacion_id', currentItem.id);
-    if (clear.error) {
-        showToast(`No se pudo preparar la foto principal: ${clear.error.message}`, true);
-        return;
-    }
-    const result = await supabaseClient.from('trastero_fotos').update({ es_principal: true }).eq('id', photoId);
-    if (result.error) {
-        showToast(`No se pudo marcar la foto principal: ${result.error.message}`, true);
-        return;
-    }
-    showToast('Foto principal actualizada.');
-    await showDetail(currentItem.id);
+async function openPhotos(type, relationId) {
+    const photos = await loadPhotos(type, relationId);
+    const modal = openModal('Fotos', `
+        <label class="button" for="modal-photo-input">Añadir foto</label>
+        <input id="modal-photo-input" class="sr-only" type="file" accept="image/*" capture="environment" data-photo-type="${type}" data-photo-id="${relationId}">
+        <div class="photos-list">${photos.length ? photos.map((photo) => `
+            <article class="search-result">
+                <img class="thumb" src="${escapeHtml(photo.url)}" alt="">
+                <strong>${photo.es_portada ? 'Portada' : 'Foto'}</strong>
+                <div class="form-actions">
+                    ${photo.es_portada ? '' : `<button class="button button-success" type="button" data-action="set-cover" data-id="${photo.id}" data-photo-type="${type}" data-relation-id="${relationId}">Portada</button>`}
+                    <button class="button button-danger" type="button" data-action="delete-photo" data-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-photo-type="${type}" data-relation-id="${relationId}">Eliminar</button>
+                </div>
+            </article>`).join('') : '<p class="empty-state">Todavia no hay fotos.</p>'}</div>`);
+    modal.querySelector('#modal-photo-input').addEventListener('change', handlePhotoInput);
 }
 
-async function openMoveBoxZoneModal() {
-    if (!currentItem || entityType !== 'caja') return;
-    const value = await openModal({
-        title: 'Mover caja',
-        body: `<label for="move-zone-select">Zona</label><select id="move-zone-select">${renderSelectOptions(zonas, currentItem.zona_id, 'Sin zona')}</select>`,
-        actions: [
-            { label: 'Cancelar', value: null, className: 'button-muted' },
-            { label: 'Guardar', value: 'save', className: 'button' }
-        ]
-    });
-    if (value !== 'save') return;
-    const selectedZoneId = document.getElementById('move-zone-select')?.value || null;
-    const targetName = relationName(zonas, selectedZoneId) || 'Sin zona';
-    if (!await confirmDialog('Confirmar cambio', `¿Mover "${currentItem.nombre}" a "${targetName}"?`, 'Guardar cambio')) return;
-    const { error } = await supabaseClient.from('trastero_cajas').update({ zona_id: selectedZoneId }).eq('id', currentItem.id);
-    if (error) {
-        showToast(`No se pudo mover la caja: ${error.message}`, true);
-        return;
-    }
-    showToast('Caja movida.');
-    await fetchRelations();
-    await loadItems();
-    await showDetail(currentItem.id);
+async function loadPhotos(type, relationId) {
+    const { data, error } = await supabaseClient.from('trastero_fotos').select('*').eq('tipo', type).eq('relacion_id', relationId).order('es_portada', { ascending: false }).order('created_at', { ascending: false });
+    if (error || !data?.length) return [];
+    const signed = await supabaseClient.storage.from(storageBucket).createSignedUrls(data.map((photo) => photo.storage_path), 3600);
+    if (signed.error) return data;
+    return data.map((photo, index) => ({ ...photo, url: signed.data[index]?.signedUrl || '' }));
 }
 
-async function openMoveObjectZoneModal() {
-    if (!currentItem || entityType !== 'objeto') return;
-    const value = await openModal({
-        title: 'Mover objeto de zona',
-        body: `<p class="help-text">Al cambiar la zona, el objeto quedará sin caja.</p><label for="move-object-zone-select">Zona</label><select id="move-object-zone-select">${renderSelectOptions(zonas, currentItem.zona_id, 'Sin zona')}</select>`,
-        actions: [
-            { label: 'Cancelar', value: null, className: 'button-muted' },
-            { label: 'Guardar', value: 'save', className: 'button' }
-        ]
-    });
-    if (value !== 'save') return;
-    const selectedZoneId = document.getElementById('move-object-zone-select')?.value || null;
-    const targetName = relationName(zonas, selectedZoneId) || 'Sin zona';
-    if (!await confirmDialog('Confirmar cambio', `¿Mover "${currentItem.nombre}" a "${targetName}" y dejarlo sin caja?`, 'Guardar cambio')) return;
-    const { error } = await supabaseClient.from('trastero_objetos').update({ zona_id: selectedZoneId, caja_id: null }).eq('id', currentItem.id);
-    if (error) {
-        showToast(`No se pudo mover el objeto: ${error.message}`, true);
-        return;
+async function handlePhotoInput(event) {
+    const input = event.target;
+    if (!input.files?.[0]) return;
+    input.disabled = true;
+    try {
+        await uploadPhoto(input.dataset.photoType, input.dataset.photoId, input.files[0]);
+        closeOverlay();
+        await refreshAndRender(null, currentRoute().itemId);
+    } catch (error) {
+        showToast(`No se pudo subir la foto: ${error.message}`, true);
+    } finally {
+        input.disabled = false;
     }
-    showToast('Objeto movido.');
-    await fetchRelations();
-    await loadItems();
-    await showDetail(currentItem.id);
 }
 
-async function openMoveObjectBoxModal() {
-    if (!currentItem || entityType !== 'objeto') return;
-    const availableBoxes = cajas.filter((box) => String(box.zona_id || '') === String(currentItem.zona_id || ''));
-    const value = await openModal({
-        title: 'Mover objeto de caja',
-        body: `<label for="move-box-select">Caja</label><select id="move-box-select">${renderSelectOptions(availableBoxes, currentItem.caja_id, 'Sin caja')}</select>`,
-        actions: [
-            { label: 'Cancelar', value: null, className: 'button-muted' },
-            { label: 'Guardar', value: 'save', className: 'button' }
-        ]
-    });
-    if (value !== 'save') return;
-    const selectedBoxId = document.getElementById('move-box-select')?.value || null;
-    const selectedBox = availableBoxes.find((box) => String(box.id) === String(selectedBoxId));
-    const targetName = selectedBox?.nombre || 'Sin caja';
-    if (!await confirmDialog('Confirmar cambio', `¿Mover "${currentItem.nombre}" a "${targetName}"?`, 'Guardar cambio')) return;
-    const { error } = await supabaseClient.from('trastero_objetos').update({ caja_id: selectedBoxId }).eq('id', currentItem.id);
-    if (error) {
-        showToast(`No se pudo mover el objeto: ${error.message}`, true);
-        return;
+async function uploadPhoto(type, relationId, file) {
+    const optimized = await optimizeImage(file);
+    const folder = type === 'carpeta' ? 'carpetas' : 'items';
+    const photoId = crypto.randomUUID();
+    const path = `${currentUser.id}/${folder}/${relationId}/${photoId}.jpg`;
+    const upload = await supabaseClient.storage.from(storageBucket).upload(path, optimized, { contentType: 'image/jpeg', upsert: false });
+    if (upload.error) throw upload.error;
+    const { count } = await supabaseClient.from('trastero_fotos').select('id', { count: 'exact', head: true }).eq('tipo', type).eq('relacion_id', relationId);
+    const record = await supabaseClient.from('trastero_fotos').insert({ user_id: currentUser.id, tipo: type, relacion_id: relationId, storage_path: path, es_portada: !count });
+    if (record.error) {
+        await supabaseClient.storage.from(storageBucket).remove([path]);
+        throw record.error;
     }
-    showToast('Objeto movido.');
-    await fetchRelations();
-    await loadItems();
-    await showDetail(currentItem.id);
 }
 
 async function optimizeImage(file, maxBytes = 300 * 1024) {
@@ -811,90 +642,93 @@ async function optimizeImage(file, maxBytes = 300 * 1024) {
     for (let attempt = 0; attempt < 14; attempt += 1) {
         blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
         if (blob.size <= maxBytes) break;
-        if (quality > .34) quality -= .08;
-        else {
-            const resized = document.createElement('canvas');
-            resized.width = Math.max(1, Math.round(canvas.width * .82));
-            resized.height = Math.max(1, Math.round(canvas.height * .82));
-            resized.getContext('2d').drawImage(canvas, 0, 0, resized.width, resized.height);
-            canvas.width = resized.width;
-            canvas.height = resized.height;
-            context.drawImage(resized, 0, 0);
-        }
+        quality = Math.max(.32, quality - .08);
     }
     bitmap.close();
     return blob;
 }
 
-async function createThumbnail(file) {
-    const bitmap = await createImageBitmap(file);
-    const size = 320;
-    const scale = Math.max(size / bitmap.width, size / bitmap.height);
-    const width = Math.round(bitmap.width * scale);
-    const height = Math.round(bitmap.height * scale);
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    canvas.getContext('2d').drawImage(bitmap, Math.round((size - width) / 2), Math.round((size - height) / 2), width, height);
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', .72));
-    bitmap.close();
-    return blob;
+async function setCover(photoId, type, relationId) {
+    const clear = await supabaseClient.from('trastero_fotos').update({ es_portada: false }).eq('tipo', type).eq('relacion_id', relationId);
+    if (clear.error) {
+        showToast(`No se pudo actualizar portada: ${clear.error.message}`, true);
+        return;
+    }
+    const result = await supabaseClient.from('trastero_fotos').update({ es_portada: true }).eq('id', photoId);
+    if (result.error) showToast(`No se pudo marcar portada: ${result.error.message}`, true);
+    else {
+        showToast('Portada actualizada.');
+        closeOverlay();
+        await refreshAndRender(null, currentRoute().itemId);
+    }
 }
 
-document.addEventListener('change', async (event) => {
-    if (event.target.id !== 'photo-input' || !event.target.files[0] || !currentItem) return;
-    const input = event.target;
-    input.disabled = true;
-    try {
-        const [optimized, thumbnail] = await Promise.all([optimizeImage(input.files[0]), createThumbnail(input.files[0])]);
-        const folder = `${entityType}s`;
-        const photoId = crypto.randomUUID();
-        const path = `${currentUser.id}/${folder}/${currentItem.id}/${photoId}.jpg`;
-        const thumbnailPath = `${currentUser.id}/${folder}/${currentItem.id}/thumbs/${photoId}.jpg`;
-        const upload = await supabaseClient.storage.from(storageBucket).upload(path, optimized, { contentType: 'image/jpeg', upsert: false });
-        if (upload.error) throw upload.error;
-        const thumbnailUpload = await supabaseClient.storage.from(storageBucket).upload(thumbnailPath, thumbnail, { contentType: 'image/jpeg', upsert: false });
-        if (thumbnailUpload.error) {
-            await supabaseClient.storage.from(storageBucket).remove([path]);
-            throw thumbnailUpload.error;
-        }
-        const { count } = await supabaseClient.from('trastero_fotos').select('id', { count: 'exact', head: true }).eq('tipo', entityType).eq('relacion_id', currentItem.id);
-        const record = await supabaseClient.from('trastero_fotos').insert({ user_id: currentUser.id, tipo: entityType, relacion_id: currentItem.id, storage_path: path, thumbnail_path: thumbnailPath, es_principal: !count });
-        if (record.error) {
-            await supabaseClient.storage.from(storageBucket).remove([path, thumbnailPath]);
-            throw record.error;
-        }
-        showToast('Foto añadida.');
-        await showDetail(currentItem.id);
-    } catch (error) {
-        showToast(`No se pudo subir la foto: ${error.message}`, true);
-    } finally {
-        input.disabled = false;
+async function deletePhoto(photoId, path) {
+    if (!await confirmAction('Eliminar foto', 'Eliminar esta foto?')) return;
+    await supabaseClient.storage.from(storageBucket).remove([path]);
+    const { error } = await supabaseClient.from('trastero_fotos').delete().eq('id', photoId);
+    if (error) showToast(`No se pudo eliminar: ${error.message}`, true);
+    else {
+        closeOverlay();
+        await refreshAndRender(null, currentRoute().itemId);
     }
+}
+
+async function refreshAndRender(folderId = null, itemId = null) {
+    await loadData();
+    if (itemId) navigateToItem(itemId);
+    else if (folderId !== null) navigateToFolder(folderId);
+    else renderCurrent();
+}
+
+document.addEventListener('click', async (event) => {
+    const actionElement = event.target.closest('[data-action]');
+    if (!actionElement) return;
+    const action = actionElement.dataset.action;
+    if (action === 'go-folder') navigateToFolder(actionElement.dataset.id || '');
+    if (action === 'go-item') navigateToItem(actionElement.dataset.id);
+    if (action === 'toggle-search') {
+        searchOpen = !searchOpen;
+        renderCurrent();
+        document.getElementById('global-search')?.focus();
+    }
+    if (action === 'scan-code') showToast('Escaneo preparado visualmente. La lectura de camara se puede activar en una siguiente fase.');
+    if (action === 'open-tree') openFolderTree();
+    if (action === 'open-create-sheet') openCreateSheet(actionElement.dataset.parent || '');
+    if (action === 'row-menu') {
+        event.stopPropagation();
+        openRowMenu(actionElement.dataset.type, actionElement.dataset.id);
+    }
+    if (action === 'folder-menu') {
+        const id = actionElement.dataset.id;
+        if (id) openRowMenu('folder', id);
+        else openSheet('Trastero', [
+            { id: 'tree', label: 'Ver arbol de carpetas', handler: () => openFolderTree() },
+            { id: 'private', label: 'Zona privada', handler: () => { window.location.href = '../Privado/index.html'; } },
+            { id: 'cancel', label: 'Cancelar', className: 'button-muted', handler: () => {} }
+        ]);
+    }
+    if (action === 'move-item') moveItem(itemById(actionElement.dataset.id));
+    if (action === 'open-photos') openPhotos(actionElement.dataset.type, actionElement.dataset.id);
+    if (action === 'set-cover') setCover(actionElement.dataset.id, actionElement.dataset.photoType, actionElement.dataset.relationId);
+    if (action === 'delete-photo') deletePhoto(actionElement.dataset.id, actionElement.dataset.path);
 });
 
-async function deletePhoto(button) {
-    if (!button || !await confirmDialog('Eliminar foto', '¿Eliminar esta foto?', 'Eliminar', true)) return;
-    const paths = [button.dataset.path, button.dataset.thumbnailPath].filter(Boolean);
-    const storageResult = await supabaseClient.storage.from(storageBucket).remove(paths);
-    if (storageResult.error) {
-        showToast(`No se pudo eliminar la foto: ${storageResult.error.message}`, true);
-        return;
-    }
-    const { error } = await supabaseClient.from('trastero_fotos').delete().eq('id', button.dataset.photoId);
-    if (error) {
-        showToast(`No se pudo eliminar el registro: ${error.message}`, true);
-        return;
-    }
-    showToast('Foto eliminada.');
-    await showDetail(currentItem.id);
-}
+document.addEventListener('input', (event) => {
+    if (event.target.id === 'global-search') renderSearchResults(event.target.value);
+});
+
+document.addEventListener('change', (event) => {
+    if (event.target.id === 'photo-input') handlePhotoInput(event);
+});
+
+window.addEventListener('popstate', renderCurrent);
 
 async function init() {
     if (!await requireAccess()) return;
     try {
-        if (page === 'inicio') await initHome();
-        else await initEntityPage();
+        await loadData();
+        renderCurrent();
     } catch (error) {
         showToast(`No se pudo iniciar Trastero: ${error.message}`, true);
     }

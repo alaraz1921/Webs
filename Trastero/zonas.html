@@ -3,32 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zonas | Trastero</title>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/trastero.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta http-equiv="refresh" content="0; url=index.html">
+    <title>Trastero</title>
 </head>
-<body class="trastero-page" data-page="zonas" data-entity="zona">
-    <div id="app-loading" class="app-loading">Comprobando acceso...</div>
-    <main id="app-shell" class="app-shell" hidden>
-        <header class="compact-header"><a class="space-home-link" href="index.html" aria-label="Volver al inicio del espacio">⌂</a><div><p class="app-kicker">Trastero</p><h1>Zonas</h1></div></header>
-        <section class="panel">
-            <div class="section-heading"><div><p class="eyebrow">Organización</p><h2>Tus zonas</h2></div><button class="button" type="button" data-action="new">Nueva zona</button></div>
-            <input id="list-filter" class="search-input" type="search" placeholder="Filtrar zonas..." autocomplete="off">
-            <div id="entity-list" class="card-list"></div>
-        </section>
-        <section id="detail-panel" class="panel" hidden></section>
-        <section id="form-panel" class="panel" hidden>
-            <div class="section-heading"><h2 id="form-title">Nueva zona</h2><button class="icon-button" type="button" data-action="close-form" aria-label="Cerrar">×</button></div>
-            <form id="entity-form">
-                <input id="entity-id" type="hidden">
-                <label for="nombre">Nombre</label><input id="nombre" name="nombre" required maxlength="150">
-                <label for="notas">Notas</label><textarea id="notas" name="notas" rows="5"></textarea>
-                <div class="form-actions"><button class="button" type="submit">Guardar zona</button><button class="button button-muted" type="button" data-action="close-form">Cancelar</button></div>
-            </form>
-        </section>
-    </main>
-    <div id="toast" class="toast" hidden></div>
-    <script src="../assets/supabase-client.js"></script><script src="js/trastero.js"></script>
+<body>
+    <script>window.location.replace('index.html');</script>
+    <a href="index.html">Abrir Trastero</a>
 </body>
 </html>

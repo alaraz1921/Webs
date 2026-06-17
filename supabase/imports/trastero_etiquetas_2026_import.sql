@@ -1,13 +1,12 @@
--- Importacion puntual de cajas y objetos desde Etiquetas 2026.docx.
+-- Importacion puntual de carpetas e items desde Etiquetas 2026.docx.
 -- Ejecutar manualmente en Supabase SQL Editor.
 -- Fuente: V:\Desc\2026\Etiquetas 2026.docx
--- Detectadas 44 paginas: 37 cajas activas por defecto, 193 objetos,
--- 2 paginas marcadas como NO EXISTE/OLD y 4 cajas sin objetos omitidas por defecto.
+-- Detectadas 44 paginas: 37 carpetas activas por defecto, 193 items,
+-- 2 paginas marcadas como NO EXISTE/OLD y 4 carpetas sin items omitidas por defecto.
 --
 -- Antes de ejecutar:
 -- 1) Cambia v_user_email por el email del usuario propietario en Supabase Auth.
--- 2) Cambia v_espacio_nombre si quieres importar en otro espacio.
--- 3) Si quieres meter tambien cajas marcadas como NO EXISTE/OLD o cajas sin objetos,
+-- 2) Si quieres meter tambien carpetas marcadas como NO EXISTE/OLD o carpetas sin items,
 --    cambia los flags correspondientes a true.
 
 begin;
@@ -15,15 +14,13 @@ begin;
 do $$
 declare
     v_user_email text := 'CAMBIAR_EMAIL@EJEMPLO.COM';
-    v_espacio_nombre text := 'Mi casa';
     v_importar_no_existe boolean := false;
-    v_importar_cajas_sin_objetos boolean := false;
+    v_importar_carpetas_sin_items boolean := false;
     v_user_id uuid;
-    v_espacio_id bigint;
-    v_caja_id bigint;
-    v_objeto text;
+    v_carpeta_id bigint;
+    v_item text;
     v_marker text;
-    v_caja record;
+    v_carpeta record;
 begin
     select id
     into v_user_id
@@ -35,21 +32,7 @@ begin
         raise exception 'No existe ningun usuario en auth.users con email %', v_user_email;
     end if;
 
-    select id
-    into v_espacio_id
-    from public.trastero_espacios
-    where user_id = v_user_id
-      and nombre = v_espacio_nombre
-    order by id
-    limit 1;
-
-    if v_espacio_id is null then
-        insert into public.trastero_espacios (user_id, nombre)
-        values (v_user_id, v_espacio_nombre)
-        returning id into v_espacio_id;
-    end if;
-
-    for v_caja in
+    for v_carpeta in
         select *
         from (values
         (1, 'activa', 'FONTANERIA', array['PINTURA', 'FIJACIONES', 'ANCLAJES', 'TORNILLERIA', 'ELECTRICIDAD', 'CARPINTERIA METALICA', 'CERRAMIENTOS', 'MANUALIDADES', 'LIMPIEZA AUTOMOVIL', 'UTILES', 'HERRAMIENTAS', 'OLD – NO EXISTE', 'CAJA P8', 'MALETA PADEL', 'CAJA CAMARA DE SEGURIDAD GARAJE']::text[]),
@@ -95,49 +78,47 @@ begin
         (42, 'activa', 'CAJA 2', array['9 AÑOS INVIERNO / VERANO']::text[]),
         (43, 'activa', 'VENTAS INVIERNO', array['DESDE 1 AÑO']::text[]),
         (44, 'activa', 'DUCHAS', array['RECAMBIOS DUCHAS', 'SWITCH DE LINK', 'PORTERO AUTOMÁTICO GOLMAR', 'DORSALES DE CARRERAS', 'SOPORTES DE MONITOR']::text[])
-        ) as datos(pagina, estado, caja_nombre, objetos)
+        ) as datos(pagina, estado, carpeta_nombre, items)
     loop
-        if v_caja.estado = 'no_existe' and not v_importar_no_existe then
+        if v_carpeta.estado = 'no_existe' and not v_importar_no_existe then
             continue;
         end if;
 
-        if v_caja.estado = 'sin_objetos' and not v_importar_cajas_sin_objetos then
+        if v_carpeta.estado = 'sin_objetos' and not v_importar_carpetas_sin_items then
             continue;
         end if;
 
-        v_marker := format('[import:etiquetas-2026:pagina=%s]', v_caja.pagina);
+        v_marker := format('[import:etiquetas-2026:pagina=%s]', v_carpeta.pagina);
 
         select id
-        into v_caja_id
-        from public.trastero_cajas
+        into v_carpeta_id
+        from public.trastero_carpetas
         where user_id = v_user_id
-          and espacio_id = v_espacio_id
           and notas = v_marker
         order by id
         limit 1;
 
-        if v_caja_id is null then
-            insert into public.trastero_cajas (user_id, espacio_id, zona_id, nombre, ubicacion, notas)
-            values (v_user_id, v_espacio_id, null, v_caja.caja_nombre, null, v_marker)
-            returning id into v_caja_id;
+        if v_carpeta_id is null then
+            insert into public.trastero_carpetas (user_id, parent_id, nombre, codigo, notas)
+            values (v_user_id, null, v_carpeta.carpeta_nombre, null, v_marker)
+            returning id into v_carpeta_id;
         end if;
 
-        foreach v_objeto in array v_caja.objetos
+        foreach v_item in array v_carpeta.items
         loop
-            if nullif(trim(v_objeto), '') is null then
+            if nullif(trim(v_item), '') is null then
                 continue;
             end if;
 
             if not exists (
                 select 1
-                from public.trastero_objetos
+                from public.trastero_items
                 where user_id = v_user_id
-                  and espacio_id = v_espacio_id
-                  and caja_id = v_caja_id
-                  and nombre = v_objeto
+                  and carpeta_id = v_carpeta_id
+                  and nombre = v_item
             ) then
-                insert into public.trastero_objetos (user_id, espacio_id, zona_id, caja_id, nombre, notas)
-                values (v_user_id, v_espacio_id, null, v_caja_id, v_objeto, null);
+                insert into public.trastero_items (user_id, carpeta_id, nombre, cantidad, unidad, notas)
+                values (v_user_id, v_carpeta_id, v_item, 1, 'unit', null);
             end if;
         end loop;
     end loop;
@@ -146,9 +127,9 @@ end $$;
 commit;
 
 -- Comprobacion posterior de lo importado:
--- select c.nombre as caja, count(o.id) as objetos
--- from public.trastero_cajas c
--- left join public.trastero_objetos o on o.caja_id = c.id
+-- select c.nombre as carpeta, count(i.id) as items
+-- from public.trastero_carpetas c
+-- left join public.trastero_items i on i.carpeta_id = c.id
 -- where c.notas like '[import:etiquetas-2026:pagina=%]'
 -- group by c.id, c.nombre
 -- order by c.id;

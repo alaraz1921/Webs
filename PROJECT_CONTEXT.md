@@ -215,23 +215,22 @@ Tipografias:
 - Usa `profiles`, `app_projects` y `project_members`.
 - El apartado Proyectos muestra la lista de usuarios registrados disponible según las politicas RLS de `profiles`.
 - Se ha eliminado el antiguo apartado Notas.
-- Muestra acceso a `Trastero/` para perfiles con rol `admin` o `trastero`.
+- Muestra acceso a `Trastero/`; la app valida acceso de administrador.
 
 ### Trastero
 
-`Trastero/` es una aplicacion privada multipagina para gestionar espacios, zonas, cajas, objetos y fotos:
+`Trastero/` es una aplicacion privada mobile-first para gestionar carpetas anidadas, items y fotos:
 
-- Acceso exclusivo para usuarios autenticados con rol `admin` o `trastero`.
+- Acceso exclusivo para usuarios autenticados con rol `admin`.
 - Cada usuario solo puede gestionar sus propios registros mediante RLS y validaciones de relaciones.
-- La jerarquia funcional es `Espacio -> Zonas -> Cajas -> Objetos`; el espacio activo filtra toda la gestion.
-- Las fichas se abren en una vista propia mediante URL con `?id=`, con boton de vuelta al listado.
-- Incluye busqueda global, CRUD completo, creacion contextual y fotos comprimidas antes de subir.
-- La creacion contextual permite encadenar nuevas cajas en la misma zona y nuevos objetos en la misma caja.
-- Las fichas de zona muestran sus cajas y las fichas de caja muestran sus objetos, con acceso directo.
-- Las fichas siguen una estructura visual móvil con foto destacada, información, relacionados y acciones inferiores.
-- Cada nueva foto genera una miniatura cuadrada independiente para fichas y listados relacionados.
+- La jerarquia funcional es libre: carpeta raiz, subcarpetas ilimitadas e items finales.
+- La navegacion usa `index.html?folder=` e `index.html?item=` con vuelta al padre.
+- Incluye busqueda global, CRUD completo, creacion contextual, arbol de carpetas, movimiento y fotos comprimidas antes de subir.
+- Las pantallas antiguas de zonas/cajas/objetos redirigen a `index.html`.
+- Las fichas de item siguen una estructura visual móvil con foto destacada y accion de mover.
+- Las fotos pueden marcarse como portada para listados y fichas.
 - El bucket privado `trastero-fotos` usa carpetas por usuario y URLs firmadas.
-- SQL operativo: migraciones `supabase/migrations/20260616*_trastero*.sql`.
+- SQL operativo: `supabase/migrations/20260617090000_trastero_carpetas_items.sql`.
 
 ### Bingo
 
@@ -356,10 +355,8 @@ Tablas usadas:
 - `infiltrado_jugadores`
 - `infiltrado_palabras_usadas`
 - `infiltrado_resultados`
-- `trastero_zonas`
-- `trastero_espacios`
-- `trastero_cajas`
-- `trastero_objetos`
+- `trastero_carpetas`
+- `trastero_items`
 - `trastero_fotos`
 
 Funciones/RPC:
@@ -403,6 +400,7 @@ Migraciones:
 - `20260616110000_trastero_thumbnails.sql`
 - `20260616130000_trastero_espacios.sql`
 - `20260616150000_trastero_foto_principal.sql`
+- `20260617090000_trastero_carpetas_items.sql`
 
 Configuracion manual necesaria para el registro de Games:
 
