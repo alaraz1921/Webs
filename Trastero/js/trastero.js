@@ -195,7 +195,7 @@ function renderRows(childFolders, childItems) {
                 <div class="row-copy">
                     ${folder.codigo ? `<span class="code">${escapeHtml(folder.codigo)}</span>` : ''}
                     <strong class="row-title">${escapeHtml(folder.nombre)}</strong>
-                    <span class="row-meta">▱ ${folderCount} | ${itemCount} unit</span>
+                    <span class="row-meta">▱ ${folderCount} | ${itemCount} items</span>
                 </div>
                 <button class="row-menu" type="button" data-action="row-menu" data-type="folder" data-id="${folder.id}" aria-label="Menu">•••</button>
             </article>`;
