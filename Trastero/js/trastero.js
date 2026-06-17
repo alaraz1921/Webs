@@ -221,7 +221,7 @@ function renderRows(childFolders, childItems) {
                     ${folder.codigo ? `<span class="code">Cod.: ${escapeHtml(folder.codigo)}</span>` : ''}
                     <strong class="row-title">${escapeHtml(folder.nombre)}</strong>
                     <span class="row-meta">
-                        <span class="meta-part"><img class="meta-icon" src="${folderIcon}" alt="">${folderCount}</span>
+                        <span class="meta-part">${folderCount}<img class="meta-icon" src="${folderIcon}" alt=""></span>
                         <span class="meta-separator">|</span>
                         <span>${itemCount} items</span>
                     </span>
@@ -275,13 +275,16 @@ function renderPhotoStack(type, relationId) {
     const visible = photos.slice(0, 3);
     const extra = photos.length - visible.length;
     return `
-        <button class="photo-stack" type="button" data-action="open-photos" data-type="${type}" data-id="${relationId}" aria-label="Abrir galeria">
-            ${visible.map((photo, index) => `
-                <span class="photo-stack-item">
-                    <img src="${escapeHtml(photo.thumbUrl || photo.url)}" alt="">
-                    ${index === 2 && extra > 0 ? `<span class="photo-stack-more">+${extra}</span>` : ''}
-                </span>`).join('')}
-        </button>`;
+        <div class="photo-gallery-row">
+            <button class="photo-stack" type="button" data-action="open-photos" data-type="${type}" data-id="${relationId}" aria-label="Abrir galeria">
+                ${visible.map((photo, index) => `
+                    <span class="photo-stack-item">
+                        <img src="${escapeHtml(photo.thumbUrl || photo.url)}" alt="">
+                        ${index === 2 && extra > 0 ? `<span class="photo-stack-more">+${extra}</span>` : ''}
+                    </span>`).join('')}
+            </button>
+            ${renderPhotoPrompt(type, relationId)}
+        </div>`;
 }
 
 function renderPhotoPrompt(type, relationId) {

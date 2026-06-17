@@ -115,11 +115,17 @@ body.trastero-page {
 .fab { position: fixed; right: max(24px, calc((100vw - 720px) / 2 + 24px)); bottom: 24px; z-index: 20; display: grid; width: 92px; height: 92px; border: 0; border-radius: 50%; background: var(--accent); color: white; font-size: 3.25rem; line-height: 1; place-items: center; box-shadow: 0 18px 52px rgba(223, 32, 56, .35); }
 .fab:hover { background: var(--accent-dark); }
 
-.photo-stack {
+.photo-gallery-row {
     display: flex;
     max-width: 100%;
     align-items: center;
     margin-top: 18px;
+    gap: 12px;
+}
+.photo-stack {
+    display: flex;
+    max-width: min-content;
+    align-items: center;
     padding: 0;
     border: 0;
     background: transparent;
@@ -159,6 +165,7 @@ body.trastero-page {
     box-shadow: 0 12px 34px rgba(22,24,35,.08);
     place-items: center;
 }
+.photo-gallery-row .photo-empty-action { flex: 0 0 auto; margin: 0; }
 
 .detail-grid { display: grid; gap: 1px; margin: 0 28px 28px; overflow: hidden; border-radius: 18px; background: var(--line); }
 .detail-row { display: grid; grid-template-columns: 120px 1fr; gap: 14px; padding: 18px; background: white; }
@@ -258,7 +265,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--folder); outline
     .code { margin-bottom: 6px; font-size: .82rem; letter-spacing: .08em; }
     .row-meta { margin-top: 7px; font-size: .9rem; }
     .row-menu { font-size: 1.35rem; }
-    .photo-stack { margin-top: 14px; }
+    .photo-gallery-row { margin-top: 14px; gap: 10px; }
     .photo-stack-item { width: 90px; height: 90px; border-radius: 18px; }
     .photo-stack-item + .photo-stack-item { margin-left: -16px; }
     .photo-empty-action { width: 62px; height: 62px; margin-top: 10px; }
