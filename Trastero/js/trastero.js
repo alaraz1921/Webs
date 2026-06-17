@@ -457,6 +457,26 @@ function flattenedFolders(parentId = '', level = 0, output = []) {
     return output;
 }
 
+function visibleTreeFolders(expanded, parentId = '', level = 0, output = []) {
+    childrenOf(parentId).forEach((folder) => {
+        output.push({ ...folder, level, hasChildren: childrenOf(folder.id).length > 0 });
+        if (expanded.has(String(folder.id))) visibleTreeFolders(expanded, folder.id, level + 1, output);
+    });
+    return output;
+}
+
+function ancestorIds(folderId) {
+    const ids = [];
+    let cursor = folderById(folderId);
+    const guard = new Set();
+    while (cursor?.parent_id && !guard.has(String(cursor.parent_id))) {
+        ids.unshift(String(cursor.parent_id));
+        guard.add(String(cursor.parent_id));
+        cursor = folderById(cursor.parent_id);
+    }
+    return ids;
+}
+
 function descendantIds(folderId, output = new Set()) {
     childrenOf(folderId).forEach((folder) => {
         output.add(String(folder.id));
@@ -468,6 +488,8 @@ function descendantIds(folderId, output = new Set()) {
 function openFolderTree({ selectedId = '', excludeId = '', onSelect = null } = {}) {
     const disabled = excludeId ? descendantIds(excludeId) : new Set();
     if (excludeId) disabled.add(String(excludeId));
+    const expanded = new Set(ancestorIds(selectedId));
+    if (selectedId) expanded.add(String(selectedId));
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop tree-picker-backdrop';
     backdrop.innerHTML = `<section class="modal"><div class="modal-top"><h2>Folders</h2><button class="modal-close" type="button" data-tree-close>×</button></div><input id="tree-search" type="search" placeholder="Search"><div id="tree-list" class="tree-list"></div></section>`;
@@ -479,14 +501,18 @@ function openFolderTree({ selectedId = '', excludeId = '', onSelect = null } = {
     });
     const renderTree = () => {
         const term = modal.querySelector('#tree-search').value.trim().toLowerCase();
-        const rows = flattenedFolders().filter((folder) => !term || [folder.nombre, folder.codigo, folder.notas].some((value) => String(value || '').toLowerCase().includes(term)));
+        const rows = term
+            ? flattenedFolders().filter((folder) => [folder.nombre, folder.codigo, folder.notas].some((value) => String(value || '').toLowerCase().includes(term))).map((folder) => ({ ...folder, hasChildren: childrenOf(folder.id).length > 0 }))
+            : visibleTreeFolders(expanded);
         modal.querySelector('#tree-list').innerHTML = `
             <button class="tree-row ${!selectedId ? 'selected' : ''}" type="button" data-tree-id="">
-                <span>▣</span><span class="tree-copy"><span>Root Level Items</span></span>
+                <span class="tree-toggle-spacer"></span><span class="tree-copy"><span>▣</span><span>Root Level Items</span></span><span></span>
             </button>
             ${rows.map((folder) => `
-                <button class="tree-row ${String(folder.id) === String(selectedId) ? 'selected' : ''} ${disabled.has(String(folder.id)) ? 'disabled' : ''}" style="--level:${folder.level}" type="button" data-tree-id="${folder.id}" ${disabled.has(String(folder.id)) ? 'disabled' : ''}>
-                    <span class="tree-indent"></span><span class="tree-copy"><span>▰</span><span>${escapeHtml(folder.nombre)}</span></span>
+                <button class="tree-row ${String(folder.id) === String(selectedId) ? 'selected' : ''} ${disabled.has(String(folder.id)) ? 'disabled' : ''}" style="--level:${folder.level}" type="button" data-tree-id="${folder.id}" data-has-children="${folder.hasChildren ? '1' : '0'}" data-expanded="${expanded.has(String(folder.id)) ? '1' : '0'}" ${disabled.has(String(folder.id)) ? 'disabled' : ''}>
+                    <span class="tree-toggle">${folder.hasChildren ? (expanded.has(String(folder.id)) ? '⌄' : '›') : ''}</span>
+                    <span class="tree-copy"><span>▰</span><span>${escapeHtml(folder.nombre)}</span></span>
+                    ${folder.hasChildren ? '<span class="tree-select" data-tree-select>Elegir</span>' : '<span></span>'}
                 </button>`).join('')}`;
     };
     renderTree();
@@ -495,6 +521,13 @@ function openFolderTree({ selectedId = '', excludeId = '', onSelect = null } = {
         const row = event.target.closest('[data-tree-id]');
         if (!row || row.disabled) return;
         const id = row.dataset.treeId;
+        const term = modal.querySelector('#tree-search').value.trim();
+        if (id && row.dataset.hasChildren === '1' && !event.target.closest('[data-tree-select]') && !term) {
+            if (expanded.has(String(id))) expanded.delete(String(id));
+            else expanded.add(String(id));
+            renderTree();
+            return;
+        }
         closeTree();
         if (onSelect) onSelect(id);
         else navigateToFolder(id);

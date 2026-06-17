@@ -161,12 +161,13 @@ input:focus, textarea:focus, select:focus { border-color: var(--folder); outline
 .search-result small { color: var(--muted); font-weight: 800; }
 
 .tree-list { display: grid; gap: 4px; margin-top: 18px; }
-.tree-row { display: grid; grid-template-columns: 36px 1fr; gap: 8px; align-items: center; min-height: 50px; padding: 7px 10px; border: 0; border-radius: 14px; background: transparent; color: var(--ink); text-align: left; }
+.tree-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 8px; align-items: center; min-height: 50px; margin-left: calc(var(--level, 0) * 22px); padding: 7px 10px; border: 0; border-radius: 14px; background: transparent; color: var(--ink); text-align: left; }
 .tree-row:hover, .tree-row.selected { background: #f2f3f7; }
 .tree-row.disabled { color: #c4c7d2; cursor: not-allowed; }
-.tree-indent { width: calc(var(--level) * 18px); }
+.tree-toggle, .tree-toggle-spacer { display: grid; width: 28px; height: 28px; color: var(--folder); font-size: 1.35rem; font-weight: 900; place-items: center; }
 .tree-copy { display: flex; min-width: 0; align-items: center; gap: 10px; }
 .tree-copy span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree-select { padding: 8px 10px; border-radius: 999px; background: #f0f1f6; color: var(--folder); font-size: .78rem; font-weight: 900; }
 
 .toast { position: fixed; right: 18px; bottom: 18px; z-index: 90; max-width: min(420px, calc(100vw - 36px)); padding: 14px 16px; border-radius: 14px; background: var(--ink); color: white; font-weight: 800; box-shadow: 0 12px 36px rgba(0,0,0,.25); }
 .toast.error { background: var(--danger); }
