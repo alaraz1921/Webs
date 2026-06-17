@@ -356,7 +356,7 @@ function renderSearchResults(term) {
     }));
     const results = [...folderResults, ...itemResults].slice(0, 30);
     box.innerHTML = results.length ? results.map((result) => `
-        <button class="search-result" type="button" data-action="${result.type === 'folder' ? 'go-folder' : 'go-item'}" data-id="${result.id}">
+        <button class="search-result" type="button" data-action="${result.type === 'folder' ? 'go-folder' : 'go-item'}" data-id="${result.id}" data-search-result="1">
             <strong>${escapeHtml(result.title)}</strong>
             <small>${escapeHtml(`${result.type === 'folder' ? 'Carpeta' : 'Item'}${result.code ? ` · ${result.code}` : ''}`)}</small>
             <small>${escapeHtml(result.path)}</small>
@@ -848,6 +848,7 @@ document.addEventListener('click', async (event) => {
     const actionElement = event.target.closest('[data-action]');
     if (!actionElement) return;
     const action = actionElement.dataset.action;
+    if (actionElement.dataset.searchResult) searchOpen = false;
     if (action === 'go-folder') navigateToFolder(actionElement.dataset.id || '');
     if (action === 'go-item') navigateToItem(actionElement.dataset.id);
     if (action === 'toggle-search') {
