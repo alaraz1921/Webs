@@ -18,6 +18,8 @@ let toastTimer = null;
 let searchOpen = false;
 let activeGalleryPhotos = [];
 let activeGalleryIndex = 0;
+let activeGalleryType = '';
+let activeGalleryRelationId = '';
 
 function escapeHtml(value = '') {
     return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
@@ -263,7 +265,9 @@ function renderEntityHeader({ type, id, title, code = '', path = '', photos = []
             ${searchOpen ? renderSearchPanel() : ''}
         </div>
         <header class="topbar">
+            <!-- Portada temporalmente oculta.
             ${cover ? `<section class="folder-hero"><img src="${escapeHtml(cover)}" alt="Foto de ${escapeHtml(title)}"></section>` : ''}
+            -->
             <div class="title-block">
                 <h1>${escapeHtml(title)}</h1>
                 ${path ? `<div class="breadcrumb">${escapeHtml(path)}</div>` : ''}
@@ -281,13 +285,13 @@ function renderPhotoStack(type, relationId) {
     const extra = photos.length - visible.length;
     return `
         <div class="photo-gallery-row">
-            <button class="photo-stack" type="button" data-action="open-photos" data-type="${type}" data-id="${relationId}" aria-label="Abrir galeria">
+            <div class="photo-stack" aria-label="Abrir galeria">
                 ${visible.map((photo, index) => `
-                    <span class="photo-stack-item">
+                    <button class="photo-stack-item" type="button" data-action="open-photo-gallery" data-type="${type}" data-id="${relationId}" data-index="${index}" aria-label="Abrir foto ${index + 1}">
                         <img src="${escapeHtml(photo.thumbUrl || photo.url)}" alt="">
                         ${index === 2 && extra > 0 ? `<span class="photo-stack-more">+${extra}</span>` : ''}
-                    </span>`).join('')}
-            </button>
+                    </button>`).join('')}
+            </div>
             ${renderPhotoPrompt(type, relationId)}
         </div>`;
 }
@@ -685,6 +689,8 @@ async function collectFolderTreePhotos(folderId) {
 async function openPhotos(type, relationId) {
     const photos = await loadPhotos(type, relationId);
     activeGalleryPhotos = photos;
+    activeGalleryType = type;
+    activeGalleryRelationId = relationId;
     const modal = openModal('Fotos', `
         <label class="button photo-upload-button" for="modal-photo-input"><img class="action-icon" src="${photoIcon}" alt="">Añadir foto</label>
         <input id="modal-photo-input" class="sr-only" type="file" accept="image/*" data-photo-type="${type}" data-photo-id="${relationId}">
@@ -702,6 +708,14 @@ async function openPhotos(type, relationId) {
     modal.querySelector('#modal-photo-input').addEventListener('change', handlePhotoInput);
 }
 
+async function openPhotoGallery(type, relationId, index = 0) {
+    const photos = await loadPhotos(type, relationId);
+    activeGalleryPhotos = photos;
+    activeGalleryType = type;
+    activeGalleryRelationId = relationId;
+    openPhotoViewer(index);
+}
+
 function openPhotoViewer(index = 0) {
     if (!activeGalleryPhotos.length) return;
     activeGalleryIndex = Math.max(0, Math.min(Number(index) || 0, activeGalleryPhotos.length - 1));
@@ -711,6 +725,7 @@ function openPhotoViewer(index = 0) {
 function renderPhotoViewer() {
     document.querySelector('.photo-viewer-backdrop')?.remove();
     const photo = activeGalleryPhotos[activeGalleryIndex];
+    const coverAction = photo.es_portada ? '' : `<button class="photo-viewer-pill cover-action" type="button" data-action="set-cover" data-id="${photo.id}" data-photo-type="${activeGalleryType}" data-relation-id="${activeGalleryRelationId}" aria-label="Poner como portada">&#10003;</button>`;
     const backdrop = document.createElement('div');
     backdrop.className = 'photo-viewer-backdrop';
     backdrop.innerHTML = `
@@ -719,7 +734,11 @@ function renderPhotoViewer() {
             <button class="photo-viewer-nav photo-viewer-prev" type="button" data-action="photo-viewer-prev" aria-label="Anterior" ${activeGalleryPhotos.length < 2 ? 'disabled' : ''}>‹</button>
             <img src="${escapeHtml(photo.url || photo.thumbUrl)}" alt="">
             <button class="photo-viewer-nav photo-viewer-next" type="button" data-action="photo-viewer-next" aria-label="Siguiente" ${activeGalleryPhotos.length < 2 ? 'disabled' : ''}>›</button>
-            <div class="photo-viewer-count">${activeGalleryIndex + 1} / ${activeGalleryPhotos.length}</div>
+            <div class="photo-viewer-controls">
+                <div class="photo-viewer-count">${activeGalleryIndex + 1} / ${activeGalleryPhotos.length}</div>
+                ${coverAction}
+                <button class="photo-viewer-pill delete-action" type="button" data-action="delete-photo" data-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-thumbnail-path="${escapeHtml(photo.thumbnail_path || '')}" data-thumb-url="${escapeHtml(photo.thumbUrl || photo.url)}" data-photo-type="${activeGalleryType}" data-relation-id="${activeGalleryRelationId}" aria-label="Eliminar foto">&#128465;</button>
+            </div>
         </section>`;
     document.body.appendChild(backdrop);
     backdrop.addEventListener('click', (event) => {
@@ -826,6 +845,7 @@ async function setCover(photoId, type, relationId) {
     else {
         showToast('Portada actualizada.');
         closeOverlay();
+        closePhotoViewer();
         await refreshAndRender(null, currentRoute().itemId);
     }
 }
@@ -838,6 +858,7 @@ async function deletePhoto(photoId, path, thumbnailPath = '', thumbUrl = '') {
     if (error) showToast(`No se pudo eliminar: ${error.message}`, true);
     else {
         closeOverlay();
+        closePhotoViewer();
         await refreshAndRender(null, currentRoute().itemId);
     }
 }
@@ -879,6 +900,7 @@ document.addEventListener('click', async (event) => {
     }
     if (action === 'move-item') moveItem(itemById(actionElement.dataset.id));
     if (action === 'open-photos') openPhotos(actionElement.dataset.type, actionElement.dataset.id);
+    if (action === 'open-photo-gallery') openPhotoGallery(actionElement.dataset.type, actionElement.dataset.id, actionElement.dataset.index);
     if (action === 'open-photo-viewer') openPhotoViewer(actionElement.dataset.index);
     if (action === 'close-photo-viewer') closePhotoViewer();
     if (action === 'photo-viewer-prev') stepPhotoViewer(-1);
