@@ -407,10 +407,10 @@ function openRowMenu(type, id) {
     const entity = type === 'folder' ? folderById(id) : itemById(id);
     if (!entity) return;
     openSheet(entity.nombre, [
-        { id: 'edit', label: 'Editar', handler: () => type === 'folder' ? openFolderForm(entity) : openItemForm(entity) },
-        { id: 'move', label: 'Mover', handler: () => type === 'folder' ? moveFolder(entity) : moveItem(entity) },
-        { id: 'delete', label: 'Eliminar', className: 'button-danger', handler: () => deleteEntity(type, entity) },
-        { id: 'cancel', label: 'Cancelar', className: 'button-muted', handler: () => {} }
+        { id: 'edit', label: '✎ Editar', handler: () => type === 'folder' ? openFolderForm(entity) : openItemForm(entity) },
+        { id: 'move', label: '⇄ Mover', handler: () => type === 'folder' ? moveFolder(entity) : moveItem(entity) },
+        { id: 'delete', label: '🗑 Eliminar', className: 'button-danger', handler: () => deleteEntity(type, entity) },
+        { id: 'cancel', label: '× Cancelar', className: 'button-muted', handler: () => {} }
     ]);
 }
 
@@ -627,9 +627,10 @@ async function moveItem(item) {
     });
 }
 
-function confirmAction(title, message) {
+function confirmAction(title, message, { html = false } = {}) {
     return new Promise((resolve) => {
-        const modal = openModal(title, `<p>${escapeHtml(message)}</p><div class="form-actions"><button class="button button-muted" type="button" data-confirm="no">Cancelar</button><button class="button" type="button" data-confirm="yes">Confirmar</button></div>`);
+        const content = html ? message : `<p>${escapeHtml(message)}</p>`;
+        const modal = openModal(title, `${content}<div class="form-actions"><button class="button button-muted" type="button" data-confirm="no">Cancelar</button><button class="button" type="button" data-confirm="yes">Confirmar</button></div>`);
         modal.addEventListener('click', (event) => {
             const button = event.target.closest('[data-confirm]');
             if (!button) return;
@@ -692,7 +693,7 @@ async function openPhotos(type, relationId) {
                 </button>
                 <div class="photo-tile-actions">
                     ${photo.es_portada ? '' : `<button class="photo-icon-action cover-action" type="button" data-action="set-cover" data-id="${photo.id}" data-photo-type="${type}" data-relation-id="${relationId}" aria-label="Poner como portada">✓</button>`}
-                    <button class="photo-icon-action delete-action" type="button" data-action="delete-photo" data-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-thumbnail-path="${escapeHtml(photo.thumbnail_path || '')}" data-photo-type="${type}" data-relation-id="${relationId}" aria-label="Eliminar foto">🗑</button>
+                    <button class="photo-icon-action delete-action" type="button" data-action="delete-photo" data-id="${photo.id}" data-path="${escapeHtml(photo.storage_path)}" data-thumbnail-path="${escapeHtml(photo.thumbnail_path || '')}" data-thumb-url="${escapeHtml(photo.thumbUrl || photo.url)}" data-photo-type="${type}" data-relation-id="${relationId}" aria-label="Eliminar foto">🗑</button>
                 </div>
             </article>`).join('') : '<p class="empty-state">Todavia no hay fotos.</p>'}</div>`);
     modal.querySelector('#modal-photo-input').addEventListener('change', handlePhotoInput);
@@ -826,8 +827,9 @@ async function setCover(photoId, type, relationId) {
     }
 }
 
-async function deletePhoto(photoId, path, thumbnailPath = '') {
-    if (!await confirmAction('Eliminar foto', 'Eliminar esta foto?')) return;
+async function deletePhoto(photoId, path, thumbnailPath = '', thumbUrl = '') {
+    const preview = thumbUrl ? `<img class="confirm-photo-thumb" src="${escapeHtml(thumbUrl)}" alt="">` : '';
+    if (!await confirmAction('Eliminar foto', `${preview}<p>Eliminar esta foto?</p>`, { html: true })) return;
     await supabaseClient.storage.from(storageBucket).remove([...new Set([path, thumbnailPath].filter(Boolean))]);
     const { error } = await supabaseClient.from('trastero_fotos').delete().eq('id', photoId);
     if (error) showToast(`No se pudo eliminar: ${error.message}`, true);
@@ -879,7 +881,7 @@ document.addEventListener('click', async (event) => {
     if (action === 'photo-viewer-prev') stepPhotoViewer(-1);
     if (action === 'photo-viewer-next') stepPhotoViewer(1);
     if (action === 'set-cover') setCover(actionElement.dataset.id, actionElement.dataset.photoType, actionElement.dataset.relationId);
-    if (action === 'delete-photo') deletePhoto(actionElement.dataset.id, actionElement.dataset.path, actionElement.dataset.thumbnailPath);
+    if (action === 'delete-photo') deletePhoto(actionElement.dataset.id, actionElement.dataset.path, actionElement.dataset.thumbnailPath, actionElement.dataset.thumbUrl);
 });
 
 document.addEventListener('input', (event) => {
