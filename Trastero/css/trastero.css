@@ -43,22 +43,23 @@ body.trastero-page {
 }
 
 .screen { min-height: 100vh; padding-bottom: 128px; background: var(--card); }
-.topbar { position: relative; display: grid; gap: 18px; padding: 34px 28px 18px; }
+.topbar { position: relative; display: grid; gap: 18px; padding: 10px 28px 18px; }
+.topbar-actions-bar { position: sticky; top: 0; z-index: 45; padding: 14px 28px 8px; background: rgba(255,255,255,.92); backdrop-filter: blur(12px); }
 .topbar-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .topbar-left { display: flex; min-width: 0; align-items: center; gap: 16px; }
 .title-block { min-width: 0; }
 .title-block h1 { margin: 0; overflow-wrap: anywhere; font-size: clamp(2.1rem, 8vw, 3.7rem); font-weight: 850; letter-spacing: -.05em; line-height: .98; }
 .topbar .title-block h1 { font-size: clamp(1.75rem, 7.6vw, 2.55rem); letter-spacing: -.04em; }
 .breadcrumb { overflow: hidden; max-width: 100%; margin-top: 6px; color: var(--muted); font-size: .95rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
-.entity-code { margin-top: 8px; color: var(--muted); font-size: .9rem; font-weight: 900; letter-spacing: .04em; }
+.entity-code { margin-top: 8px; color: var(--muted); font-size: .95rem; font-weight: 900; letter-spacing: .04em; }
 
 .round-button, .pill-button, .icon-only {
-    border: 1px solid rgba(255,255,255,.85);
+    border: 1px solid rgba(37,99,235,.42);
     background: #fff;
     color: var(--ink);
     box-shadow: 0 16px 45px rgba(22, 24, 35, .10);
 }
-.round-button { display: grid; flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; font-size: 1.65rem; place-items: center; }
+.round-button { display: grid; flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; font-size: 2.15rem; line-height: 1; place-items: center; }
 .round-icon { display: block; width: 34px; height: 34px; object-fit: contain; }
 .pill-button { display: flex; min-height: 54px; align-items: center; gap: 16px; padding: 0 18px; border-radius: 999px; font-size: 1.25rem; }
 .icon-only { display: grid; width: 54px; height: 54px; border-radius: 50%; font-size: 1.5rem; place-items: center; }
@@ -68,9 +69,10 @@ body.trastero-page {
 .folder-hero { overflow: hidden; border-radius: 24px; background: #f5f5f7; }
 .folder-hero img { display: block; width: 100%; height: 260px; object-fit: cover; }
 
-.stats { display: flex; gap: clamp(44px, 17vw, 86px); padding: 0 28px 24px; border-bottom: 1px solid var(--line); }
-.stat span { display: block; color: var(--muted); font-size: clamp(1.1rem, 4vw, 1.65rem); }
-.stat strong { display: block; margin-top: 10px; color: #5d6272; font-size: clamp(1.55rem, 5.7vw, 2.25rem); font-weight: 850; }
+.stats { display: flex; gap: clamp(34px, 14vw, 74px); padding: 0 28px 24px; border-bottom: 1px solid var(--line); }
+.stat { display: flex; align-items: baseline; gap: 9px; }
+.stat span, .stat strong { display: inline; color: var(--muted); font-size: clamp(1.1rem, 4vw, 1.65rem); }
+.stat strong { color: #5d6272; font-weight: 900; }
 .notes-panel { padding: 18px 28px; border-bottom: 1px solid var(--line); color: #3f4352; font-size: 1rem; font-weight: 700; line-height: 1.45; }
 .notes-panel strong { color: var(--ink); font-weight: 900; }
 
@@ -222,7 +224,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--folder); outline
 
 .search-panel {
     position: absolute;
-    top: 96px;
+    top: 78px;
     right: 28px;
     left: 28px;
     z-index: 30;
@@ -281,19 +283,20 @@ input:focus, textarea:focus, select:focus { border-color: var(--folder); outline
 
 @media (max-width: 520px) {
     .screen { padding-bottom: 96px; }
-    .topbar { gap: 14px; padding: 28px 20px 14px; }
+    .topbar { gap: 14px; padding: 8px 20px 14px; }
+    .topbar-actions-bar { padding: 10px 20px 8px; }
     .topbar-actions { gap: 12px; }
     .topbar-left { gap: 12px; }
-    .round-button { width: 54px; height: 54px; font-size: 1.35rem; }
+    .round-button { width: 54px; height: 54px; font-size: 1.85rem; }
     .round-icon { width: 31px; height: 31px; }
     .pill-button { min-height: 50px; gap: 12px; padding: 0 14px; }
     .icon-only-inline { font-size: 1.1rem; }
     .action-icon { width: 1.5em; height: 1.5em; }
     .folder-hero img { height: 210px; }
     .topbar .title-block h1 { font-size: clamp(1.55rem, 8.5vw, 2.2rem); }
-    .breadcrumb { margin-top: 4px; font-size: .76rem; }
-    .search-panel { top: 82px; right: 20px; left: 20px; padding: 12px; border-radius: 20px; }
-    .stats { gap: 58px; padding: 0 28px 20px; }
+    .breadcrumb, .entity-code { margin-top: 4px; font-size: .76rem; }
+    .search-panel { top: 70px; right: 20px; left: 20px; padding: 12px; border-radius: 20px; }
+    .stats { gap: 34px; padding: 0 28px 20px; }
     .content-row { grid-template-columns: 76px minmax(0, 1fr) 28px; min-height: 112px; gap: 16px; padding: 14px 20px; }
     .thumb { width: 76px; height: 76px; border-radius: 10px; font-size: 1.8rem; }
     .code { margin-bottom: 6px; font-size: .82rem; letter-spacing: .08em; }

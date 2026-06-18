@@ -220,7 +220,7 @@ function renderRows(childFolders, childItems) {
             <article class="content-row" role="button" tabindex="0" data-action="go-folder" data-id="${folder.id}">
                 ${cover ? `<img class="thumb" src="${escapeHtml(cover)}" alt="">` : `<img class="thumb thumb-placeholder" src="${folderIcon}" alt="">`}
                 <div class="row-copy">
-                    ${folder.codigo ? `<span class="code">Cod.: ${escapeHtml(folder.codigo)}</span>` : ''}
+                    ${folder.codigo ? `<span class="code">Id: ${escapeHtml(folder.codigo)}</span>` : ''}
                     <strong class="row-title">${escapeHtml(folder.nombre)}</strong>
                     <span class="row-meta">
                         <span class="meta-part">${folderCount}<img class="meta-icon" src="${folderIcon}" alt=""></span>
@@ -237,7 +237,7 @@ function renderRows(childFolders, childItems) {
             <article class="content-row" role="button" tabindex="0" data-action="go-item" data-id="${item.id}">
                 ${cover ? `<img class="thumb item-thumb" src="${escapeHtml(cover)}" alt="">` : `<img class="thumb item-thumb thumb-placeholder" src="${itemIcon}" alt="">`}
                 <div class="row-copy">
-                    ${item.codigo ? `<span class="code">Cod.: ${escapeHtml(item.codigo)}</span>` : ''}
+                    ${item.codigo ? `<span class="code">Id: ${escapeHtml(item.codigo)}</span>` : ''}
                     <strong class="row-title">${escapeHtml(item.nombre)}</strong>
                     <span class="row-meta">${escapeHtml(formatQuantity(item))}</span>
                 </div>
@@ -250,7 +250,7 @@ function renderRows(childFolders, childItems) {
 function renderEntityHeader({ type, id, title, code = '', path = '', photos = [], backAction, menuAction, showPhotoControls = true }) {
     const cover = photos[0]?.url || '';
     return `
-        <header class="topbar">
+        <div class="topbar-actions-bar">
             <div class="topbar-actions">
                 ${backAction}
                 <div class="pill-button" aria-label="Acciones">
@@ -260,6 +260,8 @@ function renderEntityHeader({ type, id, title, code = '', path = '', photos = []
                 </div>
             </div>
             ${searchOpen ? renderSearchPanel() : ''}
+        </div>
+        <header class="topbar">
             ${cover ? `<section class="folder-hero"><img src="${escapeHtml(cover)}" alt="Foto de ${escapeHtml(title)}"></section>` : ''}
             <div class="title-block">
                 <h1>${escapeHtml(title)}</h1>
