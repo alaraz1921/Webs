@@ -163,7 +163,8 @@ function navigateToItem(itemId) {
 
 function formatQuantity(item) {
     const quantity = item.cantidad ?? 1;
-    return `${Number(quantity).toLocaleString('es-ES')} ${item.unidad || 'unit'}`;
+    const unit = item.unidad === 'unit' ? 'unidad' : (item.unidad || 'unidad');
+    return `${Number(quantity).toLocaleString('es-ES')} ${unit}`;
 }
 
 function renderCurrent() {
@@ -220,7 +221,7 @@ function renderRows(childFolders, childItems) {
             <article class="content-row" role="button" tabindex="0" data-action="go-folder" data-id="${folder.id}">
                 ${cover ? `<img class="thumb" src="${escapeHtml(cover)}" alt="">` : `<img class="thumb thumb-placeholder" src="${folderIcon}" alt="">`}
                 <div class="row-copy">
-                    ${folder.codigo ? `<span class="code">Id: ${escapeHtml(folder.codigo)}</span>` : ''}
+                    ${folder.codigo ? `<span class="code">id: ${escapeHtml(folder.codigo)}</span>` : ''}
                     <strong class="row-title">${escapeHtml(folder.nombre)}</strong>
                     <span class="row-meta">
                         <span class="meta-part">${folderCount}<img class="meta-icon" src="${folderIcon}" alt=""></span>
@@ -237,7 +238,7 @@ function renderRows(childFolders, childItems) {
             <article class="content-row" role="button" tabindex="0" data-action="go-item" data-id="${item.id}">
                 ${cover ? `<img class="thumb item-thumb" src="${escapeHtml(cover)}" alt="">` : `<img class="thumb item-thumb thumb-placeholder" src="${itemIcon}" alt="">`}
                 <div class="row-copy">
-                    ${item.codigo ? `<span class="code">Id: ${escapeHtml(item.codigo)}</span>` : ''}
+                    ${item.codigo ? `<span class="code">id: ${escapeHtml(item.codigo)}</span>` : ''}
                     <strong class="row-title">${escapeHtml(item.nombre)}</strong>
                     <span class="row-meta">${escapeHtml(formatQuantity(item))}</span>
                 </div>
@@ -478,7 +479,7 @@ function openItemForm(item = null, defaultFolderId = '') {
             <label for="item-quantity">Cantidad</label>
             <input id="item-quantity" type="number" step="0.01" value="${escapeHtml(item?.cantidad ?? 1)}">
             <label for="item-unit">Unidad</label>
-            <input id="item-unit" maxlength="40" value="${escapeHtml(item?.unidad || 'unit')}">
+            <input id="item-unit" maxlength="40" value="${escapeHtml(item?.unidad === 'unit' ? 'unidad' : (item?.unidad || 'unidad'))}">
             <label for="item-notes">Notas</label>
             <textarea id="item-notes">${escapeHtml(item?.notas || '')}</textarea>
             <label for="item-photo">Foto/portada</label>
@@ -502,7 +503,7 @@ function openItemForm(item = null, defaultFolderId = '') {
             nombre: document.getElementById('item-name').value.trim(),
             codigo: document.getElementById('item-code').value.trim() || null,
             cantidad: document.getElementById('item-quantity').value || 1,
-            unidad: document.getElementById('item-unit').value.trim() || 'unit',
+            unidad: document.getElementById('item-unit').value.trim() || 'unidad',
             notas: document.getElementById('item-notes').value.trim() || null
         };
         const result = item
