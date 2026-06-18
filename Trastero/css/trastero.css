@@ -102,7 +102,7 @@ body.trastero-page {
     object-fit: cover;
     place-items: center;
 }
-.thumb-placeholder { padding: 0; background: #81879f; object-fit: contain; }
+.thumb-placeholder { padding: 0; background: #e4e6ef; object-fit: contain; }
 .item-thumb { background: #e4e6ef; color: #a2a8bb; }
 .row-copy { min-width: 0; }
 .code { display: block; margin-bottom: 8px; color: var(--muted); font-size: 1rem; font-weight: 400; letter-spacing: .04em; }
