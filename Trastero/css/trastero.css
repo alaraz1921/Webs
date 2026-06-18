@@ -22,7 +22,7 @@ body.trastero-page {
     margin: 0;
     background: var(--bg);
     color: var(--ink);
-    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .app-loading {
