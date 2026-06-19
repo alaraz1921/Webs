@@ -7,11 +7,22 @@ const adminEmail = document.getElementById('users-admin-email');
 const searchInput = document.getElementById('users-search');
 const listContainer = document.getElementById('users-admin-list');
 const messageBox = document.getElementById('users-admin-message');
+const editModal = document.getElementById('user-edit-modal');
+const editTitle = document.getElementById('user-edit-title');
+const editFields = document.getElementById('user-edit-fields');
+const editSave = document.getElementById('user-edit-save');
+const editCancel = document.getElementById('user-edit-cancel');
+const deleteModal = document.getElementById('user-delete-modal');
+const deleteTitle = document.getElementById('user-delete-title');
+const deleteConfirm = document.getElementById('user-delete-confirm');
+const deleteCancel = document.getElementById('user-delete-cancel');
 
 let currentUserId = null;
 let profiles = [];
 let projects = [];
 let memberships = [];
+let editingUserId = null;
+let deletingUserId = null;
 
 function showUsersMessage(text, type = 'info') {
     messageBox.textContent = text;
@@ -89,51 +100,42 @@ function renderUsers() {
 
     listContainer.innerHTML = '';
     data.forEach((profile) => {
-        const card = document.createElement('article');
-        card.className = 'private-user-admin-card';
+        const row = document.createElement('article');
+        row.className = 'private-user-row';
         const title = profile.display_name || profile.username || profile.email || 'Usuario';
         const email = profile.email || 'Sin email';
         const username = profile.username ? `@${profile.username}` : 'Sin alias';
         const canDelete = profile.id !== currentUserId;
 
-        card.innerHTML = `
-            <div class="private-user-admin-head">
-                <div>
-                    <h2>${escapeHtml(title)}</h2>
-                    <p>${escapeHtml(email)}</p>
-                    <small>${escapeHtml(username)}</small>
-                </div>
-                <button type="button" class="btn-danger private-user-delete"${canDelete ? '' : ' disabled'}>Borrar</button>
+        row.innerHTML = `
+            <div class="private-user-row-main">
+                <strong>${escapeHtml(title)}</strong>
+                <span>${escapeHtml(email)}</span>
+                <small>${escapeHtml(username)} · ${escapeHtml(profile.role)}</small>
             </div>
-            <label>Rol general</label>
-            <select class="private-profile-role">
-                ${optionList(PROFILE_ROLES, profile.role)}
-            </select>
-            <div class="private-project-role-grid"></div>
+            <div class="private-user-row-actions">
+                <button type="button" class="private-icon-button private-user-edit" aria-label="Editar usuario" title="Editar usuario">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                    </svg>
+                </button>
+                <button type="button" class="private-icon-button private-user-delete" aria-label="Borrar usuario" title="Borrar usuario"${canDelete ? '' : ' disabled'}>
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M3 6h18"></path>
+                        <path d="M8 6V4h8v2"></path>
+                        <path d="M6 6l1 15h10l1-15"></path>
+                        <path d="M10 11v6"></path>
+                        <path d="M14 11v6"></path>
+                    </svg>
+                </button>
+            </div>
         `;
 
-        card.querySelector('.private-profile-role').addEventListener('change', (event) => {
-            updateProfileRole(profile.id, event.target.value);
-        });
+        row.querySelector('.private-user-edit').addEventListener('click', () => openEditModal(profile.id));
+        row.querySelector('.private-user-delete').addEventListener('click', () => openDeleteModal(profile.id));
 
-        const deleteButton = card.querySelector('.private-user-delete');
-        deleteButton.addEventListener('click', () => deleteUser(profile.id, title));
-
-        const projectGrid = card.querySelector('.private-project-role-grid');
-        projects.forEach((project) => {
-            const wrapper = document.createElement('label');
-            const membership = membershipFor(profile.id, project.id);
-            wrapper.textContent = project.name || project.slug;
-            const select = document.createElement('select');
-            select.innerHTML = optionList(PROJECT_ROLES, membership?.role || '');
-            select.addEventListener('change', (event) => {
-                updateProjectRole(profile.id, project, event.target.value);
-            });
-            wrapper.appendChild(select);
-            projectGrid.appendChild(wrapper);
-        });
-
-        listContainer.appendChild(card);
+        listContainer.appendChild(row);
     });
 }
 
@@ -171,7 +173,7 @@ async function updateProfileRole(userId, role) {
     showUsersMessage('Rol general actualizado.');
 }
 
-async function updateProjectRole(userId, project, role) {
+async function updateProjectRole(userId, project, role, reload = true) {
     const existing = membershipFor(userId, project.id);
     let result;
 
@@ -192,34 +194,127 @@ async function updateProjectRole(userId, project, role) {
             .from('project_members')
             .insert({ project_id: project.id, user_id: userId, role });
     } else {
-        return;
+        return true;
     }
 
     if (result.error) {
-        await loadAdminData();
+        if (reload) await loadAdminData();
         showUsersMessage('No se pudo cambiar el rol del proyecto.', 'error');
+        return false;
+    }
+
+    if (reload) {
+        await loadAdminData();
+        showUsersMessage('Rol de proyecto actualizado.');
+    }
+    return true;
+}
+
+function profileLabel(profile) {
+    return profile.display_name || profile.username || profile.email || 'Usuario';
+}
+
+function openEditModal(userId) {
+    const profile = profiles.find((item) => item.id === userId);
+    if (!profile) return;
+    editingUserId = userId;
+    editTitle.textContent = `${profileLabel(profile)} · ${profile.email || 'Sin email'}`;
+    editFields.innerHTML = '';
+
+    const profileWrapper = document.createElement('label');
+    profileWrapper.textContent = 'Rol general';
+    const profileSelect = document.createElement('select');
+    profileSelect.id = 'edit-profile-role';
+    profileSelect.innerHTML = optionList(PROFILE_ROLES, profile.role);
+    profileWrapper.appendChild(profileSelect);
+    editFields.appendChild(profileWrapper);
+
+    const projectGrid = document.createElement('div');
+    projectGrid.className = 'private-project-role-grid';
+    projects.forEach((project) => {
+        const wrapper = document.createElement('label');
+        const membership = membershipFor(userId, project.id);
+        wrapper.textContent = project.name || project.slug;
+        const select = document.createElement('select');
+        select.dataset.projectId = project.id;
+        select.innerHTML = optionList(PROJECT_ROLES, membership?.role || '');
+        wrapper.appendChild(select);
+        projectGrid.appendChild(wrapper);
+    });
+    editFields.appendChild(projectGrid);
+    editModal.hidden = false;
+}
+
+function closeEditModal() {
+    editingUserId = null;
+    editModal.hidden = true;
+}
+
+async function saveEditedRoles() {
+    if (!editingUserId) return;
+    editSave.disabled = true;
+    clearUsersMessage();
+
+    const profileRole = document.getElementById('edit-profile-role').value;
+    const profileResult = await usersClient.from('profiles').update({ role: profileRole }).eq('id', editingUserId);
+    if (profileResult.error) {
+        editSave.disabled = false;
+        showUsersMessage('No se pudo cambiar el rol general.', 'error');
         return;
     }
 
+    const projectSelects = Array.from(editFields.querySelectorAll('[data-project-id]'));
+    for (const select of projectSelects) {
+        const project = projects.find((item) => item.id === select.dataset.projectId);
+        const updated = await updateProjectRole(editingUserId, project, select.value, false);
+        if (!updated) {
+            editSave.disabled = false;
+            return;
+        }
+    }
+
+    closeEditModal();
+    editSave.disabled = false;
     await loadAdminData();
-    showUsersMessage('Rol de proyecto actualizado.');
+    showUsersMessage('Roles actualizados.');
 }
 
-async function deleteUser(userId, label) {
+function openDeleteModal(userId) {
     if (userId === currentUserId) return;
-    if (!window.confirm(`¿Quieres borrar el usuario ${label}? Esta accion no se puede deshacer.`)) return;
+    const profile = profiles.find((item) => item.id === userId);
+    if (!profile) return;
+    deletingUserId = userId;
+    deleteTitle.textContent = `¿Quieres borrar el usuario ${profileLabel(profile)}? Esta accion no se puede deshacer.`;
+    deleteModal.hidden = false;
+}
 
-    const { data, error } = await usersClient.rpc('admin_delete_registered_user', { p_user_id: userId });
+function closeDeleteModal() {
+    deletingUserId = null;
+    deleteModal.hidden = true;
+}
+
+async function deleteUser() {
+    if (!deletingUserId || deletingUserId === currentUserId) return;
+    deleteConfirm.disabled = true;
+
+    const { data, error } = await usersClient.rpc('admin_delete_registered_user', { p_user_id: deletingUserId });
     if (error || !data?.ok) {
+        deleteConfirm.disabled = false;
         showUsersMessage(data?.message || 'No se pudo borrar el usuario. Ejecuta la migracion de gestion de usuarios si aun no esta aplicada.', 'error');
         return;
     }
 
+    closeDeleteModal();
+    deleteConfirm.disabled = false;
     await loadAdminData();
     showUsersMessage('Usuario borrado.');
 }
 
 searchInput.addEventListener('input', renderUsers);
+editSave.addEventListener('click', saveEditedRoles);
+editCancel.addEventListener('click', closeEditModal);
+deleteConfirm.addEventListener('click', deleteUser);
+deleteCancel.addEventListener('click', closeDeleteModal);
 
 requireAdminSession().then((isAdmin) => {
     if (isAdmin) loadAdminData();

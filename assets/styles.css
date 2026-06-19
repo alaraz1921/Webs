@@ -1876,44 +1876,71 @@ body.private-users-page #users-search {
 
 body.private-page .private-admin-users-list {
     display: grid;
-    gap: 14px;
+    gap: 8px;
     margin-top: 16px;
 }
 
-body.private-page .private-user-admin-card {
-    padding: 14px;
+body.private-page .private-user-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 12px;
     border: 1px solid rgba(148, 163, 184, 0.35);
     border-radius: 8px;
     background: rgba(15, 23, 42, 0.5);
     text-align: left;
 }
 
-body.private-page .private-user-admin-head {
+body.private-page .private-user-row-main {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
 }
 
-body.private-page .private-user-admin-head h2 {
-    margin: 0 0 4px;
+body.private-page .private-user-row-main strong {
     color: #ffffff;
     font-size: 1rem;
+    overflow-wrap: anywhere;
 }
 
-body.private-page .private-user-admin-head p,
-body.private-page .private-user-admin-head small {
-    display: block;
-    margin: 0;
+body.private-page .private-user-row-main span,
+body.private-page .private-user-row-main small {
     color: #cbd5e1;
     overflow-wrap: anywhere;
 }
 
+body.private-page .private-user-row-actions {
+    display: flex;
+    gap: 8px;
+}
+
+body.private-page .private-icon-button {
+    display: inline-grid;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0;
+    place-items: center;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 50%;
+    background: #334155;
+    color: #ffffff;
+}
+
+body.private-page .private-icon-button svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 body.private-page .private-user-delete {
-    width: auto;
-    min-width: 86px;
-    padding: 9px 10px;
-    background: #dc2626;
+    background: #7f1d1d;
 }
 
 body.private-page .private-user-delete:disabled {
@@ -1921,7 +1948,43 @@ body.private-page .private-user-delete:disabled {
     cursor: not-allowed;
 }
 
-body.private-page .private-user-admin-card select {
+body.private-page .private-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(2, 6, 23, 0.72);
+}
+
+body.private-page .private-modal[hidden] {
+    display: none;
+}
+
+body.private-page .private-modal-box {
+    width: 100%;
+    max-width: 520px;
+    max-height: min(760px, 88vh);
+    overflow: auto;
+    padding: 22px;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 10px;
+    background: #1e293b;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.42);
+}
+
+body.private-page .private-modal-box h2 {
+    margin: 0 0 8px;
+    color: #ffffff;
+}
+
+body.private-page .private-modal-box p {
+    margin-bottom: 16px;
+}
+
+body.private-page .private-modal select {
     width: 100%;
     min-height: 42px;
     margin: 6px 0 10px;
@@ -1929,6 +1992,17 @@ body.private-page .private-user-admin-card select {
     border-radius: 6px;
     background: #0f172a;
     color: #ffffff;
+}
+
+body.private-page .private-modal-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+body.private-page .private-secondary-button {
+    background: #475569;
 }
 
 body.private-page .private-project-role-grid {

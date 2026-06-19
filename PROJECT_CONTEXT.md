@@ -222,10 +222,10 @@ Tipografias:
 `Privado/usuarios.html`:
 
 - Requiere sesion de administrador.
+- Muestra los usuarios en lista con acciones de editar y borrar.
 - Permite buscar usuarios por nombre, alias o email.
-- Permite cambiar el rol general de `profiles.role`.
-- Permite cambiar o quitar roles por proyecto en `project_members.role`.
-- Permite borrar usuarios mediante la RPC `admin_delete_registered_user(uuid)`.
+- Permite cambiar el rol general de `profiles.role` y los roles por proyecto en una ventana modal.
+- Permite borrar usuarios mediante modal de confirmacion y la RPC `admin_delete_registered_user(uuid)`.
 
 ### Trastero
 

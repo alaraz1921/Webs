@@ -45,6 +45,7 @@ Ultima revision: 2026-06-15
 - [x] PA-39 Reforzar la ocultacion de `Volver a Games` al iniciar y reanudar la PWA de Infiltrado.
 - [x] PA-40 Reorganizar los controles del Monitor Bingo, añadir vuelta al carton y reforzar la ocultacion de Games en su PWA.
 - [x] PA-41 Añadir Trastero a Proyectos, restringir zona privada a administradores y crear gestion de usuarios.
+- [x] PA-42 Convertir la gestion de usuarios a lista con modales para editar roles y confirmar borrado.
 
 ## Prioridad Media
 
@@ -128,6 +129,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-25 Abrir y reanudar la PWA instalada de Infiltrado y comprobar que nunca aparece `Volver a Games`.
 - [ ] PR-26 En Monitor Bingo: probar Empezar/Pausar/Reanudar, Reiniciar, Nuevo Id, Ir a Carton y comprobar que la PWA oculta `Volver a Games`.
 - [ ] PR-27 Probar `proyectos.html` con TRASTER y validar que solo administradores acceden a `Privado/` y gestionan usuarios.
+- [ ] PR-28 En gestion de usuarios: buscar, abrir modal de roles, guardar cambios y borrar con confirmacion modal.
 
 ## Ideas De Mejora
 

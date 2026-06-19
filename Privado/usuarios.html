@@ -31,6 +31,29 @@
             </div>
         </section>
 
+        <div id="user-edit-modal" class="private-modal" hidden>
+            <div class="private-modal-box">
+                <h2>Editar usuario</h2>
+                <p id="user-edit-title"></p>
+                <div id="user-edit-fields"></div>
+                <div class="private-modal-actions">
+                    <button type="button" id="user-edit-save">Guardar</button>
+                    <button type="button" class="private-secondary-button" id="user-edit-cancel">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="user-delete-modal" class="private-modal" hidden>
+            <div class="private-modal-box">
+                <h2>Borrar usuario</h2>
+                <p id="user-delete-title"></p>
+                <div class="private-modal-actions">
+                    <button type="button" class="btn-danger" id="user-delete-confirm">Borrar</button>
+                    <button type="button" class="private-secondary-button" id="user-delete-cancel">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
         <a class="private-back-link btn-principal btn-home" href="index.html">
             <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 11.5 12 4l9 7.5"></path>
