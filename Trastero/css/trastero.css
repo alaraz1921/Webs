@@ -291,6 +291,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--folder); outline
 .scanner-box p { margin: 0; color: var(--muted); text-align: center; }
 .public-topbar { padding-top: 36px; }
 .public-icon { width: 118px; height: 118px; border-radius: 24px; background: #e4e6ef; object-fit: contain; }
+.public-cover { object-fit: cover; }
 .public-card { display: grid; min-height: 100vh; align-content: center; padding: 28px; color: var(--muted); text-align: center; }
 .public-readonly { margin: 0 28px; color: var(--muted); font-size: .95rem; text-align: center; }
 .public-gallery { display: flex; gap: 10px; overflow-x: auto; padding: 0 28px 20px; }

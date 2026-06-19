@@ -31,6 +31,10 @@ function publicPhotoUrl(photo, preferThumb = false) {
     return signedPublicUrls.get(primary) || signedPublicUrls.get(fallback) || '';
 }
 
+function firstPublicPhotoUrl(photos = [], preferThumb = false) {
+    return photos.map((photo) => publicPhotoUrl(photo, preferThumb)).find(Boolean) || '';
+}
+
 function collectPhotoPaths(record) {
     const paths = new Set();
     const addPhotos = (photos = []) => {
@@ -71,7 +75,7 @@ function renderPublicChildren(record) {
     const items = record.children?.items || [];
     if (!folders.length && !items.length) return '';
     const folderRows = folders.map((folder) => {
-        const cover = publicPhotoUrl((folder.photos || [])[0] || {}, true);
+        const cover = firstPublicPhotoUrl(folder.photos || [], true);
         return `
             <article class="content-row public-content-row">
                 ${cover ? `<img class="thumb" src="${escapeHtml(cover)}" alt="">` : `<img class="thumb thumb-placeholder" src="${folderIcon}" alt="">`}
@@ -83,7 +87,7 @@ function renderPublicChildren(record) {
             </article>`;
     }).join('');
     const itemRows = items.map((item) => {
-        const cover = publicPhotoUrl((item.photos || [])[0] || {}, true);
+        const cover = firstPublicPhotoUrl(item.photos || [], true);
         return `
             <article class="content-row public-content-row">
                 ${cover ? `<img class="thumb item-thumb" src="${escapeHtml(cover)}" alt="">` : `<img class="thumb item-thumb thumb-placeholder" src="${itemIcon}" alt="">`}
@@ -114,6 +118,8 @@ function renderPublic(record) {
     const shell = document.getElementById('app-shell');
     shell.hidden = false;
     const icon = record.type === 'carpeta' ? folderIcon : itemIcon;
+    const cover = firstPublicPhotoUrl(record.photos || [], false) || icon;
+    const coverClass = cover === icon ? 'public-icon' : 'public-icon public-cover';
     const typeLabel = record.type === 'carpeta' ? 'Carpeta' : 'Item';
     const detail = record.type === 'carpeta'
         ? `<div class="detail-row"><span>Folders</span><strong>${record.folder_count || 0}</strong></div>
@@ -122,7 +128,7 @@ function renderPublic(record) {
     shell.innerHTML = `
         <section class="screen public-screen">
             <header class="topbar public-topbar">
-                <img class="public-icon" src="${icon}" alt="">
+                <img class="${coverClass}" src="${escapeHtml(cover)}" alt="">
                 <div class="title-block">
                     <h1>${escapeHtml(record.nombre)}</h1>
                     <div class="breadcrumb">${escapeHtml(record.path || 'Root Level Items')}</div>
