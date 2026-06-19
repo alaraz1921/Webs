@@ -7,7 +7,7 @@ Aplicacion privada para gestionar un inventario domestico con carpetas anidadas,
 1. Aplicar `../supabase/migrations/20260617090000_trastero_carpetas_items.sql`.
 2. Esta migracion sustituye la estructura antigua de espacios/zonas/cajas/objetos.
 3. Asignar en `public.profiles.role` el valor `admin` a cada usuario autorizado.
-4. Acceder desde `Privado/index.html` y pulsar `Abrir Trastero`.
+4. Acceder desde `Trastero/index.html` para ver la portada o desde `Trastero/app.html` para entrar en la aplicacion autenticada.
 
 El SQL crea o actualiza el bucket privado `trastero-fotos`; no es necesario crearlo manualmente. Las fotos se guardan bajo `{user_id}/carpetas/{id}/...` o `{user_id}/items/{id}/...`, y las politicas de Storage impiden el acceso entre usuarios.
 

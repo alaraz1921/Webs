@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Inventario privado por carpetas e items.">
+    <meta name="description" content="Traster, inventario visual para ordenar carpetas, cajas, objetos y fotografias.">
     <meta name="theme-color" content="#2563eb">
-    <title>Trastero | Alaraz1921</title>
+    <title>Traster | Encuentra lo que guardas</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="assets/pwa-icon-192.png">
     <link rel="apple-touch-icon" href="assets/pwa-icon-192.png">
@@ -13,15 +13,47 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/trastero.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
 </head>
-<body class="trastero-page">
-    <div id="app-loading" class="app-loading">Comprobando acceso...</div>
-    <main id="app-shell" class="app-shell" hidden></main>
-    <div id="toast" class="toast" hidden></div>
-    <script src="../assets/supabase-client.js"></script>
-    <script src="js/trastero.js"></script>
+<body class="trastero-page trastero-home-page">
+    <a class="home-login-link" href="../Privado/index.html?next=../Trastero/app.html" aria-label="Iniciar sesion" title="Iniciar sesion">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="9" r="3"></circle>
+            <path d="M6.4 19a6.2 6.2 0 0 1 11.2 0"></path>
+        </svg>
+    </a>
+
+    <main class="trastero-home">
+        <section class="home-hero" aria-labelledby="home-title">
+            <div class="home-copy">
+                <p class="home-kicker">Traster</p>
+                <h1 id="home-title">Encuentra lo que guardas sin abrir cada caja.</h1>
+                <p class="home-lead">Organiza espacios, carpetas e items con fotos, codigos QR y una busqueda pensada para llegar rapido a lo que necesitas.</p>
+                <div class="home-actions">
+                    <a class="home-button" href="../Privado/index.html?next=../Trastero/app.html">Iniciar sesion</a>
+                </div>
+            </div>
+            <div class="home-visual" aria-hidden="true">
+                <div class="home-orbit"></div>
+                <img class="home-main-icon" src="assets/pwa-icon-512.png" alt="">
+                <div class="home-floating-card home-floating-card-one">
+                    <img src="assets/folder-box.png" alt="">
+                    <span>Carpetas</span>
+                </div>
+                <div class="home-floating-card home-floating-card-two">
+                    <img src="assets/item-box.png" alt="">
+                    <span>Items</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="home-feature-grid" aria-label="Funciones de Traster">
+            <article><span>01</span><h2>Mapa de almacenamiento</h2><p>Crea una estructura por espacios, carpetas e items para reflejar donde esta cada cosa.</p></article>
+            <article><span>02</span><h2>Fotos y miniaturas</h2><p>Identifica cajas y objetos de un vistazo con galerias ligeras y portadas visuales.</p></article>
+            <article><span>03</span><h2>Etiquetas QR</h2><p>Imprime etiquetas para abrir una vista publica de solo lectura desde el movil.</p></article>
+        </section>
+    </main>
+
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

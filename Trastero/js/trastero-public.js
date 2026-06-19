@@ -153,8 +153,8 @@ async function maybeRedirectToPrivate(record) {
     const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
     if (profile?.role !== 'admin') return false;
     const target = record.type === 'carpeta'
-        ? `index.html?folder=${encodeURIComponent(record.id)}`
-        : `index.html?item=${encodeURIComponent(record.id)}`;
+        ? `app.html?folder=${encodeURIComponent(record.id)}`
+        : `app.html?item=${encodeURIComponent(record.id)}`;
     window.location.replace(target);
     return true;
 }

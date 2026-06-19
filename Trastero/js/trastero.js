@@ -52,7 +52,7 @@ function showToast(message, error = false) {
 async function requireAccess() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session?.user) {
-        window.location.replace(`../Privado/index.html?next=${encodeURIComponent('../Trastero/index.html')}`);
+        window.location.replace(`../Privado/index.html?next=${encodeURIComponent('../Trastero/app.html')}`);
         return false;
     }
     const { data: profile, error } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
@@ -171,13 +171,13 @@ function entityPath(type, entity) {
 }
 
 function navigateToFolder(folderId = '') {
-    const url = folderId ? `index.html?folder=${encodeURIComponent(folderId)}` : 'index.html';
+    const url = folderId ? `app.html?folder=${encodeURIComponent(folderId)}` : 'app.html';
     history.pushState({}, '', url);
     renderCurrent();
 }
 
 function navigateToItem(itemId) {
-    history.pushState({}, '', `index.html?item=${encodeURIComponent(itemId)}`);
+    history.pushState({}, '', `app.html?item=${encodeURIComponent(itemId)}`);
     renderCurrent();
 }
 
@@ -996,6 +996,11 @@ async function refreshAndRender(folderId = null, itemId = null) {
     else renderCurrent();
 }
 
+async function signOutToHome() {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'index.html';
+}
+
 document.addEventListener('click', async (event) => {
     const actionElement = event.target.closest('[data-action]');
     if (!actionElement) return;
@@ -1020,7 +1025,7 @@ document.addEventListener('click', async (event) => {
         if (id) openRowMenu('folder', id);
         else openSheet('Trastero', [
             { id: 'tree', label: 'Ver arbol de carpetas', handler: () => openFolderTree() },
-            { id: 'private', label: 'Zona privada', handler: () => { window.location.href = '../Privado/index.html'; } },
+            { id: 'logout', label: 'Cerrar sesion', handler: () => signOutToHome() },
             { id: 'cancel', label: 'Cancelar', className: 'button-muted', handler: () => {} }
         ]);
     }
