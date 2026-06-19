@@ -22,6 +22,7 @@ let activeGalleryType = '';
 let activeGalleryRelationId = '';
 let scannerStream = null;
 let scannerFrame = null;
+let html5Scanner = null;
 
 function escapeHtml(value = '') {
     return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
@@ -665,10 +666,9 @@ function openLabelModal(type, entity) {
     const labelType = type === 'folder' ? 'Carpeta' : 'Item';
     const url = publicUrl(entity.public_token);
     const path = entityPath(type, entity);
-    openModal('Etiqueta QR', `
+    const modal = openModal('Etiqueta QR', `
         <section class="label-preview-wrap">
             <div class="print-label label-size-small">
-                <div class="label-brand">TRASTERO</div>
                 <div class="label-title">${escapeHtml(entity.nombre)}</div>
                 <div class="label-type">${escapeHtml(labelType)}</div>
                 ${entity.codigo ? `<div class="label-code">${escapeHtml(entity.codigo)}</div>` : ''}
@@ -677,9 +677,14 @@ function openLabelModal(type, entity) {
             </div>
         </section>
         <div class="label-actions">
-            <button class="button" type="button" data-action="print-label">Imprimir etiqueta</button>
+            <button class="button" type="button" id="print-label-button">Imprimir etiqueta</button>
             <button class="button button-muted" type="button" data-action="copy-label-link" data-url="${escapeHtml(url)}">Copiar enlace</button>
         </div>`);
+    modal.querySelector('#print-label-button').addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        window.print();
+    });
 }
 
 async function copyLabelLink(url) {
@@ -692,33 +697,26 @@ async function copyLabelLink(url) {
 }
 
 async function openScanner() {
-    if (!('BarcodeDetector' in window)) {
-        showToast('Este navegador no soporta lector QR integrado. Usa la camara del movil para abrir el QR publico.', true);
+    if (!window.Html5Qrcode) {
+        showToast('No se pudo cargar el lector QR. Comprueba la conexion y vuelve a intentarlo.', true);
         return;
     }
     const modal = openModal('Escanear codigo', `
         <div class="scanner-box">
-            <video id="scanner-video" autoplay muted playsinline></video>
+            <div id="scanner-reader"></div>
             <p>Apunta al QR o codigo de Trastero.</p>
         </div>`);
-    const video = modal.querySelector('#scanner-video');
+    const readerId = 'scanner-reader';
     try {
-        scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        video.srcObject = scannerStream;
-        await video.play();
-        const detector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'ean_13', 'ean_8'] });
-        const scan = async () => {
-            if (!document.body.contains(video)) return;
-            const codes = await detector.detect(video).catch(() => []);
-            if (codes.length) {
-                stopScanner();
+        html5Scanner = new Html5Qrcode(readerId, { verbose: false });
+        await html5Scanner.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            (decodedText) => {
                 closeOverlay();
-                handleScannedCode(codes[0].rawValue || '');
-                return;
+                handleScannedCode(decodedText);
             }
-            scannerFrame = requestAnimationFrame(scan);
-        };
-        scan();
+        );
     } catch (error) {
         stopScanner();
         showToast(`No se pudo abrir la camara: ${error.message}`, true);
@@ -728,6 +726,12 @@ async function openScanner() {
 function stopScanner() {
     if (scannerFrame) cancelAnimationFrame(scannerFrame);
     scannerFrame = null;
+    if (html5Scanner) {
+        html5Scanner.stop().catch(() => {}).finally(() => {
+            html5Scanner?.clear?.().catch?.(() => {});
+            html5Scanner = null;
+        });
+    }
     if (scannerStream) scannerStream.getTracks().forEach((track) => track.stop());
     scannerStream = null;
 }
