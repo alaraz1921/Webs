@@ -388,14 +388,21 @@ function renderSearchResults(term) {
         </button>`).join('') : '<p class="empty-state">Sin resultados.</p>';
 }
 
-function openSheet(title, actions) {
+function openSheet(title, actions, { headerAction = null } = {}) {
     closeOverlay();
     const backdrop = document.createElement('div');
     backdrop.className = 'sheet-backdrop';
-    backdrop.innerHTML = `<section class="sheet"><h2>${escapeHtml(title)}</h2><div class="sheet-actions">${actions.map((action) => `<button type="button" data-sheet-action="${escapeHtml(action.id)}" class="${action.className || ''}">${escapeHtml(action.label)}</button>`).join('')}</div></section>`;
+    const headerButton = headerAction ? `<button type="button" class="sheet-header-action" data-sheet-header-action="${escapeHtml(headerAction.id)}" aria-label="${escapeHtml(headerAction.ariaLabel || headerAction.label)}">${headerAction.icon || escapeHtml(headerAction.label)}</button>` : '';
+    backdrop.innerHTML = `<section class="sheet"><div class="sheet-header"><h2>${escapeHtml(title)}</h2>${headerButton}</div><div class="sheet-actions">${actions.map((action) => `<button type="button" data-sheet-action="${escapeHtml(action.id)}" class="${action.className || ''}">${escapeHtml(action.label)}</button>`).join('')}</div></section>`;
     document.body.appendChild(backdrop);
     backdrop.addEventListener('click', (event) => {
         if (event.target === backdrop) closeOverlay();
+        const headerButton = event.target.closest('[data-sheet-header-action]');
+        if (headerButton && headerAction?.id === headerButton.dataset.sheetHeaderAction) {
+            closeOverlay();
+            headerAction.handler?.();
+            return;
+        }
         const button = event.target.closest('[data-sheet-action]');
         if (!button) return;
         const action = actions.find((candidate) => candidate.id === button.dataset.sheetAction);
@@ -997,6 +1004,7 @@ async function refreshAndRender(folderId = null, itemId = null) {
 }
 
 async function signOutToHome() {
+    if (!await confirmAction('Cerrar sesion', 'Quieres cerrar la sesion de Traster?')) return;
     await supabaseClient.auth.signOut();
     window.location.href = 'index.html';
 }
@@ -1025,9 +1033,16 @@ document.addEventListener('click', async (event) => {
         if (id) openRowMenu('folder', id);
         else openSheet('Trastero', [
             { id: 'tree', label: 'Ver arbol de carpetas', handler: () => openFolderTree() },
-            { id: 'logout', label: 'Cerrar sesion', handler: () => signOutToHome() },
             { id: 'cancel', label: 'Cancelar', className: 'button-muted', handler: () => {} }
-        ]);
+        ], {
+            headerAction: {
+                id: 'logout',
+                label: 'Cerrar sesion',
+                ariaLabel: 'Cerrar sesion',
+                icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
+                handler: () => signOutToHome()
+            }
+        });
     }
     if (action === 'move-item') moveItem(itemById(actionElement.dataset.id));
     if (action === 'open-photos') openPhotos(actionElement.dataset.type, actionElement.dataset.id);
