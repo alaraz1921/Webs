@@ -1,6 +1,6 @@
 {
-  "name": "Trastero Alaraz1921",
-  "short_name": "Trastero",
+  "name": "Traster",
+  "short_name": "Traster",
   "description": "Inventario privado por carpetas e items.",
   "start_url": "./index.html?pwa=1",
   "scope": "./",
