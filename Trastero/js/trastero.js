@@ -20,6 +20,8 @@ let activeGalleryPhotos = [];
 let activeGalleryIndex = 0;
 let activeGalleryType = '';
 let activeGalleryRelationId = '';
+let scannerStream = null;
+let scannerFrame = null;
 
 function escapeHtml(value = '') {
     return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
@@ -150,6 +152,21 @@ function pathToFolder(folderId) {
 function pathLabel(folderId, fallback = 'Root Level Items') {
     const path = pathToFolder(folderId);
     return path.length ? path.map((folder) => folder.nombre).join(' / ') : fallback;
+}
+
+function publicUrl(token) {
+    const url = new URL('ver.html', window.location.href);
+    url.searchParams.set('t', token);
+    return url.href;
+}
+
+function qrImageUrl(value, size = 220) {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(value)}`;
+}
+
+function entityPath(type, entity) {
+    if (type === 'folder') return pathLabel(entity.id, 'Inicio');
+    return pathLabel(entity.carpeta_id, 'Root Level Items');
 }
 
 function navigateToFolder(folderId = '') {
@@ -399,6 +416,7 @@ function openModal(title, body) {
 }
 
 function closeOverlay() {
+    stopScanner();
     document.querySelectorAll('.sheet-backdrop,.modal-backdrop').forEach((node) => node.remove());
 }
 
@@ -416,6 +434,7 @@ function openRowMenu(type, id) {
     openSheet(entity.nombre, [
         { id: 'edit', label: '✎ Editar', handler: () => type === 'folder' ? openFolderForm(entity) : openItemForm(entity) },
         { id: 'move', label: '⇄ Mover', handler: () => type === 'folder' ? moveFolder(entity) : moveItem(entity) },
+        { id: 'label', label: '▣ Generar etiqueta', handler: () => openLabelModal(type, entity) },
         { id: 'delete', label: '🗑 Eliminar', className: 'button-danger', handler: () => deleteEntity(type, entity) },
         { id: 'cancel', label: '× Cancelar', className: 'button-muted', handler: () => {} }
     ]);
@@ -433,6 +452,7 @@ function openFolderForm(folder = null, defaultParentId = '') {
             <div class="picker-row"><div id="folder-parent-label" class="picker-label">${escapeHtml(pathLabel(selectedParentId, 'Nivel raiz'))}</div><button class="button button-muted" type="button" id="pick-folder-parent">Elegir</button></div>
             <label for="folder-notes">Notas</label>
             <textarea id="folder-notes">${escapeHtml(folder?.notas || '')}</textarea>
+            <label class="check-row"><input id="folder-public" type="checkbox" ${folder?.public_enabled === false ? '' : 'checked'}> Elemento publico para QR</label>
             <label for="folder-photo">Foto/portada</label>
             <input id="folder-photo" type="file" accept="image/*">
             <div class="form-actions"><button class="button" type="submit">Guardar</button><button class="button button-muted" type="button" data-action="close-overlay">Cancelar</button></div>
@@ -454,7 +474,8 @@ function openFolderForm(folder = null, defaultParentId = '') {
             parent_id: selectedParentId || null,
             nombre: document.getElementById('folder-name').value.trim(),
             codigo: document.getElementById('folder-code').value.trim() || null,
-            notas: document.getElementById('folder-notes').value.trim() || null
+            notas: document.getElementById('folder-notes').value.trim() || null,
+            public_enabled: document.getElementById('folder-public').checked
         };
         const result = folder
             ? await supabaseClient.from('trastero_carpetas').update(payload).eq('id', folder.id).select().single()
@@ -486,6 +507,7 @@ function openItemForm(item = null, defaultFolderId = '') {
             <input id="item-unit" maxlength="40" value="${escapeHtml(item?.unidad === 'unit' ? 'unidad' : (item?.unidad || 'unidad'))}">
             <label for="item-notes">Notas</label>
             <textarea id="item-notes">${escapeHtml(item?.notas || '')}</textarea>
+            <label class="check-row"><input id="item-public" type="checkbox" ${item?.public_enabled === false ? '' : 'checked'}> Elemento publico para QR</label>
             <label for="item-photo">Foto/portada</label>
             <input id="item-photo" type="file" accept="image/*">
             <div class="form-actions"><button class="button" type="submit">Guardar</button><button class="button button-muted" type="button" data-action="close-overlay">Cancelar</button></div>
@@ -508,7 +530,8 @@ function openItemForm(item = null, defaultFolderId = '') {
             codigo: document.getElementById('item-code').value.trim() || null,
             cantidad: document.getElementById('item-quantity').value || 1,
             unidad: document.getElementById('item-unit').value.trim() || 'unidad',
-            notas: document.getElementById('item-notes').value.trim() || null
+            notas: document.getElementById('item-notes').value.trim() || null,
+            public_enabled: document.getElementById('item-public').checked
         };
         const result = item
             ? await supabaseClient.from('trastero_items').update(payload).eq('id', item.id).select().single()
@@ -632,6 +655,105 @@ async function moveItem(item) {
             else await refreshAndRender(null, item.id);
         }
     });
+}
+
+function openLabelModal(type, entity) {
+    if (!entity.public_token) {
+        showToast('Falta public_token. Ejecuta primero la migracion SQL de etiquetas.', true);
+        return;
+    }
+    const labelType = type === 'folder' ? 'Carpeta' : 'Item';
+    const url = publicUrl(entity.public_token);
+    const path = entityPath(type, entity);
+    openModal('Etiqueta QR', `
+        <section class="label-preview-wrap">
+            <div class="print-label label-size-small">
+                <div class="label-brand">TRASTERO</div>
+                <div class="label-title">${escapeHtml(entity.nombre)}</div>
+                <div class="label-type">${escapeHtml(labelType)}</div>
+                ${entity.codigo ? `<div class="label-code">${escapeHtml(entity.codigo)}</div>` : ''}
+                <div class="label-path">${escapeHtml(path)}</div>
+                <img class="label-qr" src="${qrImageUrl(url)}" alt="QR">
+            </div>
+        </section>
+        <div class="label-actions">
+            <button class="button" type="button" data-action="print-label">Imprimir etiqueta</button>
+            <button class="button button-muted" type="button" data-action="copy-label-link" data-url="${escapeHtml(url)}">Copiar enlace</button>
+        </div>`);
+}
+
+async function copyLabelLink(url) {
+    try {
+        await navigator.clipboard.writeText(url);
+        showToast('Enlace copiado.');
+    } catch {
+        showToast(url);
+    }
+}
+
+async function openScanner() {
+    if (!('BarcodeDetector' in window)) {
+        showToast('Este navegador no soporta lector QR integrado. Usa la camara del movil para abrir el QR publico.', true);
+        return;
+    }
+    const modal = openModal('Escanear codigo', `
+        <div class="scanner-box">
+            <video id="scanner-video" autoplay muted playsinline></video>
+            <p>Apunta al QR o codigo de Trastero.</p>
+        </div>`);
+    const video = modal.querySelector('#scanner-video');
+    try {
+        scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = scannerStream;
+        await video.play();
+        const detector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'ean_13', 'ean_8'] });
+        const scan = async () => {
+            if (!document.body.contains(video)) return;
+            const codes = await detector.detect(video).catch(() => []);
+            if (codes.length) {
+                stopScanner();
+                closeOverlay();
+                handleScannedCode(codes[0].rawValue || '');
+                return;
+            }
+            scannerFrame = requestAnimationFrame(scan);
+        };
+        scan();
+    } catch (error) {
+        stopScanner();
+        showToast(`No se pudo abrir la camara: ${error.message}`, true);
+    }
+}
+
+function stopScanner() {
+    if (scannerFrame) cancelAnimationFrame(scannerFrame);
+    scannerFrame = null;
+    if (scannerStream) scannerStream.getTracks().forEach((track) => track.stop());
+    scannerStream = null;
+}
+
+function handleScannedCode(value) {
+    const scanned = String(value || '').trim();
+    if (!scanned) return;
+    try {
+        const url = new URL(scanned, window.location.origin);
+        if (url.pathname.endsWith('/Trastero/ver.html') && url.searchParams.get('t')) {
+            window.location.href = url.href;
+            return;
+        }
+    } catch {}
+    const normalized = scanned.toLowerCase();
+    const folder = folders.find((candidate) => String(candidate.codigo || '').toLowerCase() === normalized);
+    if (folder) {
+        navigateToFolder(folder.id);
+        return;
+    }
+    const item = items.find((candidate) => String(candidate.codigo || '').toLowerCase() === normalized);
+    if (item) {
+        navigateToItem(item.id);
+        return;
+    }
+    showToast('Este codigo no pertenece a Trastero o no se ha encontrado.', true);
 }
 
 function confirmAction(title, message, { html = false } = {}) {
@@ -882,7 +1004,7 @@ document.addEventListener('click', async (event) => {
         renderCurrent();
         document.getElementById('global-search')?.focus();
     }
-    if (action === 'scan-code') showToast('Escaneo preparado visualmente. La lectura de camara se puede activar en una siguiente fase.');
+    if (action === 'scan-code') openScanner();
     if (action === 'open-tree') openFolderTree();
     if (action === 'open-create-sheet') openCreateSheet(actionElement.dataset.parent || '');
     if (action === 'row-menu') {
@@ -907,6 +1029,8 @@ document.addEventListener('click', async (event) => {
     if (action === 'photo-viewer-next') stepPhotoViewer(1);
     if (action === 'set-cover') setCover(actionElement.dataset.id, actionElement.dataset.photoType, actionElement.dataset.relationId);
     if (action === 'delete-photo') deletePhoto(actionElement.dataset.id, actionElement.dataset.path, actionElement.dataset.thumbnailPath, actionElement.dataset.thumbUrl);
+    if (action === 'print-label') window.print();
+    if (action === 'copy-label-link') copyLabelLink(actionElement.dataset.url);
 });
 
 document.addEventListener('input', (event) => {

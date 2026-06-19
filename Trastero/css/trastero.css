@@ -216,6 +216,8 @@ body.trastero-page {
 .modal-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
 .modal-close { border: 0; background: transparent; color: var(--ink); font-size: 2rem; }
 label { display: block; margin: 16px 0 8px; color: var(--muted); font-size: .9rem; font-weight: 700; text-transform: uppercase; }
+.check-row { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: var(--ink); font-size: .95rem; font-weight: 500; text-transform: none; }
+.check-row input { width: auto; }
 input, textarea, select { width: 100%; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #fff; color: var(--ink); }
 textarea { min-height: 112px; resize: vertical; }
 input:focus, textarea:focus, select:focus { border-color: var(--folder); outline: 0; box-shadow: 0 0 0 4px rgba(130,136,163,.12); }
@@ -276,6 +278,29 @@ input:focus, textarea:focus, select:focus { border-color: var(--folder); outline
 .toast { position: fixed; right: 18px; bottom: 18px; z-index: 90; max-width: min(420px, calc(100vw - 36px)); padding: 14px 16px; border-radius: 14px; background: var(--ink); color: white; font-weight: 600; box-shadow: 0 12px 36px rgba(0,0,0,.25); }
 .toast.error { background: var(--danger); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+
+.label-preview-wrap { display: grid; justify-items: center; padding: 8px 0 18px; }
+.print-label { display: grid; width: 60mm; height: 40mm; align-content: center; justify-items: center; padding: 3mm; border: 1px dashed #cbd5e1; background: #fff; color: #111827; text-align: center; }
+.label-brand { font-size: 9pt; font-weight: 700; letter-spacing: .12em; }
+.label-title { max-width: 100%; overflow: hidden; font-size: 12pt; font-weight: 700; line-height: 1.05; text-overflow: ellipsis; white-space: nowrap; }
+.label-type, .label-code, .label-path { max-width: 100%; overflow: hidden; color: #4b5563; font-size: 7pt; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+.label-qr { width: 18mm; height: 18mm; margin-top: 1mm; }
+.label-actions { display: grid; gap: 10px; }
+.scanner-box { display: grid; gap: 14px; }
+.scanner-box video { width: 100%; max-height: 58vh; border-radius: 20px; background: #111827; object-fit: cover; }
+.scanner-box p { margin: 0; color: var(--muted); text-align: center; }
+.public-topbar { padding-top: 36px; }
+.public-icon { width: 118px; height: 118px; border-radius: 24px; background: #e4e6ef; object-fit: contain; }
+.public-card { display: grid; min-height: 100vh; align-content: center; padding: 28px; color: var(--muted); text-align: center; }
+.public-readonly { margin: 0 28px; color: var(--muted); font-size: .95rem; text-align: center; }
+
+@media print {
+    @page { size: 60mm 40mm; margin: 0; }
+    body.trastero-page { width: 60mm; min-height: 40mm; padding: 0; background: #fff; }
+    body * { visibility: hidden !important; }
+    .print-label, .print-label * { visibility: visible !important; }
+    .print-label { position: fixed; inset: 0; width: 60mm; height: 40mm; border: 0; box-shadow: none; }
+}
 
 @media (min-width: 760px) {
     body.trastero-page { padding: 18px; }
