@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Inicio de sesion de Traster.">
+    <meta name="theme-color" content="#2563eb">
+    <title>Traster | Iniciar sesion</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/pwa-icon-192.png">
+    <link rel="apple-touch-icon" href="assets/pwa-icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/trastero.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="trastero-page trastero-login-page">
+    <main class="trastero-login-screen">
+        <a class="login-back-link" href="index.html" aria-label="Volver a portada">←</a>
+        <section class="trastero-login-card" id="trastero-login-card">
+            <img src="assets/pwa-icon-192.png" alt="">
+            <p class="home-kicker">Traster</p>
+            <h1>Iniciar sesion</h1>
+            <p>Accede a tu inventario para gestionar carpetas, items, fotos y etiquetas QR.</p>
+            <form id="trastero-login-form">
+                <label for="trastero-email">Email</label>
+                <input id="trastero-email" name="email" type="email" autocomplete="username" required>
+                <label for="trastero-password">Clave</label>
+                <input id="trastero-password" name="password" type="password" autocomplete="current-password" required>
+                <button type="submit">Entrar en Traster</button>
+                <p id="trastero-login-message" class="trastero-login-message" role="status" hidden></p>
+            </form>
+        </section>
+    </main>
+    <script src="../assets/supabase-client.js"></script>
+    <script src="js/trastero-login.js"></script>
+</body>
+</html>

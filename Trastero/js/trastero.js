@@ -52,7 +52,7 @@ function showToast(message, error = false) {
 async function requireAccess() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session?.user) {
-        window.location.replace(`../Privado/index.html?next=${encodeURIComponent('../Trastero/app.html')}`);
+        window.location.replace('login.html');
         return false;
     }
     const { data: profile, error } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
