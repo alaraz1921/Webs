@@ -26,9 +26,9 @@ function photoPath(photo, preferThumb = false) {
 }
 
 function publicPhotoUrl(photo, preferThumb = false) {
-    const path = photoPath(photo, preferThumb);
-    if (!path) return '';
-    return signedPublicUrls.get(path) || '';
+    const primary = photoPath(photo, preferThumb);
+    const fallback = photoPath(photo, !preferThumb);
+    return signedPublicUrls.get(primary) || signedPublicUrls.get(fallback) || '';
 }
 
 function collectPhotoPaths(record) {
@@ -48,15 +48,17 @@ async function loadSignedPublicUrls(record) {
     signedPublicUrls = new Map();
     const paths = collectPhotoPaths(record);
     if (!paths.length) return;
-    const { data, error } = await supabaseClient.storage.from(storageBucket).createSignedUrls(paths, 3600);
-    if (error) return;
-    signedPublicUrls = new Map(paths.map((path, index) => [path, data[index]?.signedUrl || '']));
+    const signedEntries = await Promise.all(paths.map(async (path) => {
+        const { data, error } = await supabaseClient.storage.from(storageBucket).createSignedUrl(path, 3600);
+        return error || !data?.signedUrl ? null : [path, data.signedUrl];
+    }));
+    signedPublicUrls = new Map(signedEntries.filter(Boolean));
 }
 
 function renderPhotoGallery(photos = []) {
     if (!photos.length) return '';
     const visible = photos.map((photo) => publicPhotoUrl(photo, true)).filter(Boolean).slice(0, 6);
-    if (!visible.length) return '';
+    if (!visible.length) return '<p class="public-photo-warning">No se pudieron cargar las fotografias publicas.</p>';
     return `
         <section class="public-gallery">
             ${visible.map((url) => `<img src="${escapeHtml(url)}" alt="">`).join('')}

@@ -295,6 +295,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--folder); outline
 .public-readonly { margin: 0 28px; color: var(--muted); font-size: .95rem; text-align: center; }
 .public-gallery { display: flex; gap: 10px; overflow-x: auto; padding: 0 28px 20px; }
 .public-gallery img { width: 92px; height: 92px; flex: 0 0 auto; border-radius: 18px; object-fit: cover; box-shadow: 0 12px 28px rgba(22,24,35,.12); }
+.public-photo-warning { margin: 0 28px 20px; color: var(--muted); font-size: .9rem; }
 .public-content-list { border-top: 1px solid var(--line); }
 .public-content-row { grid-template-columns: 126px minmax(0, 1fr); cursor: default; }
 
