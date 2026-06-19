@@ -207,6 +207,19 @@ body.trastero-page {
     font-weight: 500;
     line-height: 1.55;
 }
+.home-footer {
+    padding: 0 clamp(24px, 7vw, 96px) 34px;
+    text-align: center;
+}
+.home-footer a {
+    color: var(--muted);
+    font-size: .86rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+.home-footer a:hover {
+    color: var(--ink);
+}
 .trastero-login-page {
     background:
         radial-gradient(circle at 74% 18%, rgba(37,99,235,.16), transparent 30%),
