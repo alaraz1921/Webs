@@ -2,6 +2,7 @@ const supabaseClient = window.websSupabase;
 const folderIcon = 'assets/folder-box.png';
 const itemIcon = 'assets/item-box.png';
 const storageBucket = 'trastero-fotos';
+let signedPublicUrls = new Map();
 
 function escapeHtml(value = '') {
     return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
@@ -20,18 +21,45 @@ function showMessage(message) {
     shell.innerHTML = `<section class="screen public-screen"><div class="public-card"><p>${escapeHtml(message)}</p></div></section>`;
 }
 
+function photoPath(photo, preferThumb = false) {
+    return preferThumb ? (photo.thumbnail_path || photo.storage_path) : (photo.storage_path || photo.thumbnail_path);
+}
+
 function publicPhotoUrl(photo, preferThumb = false) {
-    const path = preferThumb ? (photo.thumbnail_path || photo.storage_path) : (photo.storage_path || photo.thumbnail_path);
+    const path = photoPath(photo, preferThumb);
     if (!path) return '';
-    return supabaseClient.storage.from(storageBucket).getPublicUrl(path).data.publicUrl;
+    return signedPublicUrls.get(path) || '';
+}
+
+function collectPhotoPaths(record) {
+    const paths = new Set();
+    const addPhotos = (photos = []) => {
+        photos.forEach((photo) => {
+            [photo.storage_path, photo.thumbnail_path].filter(Boolean).forEach((path) => paths.add(path));
+        });
+    };
+    addPhotos(record.photos || []);
+    (record.children?.folders || []).forEach((folder) => addPhotos(folder.photos || []));
+    (record.children?.items || []).forEach((item) => addPhotos(item.photos || []));
+    return [...paths];
+}
+
+async function loadSignedPublicUrls(record) {
+    signedPublicUrls = new Map();
+    const paths = collectPhotoPaths(record);
+    if (!paths.length) return;
+    const { data, error } = await supabaseClient.storage.from(storageBucket).createSignedUrls(paths, 3600);
+    if (error) return;
+    signedPublicUrls = new Map(paths.map((path, index) => [path, data[index]?.signedUrl || '']));
 }
 
 function renderPhotoGallery(photos = []) {
     if (!photos.length) return '';
-    const visible = photos.slice(0, 6);
+    const visible = photos.map((photo) => publicPhotoUrl(photo, true)).filter(Boolean).slice(0, 6);
+    if (!visible.length) return '';
     return `
         <section class="public-gallery">
-            ${visible.map((photo) => `<img src="${escapeHtml(publicPhotoUrl(photo, true))}" alt="">`).join('')}
+            ${visible.map((url) => `<img src="${escapeHtml(url)}" alt="">`).join('')}
         </section>`;
 }
 
@@ -126,6 +154,7 @@ async function init() {
         return;
     }
     if (await maybeRedirectToPrivate(data)) return;
+    await loadSignedPublicUrls(data);
     renderPublic(data);
 }
 
