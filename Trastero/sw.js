@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trastero-v8';
+const CACHE_NAME = 'trastero-v9';
 const APP_SHELL = [
   './index.html',
   './ver.html',

@@ -3,6 +3,8 @@ const folderIcon = 'assets/folder-box.png';
 const itemIcon = 'assets/item-box.png';
 const storageBucket = 'trastero-fotos';
 let signedPublicUrls = new Map();
+let publicGalleryPhotos = [];
+let publicGalleryIndex = 0;
 
 function escapeHtml(value = '') {
     return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
@@ -61,12 +63,56 @@ async function loadSignedPublicUrls(record) {
 
 function renderPhotoGallery(photos = []) {
     if (!photos.length) return '';
-    const visible = photos.map((photo) => publicPhotoUrl(photo, true)).filter(Boolean).slice(0, 6);
+    publicGalleryPhotos = photos.map((photo) => ({
+        url: publicPhotoUrl(photo, false),
+        thumbUrl: publicPhotoUrl(photo, true)
+    })).filter((photo) => photo.url || photo.thumbUrl);
+    const visible = publicGalleryPhotos.slice(0, 6);
     if (!visible.length) return '<p class="public-photo-warning">No se pudieron cargar las fotografias publicas.</p>';
     return `
         <section class="public-gallery">
-            ${visible.map((url) => `<img src="${escapeHtml(url)}" alt="">`).join('')}
+            ${visible.map((photo, index) => `
+                <button class="public-gallery-thumb" type="button" data-action="open-public-photo-viewer" data-index="${index}" aria-label="Ver foto">
+                    <img src="${escapeHtml(photo.thumbUrl || photo.url)}" alt="">
+                </button>`).join('')}
         </section>`;
+}
+
+function openPublicPhotoViewer(index = 0) {
+    if (!publicGalleryPhotos.length) return;
+    publicGalleryIndex = Math.max(0, Math.min(Number(index) || 0, publicGalleryPhotos.length - 1));
+    renderPublicPhotoViewer();
+}
+
+function renderPublicPhotoViewer() {
+    document.querySelector('.photo-viewer-backdrop')?.remove();
+    const photo = publicGalleryPhotos[publicGalleryIndex];
+    const backdrop = document.createElement('div');
+    backdrop.className = 'photo-viewer-backdrop';
+    backdrop.innerHTML = `
+        <section class="photo-viewer">
+            <button class="photo-viewer-close" type="button" data-action="close-public-photo-viewer" aria-label="Cerrar">&times;</button>
+            <button class="photo-viewer-nav photo-viewer-prev" type="button" data-action="public-photo-viewer-prev" aria-label="Anterior" ${publicGalleryPhotos.length < 2 ? 'disabled' : ''}>&lsaquo;</button>
+            <img src="${escapeHtml(photo.url || photo.thumbUrl)}" alt="">
+            <button class="photo-viewer-nav photo-viewer-next" type="button" data-action="public-photo-viewer-next" aria-label="Siguiente" ${publicGalleryPhotos.length < 2 ? 'disabled' : ''}>&rsaquo;</button>
+            <div class="photo-viewer-controls">
+                <div class="photo-viewer-count">${publicGalleryIndex + 1} / ${publicGalleryPhotos.length}</div>
+            </div>
+        </section>`;
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', (event) => {
+        if (event.target === backdrop) closePublicPhotoViewer();
+    });
+}
+
+function closePublicPhotoViewer() {
+    document.querySelector('.photo-viewer-backdrop')?.remove();
+}
+
+function stepPublicPhotoViewer(direction) {
+    if (!publicGalleryPhotos.length) return;
+    publicGalleryIndex = (publicGalleryIndex + direction + publicGalleryPhotos.length) % publicGalleryPhotos.length;
+    renderPublicPhotoViewer();
 }
 
 function renderPublicChildren(record) {
@@ -165,5 +211,15 @@ async function init() {
     await loadSignedPublicUrls(data);
     renderPublic(data);
 }
+
+document.addEventListener('click', (event) => {
+    const actionElement = event.target.closest('[data-action]');
+    if (!actionElement) return;
+    const action = actionElement.dataset.action;
+    if (action === 'open-public-photo-viewer') openPublicPhotoViewer(actionElement.dataset.index);
+    if (action === 'close-public-photo-viewer') closePublicPhotoViewer();
+    if (action === 'public-photo-viewer-prev') stepPublicPhotoViewer(-1);
+    if (action === 'public-photo-viewer-next') stepPublicPhotoViewer(1);
+});
 
 init();
