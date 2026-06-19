@@ -411,6 +411,16 @@ function openSheet(title, actions, { headerAction = null } = {}) {
     });
 }
 
+function logoutHeaderAction() {
+    return {
+        id: 'logout',
+        label: 'Cerrar sesion',
+        ariaLabel: 'Cerrar sesion',
+        icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
+        handler: () => signOutToHome()
+    };
+}
+
 function openModal(title, body) {
     closeOverlay();
     const backdrop = document.createElement('div');
@@ -445,7 +455,7 @@ function openRowMenu(type, id) {
         { id: 'label', label: '▣ Generar etiqueta', handler: () => openLabelModal(type, entity) },
         { id: 'delete', label: '🗑 Eliminar', className: 'button-danger', handler: () => deleteEntity(type, entity) },
         { id: 'cancel', label: '× Cancelar', className: 'button-muted', handler: () => {} }
-    ]);
+    ], { headerAction: logoutHeaderAction() });
 }
 
 function openFolderForm(folder = null, defaultParentId = '') {
@@ -1034,15 +1044,7 @@ document.addEventListener('click', async (event) => {
         else openSheet('Trastero', [
             { id: 'tree', label: 'Ver arbol de carpetas', handler: () => openFolderTree() },
             { id: 'cancel', label: 'Cancelar', className: 'button-muted', handler: () => {} }
-        ], {
-            headerAction: {
-                id: 'logout',
-                label: 'Cerrar sesion',
-                ariaLabel: 'Cerrar sesion',
-                icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
-                handler: () => signOutToHome()
-            }
-        });
+        ], { headerAction: logoutHeaderAction() });
     }
     if (action === 'move-item') moveItem(itemById(actionElement.dataset.id));
     if (action === 'open-photos') openPhotos(actionElement.dataset.type, actionElement.dataset.id);
