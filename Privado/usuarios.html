@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gestion de usuarios registrados de alaraz1921.">
+    <title>Alaraz1921 | Gestion de usuarios</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="private-page private-users-page">
+    <main class="private-login">
+        <header class="app-page-header login-page-title">
+            <p class="app-page-kicker">alaraz1921</p>
+            <h1>USUARIOS</h1>
+        </header>
+
+        <section class="private-card private-content" id="users-admin-panel">
+            <h1>GESTION DE USUARIOS</h1>
+            <p class="private-user-email" id="users-admin-email">Comprobando sesion...</p>
+
+            <label for="users-search">Buscar usuario</label>
+            <input id="users-search" type="search" placeholder="Nombre o email" autocomplete="off">
+            <p id="users-admin-message" class="private-message" hidden></p>
+
+            <div id="users-admin-list" class="private-admin-users-list">
+                <p>Cargando usuarios...</p>
+            </div>
+        </section>
+
+        <a class="private-back-link btn-principal btn-home" href="index.html">
+            <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 11.5 12 4l9 7.5"></path>
+                <path d="M5.5 10.5V20h13v-9.5"></path>
+                <path d="M9.5 20v-6h5v6"></path>
+            </svg>
+            <span>Zona privada</span>
+        </a>
+    </main>
+    <script src="../assets/supabase-client.js"></script>
+    <script src="../assets/private-users.js"></script>
+</body>
+</html>

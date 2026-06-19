@@ -8,7 +8,6 @@ const authPanel = document.getElementById('private-auth-panel');
 const contentPanel = document.getElementById('private-content-panel');
 const userEmail = document.getElementById('private-user-email');
 const logoutButton = document.getElementById('private-logout');
-const usersList = document.getElementById('private-users-list');
 
 function showMessage(text, type = 'info') {
     messageBox.textContent = text;
@@ -23,53 +22,28 @@ function setLoading(isLoading) {
 }
 
 async function showPrivateContent(user) {
-    authPanel.hidden = true;
-    contentPanel.hidden = false;
-    userEmail.textContent = user.email;
     const { data: profile } = await supabaseClient
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single();
-    const canAccessTrastero = ['admin', 'trastero'].includes(profile?.role);
-    document.getElementById('trastero-project-link').hidden = !canAccessTrastero;
-    const next = new URLSearchParams(window.location.search).get('next');
-    if (canAccessTrastero && next?.startsWith('../Trastero/')) {
-        window.location.replace(next);
+
+    if (profile?.role !== 'admin') {
+        await supabaseClient.auth.signOut();
+        showLogin();
+        showMessage('Acceso reservado a administradores.', 'error');
         return;
     }
-    loadRegisteredUsers();
+
+    authPanel.hidden = true;
+    contentPanel.hidden = false;
+    userEmail.textContent = user.email;
 }
 
 function showLogin() {
     authPanel.hidden = false;
     contentPanel.hidden = true;
     userEmail.textContent = '';
-    usersList.innerHTML = '<li>Cargando usuarios...</li>';
-    document.getElementById('trastero-project-link').hidden = true;
-}
-
-async function loadRegisteredUsers() {
-    const { data, error } = await supabaseClient
-        .from('profiles')
-        .select('display_name, email, created_at')
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        usersList.innerHTML = '<li>No se pudo cargar la lista de usuarios.</li>';
-        return;
-    }
-
-    usersList.innerHTML = '';
-    data.forEach((profile) => {
-        const item = document.createElement('li');
-        const nombre = profile.display_name || profile.email || 'Usuario';
-        const email = profile.email ? ` · ${profile.email}` : '';
-        item.textContent = `${nombre}${email}`;
-        usersList.appendChild(item);
-    });
-
-    if (!data.length) usersList.innerHTML = '<li>No hay usuarios registrados.</li>';
 }
 
 async function loadSession() {

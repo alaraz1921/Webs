@@ -1865,6 +1865,78 @@ body.private-page .private-users-list li:last-child {
     border-bottom: 0;
 }
 
+body.private-users-page .private-card {
+    max-width: 880px;
+}
+
+body.private-users-page #users-search {
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+body.private-page .private-admin-users-list {
+    display: grid;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+body.private-page .private-user-admin-card {
+    padding: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.5);
+    text-align: left;
+}
+
+body.private-page .private-user-admin-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+body.private-page .private-user-admin-head h2 {
+    margin: 0 0 4px;
+    color: #ffffff;
+    font-size: 1rem;
+}
+
+body.private-page .private-user-admin-head p,
+body.private-page .private-user-admin-head small {
+    display: block;
+    margin: 0;
+    color: #cbd5e1;
+    overflow-wrap: anywhere;
+}
+
+body.private-page .private-user-delete {
+    width: auto;
+    min-width: 86px;
+    padding: 9px 10px;
+    background: #dc2626;
+}
+
+body.private-page .private-user-delete:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+body.private-page .private-user-admin-card select {
+    width: 100%;
+    min-height: 42px;
+    margin: 6px 0 10px;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background: #0f172a;
+    color: #ffffff;
+}
+
+body.private-page .private-project-role-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
 body.bingo-carton-page,
 body.bingo-monitor-page,
 body.infiltrado-page {

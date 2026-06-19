@@ -104,7 +104,8 @@ No existen:
 |-- images/
 |   `-- IMG_1914.jpg
 |-- Privado/
-|   `-- index.html
+|   |-- index.html
+|   `-- usuarios.html
 |-- Bingo/
 |   |-- carton.html
 |   `-- monitor.html
@@ -182,6 +183,7 @@ Concentrador de proyectos y experiencias digitales:
 
 - EvenTin enlaza a su pagina publicada.
 - EvenPic enlaza temporalmente a `coming-soon.html`.
+- Trastero enlaza a `https://www.alaraz1921.com/Trastero` como `TRASTER`.
 - Subastas Solidarias enlaza temporalmente a `coming-soon.html`.
 
 ### `coming-soon.html`
@@ -213,9 +215,17 @@ Tipografias:
 
 - Login mediante Supabase Auth.
 - Usa `profiles`, `app_projects` y `project_members`.
-- El apartado Proyectos muestra la lista de usuarios registrados disponible según las politicas RLS de `profiles`.
+- Solo permite acceso a usuarios con `profiles.role = 'admin'`.
+- Muestra acceso a la gestion de usuarios registrados en `Privado/usuarios.html`.
 - Se ha eliminado el antiguo apartado Notas.
-- Muestra acceso a `Trastero/`; la app valida acceso de administrador.
+
+`Privado/usuarios.html`:
+
+- Requiere sesion de administrador.
+- Permite buscar usuarios por nombre, alias o email.
+- Permite cambiar el rol general de `profiles.role`.
+- Permite cambiar o quitar roles por proyecto en `project_members.role`.
+- Permite borrar usuarios mediante la RPC `admin_delete_registered_user(uuid)`.
 
 ### Trastero
 
@@ -465,6 +475,7 @@ index.html
 |-- proyectos.html
 |   |-- EvenTin
 |   |-- EvenPic -> coming-soon.html
+|   |-- TRASTER -> Trastero/
 |   `-- Subastas Solidarias -> coming-soon.html
 |-- games.html
 |   |-- ValentinaPlay/

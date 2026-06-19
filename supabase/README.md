@@ -34,6 +34,7 @@ Opcion sencilla desde el panel de Supabase:
    - `migrations/20260615190000_infiltrado_online_retry_resolution.sql`
    - `migrations/20260615200000_infiltrado_online_leave.sql`
    - `migrations/20260615210000_infiltrado_online_round_flow.sql`
+   - `migrations/20260619170000_admin_user_management.sql`
 5. Comprobar que no hay errores en el resultado.
 
 ## Crear el primer usuario
@@ -90,6 +91,12 @@ La migracion `20260615210000_infiltrado_online_round_flow.sql` valida la existen
 El formulario de Infiltrado acepta el correo o el nombre guardado en `profiles.username`. Siempre exige la contraseña real de Supabase Auth. Pueden acceder los administradores y los miembros asignados al proyecto.
 
 Para activar el modo online, ejecutar `20260615150000_infiltrado_online.sql`, `20260615170000_infiltrado_online_resume.sql`, `20260615190000_infiltrado_online_retry_resolution.sql`, `20260615200000_infiltrado_online_leave.sql` y `20260615210000_infiltrado_online_round_flow.sql`, en ese orden. Los invitados no necesitan Auth ni permisos directos sobre tablas; deben usar exclusivamente las RPC concedidas a `anon`.
+
+## Gestion administrativa de usuarios
+
+La migracion `20260619170000_admin_user_management.sql` crea la RPC `admin_delete_registered_user(uuid)`, usada por `Privado/usuarios.html` para borrar de forma segura un usuario, su perfil y sus permisos de proyecto. Debe ejecutarse antes de usar el boton `Borrar` de la nueva gestion de usuarios.
+
+Los cambios de rol general se aplican sobre `profiles.role`. Los cambios de rol por proyecto se aplican sobre `project_members.role`.
 
 ## Registro compartido de Games
 

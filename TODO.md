@@ -44,6 +44,7 @@ Ultima revision: 2026-06-15
 - [x] PA-38 Separar `Terminar partida` del anfitrion y `Abandonar partida` de invitados en las pantallas online correspondientes.
 - [x] PA-39 Reforzar la ocultacion de `Volver a Games` al iniciar y reanudar la PWA de Infiltrado.
 - [x] PA-40 Reorganizar los controles del Monitor Bingo, añadir vuelta al carton y reforzar la ocultacion de Games en su PWA.
+- [x] PA-41 Añadir Trastero a Proyectos, restringir zona privada a administradores y crear gestion de usuarios.
 
 ## Prioridad Media
 
@@ -73,6 +74,7 @@ Ultima revision: 2026-06-15
 - [ ] PM-24 Ejecutar `20260615190000_infiltrado_online_retry_resolution.sql` para mantener activa la partida online tras una resolucion incorrecta.
 - [ ] PM-25 Ejecutar `20260615200000_infiltrado_online_leave.sql` para habilitar el abandono seguro de partidas online.
 - [ ] PM-26 Ejecutar `20260615210000_infiltrado_online_round_flow.sql` para validar codigos y habilitar los nuevos finales de ronda online.
+- [ ] PM-27 Ejecutar `20260619170000_admin_user_management.sql` para habilitar el borrado seguro desde la gestion de usuarios.
 
 ## Prioridad Baja
 
@@ -125,6 +127,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-24 En Infiltrado online: comprobar que solo el anfitrion puede terminar desde la lista y que un invitado abandona desde su tarjeta para introducir otro codigo.
 - [ ] PR-25 Abrir y reanudar la PWA instalada de Infiltrado y comprobar que nunca aparece `Volver a Games`.
 - [ ] PR-26 En Monitor Bingo: probar Empezar/Pausar/Reanudar, Reiniciar, Nuevo Id, Ir a Carton y comprobar que la PWA oculta `Volver a Games`.
+- [ ] PR-27 Probar `proyectos.html` con TRASTER y validar que solo administradores acceden a `Privado/` y gestionan usuarios.
 
 ## Ideas De Mejora
 
