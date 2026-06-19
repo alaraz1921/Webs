@@ -60,7 +60,7 @@ body.trastero-page {
     box-shadow: 0 16px 45px rgba(22, 24, 35, .10);
 }
 .round-button { display: grid; flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; font-size: 2.15rem; line-height: 1; place-items: center; }
-.round-icon { display: block; width: 34px; height: 34px; object-fit: contain; }
+.round-icon { display: block; width: 54px; height: 54px; object-fit: contain; }
 .pill-button { display: flex; min-height: 54px; align-items: center; gap: 16px; padding: 0 18px; border-radius: 999px; font-size: 1.25rem; }
 .icon-only { display: grid; width: 54px; height: 54px; border-radius: 50%; font-size: 1.5rem; place-items: center; }
 .icon-only-inline { display: grid; border: 0; background: transparent; color: var(--ink); font-size: 1.45rem; font-weight: 700; place-items: center; }
@@ -291,7 +291,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--folder); outline
     .topbar-actions { gap: 12px; }
     .topbar-left { gap: 12px; }
     .round-button { width: 54px; height: 54px; font-size: 1.85rem; }
-    .round-icon { width: 31px; height: 31px; }
+    .round-icon { width: 48px; height: 48px; }
     .pill-button { min-height: 50px; gap: 12px; padding: 0 14px; }
     .icon-only-inline { font-size: 1.1rem; }
     .action-icon { width: 1.5em; height: 1.5em; }

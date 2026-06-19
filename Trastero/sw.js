@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trastero-v1';
+const CACHE_NAME = 'trastero-v2';
 const APP_SHELL = [
   './index.html',
   './manifest.json',
