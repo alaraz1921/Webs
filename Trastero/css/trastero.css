@@ -208,7 +208,9 @@ body.trastero-page {
     line-height: 1.55;
 }
 .home-footer {
-    padding: 0 clamp(24px, 7vw, 96px) 34px;
+    display: grid;
+    justify-items: center;
+    padding: 8px clamp(24px, 7vw, 96px) 56px;
     text-align: center;
 }
 .home-footer a {
