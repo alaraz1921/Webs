@@ -1,3 +1,4 @@
+--administracion de usuarios
 create or replace function public.admin_delete_registered_user(p_user_id uuid)
 returns jsonb
 language plpgsql
