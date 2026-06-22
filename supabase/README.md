@@ -35,6 +35,7 @@ Opcion sencilla desde el panel de Supabase:
    - `migrations/20260615200000_infiltrado_online_leave.sql`
    - `migrations/20260615210000_infiltrado_online_round_flow.sql`
    - `migrations/20260619170000_admin_user_management.sql`
+   - `migrations/20260622110000_games_viewer_roles_for_bingo.sql`
 5. Comprobar que no hay errores en el resultado.
 
 ## Crear el primer usuario
@@ -66,9 +67,9 @@ La migracion `20260611120000_bingo_partidas.sql`:
 - Crea `bingo_partidas` con ids automaticos entre 100 y 999.
 - Es idempotente: puede ejecutarse de nuevo si una ejecucion anterior quedo incompleta.
 - Permite lectura publica para que el carton no necesite login.
-- Restringe crear, iniciar y reiniciar partidas a administradores o miembros `owner`/`editor` de Bingo.
+- Restringe crear, iniciar y reiniciar partidas a administradores o miembros `owner`/`editor`/`viewer` de Bingo.
 
-El formulario del Monitor acepta el correo o el nombre guardado en `profiles.username`. Siempre exige la contraseña real de Supabase Auth. Pueden acceder los administradores y los miembros `owner` o `editor` del proyecto.
+El formulario del Monitor acepta el correo o el nombre guardado en `profiles.username`. Siempre exige la contraseña real de Supabase Auth. Pueden acceder los administradores y los miembros `owner`, `editor` o `viewer` del proyecto.
 
 Si Supabase muestra `relation "bingo_partidas" already exists`, actualizar el repositorio y volver a ejecutar el archivo completo. La version actual reutiliza la tabla existente y completa columnas, permisos y politicas sin borrarla.
 
@@ -100,7 +101,7 @@ Los cambios de rol general se aplican sobre `profiles.role`. Los cambios de rol 
 
 ## Registro compartido de Games
 
-La migracion `20260612100000_games_self_registration.sql` amplia el alta de usuarios para que los registros solicitados desde `games.html` reciban automaticamente acceso al Monitor de Bingo y a Infiltrado.
+La migracion `20260612100000_games_self_registration.sql`, actualizada por `20260622110000_games_viewer_roles_for_bingo.sql`, amplia el alta de usuarios para que los registros solicitados desde `games.html` reciban automaticamente acceso `viewer` al Monitor de Bingo y a Infiltrado.
 
 Para que Supabase valide el correo:
 
