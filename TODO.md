@@ -46,6 +46,7 @@ Ultima revision: 2026-06-15
 - [x] PA-40 Reorganizar los controles del Monitor Bingo, añadir vuelta al carton y reforzar la ocultacion de Games en su PWA.
 - [x] PA-41 Añadir Trastero a Proyectos, restringir zona privada a administradores y crear gestion de usuarios.
 - [x] PA-42 Convertir la gestion de usuarios a lista con modales para editar roles y confirmar borrado.
+- [x] PA-43 Hacer que `Reiniciar todo desde cero` en Infiltrado local vuelva a la seleccion de modo.
 
 ## Prioridad Media
 
@@ -108,7 +109,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-04 En Bingo carton: seleccionar partida, marcar numeros iniciados, limpiar y verificar persistencia.
 - [ ] PR-05 En Bingo carton: comprobar cambio libre sin partida o no iniciada y bloqueo cuando `iniciada = true`.
 - [ ] PR-06 En Monitor Bingo: entrar con nombre de usuario o correo autorizado; iniciar, pausar, reanudar, reiniciar y crear nueva partida.
-- [ ] PR-07 En Infiltrado local: entrar con nombre de usuario o correo autorizado; repetir rondas sin palabras duplicadas y comprobar que reiniciar desde cero elimina el historial.
+- [ ] PR-07 En Infiltrado local: entrar con nombre de usuario o correo autorizado; repetir rondas sin palabras duplicadas y comprobar que reiniciar desde cero elimina el historial y vuelve a la seleccion de modo.
 - [ ] PR-08 En ValentinaPlay: abrir cada juego y validar reinicio/victoria/flujo principal.
 - [ ] PR-09 En Privado: iniciar/cerrar sesion y comprobar recordatorio de formula.
 - [ ] PR-10 Enviar contacto desde Webs; comprobar fila en `webs_contact_messages` y recepcion del email.

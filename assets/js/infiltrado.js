@@ -528,7 +528,7 @@ async function reiniciarTodoSistema() {
     document.getElementById('btn-continue').style.display = 'block';
     document.getElementById('btn-start').style.display = 'none';
     restaurarConfiguracionBase();
-    cambiarPantallaVisual('screen-config');
+    cambiarPantallaVisual('screen-mode');
 }
 
 function esDispositivoIos() {

@@ -303,7 +303,7 @@ Base de datos y PWA:
 - Resolucion mediante desplegables de participantes.
 - Las palabras se cargan desde `infiltrado_palabras`.
 - La partida temporal se guarda en `infiltrado_partidas`, sus jugadores en `infiltrado_jugadores` y las palabras ya utilizadas en `infiltrado_palabras_usadas`.
-- Las rondas repetidas conservan la misma partida temporal y excluyen palabras anteriores; al reiniciar desde cero se elimina la partida y su historial por cascada.
+- Las rondas repetidas conservan la misma partida temporal y excluyen palabras anteriores; al reiniciar desde cero se elimina la partida y su historial por cascada y se vuelve a la seleccion de modo `Sin conexion` / `En linea`.
 - El modo online reutiliza esas tablas, añade `infiltrado_resultados` y usa RPC seguras para crear, unirse, consultar estado, iniciar, finalizar y eliminar jugadores.
 - Al finalizar una ronda online se guarda el resultado y se limpia su historial de palabras usadas.
 - Los invitados se identifican mediante `player_token` en `localStorage`; solo reciben su propio rol y no tienen lectura publica directa de las tablas.
