@@ -3,7 +3,7 @@
   "short_name": "EvenTin",
   "description": "Invitaciones digitales y espacios online para eventos familiares.",
   "id": "/EvenTin/",
-  "start_url": "/EvenTin/index.html",
+  "start_url": "/EvenTin/admin.html",
   "scope": "/EvenTin/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],

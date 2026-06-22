@@ -3,6 +3,7 @@ const EVENTIN_CACHE = 'eventin-pwa-v1';
 const CORE_ASSETS = [
     '/EvenTin/',
     '/EvenTin/index.html',
+    '/EvenTin/admin.html',
     '/EvenTin/evento.html',
     '/EvenTin/invitacion.html',
     '/EvenTin/contacto.html',

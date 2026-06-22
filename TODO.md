@@ -136,6 +136,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-27 Probar `proyectos.html` con TRASTER y validar que solo administradores acceden a `Privado/` y gestionan usuarios.
 - [ ] PR-28 En gestion de usuarios: buscar, abrir modal de roles, guardar cambios y borrar con confirmacion modal.
 - [ ] PR-29 Instalar EvenTin desde navegador compatible y comprobar boton de instalacion, icono y arranque en modo standalone.
+- [ ] PR-31 Abrir la PWA instalada de EvenTin y comprobar que arranca en `admin.html`.
 - [ ] PR-30 En gestion de usuarios: crear un usuario nuevo, asignar proyecto/rol, iniciar sesion con ese usuario y comprobar su acceso.
 
 ## Ideas De Mejora

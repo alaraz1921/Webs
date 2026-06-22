@@ -474,7 +474,7 @@ Funcionalidades principales:
 - Subida/optimizacion de imagenes.
 - Email de contacto mediante `notify-contact`.
 - Alta segura de usuarios mediante `create-event-user`.
-- PWA instalable con `manifest.json`, `sw.js`, iconos propios y enlace de instalacion en el pie del panel administrador.
+- PWA instalable con `manifest.json`, `sw.js`, iconos propios y enlace de instalacion en el pie del panel administrador. Al abrirse instalada, arranca directamente en `EvenTin/admin.html`.
 
 Tablas principales:
 
