@@ -1,6 +1,6 @@
 # TODO
 
-Ultima revision: 2026-06-11
+Ultima revision: 2026-06-22
 
 ## Prioridad Alta
 
@@ -17,7 +17,7 @@ Ultima revision: 2026-06-11
 - [ ] IM-05 URL amigables
 - [X] IM-06 Cambiar la sección Galería
 - [ ] IM-07 Al compartir el enlace en WhatsApp aparezca la imagen principal y el título del evento.
-- [ ] IM-08 Hacer PWA
+- [X] IM-08 Hacer PWA
 - [X] IM-09 Añadir nueva tarjeta de datos de evento
 En la tabla "eventin_events" vamos a añadir nuevos campos: "location2_name", "maps2_url", "location_title" y "location2_title"
 En la tabla "eventin_event_settings" vamos a añadir los campos: "display_date2", "display_time2"

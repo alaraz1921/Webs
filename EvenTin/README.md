@@ -17,6 +17,8 @@ EvenTin/
 |-- invitacion.html
 |-- admin.html
 |-- reset-password.html
+|-- manifest.json
+|-- sw.js
 |-- css/style.css
 |-- js/
 |-- assets/images/
@@ -47,6 +49,17 @@ Incluye:
 
 No guardar nunca la `service_role key` ni claves privadas en este proyecto.
 No reutilizar aqui la URL ni la `anon public key` del proyecto Supabase privado de `Webs`.
+
+## PWA
+
+EvenTin esta preparado para instalarse como PWA desde:
+
+```text
+https://www.alaraz1921.com/EvenTin/
+```
+
+Incluye `manifest.json`, `sw.js`, iconos en `assets/icons/` y registro comun en `js/pwa.js`.
+El boton `Instalar aplicacion` aparece solo cuando el navegador lo permite. En iOS muestra instrucciones para instalar desde Safari mediante `Compartir` -> `Añadir a pantalla de inicio`.
 
 ## Base de datos
 

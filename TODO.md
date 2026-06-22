@@ -100,6 +100,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] ET-05 Probar subida y sustitucion de imagenes tras aplicar el esquema actualizado.
 - [ ] ET-06 Probar flujo completo de evento, invitaciones, invitados, respuestas, mensajes y contactos.
 - [ ] ET-07 Verificar dominio/remitente propio en Resend si se quiere usar `contacto@alaraz1921.com`.
+- [x] ET-08 Preparar EvenTin como PWA instalable con manifest, service worker, iconos y guia iOS.
 
 ## Pruebas Manuales Recomendadas
 
@@ -131,6 +132,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-26 En Monitor Bingo: probar Empezar/Pausar/Reanudar, Reiniciar, Nuevo Id, Ir a Carton y comprobar que la PWA oculta `Volver a Games`.
 - [ ] PR-27 Probar `proyectos.html` con TRASTER y validar que solo administradores acceden a `Privado/` y gestionan usuarios.
 - [ ] PR-28 En gestion de usuarios: buscar, abrir modal de roles, guardar cambios y borrar con confirmacion modal.
+- [ ] PR-29 Instalar EvenTin desde navegador compatible y comprobar boton de instalacion, icono y arranque en modo standalone.
 
 ## Ideas De Mejora
 

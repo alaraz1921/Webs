@@ -3341,3 +3341,80 @@ body[data-palette="home"] .home-admin-link svg {
         transition: none !important;
     }
 }
+
+.eventin-pwa-install {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 40;
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, #f26f61, #6f8b70);
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    box-shadow: 0 18px 40px rgba(62, 44, 38, 0.22);
+    cursor: pointer;
+}
+
+.eventin-pwa-install[hidden] {
+    display: none;
+}
+
+.eventin-pwa-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(31, 24, 21, 0.42);
+    backdrop-filter: blur(8px);
+}
+
+.eventin-pwa-dialog {
+    width: min(420px, 100%);
+    border: 1px solid rgba(242, 111, 97, 0.22);
+    border-radius: 24px;
+    padding: 26px;
+    background: rgba(255, 250, 245, 0.96);
+    color: #3b302d;
+    box-shadow: 0 24px 70px rgba(31, 24, 21, 0.25);
+}
+
+.eventin-pwa-dialog h2 {
+    margin: 0 0 10px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 8vw, 2.7rem);
+    color: #27313b;
+}
+
+.eventin-pwa-dialog p,
+.eventin-pwa-dialog li {
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.6;
+}
+
+.eventin-pwa-dialog ol {
+    margin: 14px 0 22px;
+    padding-left: 22px;
+}
+
+.eventin-pwa-close {
+    width: 100%;
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 18px;
+    background: #f26f61;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
