@@ -17,12 +17,24 @@ function setLoginLoading(isLoading) {
 }
 
 async function canAccessTraster(user) {
-    const { data: profile, error } = await supabaseClient
+    const { data: profile, error: profileError } = await supabaseClient
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single();
-    return !error && profile?.role === 'admin';
+    if (profileError) return false;
+    if (profile?.role === 'admin') return true;
+    if (profile?.role !== 'viewer') return false;
+
+    const { data: membership, error: membershipError } = await supabaseClient
+        .from('project_members')
+        .select('role, app_projects!inner(slug,is_active)')
+        .eq('user_id', user.id)
+        .eq('role', 'editor')
+        .eq('app_projects.slug', 'trastero')
+        .eq('app_projects.is_active', true)
+        .maybeSingle();
+    return !membershipError && Boolean(membership);
 }
 
 async function enterTraster(user) {

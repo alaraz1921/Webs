@@ -23,7 +23,7 @@ La aplicacion reutiliza `../assets/supabase-client.js`; no necesita variables ad
 
 ## Seguridad
 
-- El frontend comprueba que el usuario autenticado tenga rol `admin`.
-- RLS exige ese rol y `auth.uid() = user_id` en todas las tablas.
+- El frontend permite acceso con rol general `admin`, o con rol general `viewer` y rol `editor` en el proyecto `trastero`.
+- RLS exige el mismo criterio mediante `public.can_access_trastero()`.
 - Los triggers impiden asociar carpetas, items o fotos pertenecientes a otro usuario.
 - El bucket es privado y las portadas usan URLs firmadas temporales.

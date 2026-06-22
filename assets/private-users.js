@@ -1,6 +1,6 @@
 const usersClient = window.websSupabase;
 
-const PROFILE_ROLES = ['admin', 'member', 'viewer', 'trastero'];
+const PROFILE_ROLES = ['admin', 'member', 'viewer'];
 const PROJECT_ROLES = ['', 'owner', 'editor', 'viewer'];
 
 const adminEmail = document.getElementById('users-admin-email');
@@ -79,7 +79,8 @@ function membershipFor(userId, projectId) {
 }
 
 function optionList(values, selected) {
-    return values.map((value) => {
+    const options = values.includes(selected) || !selected ? values : [...values, selected];
+    return options.map((value) => {
         const label = value || 'Sin acceso';
         return `<option value="${value}"${value === selected ? ' selected' : ''}>${label}</option>`;
     }).join('');
