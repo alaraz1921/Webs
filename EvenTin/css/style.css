@@ -1265,8 +1265,10 @@ fieldset {
     margin-bottom: 20px;
 }
 .admin-footer-actions {
-    display: flex;
+    display: grid;
     justify-content: center;
+    justify-items: center;
+    gap: 12px;
     margin-top: 28px;
     padding-top: 20px;
     border-top: 1px solid var(--line);
@@ -3343,7 +3345,7 @@ body[data-palette="home"] .home-admin-link svg {
 }
 
 .eventin-pwa-install {
-    color: var(--accent);
+    color: var(--muted);
 }
 
 .eventin-pwa-install[hidden] {
