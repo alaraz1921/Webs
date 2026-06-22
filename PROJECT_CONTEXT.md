@@ -229,6 +229,27 @@ Tipografias:
 - Permite borrar usuarios mediante modal de confirmacion y la RPC `admin_delete_registered_user(uuid)`.
 - La creacion de usuarios invoca la Edge Function `admin-create-user`, que valida sesion admin y usa `SUPABASE_SERVICE_ROLE_KEY` solo en el entorno seguro de Supabase.
 
+Roles generales (`profiles.role`):
+
+- `admin`: acceso completo a `Privado/`, gestion de usuarios y operaciones administrativas protegidas por `public.is_admin()`. Tambien puede acceder como administrador a Bingo, Infiltrado y Trastero.
+- `member`: rol general intermedio reservado para futuros permisos globales. Actualmente no concede permisos especiales por si mismo; el acceso operativo depende de `project_members`.
+- `viewer`: rol general basico por defecto. No accede a `Privado/`; sus permisos dependen de los roles asignados por proyecto.
+- `trastero`: rol permitido en `profiles`, pero Trastero valida actualmente `admin` en el frontend. Para dar acceso real a Trastero hoy se usa `admin`, salvo que se ajuste Trastero para aceptar tambien `trastero`.
+
+Roles por proyecto (`project_members.role`):
+
+- `owner`: rol maximo dentro de un proyecto concreto. Se trata como acceso operativo completo; en Bingo permite entrar al Monitor.
+- `editor`: rol operativo del proyecto. En Bingo permite entrar al Monitor.
+- `viewer`: rol de acceso/consulta del proyecto. En Infiltrado permite acceso al juego; en Bingo no permite entrar al Monitor porque este exige `owner` o `editor`.
+- Sin registro en `project_members`: sin acceso a ese proyecto.
+
+Asignaciones habituales:
+
+- Usuario normal de juegos: `profiles.role = 'viewer'`.
+- Monitor Bingo: proyecto `bingo` con rol `editor` u `owner`.
+- Infiltrado: proyecto `infiltrado` con rol `viewer`, `editor` u `owner` segun el nivel operativo deseado.
+- Administracion global: `profiles.role = 'admin'`.
+
 ### Trastero
 
 `Trastero/` es una aplicacion privada mobile-first para gestionar carpetas anidadas, items y fotos:

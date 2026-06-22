@@ -48,6 +48,7 @@ Ultima revision: 2026-06-15
 - [x] PA-42 Convertir la gestion de usuarios a lista con modales para editar roles y confirmar borrado.
 - [x] PA-43 Hacer que `Reiniciar todo desde cero` en Infiltrado local vuelva a la seleccion de modo.
 - [x] PA-44 Añadir creacion de usuarios desde la gestion privada con rol general, proyecto y rol de proyecto.
+- [x] PA-45 Documentar roles generales y roles por proyecto con sus permisos actuales.
 
 ## Prioridad Media
 
