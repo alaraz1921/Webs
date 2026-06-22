@@ -225,7 +225,9 @@ Tipografias:
 - Muestra los usuarios en lista con acciones de editar y borrar.
 - Permite buscar usuarios por nombre, alias o email.
 - Permite cambiar el rol general de `profiles.role` y los roles por proyecto en una ventana modal.
+- Permite crear usuarios nuevos desde un modal, escogiendo rol general, proyecto y rol del proyecto.
 - Permite borrar usuarios mediante modal de confirmacion y la RPC `admin_delete_registered_user(uuid)`.
+- La creacion de usuarios invoca la Edge Function `admin-create-user`, que valida sesion admin y usa `SUPABASE_SERVICE_ROLE_KEY` solo en el entorno seguro de Supabase.
 
 ### Trastero
 
@@ -388,6 +390,7 @@ Edge Function:
 
 - `notify-webs-contact`
 - `notify-new-user`: recibe asincronamente altas de `auth.users` y avisa al administrador mediante Resend.
+- `admin-create-user`: crea usuarios de Supabase Auth desde `Privado/usuarios.html` y asigna perfil/proyecto tras verificar que el solicitante es admin.
 
 Migraciones:
 

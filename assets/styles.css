@@ -1874,6 +1874,17 @@ body.private-users-page #users-search {
     margin-bottom: 14px;
 }
 
+body.private-page .private-users-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin: 18px 0;
+}
+
+body.private-page .private-users-toolbar button {
+    width: auto;
+    min-width: 170px;
+}
+
 body.private-page .private-admin-users-list {
     display: grid;
     gap: 8px;
@@ -1992,6 +2003,21 @@ body.private-page .private-modal select {
     border-radius: 6px;
     background: #0f172a;
     color: #ffffff;
+}
+
+body.private-page .private-modal input {
+    width: 100%;
+    min-height: 42px;
+    margin: 6px 0 10px;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background: #0f172a;
+    color: #ffffff;
+}
+
+body.private-page .private-modal-form {
+    display: grid;
+    gap: 4px;
 }
 
 body.private-page .private-modal-actions {

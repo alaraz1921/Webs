@@ -22,6 +22,10 @@
             <h1>GESTION DE USUARIOS</h1>
             <p class="private-user-email" id="users-admin-email">Comprobando sesion...</p>
 
+            <div class="private-users-toolbar">
+                <button type="button" id="user-create-open">Nuevo usuario</button>
+            </div>
+
             <label for="users-search">Buscar usuario</label>
             <input id="users-search" type="search" placeholder="Nombre o email" autocomplete="off">
             <p id="users-admin-message" class="private-message" hidden></p>
@@ -40,6 +44,43 @@
                     <button type="button" id="user-edit-save">Guardar</button>
                     <button type="button" class="private-secondary-button" id="user-edit-cancel">Cancelar</button>
                 </div>
+            </div>
+        </div>
+
+        <div id="user-create-modal" class="private-modal" hidden>
+            <div class="private-modal-box">
+                <h2>Nuevo usuario</h2>
+                <p>Crea un usuario de Supabase y asignale acceso a un proyecto.</p>
+                <form id="user-create-form" class="private-modal-form">
+                    <label>
+                        Usuario
+                        <input name="username" type="text" autocomplete="off" minlength="3" maxlength="30" required>
+                    </label>
+                    <label>
+                        Email
+                        <input name="email" type="email" autocomplete="email" required>
+                    </label>
+                    <label>
+                        Contraseña
+                        <input name="password" type="password" autocomplete="new-password" minlength="6" required>
+                    </label>
+                    <label>
+                        Rol general
+                        <select name="profile_role" required></select>
+                    </label>
+                    <label>
+                        Proyecto
+                        <select name="project_id" required></select>
+                    </label>
+                    <label>
+                        Rol en el proyecto
+                        <select name="project_role" required></select>
+                    </label>
+                    <div class="private-modal-actions">
+                        <button type="submit" id="user-create-submit">Crear usuario</button>
+                        <button type="button" class="private-secondary-button" id="user-create-cancel">Cancelar</button>
+                    </div>
+                </form>
             </div>
         </div>
 

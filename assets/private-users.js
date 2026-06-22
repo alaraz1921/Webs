@@ -12,6 +12,11 @@ const editTitle = document.getElementById('user-edit-title');
 const editFields = document.getElementById('user-edit-fields');
 const editSave = document.getElementById('user-edit-save');
 const editCancel = document.getElementById('user-edit-cancel');
+const createOpen = document.getElementById('user-create-open');
+const createModal = document.getElementById('user-create-modal');
+const createForm = document.getElementById('user-create-form');
+const createSubmit = document.getElementById('user-create-submit');
+const createCancel = document.getElementById('user-create-cancel');
 const deleteModal = document.getElementById('user-delete-modal');
 const deleteTitle = document.getElementById('user-delete-title');
 const deleteConfirm = document.getElementById('user-delete-confirm');
@@ -80,6 +85,13 @@ function optionList(values, selected) {
     }).join('');
 }
 
+function projectOptionList(selected = '') {
+    return projects.filter((project) => project.is_active !== false).map((project) => {
+        const label = project.name || project.slug;
+        return `<option value="${project.id}"${project.id === selected ? ' selected' : ''}>${escapeHtml(label)}</option>`;
+    }).join('');
+}
+
 function filteredProfiles() {
     const query = searchInput.value.trim().toLowerCase();
     if (!query) return profiles;
@@ -145,7 +157,7 @@ async function loadAdminData() {
 
     const [profilesResult, projectsResult, membershipsResult] = await Promise.all([
         usersClient.from('profiles').select('id, email, display_name, username, role, created_at').order('created_at', { ascending: false }),
-        usersClient.from('app_projects').select('id, slug, name').order('name', { ascending: true }),
+        usersClient.from('app_projects').select('id, slug, name, is_active').order('name', { ascending: true }),
         usersClient.from('project_members').select('project_id, user_id, role')
     ]);
 
@@ -250,6 +262,65 @@ function closeEditModal() {
     editModal.hidden = true;
 }
 
+function openCreateModal() {
+    clearUsersMessage();
+    const activeProjects = projects.filter((project) => project.is_active !== false);
+    if (!activeProjects.length) {
+        showUsersMessage('No hay proyectos activos para asignar al nuevo usuario.', 'error');
+        return;
+    }
+
+    createForm.reset();
+    createForm.elements.profile_role.innerHTML = optionList(PROFILE_ROLES, 'viewer');
+    createForm.elements.project_id.innerHTML = projectOptionList(activeProjects[0]?.id || '');
+    createForm.elements.project_role.innerHTML = optionList(PROJECT_ROLES.filter(Boolean), 'viewer');
+    createModal.hidden = false;
+    createForm.elements.username.focus();
+}
+
+function closeCreateModal() {
+    createModal.hidden = true;
+}
+
+async function createUser(event) {
+    event.preventDefault();
+    clearUsersMessage();
+
+    const formData = new FormData(createForm);
+    const payload = {
+        username: String(formData.get('username') || '').trim(),
+        email: String(formData.get('email') || '').trim(),
+        password: String(formData.get('password') || ''),
+        profile_role: String(formData.get('profile_role') || 'viewer'),
+        project_id: String(formData.get('project_id') || ''),
+        project_role: String(formData.get('project_role') || '')
+    };
+
+    if (!payload.username || !payload.email || !payload.password || !payload.project_id || !payload.project_role) {
+        showUsersMessage('Completa todos los datos del nuevo usuario.', 'error');
+        return;
+    }
+
+    createSubmit.disabled = true;
+    createSubmit.textContent = 'Creando...';
+
+    const { data, error } = await usersClient.functions.invoke('admin-create-user', {
+        body: payload
+    });
+
+    createSubmit.disabled = false;
+    createSubmit.textContent = 'Crear usuario';
+
+    if (error || !data?.ok) {
+        showUsersMessage(data?.message || 'No se pudo crear el usuario. Comprueba que la Edge Function este desplegada.', 'error');
+        return;
+    }
+
+    closeCreateModal();
+    await loadAdminData();
+    showUsersMessage('Usuario creado correctamente.');
+}
+
 async function saveEditedRoles() {
     if (!editingUserId) return;
     editSave.disabled = true;
@@ -313,6 +384,9 @@ async function deleteUser() {
 searchInput.addEventListener('input', renderUsers);
 editSave.addEventListener('click', saveEditedRoles);
 editCancel.addEventListener('click', closeEditModal);
+createOpen.addEventListener('click', openCreateModal);
+createForm.addEventListener('submit', createUser);
+createCancel.addEventListener('click', closeCreateModal);
 deleteConfirm.addEventListener('click', deleteUser);
 deleteCancel.addEventListener('click', closeDeleteModal);
 

@@ -47,6 +47,7 @@ Ultima revision: 2026-06-15
 - [x] PA-41 Añadir Trastero a Proyectos, restringir zona privada a administradores y crear gestion de usuarios.
 - [x] PA-42 Convertir la gestion de usuarios a lista con modales para editar roles y confirmar borrado.
 - [x] PA-43 Hacer que `Reiniciar todo desde cero` en Infiltrado local vuelva a la seleccion de modo.
+- [x] PA-44 Añadir creacion de usuarios desde la gestion privada con rol general, proyecto y rol de proyecto.
 
 ## Prioridad Media
 
@@ -77,6 +78,7 @@ Ultima revision: 2026-06-15
 - [ ] PM-25 Ejecutar `20260615200000_infiltrado_online_leave.sql` para habilitar el abandono seguro de partidas online.
 - [ ] PM-26 Ejecutar `20260615210000_infiltrado_online_round_flow.sql` para validar codigos y habilitar los nuevos finales de ronda online.
 - [ ] PM-27 Ejecutar `20260619170000_admin_user_management.sql` para habilitar el borrado seguro desde la gestion de usuarios.
+- [ ] PM-28 Desplegar `admin-create-user` y confirmar que `SUPABASE_SERVICE_ROLE_KEY` esta disponible como secret de Edge Functions.
 
 ## Prioridad Baja
 
@@ -133,6 +135,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-27 Probar `proyectos.html` con TRASTER y validar que solo administradores acceden a `Privado/` y gestionan usuarios.
 - [ ] PR-28 En gestion de usuarios: buscar, abrir modal de roles, guardar cambios y borrar con confirmacion modal.
 - [ ] PR-29 Instalar EvenTin desde navegador compatible y comprobar boton de instalacion, icono y arranque en modo standalone.
+- [ ] PR-30 En gestion de usuarios: crear un usuario nuevo, asignar proyecto/rol, iniciar sesion con ese usuario y comprobar su acceso.
 
 ## Ideas De Mejora
 
