@@ -59,7 +59,7 @@ https://www.alaraz1921.com/EvenTin/
 ```
 
 Incluye `manifest.json`, `sw.js`, iconos en `assets/icons/` y registro comun en `js/pwa.js`.
-El boton `Instalar aplicacion` aparece solo cuando el navegador lo permite. En iOS muestra instrucciones para instalar desde Safari mediante `Compartir` -> `Añadir a pantalla de inicio`.
+El enlace `Instalar aplicacion` aparece en el pie del panel administrador, justo antes de `Cerrar sesion`, solo cuando el navegador lo permite. En iOS muestra instrucciones para instalar desde Safari mediante `Compartir` -> `Añadir a pantalla de inicio`.
 
 ## Base de datos
 

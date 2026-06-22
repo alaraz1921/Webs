@@ -32,15 +32,16 @@ function eventinShowInstallHelp() {
     });
 }
 
-function eventinCreateInstallButton() {
-    if (eventinIsStandalone() || document.querySelector('.eventin-pwa-install')) return;
+function eventinSetupInstallAction() {
+    const button = document.querySelector('.eventin-pwa-install');
+    if (!button) return;
 
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'eventin-pwa-install';
-    button.textContent = 'Instalar aplicación';
+    if (eventinIsStandalone()) {
+        button.hidden = true;
+        return;
+    }
+
     button.hidden = !eventinInstallPrompt && !eventinIsIos();
-    document.body.appendChild(button);
 
     button.addEventListener('click', async () => {
         if (eventinIsIos() && !eventinInstallPrompt) {
@@ -73,7 +74,7 @@ window.addEventListener('appinstalled', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    eventinCreateInstallButton();
+    eventinSetupInstallAction();
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

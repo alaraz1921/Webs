@@ -160,7 +160,7 @@ Resumen:
 - EvenTin queda preparado como PWA instalable desde `https://www.alaraz1921.com/EvenTin/`.
 - Se añadieron `manifest.json`, `sw.js`, registro comun en `js/pwa.js` y metadatos PWA en todos los HTML raiz.
 - Los iconos PWA se generaron desde el icono de EvenTin proporcionado: `icon-192.png`, `icon-512.png`, `icon-1024.png` y `apple-touch-icon.png`.
-- El boton `Instalar aplicacion` aparece solo cuando el navegador permite instalar la PWA; en iOS muestra instrucciones para usar `Compartir` y `Añadir a pantalla de inicio`.
+- El enlace `Instalar aplicacion` aparece solo en el pie del panel administrador, justo antes de `Cerrar sesion`, cuando el navegador permite instalar la PWA; en iOS muestra instrucciones para usar `Compartir` y `Añadir a pantalla de inicio`.
 - El service worker cachea los recursos principales de EvenTin y limita su alcance a `/EvenTin/`.
 
 ## Cambios del 2026-06-08
