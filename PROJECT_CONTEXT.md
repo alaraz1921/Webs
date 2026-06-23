@@ -46,7 +46,7 @@ Aunque comparten repositorio y GitHub Pages, no deben compartir tablas, claves n
 - Se creo `games.html` como concentrador de juegos.
 - La portada incluye un enlace directo `PROYECTOS` hacia `proyectos.html`.
 - La navegacion principal mantiene el orden `PROYECTOS`, `GAMES` y `CONTACTO`, ademas del icono discreto de acceso privado.
-- Se creo `proyectos.html` como concentrador de EvenTin, EvenPic y Subastas Solidarias.
+- Se creo `proyectos.html` como concentrador de EvenTin, EvenPic, TRASTER, Guia Abierta y Subastas Solidarias.
 - Se creo `coming-soon.html` como pagina compartida para proyectos en desarrollo.
 - Las paginas propias de Webs comparten un `title` y una descripcion orientados a proyectos web, eventos y experiencias digitales.
 - La portada presenta el mensaje principal de eventos y proyectos, el subtitulo `Nothing Gonna Change My World` y un texto introductorio antes del contacto.
@@ -184,6 +184,7 @@ Concentrador de proyectos y experiencias digitales:
 - EvenTin enlaza a su pagina publicada.
 - EvenPic enlaza temporalmente a `coming-soon.html`.
 - Trastero enlaza a `https://www.alaraz1921.com/Trastero` como `TRASTER`.
+- Guia Abierta enlaza temporalmente a `coming-soon.html`.
 - Subastas Solidarias enlaza temporalmente a `coming-soon.html`.
 
 ### `coming-soon.html`
@@ -192,7 +193,7 @@ Pagina compartida para proyectos todavia no publicados:
 
 - Reutiliza la imagen de fondo y overlay oscuro de Webs.
 - Presenta un mensaje central de proyecto en desarrollo.
-- Actualmente recibe los enlaces de EvenPic y Subasta Solidaria.
+- Actualmente recibe los enlaces de EvenPic, Guia Abierta y Subasta Solidaria.
 - Incluye vuelta a la pagina principal.
 
 ### Estilo Compartido
@@ -501,6 +502,7 @@ index.html
 |   |-- EvenTin
 |   |-- EvenPic -> coming-soon.html
 |   |-- TRASTER -> Trastero/
+|   |-- Guia Abierta -> coming-soon.html
 |   `-- Subastas Solidarias -> coming-soon.html
 |-- games.html
 |   |-- ValentinaPlay/
