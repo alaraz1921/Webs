@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EscapeTin: juegos de gincanas, pistas, retos y aventuras para ninos, familias y grupos.">
+    <title>EscapeTin | Gincanas y aventuras con pistas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+    <header class="site-header" aria-label="Cabecera">
+        <a class="brand" href="#inicio" aria-label="EscapeTin inicio">
+            <span class="brand-mark">ET</span>
+            <span>EscapeTin</span>
+        </a>
+        <nav class="top-nav" aria-label="Navegacion principal">
+            <a href="#juegos">Juegos</a>
+            <a href="#retos">Retos</a>
+            <a href="#contacto">Contacto</a>
+        </nav>
+    </header>
+
+    <main id="inicio">
+        <section class="hero" aria-labelledby="hero-title">
+            <img class="hero-art" src="assets/escapetin-hero.png" alt="Ninos jugando a una gincana colorida con pistas y mapas">
+            <div class="hero-shade"></div>
+            <div class="hero-confetti" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="hero-content">
+                <p class="eyebrow">Gincanas, pistas y misiones</p>
+                <h1 id="hero-title">EscapeTin</h1>
+                <p class="hero-lead">Convierte cualquier cumple, fiesta o tarde con amigos en una aventura llena de mapas, codigos, retos y sorpresas.</p>
+                <div class="hero-actions" aria-label="Acciones principales">
+                    <a class="btn btn-primary" href="#juegos">Ver aventuras</a>
+                    <a class="btn btn-secondary" href="../games.html">Volver a Games</a>
+                </div>
+            </div>
+            <a class="scroll-cue" href="#juegos" aria-label="Bajar a juegos">
+                <span></span>
+            </a>
+        </section>
+
+        <section id="juegos" class="section quest-section">
+            <div class="section-heading reveal">
+                <p class="section-kicker">Para jugar en grupo</p>
+                <h2>Elige una mision y que empiece la carrera</h2>
+            </div>
+            <div class="quest-grid">
+                <article class="quest-card reveal" style="--accent:#ff5c7a">
+                    <span class="quest-icon" aria-hidden="true">?</span>
+                    <h3>El mapa secreto</h3>
+                    <p>Un recorrido por pistas escondidas, acertijos visuales y decisiones rapidas para llegar al tesoro final.</p>
+                </article>
+                <article class="quest-card reveal" style="--accent:#00b8a9">
+                    <span class="quest-icon" aria-hidden="true">#</span>
+                    <h3>Codigo relampago</h3>
+                    <p>Equipos contra reloj descifrando candados, palabras clave y pequenas pruebas fisicas sin parar de moverse.</p>
+                </article>
+                <article class="quest-card reveal" style="--accent:#ffb800">
+                    <span class="quest-icon" aria-hidden="true">!</span>
+                    <h3>La liga de pistas</h3>
+                    <p>Retos cortos por estaciones para familias, primos, amigos y mayores que quieran sumarse al plan.</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="retos" class="section play-band">
+            <div class="play-copy reveal">
+                <p class="section-kicker">De 8 a 14 anos</p>
+                <h2>Animado, cooperativo y facil de adaptar</h2>
+                <p>EscapeTin mezcla pruebas de observacion, enigmas, movimiento y creatividad. Funciona en casa, patio, parque, cole o celebraciones familiares.</p>
+            </div>
+            <div class="challenge-board reveal" aria-label="Tipos de retos">
+                <button type="button" data-challenge="pistas" class="active">Pistas</button>
+                <button type="button" data-challenge="codigos">Codigos</button>
+                <button type="button" data-challenge="movimiento">Movimiento</button>
+                <button type="button" data-challenge="final">Final</button>
+                <p id="challenge-text">Busca senales, flechas, sobres y objetos raros para desbloquear la siguiente prueba.</p>
+            </div>
+        </section>
+
+        <section id="contacto" class="section final-cta">
+            <div class="reveal">
+                <p class="section-kicker">Listo para preparar una aventura</p>
+                <h2>Una gincana que se siente como una peli de misiones</h2>
+                <a class="btn btn-primary" href="mailto:info@alaraz1921.com?subject=EscapeTin">Pedir informacion</a>
+            </div>
+        </section>
+    </main>
+
+    <script src="assets/app.js"></script>
+</body>
+</html>
