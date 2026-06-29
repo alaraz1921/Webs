@@ -942,6 +942,10 @@ body.games-page .games-home-link:hover {
     background: #64748b;
 }
 
+body.games-page .projects-home-link {
+    margin-bottom: 18px;
+}
+
 /* Entradas discretas compartidas por portada, Games y paginas de proyectos. */
 body.reveal-enabled [data-reveal] {
     opacity: 0;

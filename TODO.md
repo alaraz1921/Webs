@@ -50,6 +50,7 @@ Ultima revision: 2026-06-15
 - [x] PA-44 Añadir creacion de usuarios desde la gestion privada con rol general, proyecto y rol de proyecto.
 - [x] PA-45 Documentar roles generales y roles por proyecto con sus permisos actuales.
 - [x] PA-46 Añadir Guia Abierta a `proyectos.html` bajo TRASTER como proyecto en desarrollo.
+- [x] PA-47 Hacer visible el boton de vuelta a pagina principal en `proyectos.html`.
 
 ## Prioridad Media
 
@@ -120,7 +121,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-10 Enviar contacto desde Webs; comprobar fila en `webs_contact_messages` y recepcion del email.
 - [ ] PR-11 Abrir una ruta inexistente para validar `404.html`.
 - [ ] PR-12 Ejecutar el flujo manual completo indicado en `EvenTin/PROJECT_HANDOFF.md`.
-- [ ] PR-13 Probar `proyectos.html`; comprobar que EvenTin abre su pagina publicada, TRASTER abre Trastero y que EvenPic, Guia Abierta y Subastas Solidarias abren `coming-soon.html`.
+- [ ] PR-13 Probar `proyectos.html`; comprobar el boton de pagina principal, que EvenTin abre su pagina publicada, TRASTER abre Trastero y que EvenPic, Guia Abierta y Subastas Solidarias abren `coming-soon.html`.
 - [ ] PR-14 Probar registro, confirmacion de correo, login compartido, cierre de sesion y acceso a Monitor Bingo e Infiltrado desde Games.
 - [ ] PR-15 Probar login por usuario y correo, solicitud de restauracion y cambio de contraseña desde el enlace recibido.
 - [ ] PR-16 Probar validaciones, tiempo minimo y honeypot del formulario de contacto sin generar mensajes ni emails bloqueados.

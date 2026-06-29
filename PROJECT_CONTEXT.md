@@ -181,6 +181,7 @@ Los botones de vuelta de Bingo, Monitor e Infiltrado regresan a `games.html` y s
 
 Concentrador de proyectos y experiencias digitales:
 
+- Incluye boton visible de vuelta a `index.html` bajo el titulo.
 - EvenTin enlaza a su pagina publicada.
 - EvenPic enlaza temporalmente a `coming-soon.html`.
 - Trastero enlaza a `https://www.alaraz1921.com/Trastero` como `TRASTER`.
