@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contacto de EscapeTin para preparar gincanas, pistas y aventuras.">
+    <title>Contacto | EscapeTin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/supabase-client.js"></script>
+</head>
+<body class="contact-page">
+    <header class="site-header" aria-label="Cabecera">
+        <a class="brand" href="index.html" aria-label="EscapeTin inicio">
+            <span class="brand-mark">ET</span>
+            <span>EscapeTin</span>
+        </a>
+        <nav class="top-nav" aria-label="Navegacion principal">
+            <a href="index.html#juegos">Juegos</a>
+            <a href="index.html#retos">Retos</a>
+            <a href="index.html">Inicio</a>
+        </nav>
+    </header>
+
+    <main class="contact-layout">
+        <section class="contact-hero" aria-labelledby="contact-title">
+            <p class="eyebrow">Preparamos la mision</p>
+            <h1 id="contact-title">Contacto</h1>
+            <p>Cuentame que tipo de gincana tienes en mente y te respondere para darle forma a la aventura.</p>
+        </section>
+
+        <section class="escape-contact-card" aria-label="Formulario de contacto">
+            <form action="#" method="POST" onsubmit="enviarContacto(event)">
+                <div class="contact-honeypot" aria-hidden="true">
+                    <label for="website">Website</label>
+                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Nombre</label>
+                    <input type="text" id="name" name="name" minlength="2" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Asunto</label>
+                    <input type="text" id="subject" name="subject" minlength="4" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Mensaje</label>
+                    <textarea id="message" name="message" rows="5" minlength="20" required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary contact-submit">Enviar</button>
+                <p id="contact-status" class="form-status" role="status"></p>
+            </form>
+            <a class="back-link" href="index.html">Volver a EscapeTin</a>
+        </section>
+    </main>
+
+    <script src="assets/contact.js"></script>
+</body>
+</html>
