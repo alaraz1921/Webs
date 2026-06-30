@@ -2137,6 +2137,52 @@ body.private-page .private-user-delete:disabled {
     cursor: not-allowed;
 }
 
+@media (max-width: 560px) {
+    body.private-page .private-user-row {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    body.private-page .private-user-row-main {
+        width: 100%;
+    }
+
+    body.private-page .private-user-row-main strong,
+    body.private-page .private-user-row-main span,
+    body.private-page .private-user-row-main small {
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    body.private-page .private-user-row-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px 40px;
+        justify-content: stretch;
+        width: 100%;
+    }
+
+    body.private-page .private-user-action {
+        width: 100%;
+        min-width: 0;
+    }
+
+    body.private-page .private-icon-button {
+        justify-self: end;
+    }
+}
+
+@media (max-width: 380px) {
+    body.private-page .private-user-row-actions {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    body.private-page .private-icon-button {
+        justify-self: stretch;
+        width: 100%;
+        border-radius: 999px;
+    }
+}
 body.private-page .private-modal {
     position: fixed;
     inset: 0;

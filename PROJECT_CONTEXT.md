@@ -222,7 +222,7 @@ Tipografias:
 - Login mediante Supabase Auth.
 - Usa `profiles`, `app_projects` y `project_members`.
 - Solo permite acceso a usuarios con `profiles.role = 'admin'`.
-- La gestion de usuarios muestra estado de validacion, caducidad temporal y acciones para validar o bloquear usuarios.
+- La gestion de usuarios muestra estado de validacion, caducidad temporal y acciones para validar o bloquear usuarios, con tarjetas responsive que apilan contenido y acciones en movil.
 - Muestra acceso a la gestion de usuarios registrados en `Privado/usuarios.html`.
 - Se ha eliminado el antiguo apartado Notas.
 
