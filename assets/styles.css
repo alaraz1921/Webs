@@ -976,6 +976,60 @@ body.games-page .game-card-escapetin { --game-icon-tilt: 8deg; }
         border-radius: 24px;
     }
 }
+body.games-page .projects-list a {
+    min-height: 82px;
+    padding: 16px 18px;
+    overflow: hidden;
+}
+
+body.games-page .projects-list a.has-project-icon {
+    padding-right: 94px;
+}
+
+body.games-page .projects-list .project-card-copy {
+    position: relative;
+    z-index: 2;
+    display: block;
+}
+
+body.games-page .projects-list > a > span,
+body.games-page .projects-list .project-card-copy > span {
+    display: block;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+body.games-page .project-card-icon {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    right: 16px;
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 16px;
+    filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.24));
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+@media (max-width: 520px) {
+    body.games-page .projects-list a {
+        min-height: 76px;
+        padding: 14px 16px;
+    }
+
+    body.games-page .projects-list a.has-project-icon {
+        padding-right: 82px;
+    }
+
+    body.games-page .project-card-icon {
+        right: 14px;
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+    }
+}
 body.games-page .games-home-link {
     width: 100%;
     margin-top: 18px;

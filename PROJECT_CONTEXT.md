@@ -190,6 +190,7 @@ Concentrador de proyectos y experiencias digitales:
 - Trastero enlaza a `https://www.alaraz1921.com/Trastero` como `TRASTER`.
 - Guia Abierta enlaza temporalmente a `coming-soon.html`.
 - Subastas Solidarias enlaza temporalmente a `coming-soon.html`.
+- EvenTin, TRASTER y Guia Abierta muestran iconos rectos y contenidos dentro de sus tarjetas.
 
 ### `coming-soon.html`
 

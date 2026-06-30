@@ -54,6 +54,7 @@ Ultima revision: 2026-06-30
 - [x] PA-48 Sustituir los iconos PWA de Bingo e Infiltrado por los nuevos artes de Games.
 - [x] PA-49 Añadir iconos decorativos inclinados a las tarjetas de `games.html`.
 - [x] PA-50 Reducir la altura de las tarjetas de `games.html` para que los iconos sobresalgan de forma decorativa.
+- [x] PA-51 Añadir iconos sobrios a las tarjetas disponibles de `proyectos.html`.
 
 ## Prioridad Media
 
