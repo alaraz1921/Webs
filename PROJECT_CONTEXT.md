@@ -167,7 +167,7 @@ Concentrador de juegos:
 - Infiltrado.
 - EscapeTin.
 
-Las tarjetas incluyen iconos decorativos inclinados a la derecha, con el texto en una capa superior para mantener la lectura aunque el icono sobresalga.
+Las tarjetas incluyen iconos decorativos inclinados a la derecha, con cajas compactas de altura cercana al icono y el texto en una capa superior para mantener la lectura aunque el icono sobresalga.
 
 - Incluye un icono de usuario con inicio de sesion por alias o correo, registro, restauracion de contraseña desde el login y cierre de sesion.
 - Monitor Bingo e Infiltrado enlazan desde sus accesos a la restauracion y al nuevo registro de Games mediante `?auth=recovery` y `?auth=register`.
