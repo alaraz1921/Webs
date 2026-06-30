@@ -177,7 +177,7 @@ Las tarjetas incluyen iconos decorativos inclinados a la derecha, con cajas comp
 - Los registros creados desde Games reciben acceso automatico al Monitor de Bingo y a Infiltrado mediante `project_members`, pero el acceso efectivo depende de `profiles.approval_status` y `trial_expires_at`.
 - Games, Monitor Bingo e Infiltrado comparten una validacion local de sesion de 24 horas mediante `games_auth_time` y verifican en cada acceso si el perfil esta `validado`, `bloqueado` o `temporal` caducado.
 - `profiles.username` guarda alias unicos y la RPC `resolve_games_login_email(text)` permite iniciar sesion por alias.
-- El panel de acceso de Infiltrado permite scroll en pantallas bajas para alcanzar siempre `Volver a Games`.
+- El panel de acceso de Infiltrado usa scroll interno de viewport en pantallas bajas para alcanzar siempre `Volver a Games`.
 
 `games.html` usa la banda superior compartida con enlace a portada y menu hamburguesa; ValentinaPlay, Bingo e Infiltrado regresan a `games.html`, y los juegos ocultan la vuelta cuando se ejecutan como PWA instalada.
 

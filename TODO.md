@@ -60,6 +60,7 @@ Ultima revision: 2026-06-30
 - [x] PA-54 Sustituir los botones de pagina principal de `games.html` y `proyectos.html` por la banda superior compartida.
 - [x] PA-55 Mover las acciones de sesion de Games al menu hamburguesa, cambiar la vuelta de Valentina a Games y corregir el scroll del acceso de Infiltrado.
 - [x] PA-56 Hacer mas opaco el menu desplegado de Games/Proyectos y mostrar en Games solo Cerrar sesion si hay sesion activa.
+- [x] PA-57 Centrar Cerrar sesion en el menu movil de Games y reforzar el scroll del acceso de Infiltrado.
 
 ## Prioridad Media
 

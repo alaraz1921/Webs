@@ -745,7 +745,10 @@ body.games-page .menu-toggle span {
 
     body.games-page .nav-menu a,
     body.games-page .nav-menu button {
+        width: 100%;
+        box-sizing: border-box;
         justify-content: center;
+        text-align: center;
         padding: 14px 20px;
     }
 }
@@ -2995,9 +2998,12 @@ body.games-page .nav-menu .games-nav-auth[hidden] {
 }
 
 body.infiltrado-page #screen-lock.active {
-    height: auto;
-    min-height: 100vh;
-    overflow-y: auto;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: scroll;
     justify-content: flex-start;
     box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
 }
