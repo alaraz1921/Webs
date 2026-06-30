@@ -51,6 +51,7 @@ Ultima revision: 2026-06-15
 - [x] PA-45 Documentar roles generales y roles por proyecto con sus permisos actuales.
 - [x] PA-46 Añadir Guia Abierta a `proyectos.html` bajo TRASTER como proyecto en desarrollo.
 - [x] PA-47 Hacer visible el boton de vuelta a pagina principal en `proyectos.html`.
+- [x] PA-48 Sustituir los iconos PWA de Bingo e Infiltrado por los nuevos artes de Games.
 
 ## Prioridad Media
 
