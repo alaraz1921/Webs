@@ -2,11 +2,8 @@ const gamesClient = window.websSupabase;
 const GAMES_AUTH_TIME_KEY = 'games_auth_time';
 const GAMES_AUTH_DURATION_MS = 24 * 60 * 60 * 1000;
 
-const userTrigger = document.getElementById('games-user-trigger');
-const userMenu = document.getElementById('games-user-menu');
-const guestOptions = document.getElementById('games-user-guest');
-const sessionOptions = document.getElementById('games-user-session');
-const userName = document.getElementById('games-user-name');
+const guestOptions = Array.from(document.querySelectorAll('.games-nav-guest'));
+const sessionOptions = Array.from(document.querySelectorAll('.games-nav-session'));
 const loginScreen = document.getElementById('games-login-screen');
 const registerScreen = document.getElementById('games-register-screen');
 const recoveryScreen = document.getElementById('games-recovery-screen');
@@ -75,8 +72,7 @@ function ocultarMensajes() {
 }
 
 function cerrarMenuUsuario() {
-    userMenu.hidden = true;
-    userTrigger.setAttribute('aria-expanded', 'false');
+    if (typeof cerrarMenuMovil === 'function') cerrarMenuMovil();
 }
 
 function mostrarPantallaAutenticacion(pantalla) {
@@ -103,16 +99,14 @@ function cerrarPantallasAutenticacion() {
     newPasswordScreen.hidden = true;
 }
 
-function mostrarSesion(user) {
-    guestOptions.hidden = true;
-    sessionOptions.hidden = false;
-    userName.textContent = user.user_metadata?.display_name || user.email;
+function mostrarSesion() {
+    guestOptions.forEach((opcion) => { opcion.hidden = true; });
+    sessionOptions.forEach((opcion) => { opcion.hidden = false; });
 }
 
 function mostrarInvitado() {
-    guestOptions.hidden = false;
-    sessionOptions.hidden = true;
-    userName.textContent = '';
+    guestOptions.forEach((opcion) => { opcion.hidden = false; });
+    sessionOptions.forEach((opcion) => { opcion.hidden = true; });
 }
 
 async function cargarSesion() {
@@ -145,12 +139,6 @@ async function resolverEmailAcceso(identificador) {
 
     return error ? null : data;
 }
-
-userTrigger.addEventListener('click', () => {
-    const seAbrira = userMenu.hidden;
-    userMenu.hidden = !seAbrira;
-    userTrigger.setAttribute('aria-expanded', String(seAbrira));
-});
 
 document.getElementById('games-open-login').addEventListener('click', () => mostrarPantallaAutenticacion('login'));
 document.getElementById('games-open-register').addEventListener('click', () => mostrarPantallaAutenticacion('register'));
@@ -290,10 +278,6 @@ document.getElementById('games-logout').addEventListener('click', async () => {
     limpiarAccesoGames();
     mostrarInvitado();
     cerrarMenuUsuario();
-});
-
-document.addEventListener('click', (event) => {
-    if (!event.target.closest('.games-user-area')) cerrarMenuUsuario();
 });
 
 document.addEventListener('keydown', (event) => {

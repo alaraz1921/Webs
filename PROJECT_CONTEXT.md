@@ -169,7 +169,7 @@ Concentrador de juegos:
 
 Las tarjetas incluyen iconos decorativos inclinados a la derecha, con cajas compactas de altura cercana al icono y el texto en una capa superior para mantener la lectura aunque el icono sobresalga.
 
-- Incluye un icono de usuario con inicio de sesion por alias o correo, registro, restauracion de contraseña desde el login y cierre de sesion.
+- Incluye inicio de sesion por alias o correo, registro, restauracion de contrasena desde el login y cierre de sesion desde el menu hamburguesa.
 - Monitor Bingo e Infiltrado enlazan desde sus accesos a la restauracion y al nuevo registro de Games mediante `?auth=recovery` y `?auth=register`.
 - Los controles de acceso de Monitor e Infiltrado mantienen ancho completo, altura tactil estable y separacion uniforme.
 - Games, Monitor Bingo e Infiltrado permiten iniciar sesion tanto por alias como por correo mediante `resolve_games_login_email(text)`.
@@ -177,8 +177,9 @@ Las tarjetas incluyen iconos decorativos inclinados a la derecha, con cajas comp
 - Los registros creados desde Games reciben acceso automatico al Monitor de Bingo y a Infiltrado mediante `project_members`, pero el acceso efectivo depende de `profiles.approval_status` y `trial_expires_at`.
 - Games, Monitor Bingo e Infiltrado comparten una validacion local de sesion de 24 horas mediante `games_auth_time` y verifican en cada acceso si el perfil esta `validado`, `bloqueado` o `temporal` caducado.
 - `profiles.username` guarda alias unicos y la RPC `resolve_games_login_email(text)` permite iniciar sesion por alias.
+- El panel de acceso de Infiltrado permite scroll en pantallas bajas para alcanzar siempre `Volver a Games`.
 
-`games.html` usa la banda superior compartida con enlace a portada y menu hamburguesa; los juegos siguen regresando a `games.html` y ocultan la vuelta cuando se ejecutan como PWA instalada.
+`games.html` usa la banda superior compartida con enlace a portada y menu hamburguesa; ValentinaPlay, Bingo e Infiltrado regresan a `games.html`, y los juegos ocultan la vuelta cuando se ejecutan como PWA instalada.
 
 ### `proyectos.html`
 

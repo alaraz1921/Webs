@@ -668,7 +668,13 @@ body.games-page .nav-menu {
     list-style: none;
 }
 
-body.games-page .nav-menu a {
+body.games-page .nav-menu a,
+body.games-page .nav-menu button {
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0;
     display: flex;
     align-items: center;
     gap: 5px;
@@ -681,7 +687,8 @@ body.games-page .nav-menu a {
     transition: color 0.3s ease;
 }
 
-body.games-page .nav-menu a:hover {
+body.games-page .nav-menu a:hover,
+body.games-page .nav-menu button:hover {
     color: var(--azul-neon);
 }
 
@@ -736,7 +743,8 @@ body.games-page .menu-toggle span {
         text-align: center;
     }
 
-    body.games-page .nav-menu a {
+    body.games-page .nav-menu a,
+    body.games-page .nav-menu button {
         justify-content: center;
         padding: 14px 20px;
     }
@@ -766,73 +774,6 @@ body.games-page [hidden] {
     display: none !important;
 }
 
-body.games-page .games-user-area {
-    position: fixed;
-    top: 72px;
-    right: 18px;
-    z-index: 1200;
-}
-
-body.games-page .games-user-trigger {
-    display: grid;
-    width: 42px;
-    height: 42px;
-    padding: 8px;
-    border: 1px solid rgba(255,255,255,0.55);
-    border-radius: 50%;
-    background: rgba(28, 37, 65, 0.88);
-    color: #ffffff;
-    cursor: pointer;
-    place-items: center;
-}
-
-body.games-page .games-user-trigger svg {
-    width: 22px;
-    height: 22px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2;
-}
-
-body.games-page .games-user-menu {
-    position: absolute;
-    top: 50px;
-    right: 0;
-    width: 210px;
-    padding: 8px;
-    border: 1px solid #3a506b;
-    border-radius: 8px;
-    background: #1c2541;
-    box-shadow: 0 14px 30px rgba(0,0,0,0.42);
-    text-align: left;
-}
-
-body.games-page .games-user-menu button {
-    width: 100%;
-    padding: 11px 12px;
-    border: 0;
-    border-radius: 6px;
-    background: transparent;
-    color: #ffffff;
-    font: inherit;
-    font-weight: 700;
-    text-align: left;
-    cursor: pointer;
-}
-
-body.games-page .games-user-menu button:hover {
-    background: #334155;
-}
-
-body.games-page .games-user-menu p {
-    margin: 4px 6px 8px;
-    color: #ffb703;
-    font-size: 0.88rem;
-    font-weight: 800;
-    overflow-wrap: anywhere;
-}
 
 body.games-page .games-auth-screen {
     position: fixed;
@@ -3047,4 +2988,16 @@ body.coming-soon-page .games-home-link {
 
 body.coming-soon-page .games-home-link:hover {
     background: #64748b;
+}
+
+body.games-page .nav-menu .games-nav-auth[hidden] {
+    display: none !important;
+}
+
+body.infiltrado-page #screen-lock.active {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    justify-content: flex-start;
+    box-sizing: border-box;
 }

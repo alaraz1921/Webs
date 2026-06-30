@@ -58,6 +58,7 @@ Ultima revision: 2026-06-30
 - [x] PA-52 Implementar validacion administrativa de usuarios con acceso temporal de 48 horas para Games, Bingo e Infiltrado.
 - [x] PA-53 Corregir la visualizacion responsive de las tarjetas de gestion de usuarios.
 - [x] PA-54 Sustituir los botones de pagina principal de `games.html` y `proyectos.html` por la banda superior compartida.
+- [x] PA-55 Mover las acciones de sesion de Games al menu hamburguesa, cambiar la vuelta de Valentina a Games y corregir el scroll del acceso de Infiltrado.
 
 ## Prioridad Media
 
@@ -118,8 +119,8 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 ## Pruebas Manuales Recomendadas
 
 - [ ] PR-01 Abrir `index.html` en escritorio y movil; comprobar navbar, enlace Proyectos, icono privado, H1, subtitulo, presentacion, separadores y contacto.
-- [ ] PR-02 Probar `games.html` y enlaces a ValentinaPlay, Bingo, Infiltrado y EscapeTin, revisando los iconos de las tarjetas.
-- [ ] PR-03 Comprobar que los botones `Volver a Games` regresan a `games.html`.
+- [ ] PR-02 Probar `games.html`, el menu hamburguesa con inicio/cierre de sesion y enlaces a ValentinaPlay, Bingo, Infiltrado y EscapeTin.
+- [ ] PR-03 Comprobar que los botones `Volver a Games`, incluido ValentinaPlay, regresan a `games.html`.
 - [ ] PR-04 En Bingo carton: seleccionar partida, marcar numeros iniciados, limpiar y verificar persistencia.
 - [ ] PR-05 En Bingo carton: comprobar cambio libre sin partida o no iniciada y bloqueo cuando `iniciada = true`.
 - [ ] PR-06 En Monitor Bingo: entrar con nombre de usuario o correo autorizado; iniciar, pausar, reanudar, reiniciar y crear nueva partida.
@@ -129,7 +130,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 - [ ] PR-10 Enviar contacto desde Webs; comprobar fila en `webs_contact_messages` y recepcion del email.
 - [ ] PR-11 Abrir una ruta inexistente para validar `404.html`.
 - [ ] PR-12 Ejecutar el flujo manual completo indicado en `EvenTin/PROJECT_HANDOFF.md`.
-- [ ] PR-13 Probar `proyectos.html`; comprobar el boton de pagina principal, que EvenTin abre su pagina publicada, TRASTER abre Trastero y que EvenPic, Guia Abierta y Subastas Solidarias abren `coming-soon.html`.
+- [ ] PR-13 Probar `proyectos.html`; comprobar la banda superior, que EvenTin abre su pagina publicada, TRASTER abre Trastero y que EvenPic, Guia Abierta y Subastas Solidarias abren `coming-soon.html`.
 - [ ] PR-14 Probar registro, confirmacion de correo, login compartido, cierre de sesion y acceso a Monitor Bingo e Infiltrado desde Games.
 - [ ] PR-15 Probar login por usuario y correo, solicitud de restauracion y cambio de contraseña desde el enlace recibido.
 - [ ] PR-16 Probar validaciones, tiempo minimo y honeypot del formulario de contacto sin generar mensajes ni emails bloqueados.

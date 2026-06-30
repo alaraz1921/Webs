@@ -27,27 +27,12 @@
                 <li class="nav-item"><a href="proyectos.html">PROYECTOS</a></li>
                 <li class="nav-item"><a href="games.html">GAMES</a></li>
                 <li class="nav-item"><a href="index.html#contacto">CONTACTO</a></li>
+                <li class="nav-item games-nav-auth games-nav-guest"><button id="games-open-login" type="button">INICIAR SESIÓN</button></li>
+                <li class="nav-item games-nav-auth games-nav-guest"><button id="games-open-register" type="button">REGISTRARSE</button></li>
+                <li class="nav-item games-nav-auth games-nav-session" hidden><button id="games-logout" type="button">CERRAR SESIÓN</button></li>
             </ul>
         </div>
     </nav>
-    <div class="games-user-area">
-        <button id="games-user-trigger" class="games-user-trigger" type="button" aria-label="Cuenta de usuario" aria-expanded="false" aria-controls="games-user-menu">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="8" r="4"></circle>
-                <path d="M4.5 20c.8-4 3.3-6 7.5-6s6.7 2 7.5 6"></path>
-            </svg>
-        </button>
-        <div id="games-user-menu" class="games-user-menu" hidden>
-            <div id="games-user-guest">
-                <button id="games-open-login" type="button">Iniciar sesión</button>
-                <button id="games-open-register" type="button">Registrarse</button>
-            </div>
-            <div id="games-user-session" hidden>
-                <p id="games-user-name"></p>
-                <button id="games-logout" type="button">Cerrar sesión</button>
-            </div>
-        </div>
-    </div>
 
     <main class="games-layout">
         <header class="app-page-header" data-reveal="hero">
