@@ -12,6 +12,24 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="games-page">
+    <nav class="navbar" id="main-navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">alaraz1921</a>
+
+            <button class="menu-toggle" id="mobile-menu-btn" aria-label="Abrir menú" type="button">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <ul class="nav-menu" id="nav-menu-list">
+                <li class="nav-item"><a href="index.html">INICIO</a></li>
+                <li class="nav-item"><a href="proyectos.html">PROYECTOS</a></li>
+                <li class="nav-item"><a href="games.html">GAMES</a></li>
+                <li class="nav-item"><a href="index.html#contacto">CONTACTO</a></li>
+            </ul>
+        </div>
+    </nav>
     <div class="games-user-area">
         <button id="games-user-trigger" class="games-user-trigger" type="button" aria-label="Cuenta de usuario" aria-expanded="false" aria-controls="games-user-menu">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -66,14 +84,6 @@
                 <img class="game-card-icon" src="assets/images/game-icons/game-escapetin.png" alt="" aria-hidden="true">
             </a>
         </nav>
-        <a class="games-home-link btn-home" href="index.html" data-reveal data-reveal-delay="360">
-            <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M3 11.5 12 4l9 7.5"></path>
-                <path d="M5.5 10.5V20h13v-9.5"></path>
-                <path d="M9.5 20v-6h5v6"></path>
-            </svg>
-            <span>Pagina principal</span>
-        </a>
     </main>
 
     <section id="games-login-screen" class="games-auth-screen" hidden>
@@ -158,6 +168,7 @@
     </section>
 
     <script src="assets/js/scroll-reveal.js"></script>
+    <script src="assets/js/home.js"></script>
     <script src="assets/supabase-client.js"></script>
     <script src="assets/js/games-auth.js"></script>
 </body>

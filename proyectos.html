@@ -11,20 +11,30 @@
     <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body class="games-page">
+    <nav class="navbar" id="main-navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">alaraz1921</a>
+
+            <button class="menu-toggle" id="mobile-menu-btn" aria-label="Abrir menú" type="button">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <ul class="nav-menu" id="nav-menu-list">
+                <li class="nav-item"><a href="index.html">INICIO</a></li>
+                <li class="nav-item"><a href="proyectos.html">PROYECTOS</a></li>
+                <li class="nav-item"><a href="games.html">GAMES</a></li>
+                <li class="nav-item"><a href="index.html#contacto">CONTACTO</a></li>
+            </ul>
+        </div>
+    </nav>
     <main class="games-layout">
         <header class="app-page-header" data-reveal="hero">
             <p class="app-page-kicker">alaraz1921</p>
             <h1>Proyectos</h1>
         </header>
 
-        <a class="games-home-link btn-home projects-home-link" href="index.html" data-reveal data-reveal-delay="80">
-            <svg class="home-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M3 11.5 12 4l9 7.5"></path>
-                <path d="M5.5 10.5V20h13v-9.5"></path>
-                <path d="M9.5 20v-6h5v6"></path>
-            </svg>
-            <span>Pagina principal</span>
-        </a>
         <nav class="games-list projects-list" aria-label="Listado de proyectos">
             <a class="project-card has-project-icon" href="https://www.alaraz1921.com/EvenTin/index.html" data-reveal data-reveal-delay="100">
                 <span class="project-card-copy">
@@ -58,5 +68,6 @@
         </nav>
     </main>
     <script src="assets/js/scroll-reveal.js"></script>
+    <script src="assets/js/home.js"></script>
 </body>
 </html>

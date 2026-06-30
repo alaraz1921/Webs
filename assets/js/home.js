@@ -7,20 +7,23 @@ const contactPageLoadedAt = Date.now();
 const CONTACT_MIN_COMPLETION_TIME_MS = 5000;
 
 function cerrarMenuMovil() {
-    menuBtn.classList.remove('open');
-    menuList.classList.remove('mobile-open');
+    menuBtn?.classList.remove('open');
+    menuList?.classList.remove('mobile-open');
 }
 
-menuBtn.addEventListener('click', () => {
-    menuBtn.classList.toggle('open');
-    menuList.classList.toggle('mobile-open');
-});
+if (menuBtn && menuList) {
+    menuBtn.addEventListener('click', () => {
+        menuBtn.classList.toggle('open');
+        menuList.classList.toggle('mobile-open');
+    });
 
-menuList.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', cerrarMenuMovil);
-});
+    menuList.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', cerrarMenuMovil);
+    });
+}
 
 function mostrarEstadoContacto(message, isError) {
+    if (!contactStatus) return;
     contactStatus.textContent = message;
     contactStatus.classList.toggle('error', Boolean(isError));
 }
@@ -101,6 +104,7 @@ async function enviarContacto(event) {
 }
 
 window.addEventListener('scroll', () => {
+    if (!navbar) return;
     if (window.innerWidth > 768) {
         if (window.scrollY > 50) {
             navbar.classList.add('scrolled');

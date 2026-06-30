@@ -57,6 +57,7 @@ Ultima revision: 2026-06-30
 - [x] PA-51 Añadir iconos sobrios a las tarjetas disponibles de `proyectos.html`.
 - [x] PA-52 Implementar validacion administrativa de usuarios con acceso temporal de 48 horas para Games, Bingo e Infiltrado.
 - [x] PA-53 Corregir la visualizacion responsive de las tarjetas de gestion de usuarios.
+- [x] PA-54 Sustituir los botones de pagina principal de `games.html` y `proyectos.html` por la banda superior compartida.
 
 ## Prioridad Media
 

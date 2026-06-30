@@ -178,13 +178,13 @@ Las tarjetas incluyen iconos decorativos inclinados a la derecha, con cajas comp
 - Games, Monitor Bingo e Infiltrado comparten una validacion local de sesion de 24 horas mediante `games_auth_time` y verifican en cada acceso si el perfil esta `validado`, `bloqueado` o `temporal` caducado.
 - `profiles.username` guarda alias unicos y la RPC `resolve_games_login_email(text)` permite iniciar sesion por alias.
 
-Los botones de vuelta de Bingo, Monitor e Infiltrado regresan a `games.html` y se ocultan cuando el juego se ejecuta como PWA instalada. Desde `games.html` se vuelve a la portada.
+`games.html` usa la banda superior compartida con enlace a portada y menu hamburguesa; los juegos siguen regresando a `games.html` y ocultan la vuelta cuando se ejecutan como PWA instalada.
 
 ### `proyectos.html`
 
 Concentrador de proyectos y experiencias digitales:
 
-- Incluye boton visible de vuelta a `index.html` bajo el titulo.
+- Usa la banda superior compartida con enlace a `index.html` y menu hamburguesa.
 - EvenTin enlaza a su pagina publicada.
 - EvenPic enlaza temporalmente a `coming-soon.html`.
 - Trastero enlaza a `https://www.alaraz1921.com/Trastero` como `TRASTER`.
