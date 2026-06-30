@@ -173,9 +173,9 @@ Las tarjetas incluyen iconos decorativos inclinados a la derecha, con cajas comp
 - Monitor Bingo e Infiltrado enlazan desde sus accesos a la restauracion y al nuevo registro de Games mediante `?auth=recovery` y `?auth=register`.
 - Los controles de acceso de Monitor e Infiltrado mantienen ancho completo, altura tactil estable y separacion uniforme.
 - Games, Monitor Bingo e Infiltrado permiten iniciar sesion tanto por alias como por correo mediante `resolve_games_login_email(text)`.
-- El registro usa Supabase Auth con confirmacion de correo y guarda el nombre visible en los metadatos del usuario.
-- Los registros creados desde Games reciben acceso automatico al Monitor de Bingo y a Infiltrado mediante `project_members`.
-- Games, Monitor Bingo e Infiltrado comparten una validacion local de sesion de 24 horas mediante `games_auth_time`.
+- El registro usa Supabase Auth con confirmacion de correo y guarda el nombre visible en los metadatos del usuario. Los nuevos perfiles de Games nacen como `temporal`, con acceso durante 48 horas hasta validacion administrativa.
+- Los registros creados desde Games reciben acceso automatico al Monitor de Bingo y a Infiltrado mediante `project_members`, pero el acceso efectivo depende de `profiles.approval_status` y `trial_expires_at`.
+- Games, Monitor Bingo e Infiltrado comparten una validacion local de sesion de 24 horas mediante `games_auth_time` y verifican en cada acceso si el perfil esta `validado`, `bloqueado` o `temporal` caducado.
 - `profiles.username` guarda alias unicos y la RPC `resolve_games_login_email(text)` permite iniciar sesion por alias.
 
 Los botones de vuelta de Bingo, Monitor e Infiltrado regresan a `games.html` y se ocultan cuando el juego se ejecuta como PWA instalada. Desde `games.html` se vuelve a la portada.
@@ -222,6 +222,7 @@ Tipografias:
 - Login mediante Supabase Auth.
 - Usa `profiles`, `app_projects` y `project_members`.
 - Solo permite acceso a usuarios con `profiles.role = 'admin'`.
+- La gestion de usuarios muestra estado de validacion, caducidad temporal y acciones para validar o bloquear usuarios.
 - Muestra acceso a la gestion de usuarios registrados en `Privado/usuarios.html`.
 - Se ha eliminado el antiguo apartado Notas.
 

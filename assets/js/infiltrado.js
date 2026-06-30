@@ -38,14 +38,45 @@ function sesionInfiltradoVigente() {
         && Date.now() - inicioSesion < AUTH_DURATION_MS;
 }
 
-async function usuarioPuedeUsarInfiltrado() {
-    const { data, error } = await infiltradoClient
-        .from('app_projects')
-        .select('id')
-        .eq('slug', 'infiltrado')
-        .maybeSingle();
+function mostrarErrorAccesoInfiltrado(texto) {
+    const errorBox = document.getElementById('msgErrorInfiltrado');
+    errorBox.textContent = texto;
+    errorBox.style.display = 'block';
+}
 
-    return !error && Boolean(data);
+async function validarEstadoUsuarioInfiltrado(user) {
+    const { data: profile, error } = await infiltradoClient
+        .from('profiles')
+        .select('approval_status, trial_expires_at')
+        .eq('id', user.id)
+        .single();
+
+    if (error || !profile) {
+        await infiltradoClient.auth.signOut();
+        localStorage.removeItem(GAMES_AUTH_TIME_KEY);
+        mostrarErrorAccesoInfiltrado('No se pudo validar el estado de la cuenta.');
+        return false;
+    }
+
+    if (profile.approval_status === 'bloqueado') {
+        await infiltradoClient.auth.signOut();
+        localStorage.removeItem(GAMES_AUTH_TIME_KEY);
+        mostrarErrorAccesoInfiltrado('La cuenta ha sido bloqueada por un administrador.');
+        return false;
+    }
+
+    if (profile.approval_status === 'temporal' && Date.now() >= Date.parse(profile.trial_expires_at)) {
+        await infiltradoClient.auth.signOut();
+        localStorage.removeItem(GAMES_AUTH_TIME_KEY);
+        mostrarErrorAccesoInfiltrado('Tu acceso temporal ha caducado. Tu cuenta está pendiente de validación por un administrador.');
+        return false;
+    }
+
+    return true;
+}
+async function usuarioPuedeUsarInfiltrado() {
+    const { data, error } = await infiltradoClient.rpc('can_use_infiltrado');
+    return !error && data === true;
 }
 
 async function iniciarSesion(event) {
@@ -64,9 +95,20 @@ async function iniciarSesion(event) {
         })
         : { error: true };
 
-    if (resultado.error || !(await usuarioPuedeUsarInfiltrado())) {
+    if (resultado.error || !resultado.data?.user) {
         await infiltradoClient.auth.signOut();
-        errorBox.style.display = 'block';
+        mostrarErrorAccesoInfiltrado('USUARIO O CLAVE INCORRECTOS');
+        boton.disabled = false;
+        boton.textContent = 'ENTRAR';
+        return;
+    }
+
+    if (!await validarEstadoUsuarioInfiltrado(resultado.data.user) || !(await usuarioPuedeUsarInfiltrado())) {
+        if (document.getElementById('msgErrorInfiltrado').style.display === 'none') {
+            mostrarErrorAccesoInfiltrado('USUARIO O CLAVE INCORRECTOS');
+        }
+        await infiltradoClient.auth.signOut();
+        localStorage.removeItem(GAMES_AUTH_TIME_KEY);
         boton.disabled = false;
         boton.textContent = 'ENTRAR';
         return;
@@ -81,9 +123,11 @@ async function comprobarSesion() {
     if (typeof restaurarSesionOnline === 'function' && await restaurarSesionOnline()) return;
 
     const { data } = await infiltradoClient.auth.getSession();
-    if (data.session?.user && sesionInfiltradoVigente() && await usuarioPuedeUsarInfiltrado()) {
-        await iniciarAplicacion();
-        return;
+    if (data.session?.user && sesionInfiltradoVigente()) {
+        if (await validarEstadoUsuarioInfiltrado(data.session.user) && await usuarioPuedeUsarInfiltrado()) {
+            await iniciarAplicacion();
+            return;
+        }
     }
 
     localStorage.removeItem(GAMES_AUTH_TIME_KEY);

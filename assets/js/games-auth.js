@@ -30,6 +30,36 @@ function limpiarAccesoGames() {
     localStorage.removeItem('bingo_monitor_auth_time');
     localStorage.removeItem('infiltrado_auth_time');
 }
+async function validarAccesoGames(user, messageId = 'games-login-message') {
+    const { data: profile, error } = await gamesClient
+        .from('profiles')
+        .select('approval_status, trial_expires_at')
+        .eq('id', user.id)
+        .single();
+
+    if (error || !profile) {
+        await gamesClient.auth.signOut();
+        limpiarAccesoGames();
+        mostrarMensaje(messageId, 'No se pudo validar el estado de la cuenta.', 'error');
+        return false;
+    }
+
+    if (profile.approval_status === 'bloqueado') {
+        await gamesClient.auth.signOut();
+        limpiarAccesoGames();
+        mostrarMensaje(messageId, 'La cuenta ha sido bloqueada por un administrador.', 'error');
+        return false;
+    }
+
+    if (profile.approval_status === 'temporal' && Date.now() >= Date.parse(profile.trial_expires_at)) {
+        await gamesClient.auth.signOut();
+        limpiarAccesoGames();
+        mostrarMensaje(messageId, 'Tu acceso temporal ha caducado. Tu cuenta está pendiente de validación por un administrador.', 'error');
+        return false;
+    }
+
+    return true;
+}
 
 function mostrarMensaje(id, texto, tipo = 'info') {
     const mensaje = document.getElementById(id);
@@ -94,7 +124,11 @@ async function cargarSesion() {
     }
 
     if (data.session?.user && accesoGamesVigente()) {
-        mostrarSesion(data.session.user);
+        if (await validarAccesoGames(data.session.user)) {
+            mostrarSesion(data.session.user);
+            return;
+        }
+        mostrarInvitado();
         return;
     }
 
@@ -148,6 +182,10 @@ loginForm.addEventListener('submit', async (event) => {
 
     if (resultado.error) {
         mostrarMensaje('games-login-message', 'No se pudo iniciar sesion. Revisa el usuario o correo y la contrasena.', 'error');
+        return;
+    }
+
+    if (!await validarAccesoGames(resultado.data.user)) {
         return;
     }
 

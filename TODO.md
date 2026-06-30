@@ -55,6 +55,7 @@ Ultima revision: 2026-06-30
 - [x] PA-49 Añadir iconos decorativos inclinados a las tarjetas de `games.html`.
 - [x] PA-50 Reducir la altura de las tarjetas de `games.html` para que los iconos sobresalgan de forma decorativa.
 - [x] PA-51 Añadir iconos sobrios a las tarjetas disponibles de `proyectos.html`.
+- [x] PA-52 Implementar validacion administrativa de usuarios con acceso temporal de 48 horas para Games, Bingo e Infiltrado.
 
 ## Prioridad Media
 
@@ -86,6 +87,7 @@ Ultima revision: 2026-06-30
 - [ ] PM-26 Ejecutar `20260615210000_infiltrado_online_round_flow.sql` para validar codigos y habilitar los nuevos finales de ronda online.
 - [ ] PM-27 Ejecutar `20260619170000_admin_user_management.sql` para habilitar el borrado seguro desde la gestion de usuarios.
 - [ ] PM-28 Desplegar `admin-create-user` y confirmar que `SUPABASE_SERVICE_ROLE_KEY` esta disponible como secret de Edge Functions.
+- [ ] PM-29 Ejecutar `20260630103000_games_user_approval.sql` en Supabase y redesplegar `admin-create-user`.
 
 ## Prioridad Baja
 

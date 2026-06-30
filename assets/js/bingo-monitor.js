@@ -26,6 +26,42 @@ function sesionBingoVigente() {
         && Date.now() - inicioSesion < AUTH_DURATION_MS;
 }
 
+function mostrarErrorAccesoBingo(texto) {
+    const errorBox = document.getElementById('msgError');
+    errorBox.textContent = texto;
+    errorBox.style.display = 'block';
+}
+
+async function validarEstadoUsuarioBingo(user) {
+    const { data: profile, error } = await bingoClient
+        .from('profiles')
+        .select('approval_status, trial_expires_at')
+        .eq('id', user.id)
+        .single();
+
+    if (error || !profile) {
+        await bingoClient.auth.signOut();
+        localStorage.removeItem(GAMES_AUTH_TIME_KEY);
+        mostrarErrorAccesoBingo('No se pudo validar el estado de la cuenta.');
+        return false;
+    }
+
+    if (profile.approval_status === 'bloqueado') {
+        await bingoClient.auth.signOut();
+        localStorage.removeItem(GAMES_AUTH_TIME_KEY);
+        mostrarErrorAccesoBingo('La cuenta ha sido bloqueada por un administrador.');
+        return false;
+    }
+
+    if (profile.approval_status === 'temporal' && Date.now() >= Date.parse(profile.trial_expires_at)) {
+        await bingoClient.auth.signOut();
+        localStorage.removeItem(GAMES_AUTH_TIME_KEY);
+        mostrarErrorAccesoBingo('Tu acceso temporal ha caducado. Tu cuenta está pendiente de validación por un administrador.');
+        return false;
+    }
+
+    return true;
+}
 function estaInstaladaPwa() {
     const iniciadaDesdeManifest = new URLSearchParams(window.location.search).get('pwa') === '1';
     if (iniciadaDesdeManifest) sessionStorage.setItem('bingo_pwa_mode', '1');
@@ -49,13 +85,8 @@ function actualizarNavegacionPwa() {
 }
 
 async function usuarioPuedeGestionarBingo() {
-    const { data, error } = await bingoClient
-        .from('app_projects')
-        .select('id')
-        .eq('slug', 'bingo')
-        .maybeSingle();
-
-    return !error && Boolean(data);
+    const { data, error } = await bingoClient.rpc('can_manage_bingo');
+    return !error && data === true;
 }
 
 async function iniciarSesion(event) {
@@ -74,10 +105,20 @@ async function iniciarSesion(event) {
         })
         : { error: true };
 
-    if (resultado.error || !(await usuarioPuedeGestionarBingo())) {
+    if (resultado.error || !resultado.data?.user) {
         await bingoClient.auth.signOut();
-        errorBox.textContent = 'USUARIO O CLAVE INCORRECTOS';
-        errorBox.style.display = 'block';
+        mostrarErrorAccesoBingo('USUARIO O CLAVE INCORRECTOS');
+        submitButton.disabled = false;
+        submitButton.textContent = 'ENTRAR';
+        return;
+    }
+
+    if (!await validarEstadoUsuarioBingo(resultado.data.user) || !(await usuarioPuedeGestionarBingo())) {
+        if (document.getElementById('msgError').style.display === 'none') {
+            mostrarErrorAccesoBingo('USUARIO O CLAVE INCORRECTOS');
+        }
+        await bingoClient.auth.signOut();
+        localStorage.removeItem(GAMES_AUTH_TIME_KEY);
         submitButton.disabled = false;
         submitButton.textContent = 'ENTRAR';
         return;
@@ -90,9 +131,11 @@ async function iniciarSesion(event) {
 
 async function comprobarSesion() {
     const { data } = await bingoClient.auth.getSession();
-    if (data.session?.user && sesionBingoVigente() && await usuarioPuedeGestionarBingo()) {
-        await mostrarMonitor();
-        return;
+    if (data.session?.user && sesionBingoVigente()) {
+        if (await validarEstadoUsuarioBingo(data.session.user) && await usuarioPuedeGestionarBingo()) {
+            await mostrarMonitor();
+            return;
+        }
     }
 
     localStorage.removeItem(GAMES_AUTH_TIME_KEY);

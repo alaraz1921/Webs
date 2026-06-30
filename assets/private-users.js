@@ -49,6 +49,30 @@ function escapeHtml(value) {
     }[char]));
 }
 
+function formatDateTime(value) {
+    if (!value) return '-';
+    return new Intl.DateTimeFormat('es-ES', {
+        dateStyle: 'short',
+        timeStyle: 'short'
+    }).format(new Date(value));
+}
+
+function approvalInfo(profile) {
+    const status = profile.approval_status || 'temporal';
+    const expired = status === 'temporal' && profile.trial_expires_at && Date.now() >= Date.parse(profile.trial_expires_at);
+    const labels = {
+        temporal: 'Temporal',
+        validado: 'Validado',
+        bloqueado: 'Bloqueado'
+    };
+
+    return {
+        status,
+        expired,
+        label: expired ? 'Temporal · Caducado' : (labels[status] || 'Temporal'),
+        expires: status === 'temporal' ? formatDateTime(profile.trial_expires_at) : '-'
+    };
+}
 async function requireAdminSession() {
     const { data } = await usersClient.auth.getSession();
     const user = data.session?.user;
@@ -120,13 +144,21 @@ function renderUsers() {
         const username = profile.username ? `@${profile.username}` : 'Sin alias';
         const canDelete = profile.id !== currentUserId;
 
+        const approval = approvalInfo(profile);
+        row.classList.toggle('is-expired', approval.expired);
         row.innerHTML = `
             <div class="private-user-row-main">
                 <strong>${escapeHtml(title)}</strong>
                 <span>${escapeHtml(email)}</span>
                 <small>${escapeHtml(username)} · ${escapeHtml(profile.role)}</small>
+                <div class="private-user-status-line">
+                    <span class="private-status-badge private-status-${escapeHtml(approval.status)}${approval.expired ? ' is-expired' : ''}">${escapeHtml(approval.label)}</span>
+                    <span class="private-user-expiry">Caduca: ${escapeHtml(approval.expires)}</span>
+                </div>
             </div>
             <div class="private-user-row-actions">
+                <button type="button" class="private-user-action private-user-validate"${profile.approval_status === 'validado' ? ' disabled' : ''}>Validar</button>
+                <button type="button" class="private-user-action private-user-block"${!canDelete || profile.approval_status === 'bloqueado' ? ' disabled' : ''}>Bloquear</button>
                 <button type="button" class="private-icon-button private-user-edit" aria-label="Editar usuario" title="Editar usuario">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M12 20h9"></path>
@@ -145,6 +177,8 @@ function renderUsers() {
             </div>
         `;
 
+        row.querySelector('.private-user-validate').addEventListener('click', () => setApprovalStatus(profile.id, 'validado'));
+        row.querySelector('.private-user-block').addEventListener('click', () => setApprovalStatus(profile.id, 'bloqueado'));
         row.querySelector('.private-user-edit').addEventListener('click', () => openEditModal(profile.id));
         row.querySelector('.private-user-delete').addEventListener('click', () => openDeleteModal(profile.id));
 
@@ -157,7 +191,7 @@ async function loadAdminData() {
     listContainer.innerHTML = '<p>Cargando usuarios...</p>';
 
     const [profilesResult, projectsResult, membershipsResult] = await Promise.all([
-        usersClient.from('profiles').select('id, email, display_name, username, role, created_at').order('created_at', { ascending: false }),
+        usersClient.from('profiles').select('id, email, display_name, username, role, approval_status, trial_expires_at, validated_at, validated_by, created_at').order('created_at', { ascending: false }),
         usersClient.from('app_projects').select('id, slug, name, is_active').order('name', { ascending: true }),
         usersClient.from('project_members').select('project_id, user_id, role')
     ]);
@@ -173,6 +207,25 @@ async function loadAdminData() {
     renderUsers();
 }
 
+async function setApprovalStatus(userId, status) {
+    clearUsersMessage();
+    const payload = status === 'validado'
+        ? { approval_status: 'validado', validated_at: new Date().toISOString(), validated_by: currentUserId }
+        : { approval_status: 'bloqueado' };
+
+    const { error } = await usersClient
+        .from('profiles')
+        .update(payload)
+        .eq('id', userId);
+
+    if (error) {
+        showUsersMessage('No se pudo actualizar el estado del usuario.', 'error');
+        return;
+    }
+
+    await loadAdminData();
+    showUsersMessage(status === 'validado' ? 'Usuario validado.' : 'Usuario bloqueado.');
+}
 async function updateProfileRole(userId, role) {
     const { error } = await usersClient.from('profiles').update({ role }).eq('id', userId);
     if (error) {

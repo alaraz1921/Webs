@@ -155,7 +155,10 @@ serve(async (request) => {
             email,
             display_name: displayName,
             username,
-            role: profileRole
+            role: profileRole,
+            approval_status: "validado",
+            validated_at: new Date().toISOString(),
+            validated_by: requester.id
         }, { onConflict: "id" });
 
     if (updateProfileError) {

@@ -35,7 +35,11 @@ function abrirModoOnlineAutenticado() {
 
 async function abrirModoOnlineDesdeSeleccion() {
     const { data } = await infiltradoClient.auth.getSession();
-    if (data.session?.user && sesionInfiltradoVigente()) {
+    if (
+        data.session?.user
+        && sesionInfiltradoVigente()
+        && await validarEstadoUsuarioInfiltrado(data.session.user)
+    ) {
         abrirModoOnlineAutenticado();
     } else {
         abrirAccesoOnlineInvitado();
@@ -252,7 +256,11 @@ async function validarSesionOnline(codigo, token, partidaId) {
 
 async function reanudarComoAnfitrion(codigo) {
     const { data: sesion } = await infiltradoClient.auth.getSession();
-    if (!sesion.session?.user || !sesionInfiltradoVigente()) return false;
+    if (
+        !sesion.session?.user
+        || !sesionInfiltradoVigente()
+        || !await validarEstadoUsuarioInfiltrado(sesion.session.user)
+    ) return false;
 
     const { data, error } = await infiltradoClient.rpc('infiltrado_online_resume_host', { p_codigo: codigo });
     if (error || !data?.ok) return false;
@@ -271,7 +279,14 @@ async function reanudarSesionGuardada(codigo) {
 }
 
 async function aplicarCaducidadAnfitrion(data) {
-    if (!data?.es_anfitrion || sesionInfiltradoVigente()) return data;
+    if (!data?.es_anfitrion) return data;
+
+    const { data: sesion } = await infiltradoClient.auth.getSession();
+    if (
+        sesion.session?.user
+        && sesionInfiltradoVigente()
+        && await validarEstadoUsuarioInfiltrado(sesion.session.user)
+    ) return data;
 
     await infiltradoClient.auth.signOut();
     localStorage.removeItem(GAMES_AUTH_TIME_KEY);
