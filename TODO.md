@@ -1,6 +1,6 @@
 # TODO
 
-Ultima revision: 2026-06-15
+Ultima revision: 2026-06-30
 
 ## Prioridad Alta
 
@@ -52,6 +52,7 @@ Ultima revision: 2026-06-15
 - [x] PA-46 Añadir Guia Abierta a `proyectos.html` bajo TRASTER como proyecto en desarrollo.
 - [x] PA-47 Hacer visible el boton de vuelta a pagina principal en `proyectos.html`.
 - [x] PA-48 Sustituir los iconos PWA de Bingo e Infiltrado por los nuevos artes de Games.
+- [x] PA-49 Añadir iconos decorativos inclinados a las tarjetas de `games.html`.
 
 ## Prioridad Media
 
@@ -111,7 +112,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 ## Pruebas Manuales Recomendadas
 
 - [ ] PR-01 Abrir `index.html` en escritorio y movil; comprobar navbar, enlace Proyectos, icono privado, H1, subtitulo, presentacion, separadores y contacto.
-- [ ] PR-02 Probar `games.html` y enlaces a ValentinaPlay, Bingo e Infiltrado.
+- [ ] PR-02 Probar `games.html` y enlaces a ValentinaPlay, Bingo, Infiltrado y EscapeTin, revisando los iconos de las tarjetas.
 - [ ] PR-03 Comprobar que los botones `Volver a Games` regresan a `games.html`.
 - [ ] PR-04 En Bingo carton: seleccionar partida, marcar numeros iniciados, limpiar y verificar persistencia.
 - [ ] PR-05 En Bingo carton: comprobar cambio libre sin partida o no iniciada y bloqueo cuando `iniciada = true`.

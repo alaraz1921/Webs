@@ -1,6 +1,6 @@
 # PROJECT_CONTEXT
 
-Ultima actualizacion: 2026-06-15
+Ultima actualizacion: 2026-06-30
 
 ## Resumen
 
@@ -43,7 +43,7 @@ Aunque comparten repositorio y GitHub Pages, no deben compartir tablas, claves n
 
 ### Webs
 
-- Se creo `games.html` como concentrador de juegos.
+- Se creo `games.html` como concentrador de juegos. Sus tarjetas muestran iconos decorativos inclinados a la derecha, con el texto por encima para mantener la lectura.
 - La portada incluye un enlace directo `PROYECTOS` hacia `proyectos.html`.
 - La navegacion principal mantiene el orden `PROYECTOS`, `GAMES` y `CONTACTO`, ademas del icono discreto de acceso privado.
 - Se creo `proyectos.html` como concentrador de EvenTin, EvenPic, TRASTER, Guia Abierta y Subastas Solidarias.
@@ -165,6 +165,9 @@ Concentrador de juegos:
 - Valentina's Play Time.
 - Bingo.
 - Infiltrado.
+- EscapeTin.
+
+Las tarjetas incluyen iconos decorativos inclinados a la derecha, con el texto en una capa superior para mantener la lectura aunque el icono sobresalga.
 
 - Incluye un icono de usuario con inicio de sesion por alias o correo, registro, restauracion de contraseña desde el login y cierre de sesion.
 - Monitor Bingo e Infiltrado enlazan desde sus accesos a la restauracion y al nuevo registro de Games mediante `?auth=recovery` y `?auth=register`.
