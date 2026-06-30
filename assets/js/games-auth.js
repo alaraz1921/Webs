@@ -140,13 +140,13 @@ async function resolverEmailAcceso(identificador) {
     return error ? null : data;
 }
 
-document.getElementById('games-open-login').addEventListener('click', () => mostrarPantallaAutenticacion('login'));
-document.getElementById('games-open-register').addEventListener('click', () => mostrarPantallaAutenticacion('register'));
-document.getElementById('games-open-recovery').addEventListener('click', (event) => {
+document.getElementById('games-open-login')?.addEventListener('click', () => mostrarPantallaAutenticacion('login'));
+document.getElementById('games-open-register')?.addEventListener('click', () => mostrarPantallaAutenticacion('register'));
+document.getElementById('games-open-recovery')?.addEventListener('click', (event) => {
     event.preventDefault();
     mostrarPantallaAutenticacion('recovery');
 });
-document.getElementById('games-login-open-register').addEventListener('click', () => mostrarPantallaAutenticacion('register'));
+document.getElementById('games-login-open-register')?.addEventListener('click', () => mostrarPantallaAutenticacion('register'));
 document.querySelectorAll('[data-close-auth]').forEach((boton) => boton.addEventListener('click', cerrarPantallasAutenticacion));
 
 loginForm.addEventListener('submit', async (event) => {
@@ -273,7 +273,7 @@ newPasswordForm.addEventListener('submit', async (event) => {
     mostrarMensaje('games-login-message', 'Contrasena actualizada. Ya puedes iniciar sesion.', 'success');
 });
 
-document.getElementById('games-logout').addEventListener('click', async () => {
+document.getElementById('games-logout')?.addEventListener('click', async () => {
     await gamesClient.auth.signOut();
     limpiarAccesoGames();
     mostrarInvitado();

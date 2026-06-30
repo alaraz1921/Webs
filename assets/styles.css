@@ -730,7 +730,7 @@ body.games-page .menu-toggle span {
         gap: 0;
         padding: 10px 0;
         border-top: 1px solid rgba(255, 255, 255, 0.12);
-        background-color: rgba(11, 19, 43, 0.58);
+        background-color: rgba(11, 19, 43, 0.9);
         backdrop-filter: blur(8px);
     }
 

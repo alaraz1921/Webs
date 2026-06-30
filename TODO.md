@@ -59,6 +59,7 @@ Ultima revision: 2026-06-30
 - [x] PA-53 Corregir la visualizacion responsive de las tarjetas de gestion de usuarios.
 - [x] PA-54 Sustituir los botones de pagina principal de `games.html` y `proyectos.html` por la banda superior compartida.
 - [x] PA-55 Mover las acciones de sesion de Games al menu hamburguesa, cambiar la vuelta de Valentina a Games y corregir el scroll del acceso de Infiltrado.
+- [x] PA-56 Hacer mas opaco el menu desplegado de Games/Proyectos y mostrar en Games solo Cerrar sesion si hay sesion activa.
 
 ## Prioridad Media
 
@@ -119,7 +120,7 @@ La lista operativa detallada esta en `EvenTin/PROJECT_HANDOFF.md`.
 ## Pruebas Manuales Recomendadas
 
 - [ ] PR-01 Abrir `index.html` en escritorio y movil; comprobar navbar, enlace Proyectos, icono privado, H1, subtitulo, presentacion, separadores y contacto.
-- [ ] PR-02 Probar `games.html`, el menu hamburguesa con inicio/cierre de sesion y enlaces a ValentinaPlay, Bingo, Infiltrado y EscapeTin.
+- [ ] PR-02 Probar `games.html`, el menu hamburguesa con cierre de sesion solo si hay sesion activa y enlaces a ValentinaPlay, Bingo, Infiltrado y EscapeTin.
 - [ ] PR-03 Comprobar que los botones `Volver a Games`, incluido ValentinaPlay, regresan a `games.html`.
 - [ ] PR-04 En Bingo carton: seleccionar partida, marcar numeros iniciados, limpiar y verificar persistencia.
 - [ ] PR-05 En Bingo carton: comprobar cambio libre sin partida o no iniciada y bloqueo cuando `iniciada = true`.

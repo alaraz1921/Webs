@@ -169,7 +169,7 @@ Concentrador de juegos:
 
 Las tarjetas incluyen iconos decorativos inclinados a la derecha, con cajas compactas de altura cercana al icono y el texto en una capa superior para mantener la lectura aunque el icono sobresalga.
 
-- Incluye inicio de sesion por alias o correo, registro, restauracion de contrasena desde el login y cierre de sesion desde el menu hamburguesa.
+- Mantiene pantallas de inicio de sesion por alias o correo, registro y restauracion de contrasena accesibles por enlaces directos `?auth=...`; el menu hamburguesa solo muestra `Cerrar sesion` cuando existe sesion activa.
 - Monitor Bingo e Infiltrado enlazan desde sus accesos a la restauracion y al nuevo registro de Games mediante `?auth=recovery` y `?auth=register`.
 - Los controles de acceso de Monitor e Infiltrado mantienen ancho completo, altura tactil estable y separacion uniforme.
 - Games, Monitor Bingo e Infiltrado permiten iniciar sesion tanto por alias como por correo mediante `resolve_games_login_email(text)`.
@@ -185,7 +185,7 @@ Las tarjetas incluyen iconos decorativos inclinados a la derecha, con cajas comp
 
 Concentrador de proyectos y experiencias digitales:
 
-- Usa la banda superior compartida con enlace a `index.html` y menu hamburguesa.
+- Usa la banda superior compartida con enlace a `index.html` y menu hamburguesa con desplegable mas opaco para preservar la lectura sobre el fondo.
 - EvenTin enlaza a su pagina publicada.
 - EvenPic enlaza temporalmente a `coming-soon.html`.
 - Trastero enlaza a `https://www.alaraz1921.com/Trastero` como `TRASTER`.
