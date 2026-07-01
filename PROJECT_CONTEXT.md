@@ -314,7 +314,7 @@ Base de datos y PWA:
 - Tabla publica de lectura y gestion protegida: `bingo_partidas`.
 - Id automatico entre 100 y 999.
 - `Bingo/manifest.json`, `Bingo/sw.js` e iconos permiten instalar la PWA `Bingo Alaraz1921`.
-- Los iconos PWA usan el nuevo arte colorido de carton y bolas de Bingo proporcionado para Games - Bingo.
+- Los iconos PWA usan el arte colorido actualizado de carton y bolas de Bingo proporcionado para Games - Bingo.
 - El carton ofrece instalacion PWA desde el panel de botones y desde su menu superior.
 - Los controles de instalacion aparecen solo cuando existe instalacion nativa disponible o en iOS, y se ocultan tras instalar.
 - En modo PWA se ocultan los controles de vuelta a `games.html` tanto en el carton como en el Monitor. La deteccion combina modos de visualizacion instalados y la marca `?pwa=1` del manifiesto.
@@ -347,7 +347,7 @@ Base de datos y PWA:
 - Antes de pedir el nombre de un nuevo invitado se valida que el codigo corresponda a una partida disponible.
 - Al terminar una ronda, los jugadores reciben un modal con el resultado antes de volver a la lista abierta; el anfitrion tambien puede terminarla sin resolver.
 - En la lista abierta y la tarjeta de rol, Ayuda y Actualizar se muestran como iconos contextuales sobre el acceso a Games.
-- La PWA `Infiltrado Alaraz1921` usa manifest, service worker y el nuevo arte colorido de jugadores e infiltrado proporcionado para Games - Infiltrado.
+- La PWA `Infiltrado Alaraz1921` usa manifest, service worker y el arte colorido actualizado de jugadores e infiltrado proporcionado para Games - Infiltrado.
 - El boton de instalacion aparece solo despues del login y muestra instrucciones especificas en iOS.
 - En modo PWA se ocultan los controles de vuelta a `games.html`. La deteccion combina modos de visualizacion instalados y la marca `?pwa=1` del manifiesto.
 - La ocultacion de `Volver a Games` se aplica antes de pintar la pagina y se revalida al reanudar o cambiar el modo de visualizacion de la PWA.
