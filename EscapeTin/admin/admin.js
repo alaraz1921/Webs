@@ -1,4 +1,4 @@
-﻿const adminPage = document.body.dataset.adminPage;
+const adminPage = document.body.dataset.adminPage;
 const adminClient = window.websSupabase;
 const adminStatus = document.getElementById("admin-status");
 
@@ -32,6 +32,29 @@ function fromDatetimeLocal(value) {
     return value ? new Date(value).toISOString() : null;
 }
 
+async function resolveLoginEmail(identifier) {
+    const value = String(identifier || "").trim().toLowerCase();
+    if (!value || value.includes("@")) return value;
+
+    const { data, error } = await adminClient.rpc("resolve_games_login_email", {
+        p_identifier: value
+    });
+
+    return error ? "" : data;
+}
+
+async function canManageEscapeTin() {
+    const { data, error } = await adminClient.rpc("can_manage_escapetin");
+    return !error && data === true;
+}
+
+function showPermissionModal() {
+    const modal = document.getElementById("permission-modal");
+    if (!modal) return;
+    modal.hidden = false;
+    modal.querySelector("button")?.focus();
+}
+
 function qrImageUrl(text, size = 220) {
     return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}`;
 }
@@ -56,10 +79,9 @@ async function getSessionOrRedirect() {
         window.location.href = "login.html";
         return null;
     }
-    const { data: canManage, error } = await adminClient.rpc("can_manage_escapetin");
-    if (error || !canManage) {
+    if (!await canManageEscapeTin()) {
         await adminClient.auth.signOut();
-        window.location.href = "login.html";
+        window.location.href = "login.html?permission=denied";
         return null;
     }
     return data.session;
@@ -77,18 +99,39 @@ async function setupLogout() {
 
 async function bootLogin() {
     const { data } = await adminClient.auth.getSession();
-    if (data.session) window.location.href = "index.html";
+    document.getElementById("permission-modal-close")?.addEventListener("click", () => {
+        document.getElementById("permission-modal").hidden = true;
+    });
+
+    if (new URLSearchParams(window.location.search).get("permission") === "denied") {
+        showPermissionModal();
+    }
+
+    if (data.session) {
+        if (await canManageEscapeTin()) {
+            window.location.href = "index.html";
+            return;
+        }
+        await adminClient.auth.signOut();
+        showPermissionModal();
+    }
 
     document.getElementById("login-form").addEventListener("submit", async (event) => {
         event.preventDefault();
         setAdminStatus("");
         const formData = new FormData(event.target);
+        const email = await resolveLoginEmail(formData.get("identifier"));
         const { error } = await adminClient.auth.signInWithPassword({
-            email: String(formData.get("email") || "").trim(),
+            email,
             password: String(formData.get("password") || "")
         });
         if (error) {
             setAdminStatus("No se pudo iniciar sesion.", true);
+            return;
+        }
+        if (!await canManageEscapeTin()) {
+            await adminClient.auth.signOut();
+            showPermissionModal();
             return;
         }
         window.location.href = "index.html";

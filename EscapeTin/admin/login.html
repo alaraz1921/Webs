@@ -19,8 +19,8 @@
             <p class="eyebrow">Administracion</p>
             <h1>EscapeTin</h1>
             <form id="login-form" class="stack-form">
-                <label for="email">Email</label>
-                <input id="email" name="email" type="email" autocomplete="email" required>
+                <label for="identifier">Email o usuario</label>
+                <input id="identifier" name="identifier" type="text" autocomplete="username" required>
                 <label for="password">Contrasena</label>
                 <input id="password" name="password" type="password" autocomplete="current-password" required>
                 <button class="btn btn-primary" type="submit">Entrar</button>
@@ -28,6 +28,13 @@
             <a class="back-link" href="../index.html">Volver a EscapeTin</a>
             <p id="admin-status" class="form-status" role="status"></p>
         </section>
+        <div id="permission-modal" class="permission-modal" hidden>
+            <div class="permission-modal-box" role="dialog" aria-modal="true" aria-labelledby="permission-modal-title">
+                <h2 id="permission-modal-title">Acceso no autorizado</h2>
+                <p>No tienes permisos para entrar en la administracion de gincanas. Pide a un administrador que te asigne el rol de editor en EscapeTin.</p>
+                <button class="btn btn-primary" type="button" id="permission-modal-close">Entendido</button>
+            </div>
+        </div>
     </main>
     <script src="admin.js"></script>
     <script src="../assets/pwa.js"></script>

@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --ink: #18223a;
     --paper: #fffaf0;
     --coral: #ff5c7a;
@@ -234,6 +234,40 @@ h1 { margin: 0; color: #ff3f70; font-size: clamp(4rem, 14vw, 9.8rem); line-heigh
 }
 .form-status.error {
     color: #c91f44;
+}
+.permission-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+    background: rgba(24, 34, 58, 0.55);
+    backdrop-filter: blur(8px);
+}
+.permission-modal[hidden] {
+    display: none;
+}
+.permission-modal-box {
+    width: min(100%, 440px);
+    padding: 28px;
+    border: 3px solid rgba(255, 255, 255, 0.78);
+    border-radius: 8px;
+    background: #fffaf0;
+    box-shadow: 0 18px 0 rgba(255, 92, 122, 0.28), 0 30px 70px rgba(24, 34, 58, 0.28);
+    text-align: center;
+}
+.permission-modal-box h2 {
+    margin: 0 0 12px;
+    color: #ff3f70;
+    font-size: clamp(2rem, 7vw, 3rem);
+    line-height: 0.95;
+}
+.permission-modal-box p {
+    margin: 0 0 20px;
+    color: #26324f;
+    font-weight: 800;
+    line-height: 1.45;
 }
 .back-link {
     display: inline-flex;
