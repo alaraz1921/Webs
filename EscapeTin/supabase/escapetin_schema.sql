@@ -1,4 +1,4 @@
-﻿-- EscapeTin schema and RPC helpers
+-- EscapeTin schema and RPC helpers
 -- Apply this file in the Supabase SQL editor for the project used by alaraz1921.com.
 -- All new database objects use the required escapetin_ prefix.
 
@@ -155,15 +155,15 @@ create or replace function public.escapetin_norm(value text)
 returns text
 language sql
 stable
-as $
+as $$
   select regexp_replace(lower(public.unaccent(coalesce(value, ''))), '\s+', ' ', 'g');
-$;
+$$;
 
 create or replace function public.escapetin_public_game_json(g public.escapetin_games)
 returns jsonb
 language sql
 stable
-as $
+as $$
   select jsonb_build_object(
     'id', g.id,
     'title', g.title,
@@ -177,14 +177,14 @@ as $
     'ends_at', g.ends_at,
     'time_limit_minutes', g.time_limit_minutes
   );
-$;
+$$;
 
 create or replace function public.escapetin_get_public_game(p_access_code text)
 returns jsonb
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare g escapetin_games;
 begin
   select * into g from escapetin_games where upper(access_code) = upper(trim(p_access_code)) and status = 'active';
@@ -193,7 +193,7 @@ begin
   if g.ends_at is not null and now() > g.ends_at then return escapetin_public_game_json(g) || jsonb_build_object('locked', true, 'message', 'La gincana ya ha finalizado.'); end if;
   return escapetin_public_game_json(g);
 end;
-$;
+$$;
 
 create or replace function public.escapetin_create_team(p_access_code text, p_team_name text)
 returns jsonb
@@ -254,21 +254,21 @@ create or replace function public.escapetin_current_challenge(p_game_id uuid, p_
 returns escapetin_challenges
 language sql
 stable
-as $
+as $$
   select c.* from escapetin_challenges c
   where c.game_id = p_game_id and c.is_active
     and (p_challenge_id is null or c.id = p_challenge_id)
     and not exists (select 1 from escapetin_progress p where p.challenge_id = c.id and p.team_id = p_team_id and p.is_correct)
   order by c.order_index, c.created_at
   limit 1;
-$;
+$$;
 
 create or replace function public.escapetin_get_current_state(p_access_code text, p_access_token text)
 returns jsonb
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare g escapetin_games; t escapetin_teams; c escapetin_challenges; total int; completed int; remaining jsonb;
 begin
   select * into g from escapetin_games where upper(access_code) = upper(trim(p_access_code)) and status = 'active';
@@ -300,7 +300,7 @@ begin
     'finished', completed >= total and total > 0
   );
 end;
-$;
+$$;
 
 drop function if exists public.escapetin_use_hint(text, text);
 create or replace function public.escapetin_use_hint(p_access_code text, p_access_token text, p_challenge_id uuid default null)
@@ -308,7 +308,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare g escapetin_games; t escapetin_teams; c escapetin_challenges; p escapetin_progress; next_count int; hint_text text;
 begin
   select * into g from escapetin_games where upper(access_code) = upper(trim(p_access_code)) and status = 'active';
@@ -327,7 +327,7 @@ begin
   update escapetin_progress set hints_used = next_count where id = p.id;
   return jsonb_build_object('hints_used', next_count, 'hint', hint_text, 'penalty', c.hint_penalty);
 end;
-$;
+$$;
 
 drop function if exists public.escapetin_submit_answer(text, text, text, text);
 create or replace function public.escapetin_submit_answer(p_access_code text, p_access_token text, p_answer text default '', p_checkpoint text default '', p_challenge_id uuid default null)
@@ -335,7 +335,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare g escapetin_games; t escapetin_teams; c escapetin_challenges; p escapetin_progress; ok boolean := false; awarded int := 0; used_hints int := 0;
 begin
   select * into g from escapetin_games where upper(access_code) = upper(trim(p_access_code)) and status = 'active';
@@ -372,7 +372,7 @@ begin
   update escapetin_teams set total_points = total_points + awarded, current_challenge_order = c.order_index + 1 where id = t.id;
   return jsonb_build_object('correct', true, 'message', 'Prueba superada', 'points_awarded', awarded);
 end;
-$;
+$$;
 
 create or replace function public.escapetin_get_ranking(p_access_code text)
 returns jsonb
