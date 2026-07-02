@@ -1,4 +1,4 @@
-const adminPage = document.body.dataset.adminPage;
+﻿const adminPage = document.body.dataset.adminPage;
 const adminClient = window.websSupabase;
 const adminStatus = document.getElementById("admin-status");
 
@@ -18,6 +18,36 @@ function getParam(name) {
 
 function makeCode() {
     return `ET${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+}
+
+function toDatetimeLocal(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    const pad = (num) => String(num).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function fromDatetimeLocal(value) {
+    return value ? new Date(value).toISOString() : null;
+}
+
+function qrImageUrl(text, size = 220) {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}`;
+}
+
+function renderQrBlock(label, url) {
+    const image = qrImageUrl(url);
+    return `
+        <details class="qr-box">
+            <summary>${escapeHtml(label)}</summary>
+            <img src="${image}" alt="QR ${escapeHtml(label)}">
+            <div class="admin-actions">
+                <a class="btn btn-secondary" href="${image}" download="escapetin-qr.png">Descargar PNG</a>
+                <button class="btn btn-secondary" type="button" data-copy="${escapeHtml(url)}">Copiar enlace</button>
+            </div>
+        </details>
+    `;
 }
 
 async function getSessionOrRedirect() {
@@ -90,8 +120,10 @@ async function bootGames() {
                     <a class="btn btn-secondary" href="game-edit.html?id=${game.id}">Editar</a>
                     <a class="btn btn-secondary" href="challenges.html?game=${game.id}">Pruebas</a>
                     <a class="btn btn-secondary" href="participants.html?game=${game.id}">Participantes</a>
+                    <button class="btn btn-secondary" type="button" data-duplicate="${game.id}">Duplicar</button>
                     <button class="btn btn-primary" type="button" data-copy="${playUrl.href}">Copiar enlace</button>
                 </div>
+                ${renderQrBlock("QR de acceso", playUrl.href)}
             </article>
         `;
     }).join("") : `<p>Aun no hay gincanas. Crea la primera mision.</p>`;
@@ -100,6 +132,17 @@ async function bootGames() {
         button.addEventListener("click", async () => {
             await navigator.clipboard.writeText(button.dataset.copy);
             button.textContent = "Enlace copiado";
+        });
+    });
+    list.querySelectorAll("[data-duplicate]").forEach((button) => {
+        button.addEventListener("click", async () => {
+            if (!confirm("Duplicar esta gincana completa como borrador?")) return;
+            const { data, error } = await adminClient.rpc("escapetin_duplicate_game", { p_game_id: button.dataset.duplicate });
+            if (error || data?.error) {
+                setAdminStatus(error?.message || data.error, true);
+                return;
+            }
+            window.location.href = `game-edit.html?id=${data.game_id}`;
         });
     });
 }
@@ -126,11 +169,15 @@ async function bootGameEdit() {
             setAdminStatus(error.message, true);
             return;
         }
-        ["title", "description", "cover_image_url", "access_code", "status"].forEach((field) => {
+        ["title", "description", "cover_image_url", "access_code", "status", "mode"].forEach((field) => {
             form.elements[field].value = data[field] || "";
         });
         form.elements.show_ranking.checked = data.show_ranking;
         form.elements.allow_teams.checked = data.allow_teams;
+        form.elements.is_template.checked = data.is_template;
+        form.elements.starts_at.value = toDatetimeLocal(data.starts_at);
+        form.elements.ends_at.value = toDatetimeLocal(data.ends_at);
+        form.elements.time_limit_minutes.value = data.time_limit_minutes || "";
     }
 
     form.addEventListener("submit", async (event) => {
@@ -144,6 +191,11 @@ async function bootGameEdit() {
             status: String(formData.get("status") || "draft"),
             show_ranking: form.elements.show_ranking.checked,
             allow_teams: form.elements.allow_teams.checked,
+            mode: String(formData.get("mode") || "linear"),
+            starts_at: fromDatetimeLocal(String(formData.get("starts_at") || "")),
+            ends_at: fromDatetimeLocal(String(formData.get("ends_at") || "")),
+            time_limit_minutes: formData.get("time_limit_minutes") ? Number(formData.get("time_limit_minutes")) : null,
+            is_template: form.elements.is_template.checked,
             created_by: session.user.id
         };
 
@@ -189,6 +241,7 @@ async function bootChallenges() {
                         <button class="btn btn-secondary" type="button" data-copy="${qrUrl.href}">Copiar QR/link</button>
                         <button class="btn btn-primary" type="button" data-delete="${challenge.id}">Eliminar</button>
                     </div>
+                    ${renderQrBlock("QR de prueba", qrUrl.href)}
                 </article>
             `;
         }).join("") : `<p>No hay pruebas todavia.</p>`;
@@ -200,6 +253,7 @@ async function bootChallenges() {
             });
             form.elements.id.value = challenge.id;
             form.elements.is_active.checked = challenge.is_active;
+            form.elements.requires_admin_validation.checked = challenge.requires_admin_validation;
             document.getElementById("challenge-form-title").textContent = "Editar prueba";
         }));
         list.querySelectorAll("[data-copy]").forEach((button) => button.addEventListener("click", async () => {
@@ -241,7 +295,8 @@ async function bootChallenges() {
             hint_1: String(formData.get("hint_1") || "").trim(),
             hint_2: String(formData.get("hint_2") || "").trim(),
             hint_penalty: Number(formData.get("hint_penalty") || 0),
-            is_active: form.elements.is_active.checked
+            is_active: form.elements.is_active.checked,
+            requires_admin_validation: form.elements.requires_admin_validation.checked
         };
         const query = id
             ? adminClient.from("escapetin_challenges").update(payload).eq("id", id)
@@ -277,16 +332,50 @@ async function bootParticipants() {
             .eq("game_id", gameId)
             .order("total_points", { ascending: false });
         if (error) throw error;
-        list.innerHTML = data.length ? data.map((team, index) => `
-            <article class="ranking-row">
-                <strong>${index + 1}. ${escapeHtml(team.name)}</strong>
-                <span>${team.total_points} puntos · ${team.escapetin_progress?.[0]?.count || 0} pruebas · ${team.finished_at ? "finalizado" : "en juego"}</span>
-            </article>
-        `).join("") : `<p>Aun no hay participantes.</p>`;
+        const { data: pending, error: pendingError } = await adminClient
+            .from("escapetin_progress")
+            .select("id, answer, hints_used, created_at, is_correct, escapetin_teams(name), escapetin_challenges(title, points, challenge_type)")
+            .eq("game_id", gameId)
+            .eq("is_correct", false)
+            .order("created_at", { ascending: false });
+        if (pendingError) throw pendingError;
+        list.innerHTML = `
+            ${data.length ? data.map((team, index) => `
+                <article class="ranking-row">
+                    <strong>${index + 1}. ${escapeHtml(team.name)}</strong>
+                    <span>${team.total_points} puntos · ${team.escapetin_progress?.[0]?.count || 0} pruebas · ${team.finished_at ? "finalizado" : "en juego"}</span>
+                </article>
+            `).join("") : `<p>Aun no hay participantes.</p>`}
+            <h2>Pendientes de revision</h2>
+            ${pending.length ? pending.map((item) => `
+                <article class="admin-card">
+                    <span class="status-pill">${escapeHtml(item.escapetin_challenges?.challenge_type || "manual")}</span>
+                    <h2>${escapeHtml(item.escapetin_teams?.name)} · ${escapeHtml(item.escapetin_challenges?.title)}</h2>
+                    <p>${escapeHtml(item.answer || "Sin respuesta textual")}</p>
+                    <div class="admin-actions">
+                        <button class="btn btn-primary" type="button" data-approve="${item.id}">Aprobar</button>
+                        <button class="btn btn-secondary" type="button" data-reject="${item.id}">Rechazar</button>
+                    </div>
+                </article>
+            `).join("") : `<p>No hay pruebas pendientes.</p>`}
+        `;
+        list.querySelectorAll("[data-approve], [data-reject]").forEach((button) => {
+            button.addEventListener("click", async () => {
+                const approved = Boolean(button.dataset.approve);
+                const id = button.dataset.approve || button.dataset.reject;
+                const { data: result, error: reviewError } = await adminClient.rpc("escapetin_review_progress", { p_progress_id: id, p_approved: approved });
+                if (reviewError || result?.error) {
+                    setAdminStatus(reviewError?.message || result.error, true);
+                    return;
+                }
+                await load();
+            });
+        });
     }
 
     document.getElementById("refresh-participants").addEventListener("click", () => load().catch((error) => setAdminStatus(error.message, true)));
     try { await load(); } catch (error) { setAdminStatus(error.message, true); }
+    setInterval(() => load().catch((error) => setAdminStatus(error.message, true)), 30000);
 }
 
 if (adminPage === "login") bootLogin();

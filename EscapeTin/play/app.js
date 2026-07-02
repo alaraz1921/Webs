@@ -1,4 +1,4 @@
-const page = document.body.dataset.playPage;
+﻿const page = document.body.dataset.playPage;
 const statusEl = document.getElementById("play-status");
 let currentCode = EscapeTinApi.normalizeCode(EscapeTinApi.getQueryParam("code"));
 let currentGame = null;
@@ -123,6 +123,39 @@ async function bootAccessPage() {
     }
 }
 
+
+async function scanQrWithCamera(onCode) {
+    if (!("BarcodeDetector" in window) || !navigator.mediaDevices?.getUserMedia) {
+        throw new Error("Este navegador no permite escanear QR desde la web. Usa la camara normal del movil para abrir el enlace QR.");
+    }
+    const detector = new BarcodeDetector({ formats: ["qr_code"] });
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    const video = document.createElement("video");
+    video.className = "qr-video";
+    video.setAttribute("playsinline", "true");
+    video.srcObject = stream;
+    await video.play();
+    document.getElementById("game-state").appendChild(video);
+
+    let stopped = false;
+    const stop = () => {
+        stopped = true;
+        stream.getTracks().forEach((track) => track.stop());
+        video.remove();
+    };
+
+    async function tick() {
+        if (stopped) return;
+        const codes = await detector.detect(video);
+        if (codes.length) {
+            stop();
+            onCode(codes[0].rawValue || "");
+            return;
+        }
+        requestAnimationFrame(tick);
+    }
+    tick();
+}
 async function bootChallengePage() {
     const stateEl = document.getElementById("game-state");
     const rankingLink = document.getElementById("ranking-link");
@@ -151,67 +184,133 @@ async function bootChallengePage() {
         `;
     }
 
+    function renderChallengeCard(challenge, state, isFreeMode) {
+        const isQr = challenge.challenge_type === "qr";
+        const isPhoto = challenge.challenge_type === "photo";
+        const isManual = challenge.challenge_type === "manual";
+        const checkpoint = EscapeTinApi.getQueryParam("checkpoint");
+        const progressText = isFreeMode ? `${state.completed_count} de ${state.total_challenges} completadas` : `Prueba ${state.completed_count + 1} de ${state.total_challenges}`;
+        return `
+            <article class="challenge-play-card" data-challenge-card="${challenge.id}">
+                <p class="eyebrow">${escapeHtml(progressText)} · ${state.team.total_points} puntos</p>
+                <h1>${escapeHtml(challenge.title)}</h1>
+                ${challenge.image_url ? `<img class="app-cover" src="${escapeHtml(challenge.image_url)}" alt="">` : ""}
+                <p class="app-lead">${escapeHtml(challenge.description || "Sigue la pista y resuelve la prueba.")}</p>
+                ${challenge.question ? `<div class="notice-card"><strong>${escapeHtml(challenge.question)}</strong></div>` : ""}
+                <div id="hint-box-${challenge.id}" class="hint-box"></div>
+                <form class="stack-form answer-form" data-challenge-id="${challenge.id}">
+                    ${isQr ? `<p>Esta prueba se completa escaneando o abriendo el QR correcto.</p>` : ""}
+                    ${isPhoto ? `<label for="photo-${challenge.id}">Foto</label><input id="photo-${challenge.id}" name="photo" type="file" accept="image/*" capture="environment"><p>Primera version: registra la prueba como pendiente para revision del administrador.</p>` : ""}
+                    ${isManual ? `<label for="answer-${challenge.id}">Respuesta para revisar</label><textarea id="answer-${challenge.id}" name="answer" rows="3" required></textarea><p>Quedara pendiente de validacion manual.</p>` : ""}
+                    ${!isQr && !isPhoto && !isManual ? `<label for="answer-${challenge.id}">Respuesta</label><input id="answer-${challenge.id}" name="answer" type="text" autocomplete="off" required>` : ""}
+                    <div class="hero-actions">
+                        <button class="btn btn-primary" type="submit">${isQr ? "Validar QR" : isPhoto || isManual ? "Enviar prueba" : "Comprobar"}</button>
+                        ${isQr ? `<button class="btn btn-secondary scan-qr-button" type="button" data-scan="${challenge.id}">Escanear QR</button>` : ""}
+                        <button class="btn btn-secondary hint-button" type="button" data-hint="${challenge.id}">Necesito una pista</button>
+                    </div>
+                </form>
+            </article>
+        `;
+    }
+
+    function renderFinal(state) {
+        stateEl.innerHTML = `
+            <p class="eyebrow">Gincana completada</p>
+            <h1>Gincana completada</h1>
+            <p class="app-lead">${escapeHtml(state.team.name)}, habeis terminado ${escapeHtml(state.game.title)} con ${state.team.total_points} puntos.</p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="${EscapeTinApi.rankingUrl(currentCode)}">Ver ranking</a>
+                <a class="btn btn-secondary" href="index.html">Volver al inicio</a>
+            </div>
+        `;
+    }
+
+    function bindChallengeForms() {
+        stateEl.querySelectorAll(".answer-form").forEach((form) => {
+            form.addEventListener("submit", async (event) => {
+                event.preventDefault();
+                try {
+                    const formData = new FormData(form);
+                    const result = await EscapeTinApi.rpc("escapetin_submit_answer", {
+                        p_access_code: currentCode,
+                        p_access_token: EscapeTinApi.getStoredToken(currentCode),
+                        p_answer: String(formData.get("answer") || formData.get("photo")?.name || ""),
+                        p_checkpoint: EscapeTinApi.getQueryParam("checkpoint"),
+                        p_challenge_id: form.dataset.challengeId || null
+                    });
+                    if (!result.correct) {
+                        setStatus(result.message || "Respuesta incorrecta, intentalo de nuevo.", true);
+                        return;
+                    }
+                    setStatus(result.message || "Prueba superada", false);
+                    setTimeout(loadState, 700);
+                } catch (error) {
+                    setStatus(error.message, true);
+                }
+            });
+        });
+
+        stateEl.querySelectorAll(".hint-button").forEach((button) => {
+            button.addEventListener("click", async () => {
+                try {
+                    const result = await EscapeTinApi.rpc("escapetin_use_hint", {
+                        p_access_code: currentCode,
+                        p_access_token: EscapeTinApi.getStoredToken(currentCode),
+                        p_challenge_id: button.dataset.hint || null
+                    });
+                    if (result.error) throw new Error(result.error);
+                    document.getElementById(`hint-box-${button.dataset.hint}`).innerHTML = `<div class="notice-card"><strong>Pista ${result.hints_used}</strong><span>${escapeHtml(result.hint || "No hay mas pistas disponibles.")}</span></div>`;
+                } catch (error) {
+                    setStatus(error.message, true);
+                }
+            });
+        });
+
+        stateEl.querySelectorAll(".scan-qr-button").forEach((button) => {
+            button.addEventListener("click", async () => {
+                try {
+                    await scanQrWithCamera((rawValue) => {
+                        const url = new URL(rawValue, window.location.href);
+                        const checkpoint = url.searchParams.get("checkpoint") || rawValue;
+                        const current = new URL(window.location.href);
+                        current.searchParams.set("checkpoint", checkpoint);
+                        window.location.href = current.href;
+                    });
+                } catch (error) {
+                    setStatus(error.message, true);
+                }
+            });
+        });
+    }
+
     function renderState(state) {
-        if (state.finished || !state.challenge) {
+        if (state.error) {
+            stateEl.innerHTML = `<h1>Ups</h1><p class="app-lead">${escapeHtml(state.error)}</p>`;
+            return;
+        }
+        if (state.finished || (!state.challenge && !state.available_challenges?.length)) {
             renderFinal(state);
             return;
         }
 
-        const challenge = state.challenge;
-        const isQr = challenge.challenge_type === "qr";
-        const progressText = `Prueba ${state.completed_count + 1} de ${state.total_challenges}`;
-        const checkpoint = EscapeTinApi.getQueryParam("checkpoint");
-        stateEl.innerHTML = `
-            <p class="eyebrow">${escapeHtml(progressText)} · ${state.team.total_points} puntos</p>
-            <h1>${escapeHtml(challenge.title)}</h1>
-            ${challenge.image_url ? `<img class="app-cover" src="${escapeHtml(challenge.image_url)}" alt="">` : ""}
-            <p class="app-lead">${escapeHtml(challenge.description || "Sigue la pista y resuelve la prueba.")}</p>
-            ${challenge.question ? `<div class="notice-card"><strong>${escapeHtml(challenge.question)}</strong></div>` : ""}
-            <div id="hint-box" class="hint-box"></div>
-            <form id="answer-form" class="stack-form">
-                ${isQr ? `<p>Esta prueba se completa abriendo o escaneando el QR correcto.</p>` : `<label for="answer">Respuesta</label><input id="answer" name="answer" type="text" autocomplete="off" required>`}
-                <div class="hero-actions">
-                    <button class="btn btn-primary" type="submit">${isQr ? "Validar QR" : "Comprobar"}</button>
-                    <button class="btn btn-secondary" id="hint-button" type="button">Necesito una pista</button>
-                </div>
-            </form>
-        `;
+        if (state.message) {
+            stateEl.innerHTML = `<p class="eyebrow">Estado de la gincana</p><h1>${escapeHtml(state.game?.title || "EscapeTin")}</h1><p class="app-lead">${escapeHtml(state.message)}</p>`;
+            return;
+        }
 
-        document.getElementById("answer-form").addEventListener("submit", async (event) => {
-            event.preventDefault();
-            try {
-                const formData = new FormData(event.target);
-                const result = await EscapeTinApi.rpc("escapetin_submit_answer", {
-                    p_access_code: currentCode,
-                    p_access_token: EscapeTinApi.getStoredToken(currentCode),
-                    p_answer: String(formData.get("answer") || ""),
-                    p_checkpoint: checkpoint
-                });
-                if (!result.correct) {
-                    setStatus(result.message || "Respuesta incorrecta, intentalo de nuevo.", true);
-                    return;
-                }
-                setStatus(result.message || "Prueba superada", false);
-                setTimeout(loadState, 700);
-            } catch (error) {
-                setStatus(error.message, true);
-            }
-        });
-
-        document.getElementById("hint-button").addEventListener("click", async () => {
-            try {
-                const result = await EscapeTinApi.rpc("escapetin_use_hint", {
-                    p_access_code: currentCode,
-                    p_access_token: EscapeTinApi.getStoredToken(currentCode)
-                });
-                if (result.error) throw new Error(result.error);
-                document.getElementById("hint-box").innerHTML = `<div class="notice-card"><strong>Pista ${result.hints_used}</strong><span>${escapeHtml(result.hint || "No hay mas pistas disponibles.")}</span></div>`;
-            } catch (error) {
-                setStatus(error.message, true);
-            }
-        });
+        const freeChallenges = state.available_challenges || [];
+        if (state.game.mode === "free" && freeChallenges.length) {
+            stateEl.innerHTML = `
+                <p class="eyebrow">Modo libre · ${state.team.total_points} puntos</p>
+                <h1>${escapeHtml(state.game.title)}</h1>
+                <p class="app-lead">Elige cualquier prueba activa y completala en el orden que prefieras.</p>
+                <div class="free-challenge-list">${freeChallenges.map((challenge) => renderChallengeCard(challenge, state, true)).join("")}</div>
+            `;
+        } else {
+            stateEl.innerHTML = renderChallengeCard(state.challenge, state, false);
+        }
+        bindChallengeForms();
     }
-
     try {
         await loadState();
     } catch (error) {

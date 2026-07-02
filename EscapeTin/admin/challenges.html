@@ -26,7 +26,7 @@
                 <label for="title">Titulo</label><input id="title" name="title" required>
                 <label for="description">Descripcion</label><textarea id="description" name="description" rows="3"></textarea>
                 <label for="image_url">Imagen opcional</label><input id="image_url" name="image_url" type="url">
-                <label for="challenge_type">Tipo</label><select id="challenge_type" name="challenge_type"><option value="question">Pregunta</option><option value="keyword">Palabra clave</option><option value="qr">QR</option><option value="manual">Manual</option></select>
+                <label for="challenge_type">Tipo</label><select id="challenge_type" name="challenge_type"><option value="question">Pregunta</option><option value="keyword">Palabra clave</option><option value="qr">QR</option><option value="manual">Manual</option><option value="photo">Foto</option></select>
                 <label for="question">Pregunta o instruccion</label><textarea id="question" name="question" rows="2"></textarea>
                 <label for="correct_answer">Respuesta correcta</label><input id="correct_answer" name="correct_answer">
                 <label for="keyword">Palabra clave</label><input id="keyword" name="keyword">
@@ -36,6 +36,7 @@
                 <label for="hint_2">Pista 2</label><input id="hint_2" name="hint_2">
                 <label for="hint_penalty">Penalizacion por pista</label><input id="hint_penalty" name="hint_penalty" type="number" value="0" min="0">
                 <label class="check-row"><input type="checkbox" id="is_active" name="is_active" checked> Prueba activa</label>
+                <label class="check-row"><input type="checkbox" id="requires_admin_validation" name="requires_admin_validation"> Requiere validacion manual</label>
                 <button class="btn btn-primary" type="submit">Guardar prueba</button>
                 <button class="btn btn-secondary" id="reset-challenge" type="button">Limpiar</button>
             </form>

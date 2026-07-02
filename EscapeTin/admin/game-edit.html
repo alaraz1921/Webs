@@ -23,8 +23,13 @@
                 <label for="cover_image_url">Imagen de portada</label><input id="cover_image_url" name="cover_image_url" type="url">
                 <label for="access_code">Codigo de acceso</label><div class="inline-form"><input id="access_code" name="access_code" required><button class="btn btn-secondary" type="button" id="generate-code">Generar</button></div>
                 <label for="status">Estado</label><select id="status" name="status"><option value="draft">Borrador</option><option value="active">Activa</option><option value="finished">Finalizada</option></select>
+                <label for="mode">Modo de juego</label><select id="mode" name="mode"><option value="linear">Lineal</option><option value="free">Libre</option></select>
+                <label for="starts_at">Comienza</label><input id="starts_at" name="starts_at" type="datetime-local">
+                <label for="ends_at">Termina</label><input id="ends_at" name="ends_at" type="datetime-local">
+                <label for="time_limit_minutes">Tiempo limite por equipo (minutos)</label><input id="time_limit_minutes" name="time_limit_minutes" type="number" min="0" placeholder="Sin limite">
                 <label class="check-row"><input type="checkbox" id="show_ranking" name="show_ranking" checked> Mostrar ranking</label>
                 <label class="check-row"><input type="checkbox" id="allow_teams" name="allow_teams" checked> Permitir equipos</label>
+                <label class="check-row"><input type="checkbox" id="is_template" name="is_template"> Marcar como plantilla</label>
                 <button class="btn btn-primary" type="submit">Guardar gincana</button>
             </form>
             <p id="admin-status" class="form-status" role="status"></p>
