@@ -30,10 +30,10 @@ EscapeTin incluye una primera version funcional para crear y jugar gincanas desd
 - Ranking ordenado por puntos y tiempo.
 - Pistas con penalizacion aplicada al puntuar.
 - Panel de progreso con pruebas pendientes de revision y botones aprobar/rechazar.
-- Pruebas `manual` y `photo` como envio pendiente de validacion.
+- Pruebas `manual` y `photo` como envio pendiente de validacion, con subida real de imagenes a Supabase Storage.
 - Modo `free` para completar pruebas en cualquier orden.
 - Temporizadores por fecha de inicio/fin y limite por equipo.
 - Duplicado de gincanas completas como borrador.
 - Campo `is_template` preparado para plantillas.
 
-La subida real de archivos a Storage queda preparada a nivel de tabla `escapetin_uploads`, pero la primera interfaz de foto registra el envio para revision manual usando el nombre del archivo. Para fotos reales persistentes, el siguiente paso es conectar un bucket de Supabase Storage.
+El SQL crea el bucket publico `escapetin-uploads` y sus politicas basicas. Las fotos se suben a Supabase Storage y se registran en `escapetin_uploads` para revision desde administracion.

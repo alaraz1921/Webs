@@ -90,6 +90,7 @@ create table if not exists public.escapetin_uploads (
   game_id uuid not null references public.escapetin_games(id) on delete cascade,
   team_id uuid not null references public.escapetin_teams(id) on delete cascade,
   challenge_id uuid not null references public.escapetin_challenges(id) on delete cascade,
+  progress_id uuid references public.escapetin_progress(id) on delete cascade,
   file_url text not null,
   file_type text,
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
@@ -99,7 +100,9 @@ create table if not exists public.escapetin_uploads (
 create index if not exists escapetin_games_access_code_idx on public.escapetin_games (upper(access_code));
 create index if not exists escapetin_challenges_game_order_idx on public.escapetin_challenges (game_id, order_index);
 create index if not exists escapetin_teams_game_idx on public.escapetin_teams (game_id);
+alter table public.escapetin_uploads add column if not exists progress_id uuid references public.escapetin_progress(id) on delete cascade;
 create index if not exists escapetin_progress_team_idx on public.escapetin_progress (team_id);
+create index if not exists escapetin_uploads_progress_idx on public.escapetin_uploads (progress_id);
 
 drop trigger if exists escapetin_games_updated_at on public.escapetin_games;
 create trigger escapetin_games_updated_at before update on public.escapetin_games for each row execute function public.escapetin_set_updated_at();
@@ -111,6 +114,20 @@ alter table public.escapetin_challenges enable row level security;
 alter table public.escapetin_teams enable row level security;
 alter table public.escapetin_progress enable row level security;
 alter table public.escapetin_uploads enable row level security;
+-- Public bucket for participant photo challenges. Policies are intentionally scoped to this bucket.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('escapetin-uploads', 'escapetin-uploads', true, 5242880, array['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+on conflict (id) do update set public = excluded.public, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists escapetin_uploads_storage_insert on storage.objects;
+create policy escapetin_uploads_storage_insert on storage.objects
+  for insert to anon, authenticated
+  with check (bucket_id = 'escapetin-uploads');
+
+drop policy if exists escapetin_uploads_storage_read on storage.objects;
+create policy escapetin_uploads_storage_read on storage.objects
+  for select to anon, authenticated
+  using (bucket_id = 'escapetin-uploads');
 
 drop policy if exists escapetin_games_admin_all on public.escapetin_games;
 create policy escapetin_games_admin_all on public.escapetin_games
@@ -330,7 +347,8 @@ end;
 $$;
 
 drop function if exists public.escapetin_submit_answer(text, text, text, text);
-create or replace function public.escapetin_submit_answer(p_access_code text, p_access_token text, p_answer text default '', p_checkpoint text default '', p_challenge_id uuid default null)
+drop function if exists public.escapetin_submit_answer(text, text, text, text, uuid);
+create or replace function public.escapetin_submit_answer(p_access_code text, p_access_token text, p_answer text default '', p_checkpoint text default '', p_challenge_id uuid default null, p_file_url text default null)
 returns jsonb
 language plpgsql
 security definer
@@ -449,7 +467,7 @@ grant execute on function public.escapetin_get_team_by_token(text, text) to anon
 grant execute on function public.escapetin_recover_team(text, text, text) to anon, authenticated;
 grant execute on function public.escapetin_get_current_state(text, text) to anon, authenticated;
 grant execute on function public.escapetin_use_hint(text, text, uuid) to anon, authenticated;
-grant execute on function public.escapetin_submit_answer(text, text, text, text, uuid) to anon, authenticated;
+grant execute on function public.escapetin_submit_answer(text, text, text, text, uuid, text) to anon, authenticated;
 grant execute on function public.escapetin_get_ranking(text) to anon, authenticated;
 grant execute on function public.escapetin_duplicate_game(uuid) to authenticated;
 grant execute on function public.escapetin_review_progress(uuid, boolean) to authenticated;

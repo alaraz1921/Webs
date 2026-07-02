@@ -156,6 +156,20 @@ async function scanQrWithCamera(onCode) {
     }
     tick();
 }
+
+async function uploadPhotoFile(file, state, challengeId) {
+    if (!file) return "";
+    const safeName = file.name.replace(/[^a-z0-9._-]/gi, "-").toLowerCase();
+    const path = `${state.game.id}/${state.team.id}/${challengeId}/${Date.now()}-${safeName}`;
+    const { error } = await EscapeTinApi.client.storage.from("escapetin-uploads").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || "image/jpeg"
+    });
+    if (error) throw error;
+    const { data } = EscapeTinApi.client.storage.from("escapetin-uploads").getPublicUrl(path);
+    return data.publicUrl;
+}
 async function bootChallengePage() {
     const stateEl = document.getElementById("game-state");
     const rankingLink = document.getElementById("ranking-link");
@@ -198,7 +212,7 @@ async function bootChallengePage() {
                 <p class="app-lead">${escapeHtml(challenge.description || "Sigue la pista y resuelve la prueba.")}</p>
                 ${challenge.question ? `<div class="notice-card"><strong>${escapeHtml(challenge.question)}</strong></div>` : ""}
                 <div id="hint-box-${challenge.id}" class="hint-box"></div>
-                <form class="stack-form answer-form" data-challenge-id="${challenge.id}">
+                <form class="stack-form answer-form" data-challenge-id="${challenge.id}" data-game-id="${state.game.id}" data-team-id="${state.team.id}">
                     ${isQr ? `<p>Esta prueba se completa escaneando o abriendo el QR correcto.</p>` : ""}
                     ${isPhoto ? `<label for="photo-${challenge.id}">Foto</label><input id="photo-${challenge.id}" name="photo" type="file" accept="image/*" capture="environment"><p>Primera version: registra la prueba como pendiente para revision del administrador.</p>` : ""}
                     ${isManual ? `<label for="answer-${challenge.id}">Respuesta para revisar</label><textarea id="answer-${challenge.id}" name="answer" rows="3" required></textarea><p>Quedara pendiente de validacion manual.</p>` : ""}
@@ -231,12 +245,15 @@ async function bootChallengePage() {
                 event.preventDefault();
                 try {
                     const formData = new FormData(form);
+                    const photoFile = formData.get("photo") instanceof File && formData.get("photo").size ? formData.get("photo") : null;
+                    const fileUrl = photoFile ? await uploadPhotoFile(photoFile, { game: { id: form.dataset.gameId }, team: { id: form.dataset.teamId } }, form.dataset.challengeId) : "";
                     const result = await EscapeTinApi.rpc("escapetin_submit_answer", {
                         p_access_code: currentCode,
                         p_access_token: EscapeTinApi.getStoredToken(currentCode),
-                        p_answer: String(formData.get("answer") || formData.get("photo")?.name || ""),
+                        p_answer: String(formData.get("answer") || photoFile?.name || ""),
                         p_checkpoint: EscapeTinApi.getQueryParam("checkpoint"),
-                        p_challenge_id: form.dataset.challengeId || null
+                        p_challenge_id: form.dataset.challengeId || null,
+                        p_file_url: fileUrl || null
                     });
                     if (!result.correct) {
                         setStatus(result.message || "Respuesta incorrecta, intentalo de nuevo.", true);

@@ -1,0 +1,19 @@
+{
+  "name": "EscapeTin",
+  "short_name": "EscapeTin",
+  "description": "Gincanas, pistas y rutas de escape para jugar desde el movil.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff9e8",
+  "theme_color": "#ff5c7a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

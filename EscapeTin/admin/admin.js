@@ -334,7 +334,7 @@ async function bootParticipants() {
         if (error) throw error;
         const { data: pending, error: pendingError } = await adminClient
             .from("escapetin_progress")
-            .select("id, answer, hints_used, created_at, is_correct, escapetin_teams(name), escapetin_challenges(title, points, challenge_type)")
+            .select("id, answer, hints_used, created_at, is_correct, escapetin_teams(name), escapetin_challenges(title, points, challenge_type), escapetin_uploads(file_url)")
             .eq("game_id", gameId)
             .eq("is_correct", false)
             .order("created_at", { ascending: false });
@@ -352,6 +352,7 @@ async function bootParticipants() {
                     <span class="status-pill">${escapeHtml(item.escapetin_challenges?.challenge_type || "manual")}</span>
                     <h2>${escapeHtml(item.escapetin_teams?.name)} · ${escapeHtml(item.escapetin_challenges?.title)}</h2>
                     <p>${escapeHtml(item.answer || "Sin respuesta textual")}</p>
+                    ${item.escapetin_uploads?.[0]?.file_url ? `<a class="back-link" href="${escapeHtml(item.escapetin_uploads[0].file_url)}" target="_blank" rel="noopener">Ver foto enviada</a>` : ""}
                     <div class="admin-actions">
                         <button class="btn btn-primary" type="button" data-approve="${item.id}">Aprobar</button>
                         <button class="btn btn-secondary" type="button" data-reject="${item.id}">Rechazar</button>
