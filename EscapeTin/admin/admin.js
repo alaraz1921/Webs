@@ -56,6 +56,12 @@ async function getSessionOrRedirect() {
         window.location.href = "login.html";
         return null;
     }
+    const { data: canManage, error } = await adminClient.rpc("can_manage_escapetin");
+    if (error || !canManage) {
+        await adminClient.auth.signOut();
+        window.location.href = "login.html";
+        return null;
+    }
     return data.session;
 }
 

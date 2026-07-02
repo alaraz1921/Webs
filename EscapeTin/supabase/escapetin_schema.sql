@@ -4,6 +4,13 @@
 
 create extension if not exists pgcrypto;
 create extension if not exists unaccent;
+insert into public.app_projects (slug, name, description)
+values ('gincanas', 'EscapeTin - Gincanas', 'Editor de gincanas, pistas y misiones de EscapeTin.')
+on conflict (slug) do update
+set name = excluded.name,
+    description = excluded.description,
+    is_active = true,
+    updated_at = now();
 
 create or replace function public.escapetin_set_updated_at()
 returns trigger
@@ -14,6 +21,30 @@ begin
   return new;
 end;
 $$;
+
+create or replace function public.can_manage_escapetin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+    select public.has_active_games_access(auth.uid())
+        and (
+            public.is_admin()
+            or exists (
+                select 1
+                from public.project_members pm
+                join public.app_projects ap on ap.id = pm.project_id
+                where pm.user_id = auth.uid()
+                  and ap.slug = 'gincanas'
+                  and ap.is_active
+                  and pm.role in ('owner', 'editor')
+            )
+        );
+$$;
+
+revoke all on function public.can_manage_escapetin() from public;
+grant execute on function public.can_manage_escapetin() to authenticated;
 
 create table if not exists public.escapetin_games (
   id uuid primary key default gen_random_uuid(),
@@ -132,8 +163,8 @@ create policy escapetin_uploads_storage_read on storage.objects
 drop policy if exists escapetin_games_admin_all on public.escapetin_games;
 create policy escapetin_games_admin_all on public.escapetin_games
   for all to authenticated
-  using (created_by = auth.uid())
-  with check (created_by = auth.uid());
+  using (public.can_manage_escapetin())
+  with check (public.can_manage_escapetin() and created_by = auth.uid());
 
 drop policy if exists escapetin_games_public_active on public.escapetin_games;
 create policy escapetin_games_public_active on public.escapetin_games
@@ -143,8 +174,8 @@ create policy escapetin_games_public_active on public.escapetin_games
 drop policy if exists escapetin_challenges_admin_all on public.escapetin_challenges;
 create policy escapetin_challenges_admin_all on public.escapetin_challenges
   for all to authenticated
-  using (exists (select 1 from public.escapetin_games g where g.id = game_id and g.created_by = auth.uid()))
-  with check (exists (select 1 from public.escapetin_games g where g.id = game_id and g.created_by = auth.uid()));
+  using (public.can_manage_escapetin() and exists (select 1 from public.escapetin_games g where g.id = game_id))
+  with check (public.can_manage_escapetin() and exists (select 1 from public.escapetin_games g where g.id = game_id));
 
 drop policy if exists escapetin_challenges_public_active on public.escapetin_challenges;
 create policy escapetin_challenges_public_active on public.escapetin_challenges
@@ -154,19 +185,19 @@ create policy escapetin_challenges_public_active on public.escapetin_challenges
 drop policy if exists escapetin_teams_admin_select on public.escapetin_teams;
 create policy escapetin_teams_admin_select on public.escapetin_teams
   for select to authenticated
-  using (exists (select 1 from public.escapetin_games g where g.id = game_id and g.created_by = auth.uid()));
+  using (public.can_manage_escapetin() and exists (select 1 from public.escapetin_games g where g.id = game_id));
 
 drop policy if exists escapetin_progress_admin_select on public.escapetin_progress;
 drop policy if exists escapetin_progress_admin_all on public.escapetin_progress;
 create policy escapetin_progress_admin_all on public.escapetin_progress
   for all to authenticated
-  using (exists (select 1 from public.escapetin_games g where g.id = game_id and g.created_by = auth.uid()))
-  with check (exists (select 1 from public.escapetin_games g where g.id = game_id and g.created_by = auth.uid()));
+  using (public.can_manage_escapetin() and exists (select 1 from public.escapetin_games g where g.id = game_id))
+  with check (public.can_manage_escapetin() and exists (select 1 from public.escapetin_games g where g.id = game_id));
 
 drop policy if exists escapetin_uploads_admin_select on public.escapetin_uploads;
 create policy escapetin_uploads_admin_select on public.escapetin_uploads
   for select to authenticated
-  using (exists (select 1 from public.escapetin_games g where g.id = game_id and g.created_by = auth.uid()));
+  using (public.can_manage_escapetin() and exists (select 1 from public.escapetin_games g where g.id = game_id));
 
 create or replace function public.escapetin_norm(value text)
 returns text
@@ -425,7 +456,8 @@ declare p escapetin_progress; c escapetin_challenges; g escapetin_games; awarded
 begin
   select * into p from escapetin_progress where id = p_progress_id;
   if not found then return jsonb_build_object('error', 'Progreso no encontrado.'); end if;
-  select * into g from escapetin_games where id = p.game_id and created_by = auth.uid();
+  if not public.can_manage_escapetin() then return jsonb_build_object('error', 'No autorizado.'); end if;
+  select * into g from escapetin_games where id = p.game_id;
   if not found then return jsonb_build_object('error', 'No autorizado.'); end if;
   select * into c from escapetin_challenges where id = p.challenge_id;
 
@@ -449,7 +481,8 @@ set search_path = public
 as $$
 declare source_game escapetin_games; new_game escapetin_games; new_code text;
 begin
-  select * into source_game from escapetin_games where id = p_game_id and created_by = auth.uid();
+  if not public.can_manage_escapetin() then return jsonb_build_object('error', 'No autorizado.'); end if;
+  select * into source_game from escapetin_games where id = p_game_id;
   if not found then return jsonb_build_object('error', 'Gincana no encontrada.'); end if;
   new_code := 'ET' || upper(substr(encode(gen_random_bytes(5), 'hex'), 1, 8));
   insert into escapetin_games (title, description, cover_image_url, access_code, status, mode, show_ranking, allow_teams, starts_at, ends_at, time_limit_minutes, is_template, created_by)

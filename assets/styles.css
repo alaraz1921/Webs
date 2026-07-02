@@ -2149,6 +2149,7 @@ body.private-page .private-user-action {
     height: 38px;
     padding: 0 10px;
     border-radius: 999px;
+    color: #ffffff;
     font-size: 0.78rem;
     font-weight: 900;
 }
