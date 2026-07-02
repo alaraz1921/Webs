@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Prueba actual de EscapeTin.">
+    <title>Prueba | EscapeTin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/supabase-client.js"></script>
+</head>
+<body class="app-page" data-play-page="challenge">
+    <header class="site-header" aria-label="Cabecera">
+        <a class="brand" href="../index.html" aria-label="EscapeTin inicio"><span class="brand-mark">ET</span><span>EscapeTin</span></a>
+        <nav class="top-nav" aria-label="Navegacion principal">
+            <a href="index.html">Jugar</a>
+            <a id="ranking-link" href="ranking.html">Ranking</a>
+            <a href="../contacto.html">Contacto</a>
+        </nav>
+    </header>
+
+    <main class="app-shell">
+        <section id="game-state" class="mission-panel"></section>
+        <p id="play-status" class="form-status" role="status"></p>
+    </main>
+
+    <script src="../assets/game-api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

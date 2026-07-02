@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Acceso de participantes a EscapeTin.">
+    <title>Jugar | EscapeTin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/supabase-client.js"></script>
+</head>
+<body class="app-page" data-play-page="access">
+    <header class="site-header" aria-label="Cabecera">
+        <a class="brand" href="../index.html" aria-label="EscapeTin inicio"><span class="brand-mark">ET</span><span>EscapeTin</span></a>
+        <nav class="top-nav" aria-label="Navegacion principal">
+            <a href="../index.html">Inicio</a>
+            <a href="ranking.html">Ranking</a>
+            <a href="../contacto.html">Contacto</a>
+        </nav>
+    </header>
+
+    <main class="app-shell">
+        <section class="mission-panel">
+            <p class="eyebrow">Acceso de participantes</p>
+            <h1>Comenzar aventura</h1>
+            <p class="app-lead">Introduce el codigo de la gincana, crea tu equipo y guarda tu PIN para poder continuar desde cualquier dispositivo.</p>
+
+            <form id="code-form" class="stack-form">
+                <label for="game-code">Codigo de gincana</label>
+                <div class="inline-form">
+                    <input id="game-code" name="code" type="text" autocomplete="off" required>
+                    <button class="btn btn-primary" type="submit">Buscar</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="game-access" class="mission-panel app-hidden">
+            <div id="game-summary"></div>
+            <div id="continue-card" class="notice-card app-hidden"></div>
+
+            <form id="team-form" class="stack-form">
+                <h2>Crear equipo</h2>
+                <label for="team-name">Nombre del equipo</label>
+                <input id="team-name" name="team" type="text" minlength="2" required>
+                <button class="btn btn-primary" type="submit">Comenzar aventura</button>
+            </form>
+
+            <form id="recover-form" class="stack-form recovery-box">
+                <h2>Ya habiamos empezado</h2>
+                <p>Recupera tu partida con nombre de equipo y PIN.</p>
+                <label for="recover-name">Nombre del equipo</label>
+                <input id="recover-name" name="team" type="text" minlength="2" required>
+                <label for="recover-pin">PIN de recuperacion</label>
+                <input id="recover-pin" name="pin" type="text" inputmode="numeric" minlength="4" maxlength="6" required>
+                <button class="btn btn-secondary" type="submit">Continuar partida</button>
+            </form>
+        </section>
+
+        <p id="play-status" class="form-status" role="status"></p>
+    </main>
+
+    <script src="../assets/game-api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

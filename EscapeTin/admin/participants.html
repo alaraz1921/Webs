@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Participantes | EscapeTin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/supabase-client.js"></script>
+</head>
+<body class="app-page" data-admin-page="participants">
+    <header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">ET</span><span>EscapeTin</span></a><nav class="top-nav"><a href="index.html">Gincanas</a><a href="#" id="logout-link">Salir</a></nav></header>
+    <main class="app-shell">
+        <section class="mission-panel">
+            <p class="eyebrow">Progreso</p>
+            <h1 id="participants-title">Participantes</h1>
+            <button class="btn btn-secondary" id="refresh-participants" type="button">Actualizar</button>
+            <div id="participants-list" class="ranking-list"></div>
+            <p id="admin-status" class="form-status" role="status"></p>
+        </section>
+    </main>
+    <script src="admin.js"></script>
+</body>
+</html>

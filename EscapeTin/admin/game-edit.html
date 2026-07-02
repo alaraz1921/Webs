@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar gincana | EscapeTin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/supabase-client.js"></script>
+</head>
+<body class="app-page" data-admin-page="game-edit">
+    <header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">ET</span><span>EscapeTin</span></a><nav class="top-nav"><a href="index.html">Gincanas</a><a href="#" id="logout-link">Salir</a></nav></header>
+    <main class="app-shell">
+        <section class="mission-panel">
+            <p class="eyebrow">Editor</p>
+            <h1 id="editor-title">Nueva gincana</h1>
+            <form id="game-form" class="stack-form admin-form">
+                <label for="title">Titulo</label><input id="title" name="title" required>
+                <label for="description">Descripcion</label><textarea id="description" name="description" rows="4"></textarea>
+                <label for="cover_image_url">Imagen de portada</label><input id="cover_image_url" name="cover_image_url" type="url">
+                <label for="access_code">Codigo de acceso</label><div class="inline-form"><input id="access_code" name="access_code" required><button class="btn btn-secondary" type="button" id="generate-code">Generar</button></div>
+                <label for="status">Estado</label><select id="status" name="status"><option value="draft">Borrador</option><option value="active">Activa</option><option value="finished">Finalizada</option></select>
+                <label class="check-row"><input type="checkbox" id="show_ranking" name="show_ranking" checked> Mostrar ranking</label>
+                <label class="check-row"><input type="checkbox" id="allow_teams" name="allow_teams" checked> Permitir equipos</label>
+                <button class="btn btn-primary" type="submit">Guardar gincana</button>
+            </form>
+            <p id="admin-status" class="form-status" role="status"></p>
+        </section>
+    </main>
+    <script src="admin.js"></script>
+</body>
+</html>

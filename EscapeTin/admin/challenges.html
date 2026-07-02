@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pruebas | EscapeTin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/supabase-client.js"></script>
+</head>
+<body class="app-page" data-admin-page="challenges">
+    <header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">ET</span><span>EscapeTin</span></a><nav class="top-nav"><a href="index.html">Gincanas</a><a href="#" id="logout-link">Salir</a></nav></header>
+    <main class="app-shell wide-shell">
+        <section class="mission-panel">
+            <p class="eyebrow">Pruebas</p>
+            <h1 id="challenge-game-title">Pruebas</h1>
+            <div id="challenge-list" class="admin-grid"></div>
+        </section>
+        <section class="mission-panel">
+            <h2 id="challenge-form-title">Anadir prueba</h2>
+            <form id="challenge-form" class="stack-form admin-form">
+                <input type="hidden" id="challenge-id" name="id">
+                <label for="title">Titulo</label><input id="title" name="title" required>
+                <label for="description">Descripcion</label><textarea id="description" name="description" rows="3"></textarea>
+                <label for="image_url">Imagen opcional</label><input id="image_url" name="image_url" type="url">
+                <label for="challenge_type">Tipo</label><select id="challenge_type" name="challenge_type"><option value="question">Pregunta</option><option value="keyword">Palabra clave</option><option value="qr">QR</option><option value="manual">Manual</option></select>
+                <label for="question">Pregunta o instruccion</label><textarea id="question" name="question" rows="2"></textarea>
+                <label for="correct_answer">Respuesta correcta</label><input id="correct_answer" name="correct_answer">
+                <label for="keyword">Palabra clave</label><input id="keyword" name="keyword">
+                <label for="points">Puntos</label><input id="points" name="points" type="number" value="10" min="0">
+                <label for="order_index">Orden</label><input id="order_index" name="order_index" type="number" value="0" min="0">
+                <label for="hint_1">Pista 1</label><input id="hint_1" name="hint_1">
+                <label for="hint_2">Pista 2</label><input id="hint_2" name="hint_2">
+                <label for="hint_penalty">Penalizacion por pista</label><input id="hint_penalty" name="hint_penalty" type="number" value="0" min="0">
+                <label class="check-row"><input type="checkbox" id="is_active" name="is_active" checked> Prueba activa</label>
+                <button class="btn btn-primary" type="submit">Guardar prueba</button>
+                <button class="btn btn-secondary" id="reset-challenge" type="button">Limpiar</button>
+            </form>
+            <p id="admin-status" class="form-status" role="status"></p>
+        </section>
+    </main>
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | EscapeTin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/supabase-client.js"></script>
+</head>
+<body class="app-page" data-admin-page="login">
+    <main class="app-shell admin-login-shell">
+        <section class="mission-panel">
+            <p class="eyebrow">Administracion</p>
+            <h1>EscapeTin</h1>
+            <form id="login-form" class="stack-form">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" autocomplete="email" required>
+                <label for="password">Contrasena</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required>
+                <button class="btn btn-primary" type="submit">Entrar</button>
+            </form>
+            <a class="back-link" href="../index.html">Volver a EscapeTin</a>
+            <p id="admin-status" class="form-status" role="status"></p>
+        </section>
+    </main>
+    <script src="admin.js"></script>
+</body>
+</html>
