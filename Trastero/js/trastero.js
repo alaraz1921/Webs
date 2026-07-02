@@ -23,6 +23,7 @@ let activeGalleryRelationId = '';
 let scannerStream = null;
 let scannerFrame = null;
 let html5Scanner = null;
+let scannerHandlingCode = false;
 
 function escapeHtml(value = '') {
     return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
@@ -738,6 +739,7 @@ async function openScanner() {
         showToast('No se pudo cargar el lector QR. Comprueba la conexion y vuelve a intentarlo.', true);
         return;
     }
+    scannerHandlingCode = false;
     const modal = openModal('Escanear codigo', `
         <div class="scanner-box">
             <div id="scanner-reader"></div>
@@ -750,12 +752,14 @@ async function openScanner() {
             { facingMode: 'environment' },
             { fps: 10, qrbox: { width: 250, height: 250 } },
             (decodedText) => {
+                if (scannerHandlingCode) return;
+                scannerHandlingCode = true;
                 closeOverlay();
                 handleScannedCode(decodedText);
             }
         );
     } catch (error) {
-        stopScanner();
+        closeOverlay();
         showToast(`No se pudo abrir la camara: ${error.message}`, true);
     }
 }
@@ -764,10 +768,16 @@ function stopScanner() {
     if (scannerFrame) cancelAnimationFrame(scannerFrame);
     scannerFrame = null;
     if (html5Scanner) {
-        html5Scanner.stop().catch(() => {}).finally(() => {
-            html5Scanner?.clear?.().catch?.(() => {});
-            html5Scanner = null;
-        });
+        const scanner = html5Scanner;
+        html5Scanner = null;
+        scanner.stop()
+            .catch(() => {})
+            .finally(() => {
+                try {
+                    const clearResult = scanner.clear?.();
+                    clearResult?.catch?.(() => {});
+                } catch {}
+            });
     }
     if (scannerStream) scannerStream.getTracks().forEach((track) => track.stop());
     scannerStream = null;
