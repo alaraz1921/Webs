@@ -1,6 +1,6 @@
 # TODO
 
-Ultima revision: 2026-06-30
+Ultima revision: 2026-07-03
 
 ## Prioridad Alta
 
@@ -62,6 +62,7 @@ Ultima revision: 2026-06-30
 - [x] PA-56 Hacer mas opaco el menu desplegado de Games/Proyectos y mostrar en Games solo Cerrar sesion si hay sesion activa.
 - [x] PA-57 Centrar Cerrar sesion en el menu movil de Games y reforzar el scroll del acceso de Infiltrado.
 - [x] PA-58 Sustituir los iconos PWA de Bingo e Infiltrado por la tercera version proporcionada.
+- [x] PA-59 Auditar GitHub Actions por aviso de Node.js 20 deprecado y confirmar que no existen workflows que actualizar.
 
 ## Prioridad Media
 

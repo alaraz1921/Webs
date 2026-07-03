@@ -1,6 +1,6 @@
 # PROJECT_CONTEXT
 
-Ultima actualizacion: 2026-06-30
+Ultima actualizacion: 2026-07-03
 
 ## Resumen
 
@@ -29,6 +29,15 @@ Dominio:
 ```text
 https://www.alaraz1921.com/
 ```
+
+## GitHub Pages Y Actions
+
+- Auditoria realizada el 2026-07-03 tras el aviso de GitHub sobre Node.js 20 deprecado en Actions.
+- No existe carpeta `.github/workflows/` en la rama `main`.
+- No se han encontrado workflows `.yml` o `.yaml` en el repositorio.
+- El proyecto no usa `actions/checkout`, `actions/upload-artifact`, `actions/setup-node`, `actions/configure-pages`, `actions/upload-pages-artifact` ni `actions/deploy-pages`.
+- No hay actions que migrar a Node.js 24 desde este repositorio.
+- GitHub Pages queda gestionado como publicacion estatica del repositorio, sin workflow local de build/despliegue.
 
 ## Proyectos Dentro Del Repositorio
 
