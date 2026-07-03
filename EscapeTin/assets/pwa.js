@@ -1,4 +1,26 @@
 (() => {
+    function setupEscapeTinMenu() {
+        const header = document.querySelector(".site-header");
+        const nav = document.querySelector(".top-nav");
+        if (!header || !nav || header.querySelector(".menu-toggle")) return;
+        const button = document.createElement("button");
+        button.className = "menu-toggle";
+        button.type = "button";
+        button.setAttribute("aria-label", "Abrir menu");
+        button.setAttribute("aria-expanded", "false");
+        button.innerHTML = "<span></span><span></span><span></span>";
+        header.appendChild(button);
+        button.addEventListener("click", () => {
+            const open = header.classList.toggle("menu-open");
+            button.setAttribute("aria-expanded", String(open));
+        });
+        nav.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => {
+            header.classList.remove("menu-open");
+            button.setAttribute("aria-expanded", "false");
+        }));
+    }
+
+    setupEscapeTinMenu();
     const scriptUrl = new URL(document.currentScript.src);
     const swUrl = new URL("../sw.js", scriptUrl);
     let installPrompt = null;

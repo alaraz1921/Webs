@@ -1,4 +1,4 @@
-const CACHE_NAME = "escapetin-v1";
+const CACHE_NAME = "escapetin-v2";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
@@ -8,6 +8,7 @@ const STATIC_ASSETS = [
   "./assets/app.js",
   "./assets/contact.js",
   "./assets/game-api.js",
+  "./assets/image-tools.js",
   "./assets/pwa.js",
   "./assets/escapetin-hero.jpg",
   "./assets/icon.svg",
@@ -19,6 +20,7 @@ const STATIC_ASSETS = [
   "./admin/index.html",
   "./admin/game-edit.html",
   "./admin/challenges.html",
+  "./admin/challenge-edit.html",
   "./admin/participants.html",
   "./admin/admin.js"
 ];

@@ -22,7 +22,9 @@
             <form id="game-form" class="stack-form admin-form">
                 <label for="title">Titulo</label><input id="title" name="title" required>
                 <label for="description">Descripcion</label><textarea id="description" name="description" rows="4"></textarea>
-                <label for="cover_image_url">Imagen de portada</label><input id="cover_image_url" name="cover_image_url" type="url">
+                <label for="cover_image_file">Imagen de portada</label><input id="cover_image_file" name="cover_image_file" type="file" accept="image/*">
+                <input id="cover_image_url" name="cover_image_url" type="hidden">
+                <div id="cover-preview" class="image-preview"></div>
                 <label for="access_code">Codigo de acceso</label><div class="inline-form"><input id="access_code" name="access_code" required><button class="btn btn-secondary" type="button" id="generate-code">Generar</button></div>
                 <label for="status">Estado</label><select id="status" name="status"><option value="draft">Borrador</option><option value="active">Activa</option><option value="finished">Finalizada</option></select>
                 <label for="mode">Modo de juego</label><select id="mode" name="mode"><option value="linear">Lineal</option><option value="free">Libre</option></select>
@@ -32,11 +34,12 @@
                 <label class="check-row"><input type="checkbox" id="show_ranking" name="show_ranking" checked> Mostrar ranking</label>
                 <label class="check-row"><input type="checkbox" id="allow_teams" name="allow_teams" checked> Permitir equipos</label>
                 <label class="check-row"><input type="checkbox" id="is_template" name="is_template"> Marcar como plantilla</label>
-                <button class="btn btn-primary" type="submit">Guardar gincana</button>
+                <div class="hero-actions"><button class="btn btn-primary" type="submit">Guardar gincana</button><a class="btn btn-secondary" href="index.html">Cancelar</a></div>
             </form>
             <p id="admin-status" class="form-status" role="status"></p>
         </section>
     </main>
+    <script src="../assets/image-tools.js"></script>
     <script src="admin.js"></script>
     <script src="../assets/pwa.js"></script>
 </body>

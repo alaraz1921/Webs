@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ff5c7a">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <title>Editar prueba | EscapeTin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/supabase-client.js"></script>
+</head>
+<body class="app-page" data-admin-page="challenge-edit">
+    <header class="site-header"><a class="brand" id="challenge-brand-link" href="index.html"><span class="brand-mark">ET</span><span>EscapeTin</span></a><nav class="top-nav"><a id="challenge-list-link" href="index.html">Pruebas</a><a href="#" id="logout-link">Salir</a></nav></header>
+    <main class="app-shell">
+        <section class="mission-panel">
+            <p class="eyebrow">Editor de pruebas</p>
+            <h1 id="challenge-editor-title">Nueva prueba</h1>
+            <form id="challenge-form" class="stack-form admin-form">
+                <input type="hidden" id="challenge-id" name="id">
+                <input type="hidden" id="game_id" name="game_id">
+                <label for="title">Titulo</label><input id="title" name="title" required>
+                <label for="description">Descripcion</label><textarea id="description" name="description" rows="3"></textarea>
+                <label for="image_file">Imagen opcional</label><input id="image_file" name="image_file" type="file" accept="image/*">
+                <input id="image_url" name="image_url" type="hidden">
+                <div id="image-preview" class="image-preview"></div>
+                <label for="challenge_type">Tipo</label><select id="challenge_type" name="challenge_type"><option value="question">Pregunta</option><option value="multiple_choice">Pregunta con opciones</option><option value="qr">QR</option><option value="manual">Manual</option><option value="photo">Foto</option></select>
+                <label for="question" data-field="question instruction options manual photo">Pregunta o instruccion</label><textarea id="question" name="question" rows="2" data-field="question instruction options manual photo"></textarea>
+                <label for="correct_answer" data-field="question">Respuesta correcta</label><input id="correct_answer" name="correct_answer" data-field="question">
+                <div class="option-grid" data-field="options">
+                    <label>Opcion A<input id="option_a" name="option_a"></label>
+                    <label>Opcion B<input id="option_b" name="option_b"></label>
+                    <label>Opcion C<input id="option_c" name="option_c"></label>
+                    <label>Opcion D<input id="option_d" name="option_d"></label>
+                    <label>Respuesta correcta<select id="correct_option" name="correct_option"><option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option></select></label>
+                </div>
+                <label for="points">Puntos</label><input id="points" name="points" type="number" value="10" min="0">
+                <label for="order_index">Orden</label><input id="order_index" name="order_index" type="number" value="0" min="0">
+                <label for="hint_1">Pista 1</label><input id="hint_1" name="hint_1">
+                <label for="hint_2">Pista 2</label><input id="hint_2" name="hint_2">
+                <label for="hint_penalty">Penalizacion por pista</label><input id="hint_penalty" name="hint_penalty" type="number" value="0" min="0">
+                <label class="check-row"><input type="checkbox" id="is_active" name="is_active" checked> Prueba activa</label>
+                <label class="check-row"><input type="checkbox" id="requires_admin_validation" name="requires_admin_validation"> Requiere validacion manual</label>
+                <div class="hero-actions"><button class="btn btn-primary" type="submit">Guardar prueba</button><a class="btn btn-secondary" id="cancel-challenge-link" href="index.html">Cancelar</a></div>
+            </form>
+            <p id="admin-status" class="form-status" role="status"></p>
+        </section>
+    </main>
+    <script src="../assets/image-tools.js"></script>
+    <script src="admin.js"></script>
+    <script src="../assets/pwa.js"></script>
+</body>
+</html>
