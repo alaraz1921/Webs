@@ -1,0 +1,39 @@
+name: Mantener Supabase Alaraz activo
+
+on:
+  schedule:
+    # Todos los días a las 07:23 UTC
+    # Se evita la hora en punto porque GitHub suele tener más carga.
+    - cron: "23 7 * * *"
+
+  # Permite ejecutarlo manualmente desde Actions
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Consultar Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_ALARAZ }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_ALARAZ }}
+        run: |
+          set -e
+
+          response=$(curl --silent \
+            --show-error \
+            --fail \
+            --max-time 30 \
+            "${SUPABASE_URL}/rest/v1/keep_alive?id=eq.1&select=id,nombre" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+
+          echo "Respuesta de Supabase Alaraz: ${response}"
+
+          if [[ "${response}" != *'"id":1'* ]]; then
+            echo "La respuesta no contiene el registro esperado de Alaraz."
+            exit 1
+          fi
+
+          echo "Consulta realizada correctamenteen Alaraz."
