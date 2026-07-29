@@ -1,12 +1,9 @@
-name: Mantener Supabase Eventin activo
+name: Mantener Supabase activo
 
 on:
   schedule:
-    # Todos los días a las 07:23 UTC
-    # Se evita la hora en punto porque GitHub suele tener más carga.
     - cron: "23 7 * * *"
 
-  # Permite ejecutarlo manualmente desde Actions
   workflow_dispatch:
 
 jobs:
@@ -14,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Consultar Supabase
+      - name: Actualizar fecha en Supabase
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL_EVENTIN }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_EVENTIN }}
@@ -25,15 +22,18 @@ jobs:
             --show-error \
             --fail \
             --max-time 30 \
-            "${SUPABASE_URL}/rest/v1/keep_alive?id=eq.1&select=id,nombre" \
-            -H "apikey: ${SUPABASE_ANON_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+            --request POST \
+            "${SUPABASE_URL}/rest/v1/rpc/actualizar_keep_alive" \
+            --header "apikey: ${SUPABASE_ANON_KEY}" \
+            --header "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            --header "Content-Type: application/json" \
+            --data '{}')
 
-          echo "Respuesta de Supabase Eventin: ${response}"
+          echo "Última comprobación Eventin: ${response}"
 
-          if [[ "${response}" != *'"id":1'* ]]; then
-            echo "La respuesta no contiene el registro esperado de Eventin."
+          if [[ -z "${response}" || "${response}" == "null" ]]; then
+            echo "No se recibió una fecha válida Eventin."
             exit 1
           fi
 
-          echo "Consulta realizada correctamenteen Eventin."
+          echo "Supabase Eventin actualizado correctamente."
