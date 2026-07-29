@@ -1,4 +1,4 @@
-name: Mantener Supabase Alaraz activo
+name: Mantener Supabase Eventin activo
 
 on:
   schedule:
