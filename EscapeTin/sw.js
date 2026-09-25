@@ -1,4 +1,4 @@
-const CACHE_NAME = "escapetin-v2";
+const CACHE_NAME = "escapetin-v3";
 const STATIC_ASSETS = [
   "./",
   "./index.html",

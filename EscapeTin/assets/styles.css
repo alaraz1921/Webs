@@ -269,6 +269,12 @@ h1 { margin: 0; color: #ff3f70; font-size: clamp(4rem, 14vw, 9.8rem); line-heigh
     font-weight: 800;
     line-height: 1.45;
 }
+#app-modal-message {
+    margin: 0 0 20px;
+    color: #26324f;
+    font-weight: 800;
+    line-height: 1.45;
+}
 .back-link {
     display: inline-flex;
     margin-top: 18px;
@@ -584,6 +590,28 @@ h1 { margin: 0; color: #ff3f70; font-size: clamp(4rem, 14vw, 9.8rem); line-heigh
     flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
+}
+.notification-button {
+    min-height: 38px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    box-shadow: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+.detail-list {
+    text-align: left;
+}
+.detail-list p {
+    margin: 0 0 10px;
+    color: #26324f;
+    font-weight: 800;
+}
+.detail-list ul {
+    margin: 0 0 12px;
+    padding-left: 20px;
+    color: #26324f;
+    font-weight: 800;
 }
 .image-preview:empty {
     display: none;

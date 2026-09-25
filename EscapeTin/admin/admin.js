@@ -9,7 +9,7 @@ function setAdminStatus(message, isError = false) {
 }
 
 function escapeHtml(value) {
-    return String(value || "").replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[char]));
+    return String(value ?? "").replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[char]));
 }
 
 function getParam(name) {
@@ -54,7 +54,7 @@ function ensureModal() {
     modal.innerHTML = `
         <div class="permission-modal-box" role="dialog" aria-modal="true" aria-labelledby="app-modal-title">
             <h2 id="app-modal-title"></h2>
-            <p id="app-modal-message"></p>
+            <div id="app-modal-message"></div>
             <div class="modal-actions"></div>
         </div>`;
     document.body.appendChild(modal);
@@ -85,6 +85,108 @@ function showAdminModal(message, title = "EscapeTin", options = {}) {
         modal.hidden = false;
         ok.focus();
     });
+}
+
+function showAdminHtmlModal(html, title = "EscapeTin") {
+    return new Promise((resolve) => {
+        const modal = ensureModal();
+        modal.querySelector("#app-modal-title").textContent = title;
+        modal.querySelector("#app-modal-message").innerHTML = html;
+        const actions = modal.querySelector(".modal-actions");
+        actions.innerHTML = "";
+        const ok = document.createElement("button");
+        ok.type = "button";
+        ok.className = "btn btn-primary";
+        ok.textContent = "Cerrar";
+        ok.addEventListener("click", () => { modal.hidden = true; resolve(true); }, { once: true });
+        actions.appendChild(ok);
+        modal.hidden = false;
+        ok.focus();
+    });
+}
+
+function formatAdminValue(value) {
+    if (value === true) return "Si";
+    if (value === false) return "No";
+    return escapeHtml(value || "-");
+}
+
+function renderChallengeDetails(challenge) {
+    const options = ["a", "b", "c", "d"]
+        .map((key) => {
+            const text = challenge[`option_${key}`];
+            if (!text) return "";
+            const marker = challenge.correct_option === key ? " correcta" : "";
+            return `<li><strong>${key.toUpperCase()}${marker}:</strong> ${escapeHtml(text)}</li>`;
+        })
+        .filter(Boolean)
+        .join("");
+    return `
+        ${challenge.image_url ? `<img class="app-cover" src="${escapeHtml(challenge.image_url)}" alt="">` : ""}
+        <div class="detail-list">
+            <p><strong>Tipo:</strong> ${escapeHtml(challengeTypeLabel(challenge.challenge_type))}</p>
+            <p><strong>Orden:</strong> ${escapeHtml(challenge.order_index)} · <strong>Puntos:</strong> ${escapeHtml(challenge.points)}</p>
+            <p><strong>Activa:</strong> ${formatAdminValue(challenge.is_active)} · <strong>Validacion manual:</strong> ${formatAdminValue(challenge.requires_admin_validation)}</p>
+            <p><strong>Descripcion:</strong> ${escapeHtml(challenge.description || "Sin descripcion")}</p>
+            <p><strong>Pregunta/instruccion:</strong> ${escapeHtml(challenge.question || "-")}</p>
+            ${challenge.challenge_type === "question" ? `<p><strong>Respuesta correcta:</strong> ${escapeHtml(challenge.correct_answer || "-")}</p>` : ""}
+            ${options ? `<p><strong>Opciones:</strong></p><ul>${options}</ul>` : ""}
+            <p><strong>Pista 1:</strong> ${escapeHtml(challenge.hint_1 || "-")}</p>
+            <p><strong>Pista 2:</strong> ${escapeHtml(challenge.hint_2 || "-")}</p>
+            <p><strong>Penalizacion por pista:</strong> ${escapeHtml(challenge.hint_penalty || 0)}</p>
+        </div>`;
+}
+
+async function setupAdminNotifications(session) {
+    if (!session?.user?.id || !adminClient) return;
+    const header = document.querySelector(".site-header");
+    if (!header || header.querySelector("[data-admin-notifications]")) return;
+    const nav = header.querySelector(".top-nav");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn btn-secondary notification-button";
+    button.dataset.adminNotifications = "true";
+    button.textContent = "Avisos";
+    nav?.prepend(button);
+
+    async function refreshUnread() {
+        const { count, error } = await adminClient
+            .from("escapetin_admin_notifications")
+            .select("id", { count: "exact", head: true })
+            .eq("admin_user_id", session.user.id)
+            .is("read_at", null);
+        if (error) {
+            button.hidden = true;
+            return false;
+        }
+        button.hidden = false;
+        button.textContent = count ? `Avisos (${count})` : "Avisos";
+        return true;
+    }
+
+    button.addEventListener("click", async () => {
+        const { data, error } = await adminClient
+            .from("escapetin_admin_notifications")
+            .select("*")
+            .eq("admin_user_id", session.user.id)
+            .order("created_at", { ascending: false })
+            .limit(10);
+        if (error) { await showAdminModal(error.message, "No se pudieron cargar avisos"); return; }
+        const unreadIds = data.filter((item) => !item.read_at).map((item) => item.id);
+        if (unreadIds.length) {
+            await adminClient.from("escapetin_admin_notifications").update({ read_at: new Date().toISOString() }).in("id", unreadIds);
+        }
+        await showAdminHtmlModal(data.length ? data.map((item) => `<article class="notice-card"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.message)}</span></article>`).join("") : "<p>No hay avisos recientes.</p>", "Avisos");
+        await refreshUnread();
+    });
+
+    if (!await refreshUnread()) return;
+    adminClient.channel(`escapetin-admin-notifications-${session.user.id}`)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "escapetin_admin_notifications", filter: `admin_user_id=eq.${session.user.id}` }, async (payload) => {
+            await refreshUnread();
+            await showAdminModal(payload.new?.message || "Hay una prueba pendiente de revision.", payload.new?.title || "Nuevo aviso");
+        })
+        .subscribe();
 }
 
 function showPermissionModal() {
@@ -131,6 +233,13 @@ async function getSessionOrRedirect() {
     return data.session;
 }
 
+async function requireOwnGame(game, session) {
+    if (game?.created_by === session?.user?.id) return true;
+    await showAdminModal("Solo puedes ver y administrar las gincanas creadas por ti.", "No autorizado");
+    window.location.href = "index.html";
+    return false;
+}
+
 async function setupLogout() {
     const link = document.getElementById("logout-link");
     if (!link) return;
@@ -168,8 +277,9 @@ async function bootGames() {
     await setupLogout();
     const session = await getSessionOrRedirect();
     if (!session) return;
+    await setupAdminNotifications(session);
     const list = document.getElementById("games-list");
-    const { data, error } = await adminClient.from("escapetin_games").select("*, escapetin_challenges(count)").order("created_at", { ascending: false });
+    const { data, error } = await adminClient.from("escapetin_games").select("*, escapetin_challenges(count)").eq("created_by", session.user.id).order("created_at", { ascending: false });
     if (error) { setAdminStatus(error.message, true); return; }
     list.innerHTML = data.length ? data.map((game) => {
         const playUrl = new URL("../play/index.html", window.location.href);
@@ -208,6 +318,7 @@ async function bootGameEdit() {
     await setupLogout();
     const session = await getSessionOrRedirect();
     if (!session) return;
+    await setupAdminNotifications(session);
     const id = getParam("id");
     const form = document.getElementById("game-form");
     const title = document.getElementById("editor-title");
@@ -219,6 +330,7 @@ async function bootGameEdit() {
         title.textContent = "Editar gincana";
         const { data, error } = await adminClient.from("escapetin_games").select("*").eq("id", id).single();
         if (error) { setAdminStatus(error.message, true); return; }
+        if (!await requireOwnGame(data, session)) return;
         ["title", "description", "cover_image_url", "access_code", "status", "mode"].forEach((field) => { form.elements[field].value = data[field] || ""; });
         form.elements.show_ranking.checked = data.show_ranking;
         form.elements.allow_teams.checked = data.allow_teams;
@@ -271,12 +383,14 @@ async function bootChallenges() {
     await setupLogout();
     const session = await getSessionOrRedirect();
     if (!session) return;
+    await setupAdminNotifications(session);
     const gameId = getParam("game");
     const list = document.getElementById("challenge-list");
     document.getElementById("new-challenge-link").href = `challenge-edit.html?game=${gameId}`;
     async function load() {
         const { data: game, error: gameError } = await adminClient.from("escapetin_games").select("*").eq("id", gameId).single();
         if (gameError) throw gameError;
+        if (!await requireOwnGame(game, session)) return;
         document.getElementById("challenge-game-title").textContent = game.title;
         const { data, error } = await adminClient.from("escapetin_challenges").select("*").eq("game_id", gameId).order("order_index");
         if (error) throw error;
@@ -291,6 +405,7 @@ async function bootChallenges() {
                     <h2>${escapeHtml(challenge.order_index)}. ${escapeHtml(challenge.title)}</h2>
                     <p>${escapeHtml(challenge.description || "")}</p>
                     <div class="admin-actions">
+                        <button class="btn btn-secondary" type="button" data-view="${challenge.id}">Ver</button>
                         <a class="btn btn-secondary" href="challenge-edit.html?game=${gameId}&id=${challenge.id}">Editar</a>
                         <button class="btn btn-secondary" type="button" data-copy="${qrUrl.href}">Copiar QR/link</button>
                         <button class="btn btn-primary" type="button" data-delete="${challenge.id}">Eliminar</button>
@@ -301,6 +416,11 @@ async function bootChallenges() {
         list.querySelectorAll("[data-copy]").forEach((button) => button.addEventListener("click", async () => {
             await navigator.clipboard.writeText(button.dataset.copy);
             await showAdminModal("Enlace copiado.", "Listo");
+        }));
+        list.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", async () => {
+            const challenge = data.find((item) => item.id === button.dataset.view);
+            if (!challenge) return;
+            await showAdminHtmlModal(renderChallengeDetails(challenge), challenge.title);
         }));
         list.querySelectorAll("[data-delete]").forEach((button) => button.addEventListener("click", async () => {
             if (!await showAdminModal("Eliminar esta prueba?", "Eliminar", { okText: "Eliminar", cancelText: "Cancelar" })) return;
@@ -316,6 +436,7 @@ async function bootChallengeEdit() {
     await setupLogout();
     const session = await getSessionOrRedirect();
     if (!session) return;
+    await setupAdminNotifications(session);
     const gameId = getParam("game");
     const id = getParam("id");
     const form = document.getElementById("challenge-form");
@@ -324,6 +445,9 @@ async function bootChallengeEdit() {
     document.getElementById("challenge-list-link").href = `challenges.html?game=${gameId}`;
     document.getElementById("cancel-challenge-link").href = `challenges.html?game=${gameId}`;
     EscapeTinMedia?.configureImageInput(document.getElementById("image_file"));
+    const { data: game, error: gameError } = await adminClient.from("escapetin_games").select("id, created_by").eq("id", gameId).single();
+    if (gameError) { setAdminStatus(gameError.message, true); return; }
+    if (!await requireOwnGame(game, session)) return;
 
     function updateFields() {
         const type = typeSelect.value;
@@ -395,11 +519,13 @@ async function bootParticipants() {
     await setupLogout();
     const session = await getSessionOrRedirect();
     if (!session) return;
+    await setupAdminNotifications(session);
     const gameId = getParam("game");
     const list = document.getElementById("participants-list");
     async function load() {
         const { data: game, error: gameError } = await adminClient.from("escapetin_games").select("*").eq("id", gameId).single();
         if (gameError) throw gameError;
+        if (!await requireOwnGame(game, session)) return;
         document.getElementById("participants-title").textContent = game.title;
         const { data, error } = await adminClient.from("escapetin_teams").select("*, escapetin_progress(count)").eq("game_id", gameId).order("total_points", { ascending: false });
         if (error) throw error;
