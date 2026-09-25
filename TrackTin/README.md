@@ -6,7 +6,7 @@ La publicación se realiza junto al resto del repositorio en `https://www.alaraz
 
 ## Primera versión
 
-Incluye inicio de sesión, búsqueda de películas y series, fichas básicas, lista personal, estados, favoritos, valoraciones, notas, progreso de episodios, PWA y SQL con RLS. La aplicación usa rutas hash para funcionar en GitHub Pages.
+Incluye inicio de sesión, búsqueda de películas y series, fichas básicas, temporadas y episodios cargados desde TMDB, progreso por episodio, marcar/desmarcar episodios y temporadas, siguiente episodio pendiente, lista personal, estados, favoritos, valoraciones, notas, PWA y SQL con RLS. La aplicación usa rutas hash para funcionar en GitHub Pages.
 
 ## Configuración
 
