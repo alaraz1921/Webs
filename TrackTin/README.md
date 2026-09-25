@@ -12,16 +12,17 @@ Incluye inicio de sesión, búsqueda de películas y series, fichas básicas, te
 
 1. Usa el proyecto Supabase compartido de Webs y ejecuta [`supabase/tracktin_schema.sql`](supabase/tracktin_schema.sql). Todos los objetos propios usan el prefijo SQL `tracktin_` para evitar colisiones.
 2. Ejecuta después [`supabase/tracktin_lists.sql`](supabase/tracktin_lists.sql) para activar las listas personalizadas, sus políticas RLS y sus permisos.
-3. Despliega la función `supabase/functions/tracktin-tmdb` y configura `TMDB_API_TOKEN`:
+3. Ejecuta [`supabase/tracktin_stats.sql`](supabase/tracktin_stats.sql) para guardar metadatos opcionales usados por las estadísticas.
+4. Despliega la función `supabase/functions/tracktin-tmdb` y configura `TMDB_API_TOKEN`:
 
    ```bash
    supabase secrets set TMDB_API_TOKEN=tu_token
    supabase functions deploy tracktin-tmdb
    ```
 
-4. Copia `js/config.example.js` como `js/config.js` y completa la URL, la clave anónima y la URL de la función.
-5. Sirve el proyecto desde un servidor local, por ejemplo `python -m http.server 8080`.
-6. Para GitHub Pages, publica la carpeta del proyecto y conserva `APP_BASE_PATH` como `/TrackTin/` si el repositorio se sirve con ese nombre.
+5. Copia `js/config.example.js` como `js/config.js` y completa la URL, la clave anónima y la URL de la función.
+6. Sirve el proyecto desde un servidor local, por ejemplo `python -m http.server 8080`.
+7. Para GitHub Pages, publica la carpeta del proyecto y conserva `APP_BASE_PATH` como `/TrackTin/` si el repositorio se sirve con ese nombre.
 
 ## TMDB y atribuciones
 
