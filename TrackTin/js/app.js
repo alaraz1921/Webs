@@ -45,16 +45,41 @@ function customListPage(){
   const selected=state.customLists.find(l=>l.id===state.selectedList);
   if(selected){
     const items=state.listItems.filter(i=>i.list_id===selected.id);
-    return `<button class="btn ghost" data-lists-overview>← Todas las listas</button><div class="hero"><div><span class="eyebrow">Lista personal</span><h1>${esc(selected.name)}</h1><p class="muted">${items.length} ${items.length===1?'título':'títulos'}</p></div></div>
+    return `<button class="btn ghost" data-lists-overview>← Todas las listas</button><div class="hero list-heading"><div><span class="eyebrow">Lista personal</span><h1>${esc(selected.name)}</h1><p class="muted">${items.length} ${items.length===1?'título':'títulos'}</p></div><div class="list-heading-actions"><button class="list-icon-button" type="button" data-edit-list-name="${selected.id}" aria-label="Editar nombre de la lista" title="Editar nombre de la lista" aria-expanded="false" aria-controls="list-editor-${selected.id}"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L21 7a2 2 0 0 0-4-4L5 15Z"/></svg></button>${listDeleteButton(selected)}</div></div>
       ${listEditor(selected)}
       <div class="list-chips"><button class="btn secondary" data-view="buscar">Buscar títulos para añadir</button></div><br>
       ${items.length?`<div class="grid">${items.map(item=>`<div class="custom-list-title">${posterCard({...item,...state.media.find(m=>m.tmdb_id===item.tmdb_id&&m.media_type===item.media_type)})}<button class="btn ghost" data-remove-list-item="${item.id}" aria-label="Quitar ${esc(item.title||`TMDB #${item.tmdb_id}`)} de esta lista">Quitar de la lista</button></div>`).join('')}</div>`:'<div class="empty">Esta lista todavía no tiene títulos. Abre una ficha y usa el icono de agregar a listas.</div>'}`;
   }
   return `<div class="hero"><div><span class="eyebrow">Organización</span><h1>Listas</h1><p class="muted">Organiza tus títulos en listas independientes del seguimiento.</p></div></div>
     <form id="create-list-form" class="card list-create"><label for="new-list-name">Crear una nueva lista</label><div class="row"><input class="input" id="new-list-name" name="name" required maxlength="80" placeholder="Nombre de la nueva lista"><button class="btn">Crear lista</button></div></form><br>
-    ${state.customLists.length?`<div class="lists-overview">${state.customLists.map(list=>{const count=state.listItems.filter(i=>i.list_id===list.id).length;return `<article class="card list-overview-card"><button class="list-open" data-open-list="${list.id}"><strong>${esc(list.name)}</strong><span class="muted">${count} ${count===1?'título':'títulos'} · Ver títulos →</span></button>${listEditor(list)}</article>`}).join('')}</div>`:'<div class="empty">Todavía no tienes listas. Crea la primera aquí arriba.</div>'}`;
+    ${state.customLists.length?`<div class="lists-overview">${state.customLists.map(list=>{const count=state.listItems.filter(i=>i.list_id===list.id).length;return `<article class="card list-overview-card"><div class="list-overview-heading"><button class="list-open" data-open-list="${list.id}"><strong>${esc(list.name)}</strong><span class="muted">${count} ${count===1?'título':'títulos'} · Ver títulos →</span></button>${listDeleteButton(list)}</div></article>`}).join('')}</div>`:'<div class="empty">Todavía no tienes listas. Crea la primera aquí arriba.</div>'}`;
 }
-function listEditor(list){return `<form class="list-editor" data-list-editor="${list.id}"><label class="sr-only" for="list-name-${list.id}">Nombre de ${esc(list.name)}</label><input class="input" id="list-name-${list.id}" name="name" value="${esc(list.name)}" required maxlength="80"><div class="row"><button class="btn secondary" type="submit">Guardar nombre</button><button class="btn danger" type="button" data-delete-list="${list.id}">Borrar lista</button></div></form>`}
+function listDeleteButton(list){return `<button class="list-icon-button delete-list" type="button" data-delete-list="${list.id}" aria-label="Borrar lista ${esc(list.name)}" title="Borrar lista ${esc(list.name)}"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button>`}
+function listEditor(list){return `<form class="list-editor" id="list-editor-${list.id}" data-list-editor="${list.id}" hidden><label for="list-name-${list.id}">Nombre de la lista</label><input class="input" id="list-name-${list.id}" name="name" value="${esc(list.name)}" required maxlength="80"><div class="row"><button class="btn secondary" type="submit">Guardar nombre</button><button class="btn ghost" type="button" data-cancel-list-name="${list.id}">Cancelar</button></div></form>`}
+function toggleListEditor(id,open){
+  const form=document.getElementById(`list-editor-${id}`);
+  const button=document.querySelector('[data-edit-list-name]');
+  if(!form||!button)return;
+  form.hidden=open===undefined?!form.hidden:!open;
+  button.setAttribute('aria-expanded',String(!form.hidden));
+  if(form.hidden){form.reset();button.focus()}
+  else{const input=form.querySelector('[name="name"]');input.focus();input.select()}
+}
+function confirmDialog({title,message,confirmLabel='Confirmar'}){
+  if(document.querySelector('.app-confirmation'))return Promise.resolve(false);
+  return new Promise(resolve=>{
+    const dialog=document.createElement('dialog');
+    dialog.className='app-confirmation';
+    dialog.setAttribute('aria-labelledby','app-confirmation-title');
+    dialog.setAttribute('aria-describedby','app-confirmation-message');
+    dialog.innerHTML=`<h2 id="app-confirmation-title">${esc(title)}</h2><p id="app-confirmation-message">${esc(message)}</p><div class="row"><button type="button" class="btn ghost" data-dialog-cancel autofocus>Cancelar</button><button type="button" class="btn danger" data-dialog-confirm>${esc(confirmLabel)}</button></div>`;
+    dialog.querySelector('[data-dialog-cancel]').onclick=()=>dialog.close();
+    dialog.querySelector('[data-dialog-confirm]').onclick=()=>dialog.close('confirmed');
+    dialog.addEventListener('close',()=>{const confirmed=dialog.returnValue==='confirmed';dialog.remove();resolve(confirmed)},{once:true});
+    document.body.append(dialog);
+    dialog.showModal();
+  });
+}
 function detailPage(){
   const m=state.detail,tv=m.media_type==='tv';
   const saved=state.media.find(x=>x.tmdb_id===Number(m.id)&&x.media_type===m.media_type);
@@ -133,7 +158,7 @@ async function toggleSeason(id,n){if(!state.seasonData[n]?.episodes)await loadSe
 async function addToList(listId){const m=state.detail,r=await sb.from('tracktin_custom_list_items').upsert({list_id:listId,user_id:state.session.user.id,tmdb_id:Number(m.id),media_type:m.media_type,title:m.title||m.name,poster_path:m.poster_path},{onConflict:'list_id,tmdb_id,media_type'});if(r.error)toast(`No se pudo añadir a la lista: ${r.error.message}`);else{toast('Añadido a la lista');await loadListData();render()}}
 async function createList(name){const r=await sb.from('tracktin_custom_lists').insert({user_id:state.session.user.id,name:name.trim()}).select().single();if(r.error)toast(`No se pudo crear la lista: ${r.error.message}`);else{state.selectedList=r.data.id;await loadListData();state.view='custom-lists';render()}}
 async function renameList(id,name){const clean=name.trim();if(!clean)return;const r=await sb.from('tracktin_custom_lists').update({name:clean,updated_at:new Date().toISOString()}).eq('id',id).eq('user_id',state.session.user.id);if(r.error)toast(`No se pudo renombrar la lista: ${r.error.message}`);else{await loadListData();toast('Nombre actualizado');render()}}
-async function deleteList(id){if(!confirm('¿Borrar esta lista? El seguimiento y las demás listas no se modificarán.'))return;const r=await sb.from('tracktin_custom_lists').delete().eq('id',id).eq('user_id',state.session.user.id);if(r.error)toast(`No se pudo borrar la lista: ${r.error.message}`);else{if(state.mainListFilter===id)state.mainListFilter='all';if(state.selectedList===id)state.selectedList=null;await loadListData();toast('Lista borrada');render()}}
+async function deleteList(id){const list=state.customLists.find(l=>l.id===id);if(!list)return;if(!await confirmDialog({title:'¿Borrar esta lista?',message:`Se borrará la lista «${list.name}». El seguimiento y las demás listas no se modificarán.`,confirmLabel:'Borrar lista'}))return;const r=await sb.from('tracktin_custom_lists').delete().eq('id',id).eq('user_id',state.session.user.id);if(r.error)toast(`No se pudo borrar la lista: ${r.error.message}`);else{if(state.mainListFilter===id)state.mainListFilter='all';if(state.selectedList===id)state.selectedList=null;await loadListData();toast('Lista borrada');render()}}
 async function removeListItem(id){const r=await sb.from('tracktin_custom_list_items').delete().eq('id',id).eq('user_id',state.session.user.id);if(r.error)toast('No se pudo quitar el título');else{await loadListData();toast('Título quitado de la lista');render()}}
 async function saveEpisode(seriesId,sn,en,yes){const episode=state.seasonData[sn]?.episodes?.find(e=>e.episode_number===Number(en)),r=await sb.from('tracktin_episode_progress').upsert({user_id:state.session.user.id,tmdb_series_id:Number(seriesId),season_number:Number(sn),episode_number:Number(en),runtime_minutes:episode?.runtime||null,watched:yes,watched_at:yes?new Date().toISOString():null,updated_at:new Date().toISOString()},{onConflict:'user_id,tmdb_series_id,season_number,episode_number'});if(r.error)toast(`No se pudo guardar el episodio: ${r.error.message}`);else{await loadProgress(seriesId);await loadAllSeasons(seriesId);await syncSeriesStatus(seriesId);toast(yes?'Episodio marcado como visto':'Episodio desmarcado');render()}}
 async function markSeason(id,n,yes){const d=state.seasonData[n];if(!d?.episodes)return;const rows=d.episodes.filter(e=>!e.air_date||new Date(e.air_date)<=new Date()).map(e=>({user_id:state.session.user.id,tmdb_series_id:Number(id),season_number:n,episode_number:e.episode_number,runtime_minutes:e.runtime||null,watched:yes,watched_at:yes?new Date().toISOString():null,updated_at:new Date().toISOString()}));const r=await sb.from('tracktin_episode_progress').upsert(rows,{onConflict:'user_id,tmdb_series_id,season_number,episode_number'});if(r.error)toast(`No se pudo actualizar la temporada: ${r.error.message}`);else{await loadProgress(id);await loadAllSeasons(id);await syncSeriesStatus(id);toast(yes?'Temporada marcada como vista':'Temporada desmarcada');render()}}
@@ -153,6 +178,8 @@ function bind(){
   document.querySelector('[data-confirm-series]')?.addEventListener('click',()=>{const c=state.confirmSeries;state.confirmSeries=null;toggleDetail(c.id,c.type,c.title,c.poster)});
   document.querySelector('[data-cancel-series]')?.addEventListener('click',()=>{state.confirmSeries=null;render()});
   document.querySelectorAll('[data-list-editor]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();renameList(form.dataset.listEditor,new FormData(form).get('name'))}));
+  document.querySelectorAll('[data-edit-list-name]').forEach(b=>b.onclick=()=>toggleListEditor(b.dataset.editListName));
+  document.querySelectorAll('[data-cancel-list-name]').forEach(b=>b.onclick=()=>toggleListEditor(b.dataset.cancelListName,false));
   document.querySelectorAll('[data-delete-list]').forEach(b=>b.onclick=()=>deleteList(b.dataset.deleteList));
   document.querySelectorAll('[data-open-list]').forEach(b=>b.onclick=()=>{state.selectedList=b.dataset.openList;state.view='custom-lists';render()});
   document.querySelector('[data-lists-overview]')?.addEventListener('click',()=>{state.selectedList=null;render()});

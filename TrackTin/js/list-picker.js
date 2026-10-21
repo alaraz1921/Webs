@@ -27,18 +27,18 @@ export function openListPicker({title, getLists, isMember, getItems, toggleList,
   function draw() {
     const lists = getLists();
     const query = search.value.trim().toLocaleLowerCase('es');
-    const visible = lists.filter(list => list.name.toLocaleLowerCase('es').includes(query));
+    const visible = lists.filter(list => list.name.toLocaleLowerCase('es').includes(query))
+      .sort((a, b) => Number(isMember(b.id)) - Number(isMember(a.id)));
     grid.innerHTML = visible.map(list => {
       const selected = isMember(list.id);
       const items = getItems(list.id);
       const cover = items.find(item => item.poster_path)?.poster_path;
       return `<button type="button" class="picker-card ${selected ? 'is-selected' : ''}" data-picker-list="${escapeHtml(list.id)}" aria-pressed="${selected}" aria-label="${selected ? 'Quitar de' : 'Añadir a'} ${escapeHtml(list.name)}" ${busy ? 'disabled' : ''}>
         <span class="picker-cover">${cover ? `<img src="https://image.tmdb.org/t/p/w342${escapeHtml(cover)}" alt="" loading="lazy">` : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4"/><circle cx="15" cy="9" r="1"/></svg>'}
-          <span class="picker-overlay"><span class="picker-symbol">${selected ? '✓' : '+'}</span></span>
+          <span class="picker-overlay"><span class="picker-symbol"><svg viewBox="0 0 24 24" aria-hidden="true">${selected ? '<path d="m5 12 4 4L19 6"/>' : '<path d="M12 5v14M5 12h14"/>'}</svg></span></span>
         </span>
         <strong>${escapeHtml(list.name)}</strong>
         <small>${items.length} ${items.length === 1 ? 'elemento' : 'elementos'}</small>
-        <small class="picker-membership">${selected ? 'Añadido · Pulsa para quitar' : 'Pulsa para añadir'}</small>
       </button>`;
     }).join('') || `<p class="picker-empty">${lists.length ? 'No hay listas que coincidan con tu búsqueda.' : 'Todavía no tienes listas. Crea la primera aquí abajo.'}</p>`;
     dialog.querySelector('.picker-create button').disabled = busy;
