@@ -1,7 +1,7 @@
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 
 // The dialog owns its DOM so background updates of the detail page do not close it.
-export function openListPicker({title, getLists, isMember, getItems, isSaved, toggleList, saveMain, createList, onClose}) {
+export function openListPicker({title, getLists, isMember, getItems, toggleList, createList, onClose}) {
   if (document.querySelector('.list-picker')) return;
   const dialog = document.createElement('dialog');
   dialog.className = 'list-picker';
@@ -9,12 +9,11 @@ export function openListPicker({title, getLists, isMember, getItems, isSaved, to
   dialog.innerHTML = `
     <header class="list-picker-header">
       <h2 id="list-picker-title">Agregar <strong>${escapeHtml(title)}</strong> a las listas</h2>
-      <button class="picker-close" type="button" aria-label="Cerrar listas">×</button>
+      <div class="picker-header-actions"><button class="picker-search-toggle" type="button" aria-label="Buscar una lista" aria-expanded="false" aria-controls="picker-search-field"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg></button><button class="picker-close" type="button" aria-label="Cerrar listas" autofocus>×</button></div>
     </header>
-    <label class="picker-search"><span class="sr-only">Buscar una lista</span><input class="input" type="search" placeholder="Buscar una lista…" autocomplete="off"></label>
+    <label class="picker-search" id="picker-search-field" hidden><span class="sr-only">Buscar una lista</span><input class="input" type="search" placeholder="Buscar una lista…" autocomplete="off"></label>
     <div class="picker-grid" aria-label="Listas personales"></div>
     <p class="picker-feedback" role="status" aria-live="polite"></p>
-    <div class="picker-main"></div>
     <form class="picker-create">
       <label for="picker-list-name">Crea una nueva lista</label>
       <div class="row"><input class="input" id="picker-list-name" name="name" placeholder="Mi nueva lista…" required maxlength="80"><button class="btn" type="submit">Crear</button></div>
@@ -22,7 +21,7 @@ export function openListPicker({title, getLists, isMember, getItems, isSaved, to
   const grid = dialog.querySelector('.picker-grid');
   const search = dialog.querySelector('input[type="search"]');
   const feedback = dialog.querySelector('.picker-feedback');
-  const main = dialog.querySelector('.picker-main');
+  const searchToggle = dialog.querySelector('.picker-search-toggle');
   let busy = false;
 
   function draw() {
@@ -42,9 +41,6 @@ export function openListPicker({title, getLists, isMember, getItems, isSaved, to
         <small class="picker-membership">${selected ? 'Añadido · Pulsa para quitar' : 'Pulsa para añadir'}</small>
       </button>`;
     }).join('') || `<p class="picker-empty">${lists.length ? 'No hay listas que coincidan con tu búsqueda.' : 'Todavía no tienes listas. Crea la primera aquí abajo.'}</p>`;
-    main.innerHTML = isSaved()
-      ? '<p class="muted">Guardado en Mi lista principal. Quitar de una lista personal conserva el título en tu colección.</p>'
-      : `<button type="button" class="btn secondary" data-picker-main ${busy ? 'disabled' : ''}>Guardar en Mi lista principal</button>`;
     dialog.querySelector('.picker-create button').disabled = busy;
   }
 
@@ -65,6 +61,13 @@ export function openListPicker({title, getLists, isMember, getItems, isSaved, to
     }
   }
 
+  searchToggle.addEventListener('click', () => {
+    const field = dialog.querySelector('.picker-search');
+    field.hidden = !field.hidden;
+    searchToggle.setAttribute('aria-expanded', String(!field.hidden));
+    if (!field.hidden) search.focus();
+    else { search.value = ''; draw(); searchToggle.focus(); }
+  });
   search.addEventListener('input', draw);
   grid.addEventListener('click', event => {
     const button = event.target.closest('[data-picker-list]');
@@ -72,9 +75,6 @@ export function openListPicker({title, getLists, isMember, getItems, isSaved, to
     const id = button.dataset.pickerList;
     const selected = isMember(id);
     run(() => toggleList(id, selected), selected ? 'Título quitado de la lista.' : 'Título añadido a la lista.', id);
-  });
-  main.addEventListener('click', event => {
-    if (event.target.closest('[data-picker-main]')) run(saveMain, 'Título guardado en Mi lista principal.');
   });
   dialog.querySelector('.picker-create').addEventListener('submit', event => {
     event.preventDefault();
@@ -94,5 +94,5 @@ export function openListPicker({title, getLists, isMember, getItems, isSaved, to
   document.body.append(dialog);
   draw();
   dialog.showModal();
-  search.focus();
+  dialog.querySelector('.picker-close').focus();
 }
