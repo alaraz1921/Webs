@@ -1,4 +1,4 @@
-const CACHE='tracktin-shell-v7';
+const CACHE='tracktin-shell-v8';
 const SHELL=['./','./index.html','./css/styles.css','./css/episodes.css','./css/list-picker.css','./js/app.js','./js/list-picker.js','./js/config.example.js','./assets/icons/icon.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
