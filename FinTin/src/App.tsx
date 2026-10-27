@@ -1,0 +1,472 @@
+import { useCallback, useEffect, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
+import {
+  LayoutDashboard,
+  WalletCards,
+  ArrowLeftRight,
+  ListFilter,
+  Upload,
+  Settings as SettingsIcon,
+  LogOut,
+  ShieldCheck,
+  ArrowUpRight,
+  Menu,
+} from "lucide-react";
+import { configured, db, client, list } from "./api";
+import type { Account, Alias, Category } from "./types";
+import { Summary, AccountsPage, type YearProps } from "./Dashboard";
+import { MovementPage, filtersFor } from "./Movements";
+import { ImportPage } from "./Import";
+import { Settings } from "./Settings";
+import { Field, Form, ErrorBox, Empty, text } from "./ui";
+import "./style.css";
+const pages = [
+  {
+    id: "resumen",
+    name: "Resumen",
+    icon: LayoutDashboard,
+    description: "Una visión clara de tu dinero.",
+  },
+  {
+    id: "cuentas",
+    name: "Cuentas",
+    icon: WalletCards,
+    description: "La evolución de tus saldos, mes a mes.",
+  },
+  {
+    id: "conciliacion",
+    name: "Conciliación",
+    icon: ArrowLeftRight,
+    description: "Contrasta tus cálculos con el banco.",
+  },
+  {
+    id: "movimientos",
+    name: "Movimientos",
+    icon: ListFilter,
+    description: "Cada movimiento, en su lugar.",
+  },
+  {
+    id: "importacion",
+    name: "Importación CSV",
+    icon: Upload,
+    description: "Todo tu ejercicio en un solo archivo.",
+  },
+  {
+    id: "configuracion",
+    name: "Configuración",
+    icon: SettingsIcon,
+    description: "Tus cuentas, categorías y correspondencias.",
+  },
+];
+export default function App() {
+  const [session, setSession] = useState<Session | null>(null),
+    [authReady, setAuthReady] = useState(false),
+    [allowed, setAllowed] = useState<boolean | null>(null),
+    [authError, setAuthError] = useState("");
+  useEffect(() => {
+    if (!db) {
+      setAuthReady(true);
+      return;
+    }
+    db.auth.getSession().then(({ data, error }) => {
+      if (error) setAuthError(error.message);
+      setSession(data.session);
+      setAuthReady(true);
+    });
+    const { data } = db.auth.onAuthStateChange((_, s) => {
+      setAllowed(null);
+      setSession(s);
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+  useEffect(() => {
+    let live = true;
+    setAllowed(null);
+    if (session) {
+      client()
+        .rpc("fintin_usuario_habilitado")
+        .then((r) => {
+          if (live) {
+            if (r.error) {
+              setAuthError(r.error.message);
+              setAllowed(false);
+            } else {
+              setAuthError("");
+              setAllowed(r.data === true);
+            }
+          }
+        });
+    }
+    return () => {
+      live = false;
+    };
+  }, [session]);
+  if (!configured)
+    return (
+      <Access>
+        <h1>Tu dinero, con claridad.</h1>
+        <p>FinTin está listo para conectarse a tu Supabase.</p>
+        <div className="notice">
+          Configura <code>VITE_SUPABASE_URL</code> y una clave pública en{" "}
+          <code>.env.local</code>. Reinicia Vite después de guardar. Consulta
+          README.md para preparar la base de datos de pruebas y autorizar tu
+          usuario.
+        </div>
+        <p className="muted">
+          No se han cargado datos financieros. No se aceptan claves secretas.
+        </p>
+      </Access>
+    );
+  if (!authReady)
+    return (
+      <Access>
+        <Empty>Comprobando sesión…</Empty>
+      </Access>
+    );
+  if (!session)
+    return (
+      <Access>
+        <span className="eyebrow">TU ESPACIO FINANCIERO</span>
+        <h1>
+          Todo en orden.
+          <br />
+          Todo bajo control.
+        </h1>
+        <p>Accede a tus cuentas, movimientos y balances.</p>
+        <Form
+          button="Entrar en FinTin"
+          onSave={async (d) => {
+            const r = await client().auth.signInWithPassword({
+              email: text(d, "email"),
+              password: String(d.get("password") || ""),
+            });
+            if (r.error) throw r.error;
+          }}
+        >
+          <Field label="Correo electrónico">
+            <input name="email" type="email" autoComplete="username" required />
+          </Field>
+          <Field label="Contraseña">
+            <input
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+            />
+          </Field>
+        </Form>
+        <ErrorBox error={authError} />
+        <small>
+          Acceso exclusivo para cuentas existentes y usuarios autorizados.
+        </small>
+      </Access>
+    );
+  if (allowed === null)
+    return (
+      <Access>
+        <Empty>Verificando autorización de FinTin…</Empty>
+      </Access>
+    );
+  if (!allowed)
+    return (
+      <Access>
+        <h1>Acceso no autorizado</h1>
+        <p>
+          Tu sesión está iniciada, pero no tienes autorización activa para
+          FinTin. El administrador debe añadir tu UUID a la lista de usuarios
+          autorizados.
+        </p>
+        <ErrorBox error={authError} />
+        <button
+          onClick={() => {
+            void client().auth.signOut({ scope: "local" });
+          }}
+        >
+          Cerrar sesión
+        </button>
+      </Access>
+    );
+  return <Workspace key={session.user.id} session={session} />;
+}
+function Access({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="access">
+      <div className="access-art">
+        <Brand />
+        <div>
+          <span className="eyebrow">MENOS RUIDO. MÁS PERSPECTIVA.</span>
+          <h2>
+            Haz espacio <br />
+            para lo que <br />
+            <em>importa.</em>
+          </h2>
+          <p>Tu vida financiera, en un mismo lugar.</p>
+        </div>
+        <span className="privacy">
+          <ShieldCheck size={18} />
+          Privado por diseño
+        </span>
+      </div>
+      <main className="access-form">{children}</main>
+    </div>
+  );
+}
+function Brand() {
+  return (
+    <div className="brand">
+      <span className="brand-icon">
+        f<span>·</span>
+      </span>
+      FinTin<span className="brand-dot">.</span>
+    </div>
+  );
+}
+function Workspace({ session }: { session: Session }) {
+  const uid = session.user.id,
+    [route, setRoute] = useState(location.hash.slice(1) || "resumen"),
+    [year, setYear] = useState(new Date().getFullYear()),
+    [currency, setCurrency] = useState("EUR"),
+    [account, setAccount] = useState(""),
+    [accounts, setAccounts] = useState<Account[]>([]),
+    [categories, setCategories] = useState<Category[]>([]),
+    [aliases, setAliases] = useState<Alias[]>([]),
+    [error, setError] = useState(""),
+    [loading, setLoading] = useState(true),
+    [filters, setFilters] = useState(filtersFor(year)),
+    [menu, setMenu] = useState(false),
+    [revision, setRevision] = useState(0),
+    [importBusy, setImportBusy] = useState(false);
+  useEffect(() => {
+    const onHash = () => {
+      setRoute(location.hash.slice(1) || "resumen");
+      setMenu(false);
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  const reload = useCallback(async () => {
+    const [a, c, l] = await Promise.all([
+      list<Account>("cuentas", uid),
+      list<Category>("categorias", uid),
+      list<Alias>("cuenta_aliases", uid),
+    ]);
+    setAccounts(a);
+    setCategories(c);
+    setAliases(l);
+    setRevision((v) => v + 1);
+  }, [uid]);
+  useEffect(() => {
+    setLoading(true);
+    reload()
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [reload]);
+  const page = pages.find((p) => p.id === route) || pages[0];
+  const base = { uid, accounts, categories, aliases, reload };
+  const open: YearProps["open"] = (f) => {
+    const selected = accounts.find((a) => a.id === f.account);
+    const month = f.month;
+    setFilters({
+      ...filtersFor(year),
+      from: f.through
+        ? selected?.fecha_saldo_inicial || `${year}-01-01`
+        : month
+          ? `${year}-${String(month).padStart(2, "0")}-01`
+          : `${year}-01-01`,
+      to:
+        f.through ||
+        (month
+          ? new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10)
+          : `${year}-12-31`),
+      account: f.account || account,
+      category: f.category || "",
+      kind: f.kind || "",
+      currency,
+    });
+    location.hash = "movimientos";
+  };
+  const yearProps = { ...base, year, currency, account, open };
+  return (
+    <div className="app">
+      <aside className={menu ? "sidebar open" : "sidebar"}>
+        <Brand />
+        <div className="workspace-label">FINANZAS PERSONALES</div>
+        <nav aria-label="Principal">
+          {pages.map((p) => (
+            <a
+              key={p.id}
+              href={"#" + p.id}
+              className={page.id === p.id ? "active" : ""}
+              aria-current={page.id === p.id ? "page" : undefined}
+            >
+              <p.icon size={19} />
+              {p.name}
+              {page.id === p.id && <span className="nav-dot" />}
+            </a>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="private-note">
+            <ShieldCheck size={20} />
+            <div>
+              Tu información es privada
+              <small>Acceso protegido con Supabase</small>
+            </div>
+          </div>
+          <div className="user">
+            <div className="avatar">
+              {session.user.email?.[0].toUpperCase() || "U"}
+            </div>
+            <div>
+              <b>Mi espacio</b>
+              <small title={session.user.email}>{session.user.email}</small>
+            </div>
+            <button
+              aria-label="Cerrar sesión"
+              onClick={() => {
+                void client().auth.signOut({ scope: "local" });
+              }}
+            >
+              <LogOut size={17} />
+            </button>
+          </div>
+        </div>
+      </aside>
+      <div className="workspace">
+        <header className="topbar">
+          <button
+            className="mobile-menu"
+            aria-label="Abrir menú"
+            onClick={() => setMenu(!menu)}
+          >
+            <Menu />
+          </button>
+          <span>
+            Mi espacio <span className="muted">/ {page.name}</span>
+          </span>
+          <span className="connection">
+            <i /> Conexión privada
+          </span>
+        </header>
+        <main className="content">
+          <div className="page-heading">
+            <div>
+              <span className="eyebrow">TU DINERO, EN PERSPECTIVA</span>
+              <h1>{page.name}</h1>
+              <p>{page.description}</p>
+            </div>
+            {page.id === "resumen" && (
+              <a className="button" href="#importacion">
+                Importar CSV <ArrowUpRight size={17} />
+              </a>
+            )}
+          </div>
+          {page.id !== "configuracion" && (
+            <div className="context-bar">
+              <Field label="Ejercicio">
+                <select
+                  disabled={importBusy}
+                  value={year}
+                  onChange={(e) => {
+                    const y = Number(e.target.value);
+                    setYear(y);
+                    setFilters(filtersFor(y));
+                  }}
+                >
+                  {Array.from({ length: 101 }, (_, i) => 2100 - i).map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              {["resumen", "cuentas", "conciliacion"].includes(page.id) && (
+                <>
+                  <Field label="Moneda">
+                    <select
+                      value={currency}
+                      onChange={(e) => {
+                        setCurrency(e.target.value);
+                        setAccount("");
+                      }}
+                    >
+                      {[
+                        ...new Set(["EUR", ...accounts.map((a) => a.moneda)]),
+                      ].map((c) => (
+                        <option key={c}>{c}</option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Cuenta">
+                    <select
+                      value={account}
+                      onChange={(e) => setAccount(e.target.value)}
+                    >
+                      <option value="">Todas las cuentas</option>
+                      {accounts
+                        .filter((a) => a.moneda === currency)
+                        .map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.nombre_producto}
+                          </option>
+                        ))}
+                    </select>
+                  </Field>
+                </>
+              )}
+            </div>
+          )}
+          <ErrorBox error={error} />
+          {loading ? (
+            <Empty>Cargando tu espacio…</Empty>
+          ) : error ? (
+            <button
+              onClick={() => {
+                setError("");
+                setLoading(true);
+                reload()
+                  .catch((e) => setError(e.message))
+                  .finally(() => setLoading(false));
+              }}
+            >
+              Reintentar conexión
+            </button>
+          ) : (
+            <>
+              {page.id === "resumen" && (
+                <Summary key={revision} {...yearProps} />
+              )}{" "}
+              {page.id === "cuentas" && (
+                <AccountsPage key={revision} {...yearProps} />
+              )}{" "}
+              {page.id === "conciliacion" && (
+                <AccountsPage key={revision} {...yearProps} reconcile />
+              )}{" "}
+              {page.id === "movimientos" && (
+                <MovementPage
+                  {...base}
+                  filters={filters}
+                  setFilters={setFilters}
+                />
+              )}{" "}
+              {page.id === "importacion" && (
+                <ImportPage {...base} year={year} onBusy={setImportBusy} />
+              )}{" "}
+              {page.id === "configuracion" && (
+                <>
+                  <p className="muted">
+                    Usuario actual: {session.user.email} · UUID: {uid}
+                  </p>
+                  <Settings {...base} />
+                </>
+              )}
+            </>
+          )}
+          <footer>
+            FinTin <span>Un poco más de claridad, cada día.</span>
+          </footer>
+        </main>
+      </div>
+    </div>
+  );
+}

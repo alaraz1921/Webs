@@ -1,0 +1,111 @@
+import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { parseCsv, headers, validateAccounts, aliasKey } from "../src/csv";
+import { amount, isoDate, totals, calculated } from "../src/finance";
+const row =
+  '10/01/2026,10/01/2026,"-1.234,56 €",EUR,"Concepto, ficticio",Banco ficticio,Cuenta ficticia,Cuenta corriente,Gasto,Prueba,Nota';
+const csv = (r = row, h = headers.join(",")) => h + "\r\n" + r;
+describe("CSV y cálculos exactos", () => {
+  it("interpreta negativo, millares y céntimos sin floats", () => {
+    expect(amount("-1.234,56 €")).toBe("-1234.56");
+    expect(amount("9.999.999.999.999.999,99")).toBe("9999999999999999.99");
+    expect(amount("0,01")).toBe("0.01");
+    expect(() => amount("1,001")).toThrow();
+    expect(() => amount("12.34,50")).toThrow();
+    expect(() => amount("10000000000000000")).toThrow();
+  });
+  it("valida fechas incluidas bisiestos", () => {
+    expect(isoDate("29/02/2024")).toBe("2024-02-29");
+    expect(() => isoDate("29/02/2026")).toThrow();
+    expect(() => isoDate("31/04/2026")).toThrow();
+  });
+  it("acepta BOM CRLF comillas y multilinea", () => {
+    const r = parseCsv(
+      "\uFEFF" +
+        csv(row.replace("Concepto, ficticio", "Concepto,\r\nficticio")),
+      2026,
+    );
+    expect(r.errors).toEqual([]);
+    expect(r.rows[0].concepto).toContain("\r\n");
+    expect(r.rows[0].importe).toBe("-1234.56");
+  });
+  it("conserva duplicados e índices 1..N", () => {
+    const r = parseCsv(csv(row + "\r\n" + row), 2026);
+    expect(r.errors).toEqual([]);
+    expect(r.rows).toHaveLength(2);
+    expect(r.rows[1].numero_fila).toBe(2);
+  });
+  it.each([
+    row.replace("EUR", "ZZZ"),
+    row.replace("Gasto", "Inventado"),
+    row.replace("10/01/2026", "10/01/2025"),
+    row + ",extra",
+    row.replace("Banco ficticio", ""),
+  ])("bloquea fila errónea %s", (r) => {
+    expect(parseCsv(csv(r), 2026).errors.length).toBeGreaterThan(0);
+  });
+  it("exige cabecera exacta, archivo no vacío y comillas cerradas", () => {
+    expect(
+      parseCsv(
+        csv(row, headers.join(",").replace("Categoría", "Categoria")),
+        2026,
+      ).errors.length,
+    ).toBeGreaterThan(0);
+    expect(parseCsv(headers.join(","), 2026).errors.length).toBeGreaterThan(0);
+    expect(
+      parseCsv(csv(row.replace("Nota", '"Nota')), 2026).errors.length,
+    ).toBeGreaterThan(0);
+  });
+  it("valida asignación explícita sin coincidencias parciales", () => {
+    const rows = parseCsv(csv(), 2026).rows;
+    expect(validateAccounts(rows, [], [])).toHaveLength(1);
+    expect(aliasKey(rows[0])).not.toBe(
+      aliasKey({ ...rows[0], nombre_producto_csv: "Cuenta" }),
+    );
+    expect(aliasKey(rows[0])).toBe(
+      aliasKey({ ...rows[0], nombre_producto_csv: " CUENTA FICTICIA " }),
+    );
+  });
+  it("fixture ficticia contiene dos filas idénticas", () => {
+    const r = parseCsv(
+      readFileSync("fixtures/agregador-ficticio.csv", "utf8"),
+      2026,
+    );
+    expect(r.errors).toEqual([]);
+    expect(r.rows).toHaveLength(3);
+    expect({ ...r.rows[0], numero_fila: 0 }).toEqual({
+      ...r.rows[1],
+      numero_fila: 0,
+    });
+  });
+  it("los no computables cambian saldo pero no balance", () => {
+    const r = [
+      {
+        tipo_movimiento: "no_computable" as const,
+        importe: "20.00",
+        fecha_valor: "2026-01-02",
+      },
+      {
+        tipo_movimiento: "gasto" as const,
+        importe: "-10.00",
+        fecha_valor: "2026-01-03",
+      },
+    ];
+    expect(calculated("100", "2025-12-31", "2026-01-31", r)).toBe("110.00");
+    expect(totals(r).balance.toFixed(2)).toBe("-10.00");
+    expect(
+      totals([
+        { tipo_movimiento: "ingreso", importe: "0.1" },
+        { tipo_movimiento: "ingreso", importe: "0.2" },
+      ]).ingreso.toFixed(2),
+    ).toBe("0.30");
+  });
+  it("ignora movimientos a la fecha de corte o posteriores al cierre", () => {
+    expect(
+      calculated("100", "2025-12-31", "2026-01-31", [
+        { fecha_valor: "2025-12-31", importe: "999" },
+        { fecha_valor: "2026-02-01", importe: "99" },
+      ]),
+    ).toBe("100.00");
+  });
+});

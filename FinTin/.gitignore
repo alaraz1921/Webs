@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.csv
+!fixtures/*.csv
+*.xlsx
+*.dump
+*.backup
+backups/
+exports/
+supabase/.temp/
+coverage/

@@ -1,0 +1,446 @@
+import console from "node:console";
+/** Portable backup encryption and read-only remote runner. Uses only Node built-ins. */
+import fs from "node:fs/promises";
+import { createReadStream, createWriteStream } from "node:fs";
+import { Buffer } from "node:buffer";
+import process from "node:process";
+import { join, resolve, dirname, sep } from "node:path";
+import { tmpdir, homedir } from "node:os";
+import { pathToFileURL, fileURLToPath } from "node:url";
+import { pipeline } from "node:stream/promises";
+import { spawn } from "node:child_process";
+import {
+  constants,
+  createHash,
+  createCipheriv,
+  createDecipheriv,
+  createPublicKey,
+  generateKeyPairSync,
+  publicEncrypt,
+  privateDecrypt,
+  randomBytes,
+} from "node:crypto";
+const MAGIC = Buffer.from("FINTIN-BACKUP-V1\n");
+export const PROJECT = "nxuqkvuvmllqihaefjky";
+export const IMAGE =
+  "postgres:17@sha256:b8faeff7712663c2773a190181e1246e37e364b887611c04658c28b44e2408fe";
+export const HOST = "aws-1-eu-west-2.pooler.supabase.com";
+export const USER = "postgres." + PROJECT;
+// Public CA downloaded from the Supabase Dashboard SSL certificate link.
+export const SUPABASE_CA_PEM =
+  "-----BEGIN CERTIFICATE-----\nMIIDxDCCAqygAwIBAgIUbLxMod62P2ktCiAkxnKJwtE9VPYwDQYJKoZIhvcNAQEL\nBQAwazELMAkGA1UEBhMCVVMxEDAOBgNVBAgMB0RlbHdhcmUxEzARBgNVBAcMCk5l\ndyBDYXN0bGUxFTATBgNVBAoMDFN1cGFiYXNlIEluYzEeMBwGA1UEAwwVU3VwYWJh\nc2UgUm9vdCAyMDIxIENBMB4XDTIxMDQyODEwNTY1M1oXDTMxMDQyNjEwNTY1M1ow\nazELMAkGA1UEBhMCVVMxEDAOBgNVBAgMB0RlbHdhcmUxEzARBgNVBAcMCk5ldyBD\nYXN0bGUxFTATBgNVBAoMDFN1cGFiYXNlIEluYzEeMBwGA1UEAwwVU3VwYWJhc2Ug\nUm9vdCAyMDIxIENBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqQXW\nQyHOB+qR2GJobCq/CBmQ40G0oDmCC3mzVnn8sv4XNeWtE5XcEL0uVih7Jo4Dkx1Q\nDmGHBH1zDfgs2qXiLb6xpw/CKQPypZW1JssOTMIfQppNQ87K75Ya0p25Y3ePS2t2\nGtvHxNjUV6kjOZjEn2yWEcBdpOVCUYBVFBNMB4YBHkNRDa/+S4uywAoaTWnCJLUi\ncvTlHmMw6xSQQn1UfRQHk50DMCEJ7Cy1RxrZJrkXXRP3LqQL2ijJ6F4yMfh+Gyb4\nO4XajoVj/+R4GwywKYrrS8PrSNtwxr5StlQO8zIQUSMiq26wM8mgELFlS/32Uclt\nNaQ1xBRizkzpZct9DwIDAQABo2AwXjALBgNVHQ8EBAMCAQYwHQYDVR0OBBYEFKjX\nuXY32CztkhImng4yJNUtaUYsMB8GA1UdIwQYMBaAFKjXuXY32CztkhImng4yJNUt\naUYsMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAB8spzNn+4VU\ntVxbdMaX+39Z50sc7uATmus16jmmHjhIHz+l/9GlJ5KqAMOx26mPZgfzG7oneL2b\nVW+WgYUkTT3XEPFWnTp2RJwQao8/tYPXWEJDc0WVQHrpmnWOFKU/d3MqBgBm5y+6\njB81TU/RG2rVerPDWP+1MMcNNy0491CTL5XQZ7JfDJJ9CCmXSdtTl4uUQnSuv/Qx\nCea13BX2ZgJc7Au30vihLhub52De4P/4gonKsNHYdbWjg7OWKwNv/zitGDVDB9Y2\nCMTyZKG3XEu5Ghl1LEnI3QmEKsqaCLv12BnVjbkSeZsMnevJPs1Ye6TjjJwdik5P\no/bKiIz+Fq8=\n-----END CERTIFICATE-----\n";
+export async function sha256(path) {
+  const hash = createHash("sha256");
+  for await (const chunk of createReadStream(path)) hash.update(chunk);
+  return hash.digest("hex");
+}
+export function fingerprint(key) {
+  return createHash("sha256")
+    .update(createPublicKey(key).export({ format: "der", type: "spki" }))
+    .digest("hex");
+}
+async function absent(path) {
+  try {
+    await fs.access(path);
+    throw new Error("El destino ya existe; no se sobrescribe");
+  } catch (e) {
+    if (e.code !== "ENOENT") throw e;
+  }
+}
+function outsideProject(path) {
+  const projectDir = resolve(
+    process.env.GITHUB_WORKSPACE ||
+      resolve(dirname(fileURLToPath(import.meta.url)), ".."),
+  ).toLowerCase();
+  const candidate = resolve(path).toLowerCase();
+  if (candidate === projectDir || candidate.startsWith(projectDir + sep))
+    throw new Error(
+      "Los respaldos y las claves privadas deben quedar fuera del proyecto",
+    );
+}
+export async function encryptFile(input, output, publicKey) {
+  await absent(output);
+  outsideProject(output);
+  await fs.mkdir(dirname(output), { recursive: true, mode: 0o700 });
+  const key = randomBytes(32),
+    iv = randomBytes(12),
+    stat = await fs.stat(input);
+  const header = {
+    format: "fintin-backup-v1",
+    cipher: "AES-256-GCM",
+    wrapping: "RSA-OAEP-SHA256",
+    project: PROJECT,
+    fingerprint: fingerprint(publicKey),
+    iv: iv.toString("base64"),
+    key: publicEncrypt(
+      {
+        key: publicKey,
+        oaepHash: "sha256",
+        padding: constants.RSA_PKCS1_OAEP_PADDING,
+      },
+      key,
+    ).toString("base64"),
+    bytes: stat.size,
+    sha256: await sha256(input),
+  };
+  const json = Buffer.from(JSON.stringify(header));
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(json.length);
+  const aad = Buffer.concat([MAGIC, length, json]);
+  const temporary = output + ".partial";
+  await absent(temporary);
+  const cipher = createCipheriv("aes-256-gcm", key, iv);
+  cipher.setAAD(aad);
+  try {
+    await fs.writeFile(temporary, aad, { flag: "wx", mode: 0o600 });
+    await pipeline(
+      createReadStream(input),
+      cipher,
+      createWriteStream(temporary, { flags: "a" }),
+    );
+    await fs.appendFile(temporary, cipher.getAuthTag());
+    await fs.rename(temporary, output);
+    return header;
+  } catch (e) {
+    await fs.rm(temporary, { force: true });
+    throw e;
+  } finally {
+    key.fill(0);
+  }
+}
+export async function decryptFile(input, output, privateKey) {
+  await absent(output);
+  outsideProject(output);
+  const handle = await fs.open(input, "r");
+  let aad, header, total;
+  try {
+    total = (await handle.stat()).size;
+    const prefix = Buffer.alloc(MAGIC.length + 4);
+    if (
+      (await handle.read(prefix, 0, prefix.length, 0)).bytesRead !==
+        prefix.length ||
+      !prefix.subarray(0, MAGIC.length).equals(MAGIC)
+    )
+      throw new Error("Formato de copia desconocido");
+    const length = prefix.readUInt32BE(MAGIC.length);
+    if (length < 2 || length > 16384 || total < prefix.length + length + 16)
+      throw new Error("Cabecera truncada o inválida");
+    const json = Buffer.alloc(length);
+    await handle.read(json, 0, length, prefix.length);
+    header = JSON.parse(json.toString("utf8"));
+    aad = Buffer.concat([prefix, json]);
+    if (
+      header.format !== "fintin-backup-v1" ||
+      header.project !== PROJECT ||
+      header.cipher !== "AES-256-GCM" ||
+      header.wrapping !== "RSA-OAEP-SHA256" ||
+      header.fingerprint !== fingerprint(privateKey)
+    )
+      throw new Error("La copia no coincide con el proyecto o la clave");
+    if (header.bytes !== total - aad.length - 16)
+      throw new Error("Tamaño de copia inconsistente");
+    const iv = Buffer.from(header.iv, "base64");
+    if (iv.length !== 12) throw new Error("IV inválido");
+    const tag = Buffer.alloc(16);
+    await handle.read(tag, 0, 16, total - 16);
+    const key = privateDecrypt(
+      {
+        key: privateKey,
+        oaepHash: "sha256",
+        padding: constants.RSA_PKCS1_OAEP_PADDING,
+      },
+      Buffer.from(header.key, "base64"),
+    );
+    const temporary = output + ".partial";
+    await absent(temporary);
+    await fs.mkdir(dirname(output), { recursive: true, mode: 0o700 });
+    try {
+      const decipher = createDecipheriv("aes-256-gcm", key, iv);
+      decipher.setAAD(aad);
+      decipher.setAuthTag(tag);
+      await pipeline(
+        createReadStream(input, { start: aad.length, end: total - 17 }),
+        decipher,
+        createWriteStream(temporary, { flags: "wx", mode: 0o600 }),
+      );
+      if ((await sha256(temporary)) !== header.sha256)
+        throw new Error("Hash del contenido incorrecto");
+      await fs.rename(temporary, output);
+      return header;
+    } catch (e) {
+      await fs.rm(temporary, { force: true });
+      throw e;
+    } finally {
+      key.fill(0);
+    }
+  } finally {
+    await handle.close();
+  }
+}
+export async function initializeKey(directory) {
+  outsideProject(directory);
+  await fs.mkdir(directory, { recursive: true, mode: 0o700 });
+  const privatePath = join(directory, "backup-private.pem"),
+    publicPath = join(directory, "backup-public.pem");
+  try {
+    const privateKey = await fs.readFile(privatePath, "utf8");
+    const publicKey = createPublicKey(privateKey)
+      .export({ type: "spki", format: "pem" })
+      .toString();
+    await fs.writeFile(publicPath, publicKey, { mode: 0o600 });
+    return {
+      privatePath,
+      publicPath,
+      fingerprint: fingerprint(publicKey),
+      publicKeyBase64: Buffer.from(publicKey).toString("base64"),
+    };
+  } catch (e) {
+    if (e.code !== "ENOENT") throw e;
+  }
+  const pair = generateKeyPairSync("rsa", {
+    modulusLength: 4096,
+    publicKeyEncoding: { type: "spki", format: "pem" },
+    privateKeyEncoding: { type: "pkcs8", format: "pem" },
+  });
+  await fs.writeFile(privatePath, pair.privateKey, { mode: 0o600, flag: "wx" });
+  await fs.writeFile(publicPath, pair.publicKey, { mode: 0o600, flag: "wx" });
+  return {
+    privatePath,
+    publicPath,
+    fingerprint: fingerprint(pair.publicKey),
+    publicKeyBase64: Buffer.from(pair.publicKey).toString("base64"),
+  };
+}
+function run(program, args, options = {}) {
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn(program, args, {
+      stdio: ["ignore", "pipe", "pipe"],
+      ...options,
+    });
+    let out = "",
+      err = "";
+    child.stdout.on("data", (v) => {
+      out += v;
+      if (out.length > 2000000) child.kill();
+    });
+    child.stderr.on("data", (v) => {
+      err += v;
+      if (err.length > 2000000) child.kill();
+    });
+    child.once("error", reject);
+    child.once("close", (code) => {
+      if (code !== 0) {
+        const secret = process.env.PGPASSWORD;
+        reject(
+          new Error(
+            (secret ? err.split(secret).join("[REDACTADO]") : err) ||
+              `Falló ${program} (${code})`,
+          ),
+        );
+      } else resolvePromise(out);
+    });
+  });
+}
+async function removeOwnTemporary(directory) {
+  const prefix = resolve(tmpdir()) + sep + "fintin-remote-";
+  if (!resolve(directory).startsWith(prefix))
+    throw new Error("Destino temporal inválido");
+  await fs.rm(directory, { recursive: true, force: true });
+}
+export async function runRemoteBackup() {
+  if (!process.env.PGPASSWORD)
+    throw new Error("Falta el secreto de contraseña del entorno de respaldo");
+  const publicKey = Buffer.from(
+    process.env.FINTIN_BACKUP_PUBLIC_KEY || "",
+    "base64",
+  ).toString("utf8");
+  if (fingerprint(publicKey) !== process.env.FINTIN_BACKUP_KEY_FINGERPRINT)
+    throw new Error("La clave pública no coincide");
+  const work = await fs.mkdtemp(join(tmpdir(), "fintin-remote-"));
+  await fs.chmod(work, 0o700);
+  await fs.copyFile(
+    "/etc/ssl/certs/ca-certificates.crt",
+    join(work, "ca-certificates.crt"),
+  );
+  await fs.appendFile(
+    join(work, "ca-certificates.crt"),
+    "\n" + SUPABASE_CA_PEM,
+  );
+  const env = {
+    ...process.env,
+    PGHOST: HOST,
+    PGPORT: "5432",
+    PGDATABASE: "postgres",
+    PGUSER: USER,
+    PGSSLMODE: "verify-full",
+    PGSSLROOTCERT: "/backup/ca-certificates.crt",
+    PGCONNECT_TIMEOUT: "30",
+    PGOPTIONS: "-c default_transaction_read_only=on",
+  };
+  async function pg(command, args) {
+    return run(
+      "docker",
+      [
+        "run",
+        "--rm",
+        "--network",
+        "host",
+        "--read-only",
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges",
+        "--user",
+        `${process.getuid()}:${process.getgid()}`,
+        "--tmpfs",
+        "/tmp:rw,noexec,nosuid,size=64m",
+        "-v",
+        `${work}:/backup`,
+        ...[
+          "PGHOST",
+          "PGPORT",
+          "PGDATABASE",
+          "PGUSER",
+          "PGPASSWORD",
+          "PGSSLMODE",
+          "PGSSLROOTCERT",
+          "PGCONNECT_TIMEOUT",
+          "PGOPTIONS",
+        ].flatMap((k) => ["-e", k]),
+        IMAGE,
+        command,
+        ...args,
+      ],
+      { env },
+    );
+  }
+  try {
+    const identity = JSON.parse(
+      await pg("psql", [
+        "--no-password",
+        "--no-psqlrc",
+        "--tuples-only",
+        "--no-align",
+        "--command",
+        `SELECT json_build_object('database',current_database(),'version',current_setting('server_version'),'tracktin',to_regclass('public.tracktin_media') IS NOT NULL,'fintin_objects',(SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND left(c.relname,7)='fintin_'))::text`,
+      ]),
+    );
+    if (
+      identity.database !== "postgres" ||
+      !identity.version.startsWith("17.") ||
+      !identity.tracktin ||
+      identity.fintin_objects !== 0
+    )
+      throw new Error(
+        "El proyecto no coincide o FinTin ya tiene objetos; se detiene el respaldo previo a la migración",
+      );
+    await pg("pg_dump", [
+      "--no-password",
+      "--format=custom",
+      "--lock-wait-timeout=10s",
+      "--file=/backup/database.dump",
+    ]);
+    await pg("pg_dumpall", [
+      "--no-password",
+      "--database=postgres",
+      "--roles-only",
+      "--no-role-passwords",
+      "--file=/backup/roles-sin-passwords.sql",
+    ]);
+    const toc = await pg("pg_restore", ["--list", "/backup/database.dump"]);
+    if (!toc.includes("tracktin_media"))
+      throw new Error("El respaldo no incluye TrackTin");
+    await pg("pg_restore", ["--file=/dev/null", "/backup/database.dump"]);
+    const files = [];
+    for (const file of ["database.dump", "roles-sin-passwords.sql"]) {
+      const path = join(work, file),
+        bytes = (await fs.stat(path)).size;
+      if (!bytes) throw new Error("Archivo vacío");
+      files.push({ file, bytes, sha256: await sha256(path) });
+    }
+    const manifest = {
+      format: "fintin-pre-migration-backup-v1",
+      project: PROJECT,
+      created: new Date().toISOString(),
+      identity,
+      files,
+      image: IMAGE,
+      runId: process.env.GITHUB_RUN_ID || null,
+      commit: process.env.GITHUB_SHA || null,
+      keyFingerprint: fingerprint(publicKey),
+      verification:
+        "pg_restore --list y lectura/descompresión completa; no se ha ensayado restauración en servidor",
+      scope:
+        "Base completa y roles sin contraseñas; Storage contiene metadatos, los archivos de Storage no se incluyen",
+    };
+    await fs.writeFile(
+      join(work, "manifest.json"),
+      JSON.stringify(manifest, null, 2),
+      { mode: 0o600 },
+    );
+    await run("tar", [
+      "-C",
+      work,
+      "-cf",
+      join(work, "backup.tar"),
+      "database.dump",
+      "roles-sin-passwords.sql",
+      "manifest.json",
+    ]);
+    const output = join(
+      process.env.RUNNER_TEMP || tmpdir(),
+      "fintin-encrypted",
+      "fintin-pre-migration.enc",
+    );
+    await encryptFile(join(work, "backup.tar"), output, publicKey);
+    console.log(
+      "Copia creada, comprobada y cifrada. SHA-256 del archivo cifrado: " +
+        (await sha256(output)),
+    );
+    console.log("No se ha ejecutado ninguna migración.");
+  } finally {
+    delete process.env.PGPASSWORD;
+    delete env.PGPASSWORD;
+    await removeOwnTemporary(work);
+  }
+}
+export async function main(args) {
+  const command = args[0];
+  if (command === "keygen") {
+    const directory =
+      args[1] ||
+      join(
+        process.env.LOCALAPPDATA || join(homedir(), ".local", "share"),
+        "FinTin",
+        "Backups",
+        "keys",
+      );
+    console.log(JSON.stringify(await initializeKey(directory)));
+  } else if (command === "decrypt") {
+    const [input, privatePath, output] = args.slice(1);
+    if (!input || !privatePath || !output)
+      throw new Error("Uso: decrypt archivo.enc clave-privada.pem destino.tar");
+    const result = await decryptFile(
+      input,
+      output,
+      await fs.readFile(privatePath, "utf8"),
+    );
+    console.log(
+      JSON.stringify({
+        verified: true,
+        project: result.project,
+        sha256: result.sha256,
+        bytes: result.bytes,
+      }),
+    );
+  } else if (command === "remote") await runRemoteBackup();
+  else throw new Error("Comandos: keygen, remote, decrypt");
+}
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(resolve(process.argv[1])).href
+)
+  main(process.argv.slice(2)).catch((e) => {
+    console.error(e.message);
+    process.exitCode = 1;
+  });

@@ -1,0 +1,4 @@
+Fecha valor,Fecha de operación,Importe,Moneda,Concepto,Entidad,Nombre de producto,Tipo de producto,Tipo de movimiento,Categoría,Nota
+10/01/2026,10/01/2026,"-10,00",EUR,Compra ficticia,Banco ficticio,Cuenta ficticia,Cuenta corriente,Gasto,Prueba,Ejemplo sintético
+10/01/2026,10/01/2026,"-10,00",EUR,Compra ficticia,Banco ficticio,Cuenta ficticia,Cuenta corriente,Gasto,Prueba,Ejemplo sintético
+11/01/2026,11/01/2026,"20,00",EUR,Transferencia ficticia,Banco ficticio,Cuenta ficticia,Cuenta corriente,No computable,Transferencias,Ejemplo sintético

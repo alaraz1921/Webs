@@ -1,0 +1,40 @@
+name: FinTin · Respaldo remoto cifrado (manual)
+run-name: Copia previa FinTin · ${{ github.run_id }}
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: fintin-backup-nxuqkvuvmllqihaefjky
+  cancel-in-progress: false
+jobs:
+  backup:
+    if: github.repository == 'alaraz1921/Webs' && github.actor == 'alaraz1921' && github.ref == 'refs/heads/main'
+    environment: fintin-backup
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Preparar cliente PostgreSQL oficial fijado por digest
+        run: |
+          set -euo pipefail
+          docker pull '#IMAGE#'
+      - name: Copiar en modo de solo lectura, verificar y cifrar
+        shell: bash
+        env:
+          PGPASSWORD: ${{ secrets.FINTIN_DB_PASSWORD }}
+          FINTIN_BACKUP_PUBLIC_KEY: '#PUBLICKEY#'
+          FINTIN_BACKUP_KEY_FINGERPRINT: '#FINGERPRINT#'
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'FINTIN_BACKUP_SCRIPT'
+#SCRIPT#
+          await runRemoteBackup();
+          FINTIN_BACKUP_SCRIPT
+      - name: Conservar únicamente el archivo cifrado
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: fintin-pre-migration-${{ github.run_id }}
+          path: ${{ runner.temp }}/fintin-encrypted/fintin-pre-migration.enc
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
