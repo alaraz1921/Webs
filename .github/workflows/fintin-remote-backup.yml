@@ -1,0 +1,120 @@
+name: FinTin · Respaldo remoto cifrado (manual)
+run-name: Copia previa FinTin · ${{ github.run_id }}
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: fintin-backup-nxuqkvuvmllqihaefjky
+  cancel-in-progress: false
+jobs:
+  backup:
+    if: github.repository == 'alaraz1921/Webs' && github.actor == 'alaraz1921' && github.ref == 'refs/heads/main'
+    environment: fintin-backup
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Preparar cliente PostgreSQL oficial fijado por digest
+        run: |
+          set -euo pipefail
+          docker pull 'postgres:17@sha256:b8faeff7712663c2773a190181e1246e37e364b887611c04658c28b44e2408fe'
+      - name: Copiar en modo de solo lectura, verificar y cifrar
+        shell: bash
+        env:
+          PGPASSWORD: ${{ secrets.FINTIN_DB_PASSWORD }}
+          FINTIN_BACKUP_PUBLIC_KEY: "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQ0lqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FnOEFNSUlDQ2dLQ0FnRUF2bmVZRkhqdUZHWUtVckE2SnF4SwpRQ3p0OVZzY21xd2lUV2crRUNVYnpvdDBGSWFxcWwvdDUzU21oZ0daMWIvZ0tXNWVtTVFTVWZlODJPK3B4VUMzCm1wb0RYUmExdWsrbHlYVXZWT1E3bXBSK3JDRk9zalZJeFJyUW5YZlg4Qld5cU1SVGg4M0xhWnBoTE01Q001WE8KU0piVGlzY3R0WGJxR25xREVYS2FmN3JwL2dLc3NBZDQrMjEwMXZPcnJrTW5WcW1ybkY1TFZVTGhKMm9ZU292dApyWVNmZTQrV29paFNNU3Z2Z1dlVkRnYmZ5S3A0ZHp2UmxkcS9zL2x0UVZYellpM3VwMkxidmVRUm5KWElQN0hQClgvMFFkcWRlWDFLSzZ0b0owMmpvUVNQR2dsby8xY2kzNE1PWFhVYjFSZSs2M0g0a2NHL09QOXhzczBQU2JjZjEKdzdQY2RlT2czZ3RFSHM0MTBTOTY2MWgvaldCR3orZlJXV0w5cUJVNTRCT0hQWTh4VnNETTNKVjl6TUt5c2VqSApsSEZzY2hjVWhjUkNoTlRkOEV2S01OaVRRSVMyTWYycnZtb0xvZzl2bTlRQkNoaHRpRk9kNTQwMEIyTXN3RVBaCmRuVWcwL3NyUWhDOFdHU0VHSWtFYkhPSmxLUmxESE44WVVVZ2tFVlFHT3dtdHVSRkRWcTY5K2ptUWRYUzJhN28KREtoTEh2ZW0rM2NxWDJJNWwzWWlHOUFubGNSenErYS9keXBTa2RIU2RwVlpLQ2RBM3ZUS1NLd3FHVkdoN0FCWQp5cFpqZitJbk8xK2VDODZuVWZmdnZVQjVGaHUzRXNyWnhmNWk5MGpBVWZ1NWRiQ2NPZ1c5R1dUaEVaMW5DOXZwCjhwc1BYRFlhVE56MFd1RzZuM0tKOTdVQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo="
+          FINTIN_BACKUP_KEY_FINGERPRINT: "c57d2c41387a0f8da73b5c1b76d7130750d4a106d8faa970d2e8ebdd3b8d0e48"
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'FINTIN_BACKUP_SCRIPT'
+          import console from 'node:console';
+          /** Portable backup encryption and read-only remote runner. Uses only Node built-ins. */
+          import fs from 'node:fs/promises';
+          import {createReadStream,createWriteStream} from 'node:fs';
+          import {Buffer} from 'node:buffer';
+          import process from 'node:process';
+          import {join,resolve,dirname,sep} from 'node:path';
+          import {tmpdir,homedir} from 'node:os';
+          import {pathToFileURL,fileURLToPath} from 'node:url';
+          import {pipeline} from 'node:stream/promises';
+          import {spawn} from 'node:child_process';
+          import {constants,createHash,createCipheriv,createDecipheriv,createPublicKey,generateKeyPairSync,publicEncrypt,privateDecrypt,randomBytes} from 'node:crypto';
+          const MAGIC=Buffer.from('FINTIN-BACKUP-V1\n');
+          export const PROJECT='nxuqkvuvmllqihaefjky';
+          export const IMAGE='postgres:17@sha256:b8faeff7712663c2773a190181e1246e37e364b887611c04658c28b44e2408fe';
+          export const HOST='aws-1-eu-west-2.pooler.supabase.com';
+          export const USER='postgres.'+PROJECT;
+          export async function sha256(path){const hash=createHash('sha256');for await(const chunk of createReadStream(path))hash.update(chunk);return hash.digest('hex')}
+          export function fingerprint(key){return createHash('sha256').update(createPublicKey(key).export({format:'der',type:'spki'})).digest('hex')}
+          async function absent(path){try{await fs.access(path);throw new Error('El destino ya existe; no se sobrescribe')}catch(e){if(e.code!=='ENOENT')throw e}}
+          function outsideProject(path){const projectDir=resolve(process.env.GITHUB_WORKSPACE||resolve(dirname(fileURLToPath(import.meta.url)),'..')).toLowerCase();const candidate=resolve(path).toLowerCase();if(candidate===projectDir||candidate.startsWith(projectDir+sep))throw new Error('Los respaldos y las claves privadas deben quedar fuera del proyecto')}
+          export async function encryptFile(input,output,publicKey){
+           await absent(output);outsideProject(output);await fs.mkdir(dirname(output),{recursive:true,mode:0o700});
+           const key=randomBytes(32),iv=randomBytes(12),stat=await fs.stat(input);
+           const header={format:'fintin-backup-v1',cipher:'AES-256-GCM',wrapping:'RSA-OAEP-SHA256',project:PROJECT,fingerprint:fingerprint(publicKey),iv:iv.toString('base64'),key:publicEncrypt({key:publicKey,oaepHash:'sha256',padding:constants.RSA_PKCS1_OAEP_PADDING},key).toString('base64'),bytes:stat.size,sha256:await sha256(input)};
+           const json=Buffer.from(JSON.stringify(header));const length=Buffer.alloc(4);length.writeUInt32BE(json.length);const aad=Buffer.concat([MAGIC,length,json]);
+           const temporary=output+'.partial';await absent(temporary);
+           const cipher=createCipheriv('aes-256-gcm',key,iv);cipher.setAAD(aad);
+           try{await fs.writeFile(temporary,aad,{flag:'wx',mode:0o600});await pipeline(createReadStream(input),cipher,createWriteStream(temporary,{flags:'a'}));await fs.appendFile(temporary,cipher.getAuthTag());await fs.rename(temporary,output);return header}
+           catch(e){await fs.rm(temporary,{force:true});throw e}finally{key.fill(0)}
+          }
+          export async function decryptFile(input,output,privateKey){
+           await absent(output);outsideProject(output);const handle=await fs.open(input,'r');let aad,header,total;
+           try{total=(await handle.stat()).size;const prefix=Buffer.alloc(MAGIC.length+4);if((await handle.read(prefix,0,prefix.length,0)).bytesRead!==prefix.length||!prefix.subarray(0,MAGIC.length).equals(MAGIC))throw new Error('Formato de copia desconocido');const length=prefix.readUInt32BE(MAGIC.length);if(length<2||length>16384||total<prefix.length+length+16)throw new Error('Cabecera truncada o inválida');const json=Buffer.alloc(length);await handle.read(json,0,length,prefix.length);header=JSON.parse(json.toString('utf8'));aad=Buffer.concat([prefix,json]);
+            if(header.format!=='fintin-backup-v1'||header.project!==PROJECT||header.cipher!=='AES-256-GCM'||header.wrapping!=='RSA-OAEP-SHA256'||header.fingerprint!==fingerprint(privateKey))throw new Error('La copia no coincide con el proyecto o la clave');
+            if(header.bytes!==total-aad.length-16)throw new Error('Tamaño de copia inconsistente');
+            const iv=Buffer.from(header.iv,'base64');if(iv.length!==12)throw new Error('IV inválido');const tag=Buffer.alloc(16);await handle.read(tag,0,16,total-16);
+            const key=privateDecrypt({key:privateKey,oaepHash:'sha256',padding:constants.RSA_PKCS1_OAEP_PADDING},Buffer.from(header.key,'base64'));
+            const temporary=output+'.partial';await absent(temporary);await fs.mkdir(dirname(output),{recursive:true,mode:0o700});
+            try{const decipher=createDecipheriv('aes-256-gcm',key,iv);decipher.setAAD(aad);decipher.setAuthTag(tag);await pipeline(createReadStream(input,{start:aad.length,end:total-17}),decipher,createWriteStream(temporary,{flags:'wx',mode:0o600}));if(await sha256(temporary)!==header.sha256)throw new Error('Hash del contenido incorrecto');await fs.rename(temporary,output);return header}
+            catch(e){await fs.rm(temporary,{force:true});throw e}finally{key.fill(0)}
+           }finally{await handle.close()}
+          }
+          export async function initializeKey(directory){
+           outsideProject(directory);await fs.mkdir(directory,{recursive:true,mode:0o700});const privatePath=join(directory,'backup-private.pem'),publicPath=join(directory,'backup-public.pem');
+           try{const privateKey=await fs.readFile(privatePath,'utf8');const publicKey=createPublicKey(privateKey).export({type:'spki',format:'pem'}).toString();await fs.writeFile(publicPath,publicKey,{mode:0o600});return {privatePath,publicPath,fingerprint:fingerprint(publicKey),publicKeyBase64:Buffer.from(publicKey).toString('base64')}}catch(e){if(e.code!=='ENOENT')throw e}
+           const pair=generateKeyPairSync('rsa',{modulusLength:4096,publicKeyEncoding:{type:'spki',format:'pem'},privateKeyEncoding:{type:'pkcs8',format:'pem'}});
+           await fs.writeFile(privatePath,pair.privateKey,{mode:0o600,flag:'wx'});await fs.writeFile(publicPath,pair.publicKey,{mode:0o600,flag:'wx'});return {privatePath,publicPath,fingerprint:fingerprint(pair.publicKey),publicKeyBase64:Buffer.from(pair.publicKey).toString('base64')};
+          }
+          function run(program,args,options={}){return new Promise((resolvePromise,reject)=>{
+           const child=spawn(program,args,{stdio:['ignore','pipe','pipe'],...options});let out='',err='';child.stdout.on('data',v=>{out+=v;if(out.length>2000000)child.kill()});child.stderr.on('data',v=>{err+=v;if(err.length>2000000)child.kill()});child.once('error',reject);child.once('close',code=>{if(code!==0){const secret=process.env.PGPASSWORD;reject(new Error((secret?err.split(secret).join('[REDACTADO]'):err)||`Falló ${program} (${code})`))}else resolvePromise(out)});
+           })}
+          async function removeOwnTemporary(directory){const prefix=resolve(tmpdir())+sep+'fintin-remote-';if(!resolve(directory).startsWith(prefix))throw new Error('Destino temporal inválido');await fs.rm(directory,{recursive:true,force:true})}
+          export async function runRemoteBackup(){
+           if(!process.env.PGPASSWORD)throw new Error('Falta el secreto de contraseña del entorno de respaldo');
+           const publicKey=Buffer.from(process.env.FINTIN_BACKUP_PUBLIC_KEY||'','base64').toString('utf8');if(fingerprint(publicKey)!==process.env.FINTIN_BACKUP_KEY_FINGERPRINT)throw new Error('La clave pública no coincide');
+           const work=await fs.mkdtemp(join(tmpdir(),'fintin-remote-'));await fs.chmod(work,0o700);
+           const env={...process.env,PGHOST:HOST,PGPORT:'5432',PGDATABASE:'postgres',PGUSER:USER,PGSSLMODE:'verify-full',PGSSLROOTCERT:'/etc/ssl/certs/ca-certificates.crt',PGCONNECT_TIMEOUT:'30',PGOPTIONS:'-c default_transaction_read_only=on'};
+           async function pg(command,args){return run('docker',['run','--rm','--network','host','--read-only','--cap-drop','ALL','--security-opt','no-new-privileges','--user',`${process.getuid()}:${process.getgid()}`,'--tmpfs','/tmp:rw,noexec,nosuid,size=64m','-v',`${work}:/backup`,...['PGHOST','PGPORT','PGDATABASE','PGUSER','PGPASSWORD','PGSSLMODE','PGSSLROOTCERT','PGCONNECT_TIMEOUT','PGOPTIONS'].flatMap(k=>['-e',k]),IMAGE,command,...args],{env})}
+           try{
+            const identity=JSON.parse(await pg('psql',['--no-password','--no-psqlrc','--tuples-only','--no-align','--command',`SELECT json_build_object('database',current_database(),'version',current_setting('server_version'),'tracktin',to_regclass('public.tracktin_media') IS NOT NULL,'fintin_objects',(SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND left(c.relname,7)='fintin_'))::text`]));
+            if(identity.database!=='postgres'||!identity.version.startsWith('17.')||!identity.tracktin||identity.fintin_objects!==0)throw new Error('El proyecto no coincide o FinTin ya tiene objetos; se detiene el respaldo previo a la migración');
+            await pg('pg_dump',['--no-password','--format=custom','--lock-wait-timeout=10s','--file=/backup/database.dump']);
+            await pg('pg_dumpall',['--no-password','--database=postgres','--roles-only','--no-role-passwords','--file=/backup/roles-sin-passwords.sql']);
+            const toc=await pg('pg_restore',['--list','/backup/database.dump']);if(!toc.includes('tracktin_media'))throw new Error('El respaldo no incluye TrackTin');
+            await pg('pg_restore',['--file=/dev/null','/backup/database.dump']);
+            const files=[];for(const file of ['database.dump','roles-sin-passwords.sql']){const path=join(work,file),bytes=(await fs.stat(path)).size;if(!bytes)throw new Error('Archivo vacío');files.push({file,bytes,sha256:await sha256(path)})}
+            const manifest={format:'fintin-pre-migration-backup-v1',project:PROJECT,created:new Date().toISOString(),identity,files,image:IMAGE,runId:process.env.GITHUB_RUN_ID||null,commit:process.env.GITHUB_SHA||null,keyFingerprint:fingerprint(publicKey),verification:'pg_restore --list y lectura/descompresión completa; no se ha ensayado restauración en servidor',scope:'Base completa y roles sin contraseñas; Storage contiene metadatos, los archivos de Storage no se incluyen'};
+            await fs.writeFile(join(work,'manifest.json'),JSON.stringify(manifest,null,2),{mode:0o600});
+            await run('tar',['-C',work,'-cf',join(work,'backup.tar'),'database.dump','roles-sin-passwords.sql','manifest.json']);
+            const output=join(process.env.RUNNER_TEMP||tmpdir(),'fintin-encrypted','fintin-pre-migration.enc');await encryptFile(join(work,'backup.tar'),output,publicKey);
+            console.log('Copia creada, comprobada y cifrada. SHA-256 del archivo cifrado: '+await sha256(output));
+            console.log('No se ha ejecutado ninguna migración.');
+           }finally{delete process.env.PGPASSWORD;delete env.PGPASSWORD;await removeOwnTemporary(work)}
+          }
+          export async function main(args){const command=args[0];
+           if(command==='keygen'){const directory=args[1]||join(process.env.LOCALAPPDATA||join(homedir(),'.local','share'),'FinTin','Backups','keys');console.log(JSON.stringify(await initializeKey(directory)))}
+           else if(command==='decrypt'){const [input,privatePath,output]=args.slice(1);if(!input||!privatePath||!output)throw new Error('Uso: decrypt archivo.enc clave-privada.pem destino.tar');const result=await decryptFile(input,output,await fs.readFile(privatePath,'utf8'));console.log(JSON.stringify({verified:true,project:result.project,sha256:result.sha256,bytes:result.bytes}))}
+           else if(command==='remote')await runRemoteBackup();else throw new Error('Comandos: keygen, remote, decrypt');
+          }
+          if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)main(process.argv.slice(2)).catch(e=>{console.error(e.message);process.exitCode=1});
+          await runRemoteBackup();
+          FINTIN_BACKUP_SCRIPT
+      - name: Conservar únicamente el archivo cifrado
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: fintin-pre-migration-${{ github.run_id }}
+          path: ${{ runner.temp }}/fintin-encrypted/fintin-pre-migration.enc
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
