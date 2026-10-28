@@ -8,7 +8,6 @@ import {
   Upload,
   Settings as SettingsIcon,
   LogOut,
-  ShieldCheck,
   ArrowUpRight,
   Menu,
 } from "lucide-react";
@@ -142,13 +141,6 @@ export default function App() {
   if (!session)
     return (
       <Access>
-        <span className="eyebrow">TU ESPACIO FINANCIERO</span>
-        <h1>
-          Todo en orden.
-          <br />
-          Todo bajo control.
-        </h1>
-        <p>Accede a tus cuentas, movimientos y balances.</p>
         <Form
           button="Entrar en FinTin"
           onSave={async (d) => {
@@ -172,9 +164,6 @@ export default function App() {
           </Field>
         </Form>
         <ErrorBox error={authError} />
-        <small>
-          Acceso exclusivo para cuentas existentes y usuarios autorizados.
-        </small>
       </Access>
     );
   if (allowed === null)
@@ -207,35 +196,17 @@ export default function App() {
 function Access({ children }: { children: React.ReactNode }) {
   return (
     <div className="access">
-      <div className="access-art">
-        <Brand />
-        <div>
-          <span className="eyebrow">MENOS RUIDO. MÁS PERSPECTIVA.</span>
-          <h2>
-            Haz espacio <br />
-            para lo que <br />
-            <em>importa.</em>
-          </h2>
-          <p>Tu vida financiera, en un mismo lugar.</p>
-        </div>
-        <span className="privacy">
-          <ShieldCheck size={18} />
-          Privado por diseño
-        </span>
-      </div>
-      <main className="access-form">{children}</main>
+      <main className="access-form">
+        <header className="access-heading">
+          <h1>FinTin</h1>
+        </header>
+        {children}
+      </main>
     </div>
   );
 }
 function Brand() {
-  return (
-    <div className="brand">
-      <span className="brand-icon">
-        f<span>·</span>
-      </span>
-      FinTin<span className="brand-dot">.</span>
-    </div>
-  );
+  return <div className="brand">FinTin</div>;
 }
 function Workspace({ session }: { session: Session }) {
   const uid = session.user.id,
@@ -249,13 +220,13 @@ function Workspace({ session }: { session: Session }) {
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true),
     [filters, setFilters] = useState(filtersFor(year)),
-    [menu, setMenu] = useState(false),
+    [menu, setMenu] = useState(() => window.innerWidth > 700),
     [revision, setRevision] = useState(0),
     [importBusy, setImportBusy] = useState(false);
   useEffect(() => {
     const onHash = () => {
       setRoute(location.hash.slice(1) || "resumen");
-      setMenu(false);
+      if (window.innerWidth <= 700) setMenu(false);
     };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
@@ -303,10 +274,13 @@ function Workspace({ session }: { session: Session }) {
   };
   const yearProps = { ...base, year, currency, account, open };
   return (
-    <div className="app">
-      <aside className={menu ? "sidebar open" : "sidebar"}>
+    <div className={menu ? "app menu-open" : "app menu-closed"}>
+      <aside
+        id="navigation-panel"
+        hidden={!menu}
+        className={menu ? "sidebar open" : "sidebar"}
+      >
         <Brand />
-        <div className="workspace-label">FINANZAS PERSONALES</div>
         <nav aria-label="Principal">
           {pages.map((p) => (
             <a
@@ -322,13 +296,6 @@ function Workspace({ session }: { session: Session }) {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="private-note">
-            <ShieldCheck size={20} />
-            <div>
-              Tu información es privada
-              <small>Acceso protegido con Supabase</small>
-            </div>
-          </div>
           <div className="user">
             <div className="avatar">
               {session.user.email?.[0].toUpperCase() || "U"}
@@ -348,17 +315,26 @@ function Workspace({ session }: { session: Session }) {
           </div>
         </div>
       </aside>
+      {menu && (
+        <button
+          className="menu-backdrop"
+          aria-label="Cerrar menú"
+          onClick={() => setMenu(false)}
+        />
+      )}
       <div className="workspace">
         <header className="topbar">
           <button
-            className="mobile-menu"
-            aria-label="Abrir menú"
+            className="menu-toggle"
+            aria-label={menu ? "Ocultar menú" : "Mostrar menú"}
+            aria-expanded={menu}
+            aria-controls="navigation-panel"
             onClick={() => setMenu(!menu)}
           >
             <Menu />
           </button>
           <span>
-            Mi espacio <span className="muted">/ {page.name}</span>
+            FinTin <span className="muted">/ {page.name}</span>
           </span>
           <span className="connection">
             <i /> Conexión privada
@@ -367,7 +343,6 @@ function Workspace({ session }: { session: Session }) {
         <main className="content">
           <div className="page-heading">
             <div>
-              <span className="eyebrow">TU DINERO, EN PERSPECTIVA</span>
               <h1>{page.name}</h1>
               <p>{page.description}</p>
             </div>
@@ -478,9 +453,6 @@ function Workspace({ session }: { session: Session }) {
               )}
             </>
           )}
-          <footer>
-            FinTin <span>Un poco más de claridad, cada día.</span>
-          </footer>
         </main>
       </div>
     </div>

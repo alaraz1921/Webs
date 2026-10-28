@@ -6,6 +6,7 @@ import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 const auth = vi.hoisted(() => ({
   getSession: vi.fn(),
   signOut: vi.fn(),
+  signInWithPassword: vi.fn(),
   unsubscribe: vi.fn(),
   listener: null as
     ((event: AuthChangeEvent, session: Session | null) => void) | null,
@@ -116,8 +117,73 @@ beforeEach(() => {
   api.annual.mockResolvedValue([movement]);
   api.movements.mockResolvedValue({ rows: [movement], count: 100 });
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 describe("Continuidad de sesión y autorización", () => {
+  it("muestra únicamente el acceso discreto con campos y mantiene el inicio de sesión", async () => {
+    auth.getSession.mockResolvedValue({ data: { session: null }, error: null });
+    auth.signInWithPassword.mockResolvedValue({ error: null });
+    render(<App />);
+    const u = userEvent.setup();
+    await screen.findByRole("button", { name: "Entrar en FinTin" });
+    expect(screen.getAllByRole("heading").map((h) => h.textContent)).toEqual([
+      "FinTin",
+    ]);
+    expect(
+      screen.queryByText(
+        /Haz espacio|Todo en orden|MENOS RUIDO|Acceso exclusivo/,
+      ),
+    ).toBeNull();
+    await u.type(
+      screen.getByLabelText("Correo electrónico"),
+      "prueba@example.invalid",
+    );
+    await u.type(screen.getByLabelText("Contraseña"), "clave-ficticia");
+    await u.click(screen.getByRole("button", { name: "Entrar en FinTin" }));
+    expect(auth.signInWithPassword).toHaveBeenCalledWith({
+      email: "prueba@example.invalid",
+      password: "clave-ficticia",
+    });
+  });
+  it("oculta y despliega el menú de escritorio sin perder filtros ni navegación", async () => {
+    render(<App />);
+    const u = userEvent.setup();
+    await screen.findByRole("button", { name: "12,00 EUR" });
+    await u.click(screen.getByRole("link", { name: "Movimientos" }));
+    const search = await screen.findByLabelText("Buscar concepto");
+    await u.type(search, "Filtro ficticio");
+    await u.click(screen.getByRole("button", { name: "Ocultar menú" }));
+    expect(screen.queryByRole("navigation", { name: "Principal" })).toBeNull();
+    expect(
+      screen
+        .getByRole("button", { name: "Mostrar menú" })
+        .getAttribute("aria-expanded"),
+    ).toBe("false");
+    expect(screen.getByLabelText("Buscar concepto")).toBe(search);
+    await u.click(screen.getByRole("button", { name: "Mostrar menú" }));
+    expect(screen.getByRole("navigation", { name: "Principal" })).toBeTruthy();
+    expect((search as HTMLInputElement).value).toBe("Filtro ficticio");
+    await u.click(screen.getByRole("link", { name: "Configuración" }));
+    await screen.findByRole("heading", { name: "Cuentas y saldo de partida" });
+    expect(
+      screen
+        .getByRole("button", { name: "Ocultar menú" })
+        .getAttribute("aria-expanded"),
+    ).toBe("true");
+  });
+  it("inicia el menú plegado en móvil y lo cierra después de navegar", async () => {
+    vi.stubGlobal("innerWidth", 390);
+    render(<App />);
+    const u = userEvent.setup();
+    await screen.findByRole("button", { name: "12,00 EUR" });
+    expect(screen.queryByRole("navigation", { name: "Principal" })).toBeNull();
+    await u.click(screen.getByRole("button", { name: "Mostrar menú" }));
+    await u.click(screen.getByRole("link", { name: "Movimientos" }));
+    await screen.findByLabelText("Buscar concepto");
+    expect(screen.queryByRole("navigation", { name: "Principal" })).toBeNull();
+  });
   it("conserva filtros, paginación y nodos al repetir SIGNED_IN por recuperar foco", async () => {
     render(<App />);
     const u = userEvent.setup();
