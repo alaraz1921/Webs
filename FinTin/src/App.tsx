@@ -48,7 +48,7 @@ const pages = [
     id: "importacion",
     name: "Importación CSV",
     icon: Upload,
-    description: "Todo tu ejercicio en un solo archivo.",
+    description: "CSV del agregador y cargas de movimientos manuales.",
   },
   {
     id: "configuracion",

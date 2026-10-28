@@ -31,6 +31,17 @@ La migración `supabase/migrations/20261027000001_fintin_inicial.sql` conserva �
 
 ## Importación
 
+En «Destino de los movimientos», elegir «CSV del agregador · sustituir ejercicio» (contrato original de 11 columnas) o «Movimientos manuales · añadir». La carga manual utiliza estas **9 columnas exactas**:
+
+`Fecha valor,Fecha de operación,Importe,Concepto,Entidad,Nombre de producto,Tipo de movimiento,Categoría,Nota`
+
+Se puede descargar un ejemplo sintético desde la pantalla. No lleva Moneda ni Tipo de producto: la moneda procede de la cuenta elegida. Se reconoce la pareja entidad/producto si hay una correspondencia única en los alias existentes o en las cuentas; ante ambigüedad hay que seleccionar explícitamente la cuenta. Debe ser posterior a su saldo de partida y pertenecer al ejercicio seleccionado. La fecha de operación puede quedar vacía (usa fecha valor con aviso).
+
+Los manuales se AÑADEN, se pueden editar después y sobreviven a las sustituciones anuales del agregador. Las categorías se vinculan por nombre y tipo solo si hay una coincidencia única; si no, su nombre se conserva en categoria_csv sin crear categorías automáticamente. Máximo 5.000 filas y 10 MiB por carga manual. Se validan todas las filas, se previsualizan 50, se muestran totales completos por moneda y tipo y se exige confirmar antes del único INSERT transaccional de PostgREST. Un error SQL revierte toda la carga. Se utilizan los GRANT, RLS y triggers existentes sin migrar la base.
+
+Cada previsualización manual genera UUID propios para las filas. Ante un resultado de red incierto, reintentar la **misma previsualización**: si los UUID ya están guardados, se verifican propietario, origen y todos los campos antes de confirmar éxito. No hay UPDATE, DELETE ni reintento automático. Los duplicados legítimos del archivo se conservan. Volver a seleccionar el archivo o recargar genera una carga nueva: comprobar primero Movimientos para evitar duplicados. El historial de lotes de esta pantalla corresponde al agregador; las cargas manuales se consultan en Movimientos con origen Manual. No se guardan archivos ni datos en localStorage.
+
+
 Seleccionar ejercicio y codificación: UTF-8 o Windows-1252 como conversión explícita. La cabecera debe tener las once columnas exactas del contrato. Papa Parse maneja comillas, multilinea, BOM y CRLF. Se normalizan importes españoles a cadenas decimales sin floats y fechas a ISO. Se aceptan D/M/YYYY y D/M/YY en ambas fechas, con días y meses de una o dos cifras; los años abreviados 00–99 corresponden explícitamente a 2000–2099. La fecha valor es obligatoria y debe seguir coincidiendo con el ejercicio seleccionado. Si la fecha de operación está vacía o contiene solo espacios, se usa la fecha valor y se muestra un aviso con el número de filas afectadas. Una fecha de operación presente pero inválida se rechaza. Tipos desconocidos, filas erróneas y años mezclados bloquean publicación. Los duplicados legítimos se conservan. Los signos no se transforman; se advierten gastos positivos e ingresos negativos.
 
 Resolver alias explícitos antes de publicar; no se hacen correspondencias parciales ni se crean cuentas automáticamente. La previsualización muestra las primeras 50 filas, los recuentos y los totales completos por tipo y moneda. Se requiere confirmar la sustitución del ejercicio. Se carga en lotes de 500 con progreso e índices 1..N. SHA-256 usa los bytes originales. El historial conserva metadatos y hash, nunca el archivo.

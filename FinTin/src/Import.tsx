@@ -1,18 +1,47 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  manualImportRows,
+  MAX_MANUAL_IMPORT_ROWS,
+  resolveManualAccounts,
+} from "./manual-import";
 import type { Batch, CsvRow } from "./types";
 import { kinds, labels } from "./types";
-import { aliasKey, parseCsv, readCsv, fileHash, validateAccounts } from "./csv";
-import { client, checked, list, prepare, save, annual } from "./api";
+import {
+  aliasKey,
+  parseCsv,
+  parseManualCsv,
+  manualHeaders,
+  readCsv,
+  fileHash,
+  validateAccounts,
+} from "./csv";
+import {
+  client,
+  checked,
+  list,
+  prepare,
+  save,
+  annual,
+  importManual,
+} from "./api";
 import { sum, money } from "./finance";
 import { Panel, Field, Empty, ErrorBox, Form, text } from "./ui";
 import type { MasterProps } from "./Settings";
 export function ImportPage(
   props: MasterProps & { year: number; onBusy?: (busy: boolean) => void },
 ) {
-  const { uid, year, accounts, aliases, reload, onBusy } = props;
+  const { uid, year, accounts, aliases, categories, reload, onBusy } = props;
+  const [mode, setMode] = useState<"csv" | "manual">("csv");
+  const [manualIds, setManualIds] = useState<string[]>([]);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [manualAssignments, setManualAssignments] = useState<
+    Record<string, string>
+  >({});
   const [file, setFile] = useState<File | null>(null),
     [encoding, setEncoding] = useState<"utf-8" | "windows-1252">("utf-8"),
-    [preview, setPreview] = useState<ReturnType<typeof parseCsv> | null>(null),
+    [sourcePreview, setPreview] = useState<ReturnType<typeof parseCsv> | null>(
+      null,
+    ),
     [error, setError] = useState(""),
     [history, setHistory] = useState<Batch[]>([]),
     [old, setOld] = useState<CsvRow[]>([]),
@@ -31,6 +60,14 @@ export function ImportPage(
     let live = true;
     setLoading(true);
     setError("");
+    if (mode === "manual") {
+      setHistory([]);
+      setOld([]);
+      setLoading(false);
+      return () => {
+        live = false;
+      };
+    }
     Promise.all([list<Batch>("importaciones", uid), annual(uid, year)])
       .then(([h, m]) => {
         if (live) {
@@ -57,19 +94,42 @@ export function ImportPage(
     return () => {
       live = false;
     };
-  }, [uid, year, message]);
+  }, [uid, year, message, mode]);
   useEffect(() => {
     let live = true;
     setPreview(null);
     setConfirmed(false);
     setResume("");
     setHash("");
+    setManualIds([]);
+    setManualAssignments({});
     if (file) {
+      if (mode === "manual" && file.size > 10 * 1024 * 1024) {
+        setError("El CSV manual no puede superar 10 MiB.");
+        setBusy(false);
+        return () => {
+          live = false;
+        };
+      }
       setBusy(true);
       Promise.all([readCsv(file, encoding), fileHash(file)])
         .then(([t, h]) => {
           if (live) {
-            setPreview(parseCsv(t, year));
+            const parsed =
+              mode === "manual" ? parseManualCsv(t, year) : parseCsv(t, year);
+            if (
+              mode === "manual" &&
+              parsed.rows.length > MAX_MANUAL_IMPORT_ROWS
+            )
+              parsed.errors.push(
+                `Máximo ${MAX_MANUAL_IMPORT_ROWS} filas por carga manual.`,
+              );
+            setPreview(parsed);
+            setManualIds(
+              mode === "manual"
+                ? parsed.rows.map(() => crypto.randomUUID())
+                : [],
+            );
             setHash(h);
             setError("");
           }
@@ -89,22 +149,46 @@ export function ImportPage(
     return () => {
       live = false;
     };
-  }, [file, encoding, year]);
+  }, [file, encoding, year, mode]);
+  const manualResolution = useMemo(
+    () =>
+      resolveManualAccounts(
+        sourcePreview?.rows || [],
+        accounts,
+        aliases,
+        manualAssignments,
+      ),
+    [sourcePreview, accounts, aliases, manualAssignments],
+  );
+  const preview =
+    sourcePreview && mode === "manual"
+      ? { ...sourcePreview, rows: manualResolution.rows }
+      : sourcePreview;
+  const importAliases = mode === "manual" ? manualResolution.aliases : aliases;
   const missing = useMemo(
     () => [
       ...new Map(
-        (preview?.rows || [])
+        (mode === "csv" ? sourcePreview?.rows || [] : [])
           .filter((r) => !aliases.some((a) => aliasKey(a) === aliasKey(r)))
           .map((r) => [aliasKey(r), r]),
       ).values(),
     ],
-    [preview, aliases],
+    [sourcePreview, aliases, mode],
   );
   const accountErrors = preview
-    ? validateAccounts(preview.rows, aliases, accounts)
+    ? validateAccounts(preview.rows, importAliases, accounts).map((error) =>
+        mode === "manual"
+          ? error.replace(
+              "falta alias de cuenta",
+              "selecciona una cuenta de destino",
+            )
+          : error,
+      )
     : [];
   const currencies = [
-    ...new Set([...(preview?.rows || []), ...old].map((r) => r.moneda)),
+    ...new Set(
+      [...(preview?.rows || []), ...old].map((r) => r.moneda).filter(Boolean),
+    ),
   ];
   const pending = history.filter(
     (h) =>
@@ -114,7 +198,56 @@ export function ImportPage(
       h.filas_esperadas === preview?.rows.length,
   );
   async function publish() {
-    if (!preview || !file || !confirmed) return;
+    if (
+      !preview ||
+      !file ||
+      !confirmed ||
+      busy ||
+      loading ||
+      preview.errors.length ||
+      accountErrors.length
+    )
+      return;
+    if (mode === "manual") {
+      setBusy(true);
+      setError("");
+      setMessage("");
+      try {
+        await importManual(
+          uid,
+          manualImportRows(
+            preview.rows,
+            accounts,
+            importAliases,
+            categories,
+            manualIds,
+          ),
+        );
+        setMessage(
+          `Importación confirmada: ${preview.rows.length} movimientos manuales añadidos.`,
+        );
+        setPreview(null);
+        setFile(null);
+        setConfirmed(false);
+        setManualIds([]);
+        if (fileInput.current) fileInput.current.value = "";
+        try {
+          await reload();
+        } catch {
+          setError(
+            "Los manuales ya están guardados, pero no se pudo actualizar la vista. No vuelvas a importar el archivo; consulta Movimientos.",
+          );
+        }
+      } catch (e) {
+        setError(
+          (e as Error).message +
+            " Si hubo un fallo de conexión, reintenta esta misma previsualización para comprobar la carga sin duplicarla. No cambies el archivo ni recargues la página antes de comprobar Movimientos.",
+        );
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     setBusy(true);
     setError("");
     setMessage("");
@@ -154,11 +287,47 @@ export function ImportPage(
   }
   return (
     <>
-      <Panel title="Importa un ejercicio completo">
+      <Panel
+        title={
+          mode === "csv"
+            ? "Importa un ejercicio completo"
+            : "Importar movimientos manuales"
+        }
+      >
+        <Field label="Destino de los movimientos">
+          <select
+            value={mode}
+            disabled={busy || loading}
+            onChange={(e) => {
+              setMode(e.target.value as typeof mode);
+              setFile(null);
+              setPreview(null);
+              setConfirmed(false);
+              setMessage("");
+              setError("");
+              if (fileInput.current) fileInput.current.value = "";
+            }}
+          >
+            <option value="csv">CSV del agregador · sustituir ejercicio</option>
+            <option value="manual">Movimientos manuales · añadir</option>
+          </select>
+        </Field>
         <p className="muted">
-          El agregador es la fuente de verdad. Cada publicación sustituye todos
-          los CSV del ejercicio, conservando manuales y otros años.
+          {mode === "csv"
+            ? "El agregador es la fuente de verdad. Cada publicación sustituye todos los CSV del ejercicio, conservando manuales y otros años."
+            : `CSV de 9 columnas. La moneda se toma de la cuenta de destino. Se añadirán manuales editables, conservando todos los movimientos existentes. Máximo ${MAX_MANUAL_IMPORT_ROWS} filas por carga.`}
         </p>
+        {mode === "manual" && (
+          <p className="muted">
+            Cabecera: <code>{manualHeaders.join(",")}</code>{" "}
+            <a
+              href={`${import.meta.env.BASE_URL}fixtures/manuales-ficticios.csv`}
+              download
+            >
+              Descargar ejemplo CSV
+            </a>
+          </p>
+        )}
         <p className="muted">
           Fechas: D/M/YYYY o D/M/YY (00–99 corresponden a 2000–2099). La fecha
           valor debe pertenecer al ejercicio seleccionado. Si falta la fecha de
@@ -168,6 +337,7 @@ export function ImportPage(
           <div className="form-grid">
             <Field label={`CSV del ejercicio ${year}`}>
               <input
+                ref={fileInput}
                 type="file"
                 accept=".csv,text/csv"
                 onChange={(e) => {
@@ -201,14 +371,19 @@ export function ImportPage(
             {message}
           </p>
         )}
-        {busy && <p role="status">Procesando… {progress}%</p>}
+        {busy && (
+          <p role="status">
+            {mode === "csv" ? `Procesando… ${progress}%` : "Procesando…"}
+          </p>
+        )}
       </Panel>
       {preview && (
         <>
           <Panel title="Validación y correspondencias">
             <p>
               {file?.name} · {preview.rows.length} filas válidas ·{" "}
-              {preview.errors.length} errores
+              {preview.errors.length} errores de archivo ·{" "}
+              {accountErrors.length} incidencias de cuenta
             </p>
             {[
               ...preview.errors.slice(0, 100),
@@ -229,15 +404,52 @@ export function ImportPage(
                 {w}
               </p>
             ))}
+            {mode === "manual" &&
+              manualResolution.products.map((p) => (
+                <Field
+                  key={p.key}
+                  label={
+                    "Cuenta de destino: " +
+                    p.row.entidad_csv +
+                    " / " +
+                    p.row.nombre_producto_csv
+                  }
+                >
+                  <select
+                    disabled={busy}
+                    value={p.accountId}
+                    onChange={(e) => {
+                      setManualAssignments((previous) => ({
+                        ...previous,
+                        [p.key]: e.target.value,
+                      }));
+                      setConfirmed(false);
+                    }}
+                  >
+                    <option value="">
+                      Selecciona explícitamente una cuenta
+                    </option>
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.entidad} · {a.nombre_producto} · {a.moneda}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              ))}
             {missing.map((r) => (
               <AliasResolver key={aliasKey(r)} row={r} {...props} />
             ))}
-            {!missing.length && !accountErrors.length && (
-              <p className="success">
-                Todas las cuentas tienen alias, moneda y fecha inicial
-                compatibles.
-              </p>
-            )}
+            {!!preview.rows.length &&
+              !preview.errors.length &&
+              !missing.length &&
+              !accountErrors.length && (
+                <p className="success">
+                  {mode === "csv"
+                    ? "Todas las cuentas tienen alias, moneda y fecha inicial compatibles."
+                    : "Las cuentas de destino y sus fechas de partida son compatibles."}
+                </p>
+              )}
           </Panel>
           <Panel title="Previsualización">
             <div className="table-wrap">
@@ -262,8 +474,8 @@ export function ImportPage(
                         <small>{r.nota}</small>
                       </td>
                       <td>
-                        {r.entidad_csv} / {r.nombre_producto_csv} /{" "}
-                        {r.tipo_producto_csv}
+                        {r.entidad_csv} / {r.nombre_producto_csv}
+                        {mode === "csv" && ` / ${r.tipo_producto_csv}`}
                       </td>
                       <td>
                         {labels[r.tipo_movimiento]} / {r.categoria_csv}
@@ -279,18 +491,40 @@ export function ImportPage(
               distintos.
             </p>
           </Panel>
-          <Panel title="Confirmar sustitución">
-            <p>
-              <b>{old.length}</b> movimientos CSV anteriores →{" "}
-              <b>{preview.rows.length}</b> filas del nuevo archivo. Esta
-              comparación no identifica movimientos nuevos individuales.
-            </p>
+          <Panel
+            title={
+              mode === "csv"
+                ? "Confirmar sustitución"
+                : "Confirmar incorporación"
+            }
+          >
+            {mode === "csv" ? (
+              <p>
+                <b>{old.length}</b> movimientos CSV anteriores →{" "}
+                <b>{preview.rows.length}</b> filas del nuevo archivo. Esta
+                comparación no identifica movimientos nuevos individuales.
+              </p>
+            ) : (
+              <p>
+                Se añadirán {preview.rows.length} movimientos manuales de {year}
+                . No se borrará ni sustituirá ningún movimiento. Los duplicados
+                del archivo se conservan. Seleccionar e importar el mismo
+                archivo otra vez creará una carga nueva y añadirá duplicados.
+              </p>
+            )}
+            {mode === "manual" && (
+              <p className="notice">
+                Las categorías se vinculan por nombre y tipo cuando existe una
+                correspondencia única. Las demás conservan su nombre del CSV
+                como texto, sin crear categorías automáticamente.
+              </p>
+            )}
             <div className="table-wrap">
               <table>
                 <thead>
                   <tr>
                     <th>Moneda / tipo</th>
-                    <th>Anterior</th>
+                    {mode === "csv" && <th>Anterior</th>}
                     <th>Nuevo archivo</th>
                   </tr>
                 </thead>
@@ -301,19 +535,21 @@ export function ImportPage(
                         <td>
                           {c} · {labels[k]}
                         </td>
-                        <td>
-                          {money(
-                            sum(
-                              old
-                                .filter(
-                                  (r) =>
-                                    r.moneda === c && r.tipo_movimiento === k,
-                                )
-                                .map((r) => r.importe),
-                            ),
-                            c,
-                          )}
-                        </td>
+                        {mode === "csv" && (
+                          <td>
+                            {money(
+                              sum(
+                                old
+                                  .filter(
+                                    (r) =>
+                                      r.moneda === c && r.tipo_movimiento === k,
+                                  )
+                                  .map((r) => r.importe),
+                              ),
+                              c,
+                            )}
+                          </td>
+                        )}
                         <td>
                           {money(
                             sum(
@@ -334,27 +570,30 @@ export function ImportPage(
               </table>
             </div>
             <fieldset disabled={busy || loading}>
-              <Field label="Lote de preparación">
-                <select
-                  value={resume}
-                  onChange={(e) => setResume(e.target.value)}
-                >
-                  <option value="">Crear lote nuevo</option>
-                  {pending.map((h) => (
-                    <option key={h.id} value={h.id}>
-                      Reanudar {h.creado_en} · {h.id}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+              {mode === "csv" && (
+                <Field label="Lote de preparación">
+                  <select
+                    value={resume}
+                    onChange={(e) => setResume(e.target.value)}
+                  >
+                    <option value="">Crear lote nuevo</option>
+                    {pending.map((h) => (
+                      <option key={h.id} value={h.id}>
+                        Reanudar {h.creado_en} · {h.id}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              )}
               <label className="check">
                 <input
                   type="checkbox"
                   checked={confirmed}
                   onChange={(e) => setConfirmed(e.target.checked)}
                 />
-                Confirmo sustituir todos los movimientos CSV de {year} por este
-                archivo.
+                {mode === "csv"
+                  ? `Confirmo sustituir todos los movimientos CSV de ${year} por este archivo.`
+                  : `Confirmo añadir ${preview.rows.length} movimientos manuales sin sustituir los existentes.`}
               </label>
               <button
                 className="primary"
@@ -366,50 +605,58 @@ export function ImportPage(
                 }
                 onClick={publish}
               >
-                Publicar importación
+                {mode === "csv" ? "Publicar importación" : "Importar manuales"}
               </button>
             </fieldset>
-            <progress max={100} value={progress} aria-label="Carga del lote" />
+            {mode === "csv" && (
+              <progress
+                max={100}
+                value={progress}
+                aria-label="Carga del lote"
+              />
+            )}
           </Panel>
         </>
       )}
-      <Panel title={`Historial de ${year}`}>
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Archivo / hash SHA-256</th>
-                <th>Fecha</th>
-                <th>Filas esperadas / publicadas</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history
-                .filter((h) => h.ejercicio === year)
-                .sort((a, b) => b.creado_en.localeCompare(a.creado_en))
-                .map((h) => (
-                  <tr key={h.id}>
-                    <td>
-                      {h.nombre_archivo}
-                      <small className="hash">{h.sha256_archivo}</small>
-                    </td>
-                    <td>{new Date(h.creado_en).toLocaleString("es-ES")}</td>
-                    <td>
-                      {h.filas_esperadas} / {h.filas_importadas}
-                    </td>
-                    <td>
-                      <span className="badge">{h.estado}</span>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-        {!history.some((h) => h.ejercicio === year) && (
-          <Empty>Aún no hay importaciones en este ejercicio.</Empty>
-        )}
-      </Panel>
+      {mode === "csv" && (
+        <Panel title={`Historial de ${year}`}>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Archivo / hash SHA-256</th>
+                  <th>Fecha</th>
+                  <th>Filas esperadas / publicadas</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history
+                  .filter((h) => h.ejercicio === year)
+                  .sort((a, b) => b.creado_en.localeCompare(a.creado_en))
+                  .map((h) => (
+                    <tr key={h.id}>
+                      <td>
+                        {h.nombre_archivo}
+                        <small className="hash">{h.sha256_archivo}</small>
+                      </td>
+                      <td>{new Date(h.creado_en).toLocaleString("es-ES")}</td>
+                      <td>
+                        {h.filas_esperadas} / {h.filas_importadas}
+                      </td>
+                      <td>
+                        <span className="badge">{h.estado}</span>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+          {!history.some((h) => h.ejercicio === year) && (
+            <Empty>Aún no hay importaciones en este ejercicio.</Empty>
+          )}
+        </Panel>
+      )}
     </>
   );
 }

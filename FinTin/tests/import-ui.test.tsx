@@ -10,6 +10,7 @@ const api = vi.hoisted(() => ({
   prepare: vi.fn(),
   save: vi.fn(),
   rpc: vi.fn(),
+  importManual: vi.fn(),
 }));
 vi.mock("../src/api", () => ({
   ...api,
@@ -118,6 +119,153 @@ describe("Flujo de publicación CSV", () => {
           r.fecha_operacion === r.fecha_valor,
       ),
     ).toBe(true);
+  });
+
+  it("incorpora nueve columnas como manuales tras confirmar, sin preparar ni publicar CSV", async () => {
+    api.list.mockResolvedValue([]);
+    api.annual.mockResolvedValue([]);
+    csv.readCsv.mockResolvedValue(
+      readFileSync("fixtures/manuales-ficticios.csv", "utf8"),
+    );
+    api.importManual.mockResolvedValue(undefined);
+    render(<ImportPage {...props} />);
+    const u = userEvent.setup();
+    await waitFor(() =>
+      expect(
+        (
+          screen.getByLabelText(
+            "Destino de los movimientos",
+          ) as HTMLSelectElement
+        ).disabled,
+      ).toBe(false),
+    );
+    await u.selectOptions(
+      screen.getByLabelText("Destino de los movimientos"),
+      "manual",
+    );
+    await upload();
+    expect(
+      screen.queryByRole("heading", { name: "Confirmar sustitución" }),
+    ).toBeNull();
+    expect(screen.queryByLabelText("Lote de preparación")).toBeNull();
+    const button = screen.getByRole("button", { name: "Importar manuales" });
+    expect((button as HTMLButtonElement).disabled).toBe(true);
+    await u.click(screen.getByRole("checkbox"));
+    await u.click(button);
+    await screen.findByText(
+      "Importación confirmada: 3 movimientos manuales añadidos.",
+    );
+    const [owner, rows] = api.importManual.mock.calls[0];
+    expect(owner).toBe("owner");
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toMatchObject({
+      cuenta_id: "account",
+      moneda: "EUR",
+      importe: "-12.34",
+      fecha_operacion: "2026-02-01",
+      categoria_csv: "Hogar ficticio",
+    });
+    expect(api.prepare).not.toHaveBeenCalled();
+    expect(api.rpc).not.toHaveBeenCalled();
+  });
+  it("bloquea una cuenta ambigua y permite asignarla antes de cargar manuales", async () => {
+    api.list.mockResolvedValue([]);
+    api.annual.mockResolvedValue([]);
+    csv.readCsv.mockResolvedValue(
+      readFileSync("fixtures/manuales-ficticios.csv", "utf8"),
+    );
+    api.importManual.mockResolvedValue(undefined);
+    render(
+      <ImportPage
+        {...props}
+        accounts={[a, { ...a, id: "usd", moneda: "USD" }]}
+        aliases={[]}
+      />,
+    );
+    const u = userEvent.setup();
+    await waitFor(() =>
+      expect(
+        (
+          screen.getByLabelText(
+            "Destino de los movimientos",
+          ) as HTMLSelectElement
+        ).disabled,
+      ).toBe(false),
+    );
+    await u.selectOptions(
+      screen.getByLabelText("Destino de los movimientos"),
+      "manual",
+    );
+    await upload();
+    await u.click(screen.getByRole("checkbox"));
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "Importar manuales",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    await u.selectOptions(
+      screen.getByLabelText(
+        "Cuenta de destino: Banco ficticio / Cuenta ficticia",
+      ),
+      "usd",
+    );
+    expect((screen.getByRole("checkbox") as HTMLInputElement).checked).toBe(
+      false,
+    );
+    await u.click(screen.getByRole("checkbox"));
+    await u.click(screen.getByRole("button", { name: "Importar manuales" }));
+    await screen.findByText(
+      "Importación confirmada: 3 movimientos manuales añadidos.",
+    );
+    expect(
+      api.importManual.mock.calls[0][1].every(
+        (r: { cuenta_id: string; moneda: string }) =>
+          r.cuenta_id === "usd" && r.moneda === "USD",
+      ),
+    ).toBe(true);
+  });
+  it("conserva los UUID de la previsualización tras un error para reintentar sin duplicar", async () => {
+    api.list.mockResolvedValue([]);
+    api.annual.mockResolvedValue([]);
+    csv.readCsv.mockResolvedValue(
+      readFileSync("fixtures/manuales-ficticios.csv", "utf8"),
+    );
+    api.importManual
+      .mockRejectedValueOnce(new Error("Conexión interrumpida"))
+      .mockResolvedValueOnce(undefined);
+    render(<ImportPage {...props} />);
+    const u = userEvent.setup();
+    await waitFor(() =>
+      expect(
+        (
+          screen.getByLabelText(
+            "Destino de los movimientos",
+          ) as HTMLSelectElement
+        ).disabled,
+      ).toBe(false),
+    );
+    await u.selectOptions(
+      screen.getByLabelText("Destino de los movimientos"),
+      "manual",
+    );
+    await upload();
+    await u.click(screen.getByRole("checkbox"));
+    await u.click(screen.getByRole("button", { name: "Importar manuales" }));
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "Conexión interrumpida",
+    );
+    const ids = api.importManual.mock.calls[0][1].map(
+      (r: { id: string }) => r.id,
+    );
+    await u.click(screen.getByRole("button", { name: "Importar manuales" }));
+    await screen.findByText(
+      "Importación confirmada: 3 movimientos manuales añadidos.",
+    );
+    expect(
+      api.importManual.mock.calls[1][1].map((r: { id: string }) => r.id),
+    ).toEqual(ids);
   });
   it("bloquea una moneda incompatible sin invocar publicación", async () => {
     api.list.mockResolvedValue([]);

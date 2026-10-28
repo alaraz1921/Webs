@@ -35,7 +35,20 @@ export const aliasKey = (r: {
       v.trim().toLowerCase(),
     ),
   );
-export function parseCsv(text: string, year: number) {
+export const manualHeaders = [
+  "Fecha valor",
+  "Fecha de operación",
+  "Importe",
+  "Concepto",
+  "Entidad",
+  "Nombre de producto",
+  "Tipo de movimiento",
+  "Categoría",
+  "Nota",
+];
+export const parseManualCsv = (text: string, year: number) =>
+  parseCsv(text, year, true);
+export function parseCsv(text: string, year: number, manual = false) {
   const parsed = Papa.parse<string[]>(text.replace(/^\uFEFF/, ""), {
     skipEmptyLines: "greedy",
     delimiter: ",",
@@ -46,17 +59,34 @@ export function parseCsv(text: string, year: number) {
   );
   const rows: CsvRow[] = [];
   let operationDateFallbacks = 0;
-  if (JSON.stringify(parsed.data[0]) !== JSON.stringify(headers))
+  const expectedHeaders = manual ? manualHeaders : headers;
+  if (JSON.stringify(parsed.data[0]) !== JSON.stringify(expectedHeaders))
     return {
       rows,
       errors: [
-        "La cabecera debe tener las 11 columnas exactas, en el orden indicado.",
+        `La cabecera debe tener las ${expectedHeaders.length} columnas exactas, en el orden indicado.`,
       ],
       warnings: [],
     };
-  parsed.data.slice(1).forEach((r, i) => {
+  parsed.data.slice(1).forEach((input, i) => {
     try {
-      if (r.length !== 11) throw new Error("Se esperaban 11 columnas");
+      if (input.length !== expectedHeaders.length)
+        throw new Error(`Se esperaban ${expectedHeaders.length} columnas`);
+      const r = manual
+        ? [
+            input[0],
+            input[1],
+            input[2],
+            "",
+            input[3],
+            input[4],
+            input[5],
+            "",
+            input[6],
+            input[7],
+            input[8],
+          ]
+        : input;
       let fecha_valor: string, fecha_operacion: string;
       try {
         fecha_valor = isoDate(r[0]);
@@ -73,7 +103,8 @@ export function parseCsv(text: string, year: number) {
         throw new Error("Fecha valor fuera del ejercicio seleccionado");
       const tipo_movimiento = mapping[r[8].trim().toLowerCase()];
       if (!tipo_movimiento) throw new Error(`Tipo desconocido: ${r[8]}`);
-      if (!validCurrency(r[3])) throw new Error("Moneda ISO 4217 desconocida");
+      if (!manual && !validCurrency(r[3]))
+        throw new Error("Moneda ISO 4217 desconocida");
       if (!r[5].trim() || !r[6].trim())
         throw new Error("Entidad y nombre de producto son obligatorios");
       rows.push({

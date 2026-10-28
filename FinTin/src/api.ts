@@ -1,3 +1,4 @@
+import { MAX_MANUAL_IMPORT_ROWS, type ManualImportRow } from "./manual-import";
 import { publicKey, validUrl } from "./config";
 import { createClient } from "@supabase/supabase-js";
 import type { CsvRow, Movement } from "./types";
@@ -210,4 +211,65 @@ export async function prepare(
   }
   progress(100);
   return id;
+}
+
+// Un único INSERT de PostgREST: todas las filas se confirman o se revierten juntas.
+// Los UUID se mantienen en la previsualización para reconocer un reintento incierto.
+export async function importManual(uid: string, rows: ManualImportRow[]) {
+  if (
+    !rows.length ||
+    rows.length > MAX_MANUAL_IMPORT_ROWS ||
+    new Set(rows.map((r) => r.id)).size !== rows.length
+  )
+    throw new Error(
+      "Carga manual vacía, demasiado grande o con identificadores repetidos.",
+    );
+  const values = rows.map((r) => ({
+    id: r.id,
+    user_id: uid,
+    origen: "manual",
+    cuenta_id: r.cuenta_id,
+    fecha_valor: r.fecha_valor,
+    fecha_operacion: r.fecha_operacion,
+    importe: r.importe,
+    moneda: r.moneda,
+    concepto: r.concepto,
+    tipo_movimiento: r.tipo_movimiento,
+    categoria_id: r.categoria_id,
+    categoria_csv: r.categoria_csv,
+    nota: r.nota,
+  }));
+  const result = await client().from("fintin_movimientos").insert(values);
+  if (result.error?.code === "23505") {
+    const present = new Map<string, ManualImportRow>();
+    for (let from = 0; from < rows.length; from += 100) {
+      const data = checked(
+        await client()
+          .from("fintin_movimientos")
+          .select(
+            "id,cuenta_id,fecha_valor,fecha_operacion,importe::text,moneda,concepto,tipo_movimiento,categoria_id,categoria_csv,nota",
+          )
+          .eq("user_id", uid)
+          .eq("origen", "manual")
+          .in(
+            "id",
+            rows.slice(from, from + 100).map((r) => r.id),
+          ),
+      );
+      (data || []).forEach((r) => present.set(r.id, r as ManualImportRow));
+    }
+    if (
+      rows.every((r) => {
+        const saved = present.get(r.id);
+        return (
+          saved &&
+          (Object.keys(r) as (keyof ManualImportRow)[]).every(
+            (key) => r[key] === saved[key],
+          )
+        );
+      })
+    )
+      return;
+  }
+  checked(result);
 }

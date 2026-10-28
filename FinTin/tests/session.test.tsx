@@ -19,6 +19,7 @@ const api = vi.hoisted(() => ({
   save: vi.fn(),
   remove: vi.fn(),
   prepare: vi.fn(),
+  importManual: vi.fn(),
 }));
 vi.mock("../src/api", () => {
   const db = {

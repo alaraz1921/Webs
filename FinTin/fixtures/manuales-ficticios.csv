@@ -1,0 +1,4 @@
+Fecha valor,Fecha de operación,Importe,Concepto,Entidad,Nombre de producto,Tipo de movimiento,Categoría,Nota
+1/2/26,,"-12,34",Compra ficticia,Banco ficticio,Cuenta ficticia,Gasto,Hogar ficticio,Ejemplo sintético
+2/2/26,1/2/26,"100,00",Ingreso ficticio,Banco ficticio,Cuenta ficticia,Ingreso,Ingreso ficticio,Ejemplo sintético
+3/2/26,,"10,00",Traspaso ficticio,Banco ficticio,Cuenta ficticia,No computable,Traspaso ficticio,Ejemplo sintético

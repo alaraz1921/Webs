@@ -1,3 +1,5 @@
+import { manualImportRows, resolveManualAccounts } from "../src/manual-import";
+import { parseManualCsv } from "../src/csv";
 import { parseCsv, headers } from "../src/csv";
 import { PGlite } from "@electric-sql/pglite";
 import { readFileSync } from "node:fs";
@@ -83,6 +85,94 @@ describe("Migración real en PostgreSQL embebido", () => {
       expect(result.rows).toEqual([
         { fecha_valor: "2026-02-01", fecha_operacion: "2026-02-01" },
       ]);
+    } finally {
+      await db.exec("ROLLBACK");
+    }
+  });
+  it("inserta manuales de nueve columnas en una operación atómica, conserva CSV y respeta RLS", async () => {
+    await as(u);
+    await db.exec("BEGIN");
+    try {
+      const initial = await batch(2026, 1);
+      await stage(initial);
+      await publish(initial);
+      const csvCount = await count(
+        "SELECT count(*)::int n FROM public.fintin_movimientos WHERE origen='csv'",
+      );
+      const before = await count();
+      const accountRow = {
+        id: account,
+        user_id: u,
+        entidad: "Banco ficticio",
+        nombre_producto: "Cuenta ficticia",
+        tipo_producto: "",
+        moneda: "EUR",
+        saldo_inicial: "100.00",
+        fecha_saldo_inicial: "2025-12-31",
+        activo: true,
+      };
+      const parsed = parseManualCsv(
+        readFileSync("fixtures/manuales-ficticios.csv", "utf8"),
+        2026,
+      );
+      const resolved = resolveManualAccounts(parsed.rows, [accountRow], [], {});
+      const payload = manualImportRows(
+        resolved.rows,
+        [accountRow],
+        resolved.aliases,
+        [],
+        [
+          "20000000-0000-0000-0000-000000000001",
+          "20000000-0000-0000-0000-000000000002",
+          "20000000-0000-0000-0000-000000000003",
+        ],
+      );
+      const insert = (data: typeof payload, owner = u) =>
+        db.query(
+          "INSERT INTO public.fintin_movimientos(id,user_id,origen,cuenta_id,fecha_valor,fecha_operacion,importe,moneda,concepto,tipo_movimiento,categoria_id,categoria_csv,nota) SELECT x.id,$2::uuid,'manual',x.cuenta_id,x.fecha_valor,x.fecha_operacion,x.importe,x.moneda,x.concepto,x.tipo_movimiento,x.categoria_id,x.categoria_csv,x.nota FROM jsonb_to_recordset($1::jsonb) AS x(id uuid,cuenta_id uuid,fecha_valor date,fecha_operacion date,importe numeric,moneda text,concepto text,tipo_movimiento text,categoria_id uuid,categoria_csv text,nota text)",
+          [JSON.stringify(data), owner],
+        );
+      await insert(payload);
+      expect(await count()).toBe(Number(before) + 3);
+      expect(
+        await count(
+          "SELECT count(*)::int n FROM public.fintin_movimientos WHERE origen='csv'",
+        ),
+      ).toBe(csvCount);
+      await db.query(
+        "UPDATE public.fintin_movimientos SET concepto='Manual editado ficticio' WHERE id=$1",
+        [payload[0].id],
+      );
+      expect(
+        (
+          await rows(
+            "SELECT concepto FROM public.fintin_movimientos WHERE id='20000000-0000-0000-0000-000000000001'",
+          )
+        )[0].concepto,
+      ).toBe("Manual editado ficticio");
+      const after = await count();
+      const next = payload.map((r, i) => ({
+        ...r,
+        id: "30000000-0000-0000-0000-00000000000" + (i + 1),
+      }));
+      await db.exec("SAVEPOINT invalid_manual");
+      await expect(
+        insert([next[0], { ...next[1], fecha_valor: "2025-12-31" }]),
+      ).rejects.toThrow();
+      await db.exec("ROLLBACK TO SAVEPOINT invalid_manual");
+      expect(await count()).toBe(after);
+      await db.exec("SAVEPOINT wrong_owner");
+      await expect(insert(next, other)).rejects.toThrow();
+      await db.exec("ROLLBACK TO SAVEPOINT wrong_owner");
+      expect(await count()).toBe(after);
+      const replacement = await batch(2026, 1);
+      await stage(replacement);
+      await publish(replacement);
+      expect(
+        await count(
+          "SELECT count(*)::int n FROM public.fintin_movimientos WHERE id IN ('20000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000003') AND origen='manual'",
+        ),
+      ).toBe(3);
     } finally {
       await db.exec("ROLLBACK");
     }
