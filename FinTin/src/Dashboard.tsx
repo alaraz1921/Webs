@@ -1,3 +1,4 @@
+import { useTableSort, sortRows, SortHeader } from "./sorting";
 import { useEffect, useState } from "react";
 import { annual, list, save, remove } from "./api";
 import type { Movement, Reconciliation, Balance } from "./types";
@@ -299,6 +300,10 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
       live = false;
     };
   }, [uid, year, refresh]);
+  type AccountKey = "cuenta" | `month-${number}`;
+  type ReconcileKey = "cuenta" | "cierre" | "calculado" | "real" | "diferencia";
+  const accountSort = useTableSort<AccountKey>(),
+    reconcileSort = useTableSort<ReconcileKey>();
   const visible = accounts.filter(
       (a) => a.moneda === currency && (!account || a.id === account),
     ),
@@ -307,6 +312,37 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
         r.fecha_cierre.startsWith(String(year)) &&
         visible.some((a) => a.id === r.cuenta_id),
     );
+  const monthlyKeys: AccountKey[] = months.map(
+    (_, i) => `month-${i + 1}` as AccountKey,
+  );
+  const sortedAccounts = sortRows(
+    visible,
+    accountSort.sort,
+    (a, key) =>
+      key === "cuenta"
+        ? a.nombre_producto
+        : (rows.find(
+            (r) =>
+              r.cuenta_id === a.id &&
+              Number(r.fecha_cierre.slice(5, 7)) === Number(key.slice(6)),
+          )?.saldo_calculado ?? null),
+    monthlyKeys,
+  );
+  const sortedClosures = sortRows(
+    rows,
+    reconcileSort.sort,
+    (r, key) => {
+      if (key === "cuenta")
+        return (
+          accounts.find((a) => a.id === r.cuenta_id)?.nombre_producto || ""
+        );
+      if (key === "cierre") return r.fecha_cierre;
+      if (key === "calculado") return r.saldo_calculado;
+      if (key === "real") return r.saldo_real;
+      return r.diferencia;
+    },
+    ["calculado", "real", "diferencia"],
+  );
   return (
     <>
       <ErrorBox error={error} />
@@ -328,17 +364,30 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
               </p>
               {!reconcile ? (
                 <div className="table-wrap">
-                  <table className="matrix compact-table">
+                  <table
+                    className="matrix compact-table account-matrix"
+                    aria-label="Saldos mensuales por cuenta"
+                  >
                     <thead>
                       <tr>
-                        <th>Cuenta / {currency}</th>
-                        {months.map((m) => (
-                          <th key={m}>{m}</th>
+                        <SortHeader
+                          field="cuenta"
+                          label={`Cuenta / ${currency}`}
+                          {...accountSort}
+                        />
+                        {months.map((m, i) => (
+                          <SortHeader
+                            key={m}
+                            field={`month-${i + 1}`}
+                            label={m}
+                            {...accountSort}
+                            numeric
+                          />
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {visible.map((a) => (
+                      {sortedAccounts.map((a) => (
                         <tr key={a.id}>
                           <th>
                             {a.nombre_producto}
@@ -426,19 +475,39 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                 </div>
               ) : (
                 <div className="table-wrap">
-                  <table>
+                  <table className="compact-table" aria-label="Conciliación">
                     <thead>
                       <tr>
-                        <th>Cuenta</th>
-                        <th>Cierre</th>
-                        <th>Calculado</th>
-                        <th>Real</th>
-                        <th>Diferencia (real − calculado)</th>
+                        <SortHeader
+                          field="cuenta"
+                          label="Cuenta"
+                          {...reconcileSort}
+                        />
+                        <SortHeader
+                          field="cierre"
+                          label="Cierre"
+                          {...reconcileSort}
+                        />
+                        <SortHeader
+                          field="calculado"
+                          label="Calculado"
+                          {...reconcileSort}
+                        />
+                        <SortHeader
+                          field="real"
+                          label="Real"
+                          {...reconcileSort}
+                        />
+                        <SortHeader
+                          field="diferencia"
+                          label="Diferencia (real − calculado)"
+                          {...reconcileSort}
+                        />
                         <th>Movimientos</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map((r) => (
+                      {sortedClosures.map((r) => (
                         <tr key={r.cuenta_id + r.fecha_cierre}>
                           <td>
                             {

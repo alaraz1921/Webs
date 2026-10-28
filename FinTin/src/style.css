@@ -901,3 +901,36 @@ h1 {
 .year-option[aria-selected="true"] {
   font-weight: 700;
 }
+
+.sort-heading {
+  border: 0;
+  background: transparent;
+  border-radius: 3px;
+  padding: 2px 0;
+  font: inherit;
+  min-height: 24px;
+  gap: 5px;
+  white-space: nowrap;
+  text-align: inherit;
+}
+.sort-heading span {
+  color: #64748b;
+  font-size: 11px;
+}
+.sort-heading:hover {
+  background: #eff6ff;
+}
+.account-matrix td {
+  min-width: 106px;
+}
+.account-matrix td,
+.account-matrix th {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.account-matrix .cell {
+  padding-left: 3px;
+  padding-right: 3px;
+  margin-left: 0;
+  margin-right: 0;
+}

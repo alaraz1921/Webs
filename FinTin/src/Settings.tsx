@@ -1,3 +1,4 @@
+import { useTableSort, sortRows, SortHeader } from "./sorting";
 import { useState } from "react";
 import type { Account, Alias, Category, Kind } from "./types";
 import { kinds, labels } from "./types";
@@ -26,6 +27,49 @@ export function Settings({
     [category, setCategory] = useState<Category | null>(null),
     [alias, setAlias] = useState<Alias | null>(null),
     [busy, setBusy] = useState(false);
+  type AccountKey =
+    | "nombre_producto"
+    | "entidad"
+    | "tipo_producto"
+    | "moneda"
+    | "saldo_inicial"
+    | "fecha_saldo_inicial"
+    | "activo";
+  type CategoryKey = "nombre" | "tipo_movimiento";
+  type AliasKey =
+    "entidad_csv" | "nombre_producto_csv" | "tipo_producto_csv" | "cuenta_id";
+  const accountSort = useTableSort<AccountKey>(),
+    categorySort = useTableSort<CategoryKey>(),
+    aliasSort = useTableSort<AliasKey>();
+  const accountLabel = (id: string) => {
+    const a = accounts.find((c) => c.id === id);
+    return a
+      ? a.entidad + " · " + a.nombre_producto + " · " + a.moneda
+      : "Cuenta no disponible";
+  };
+  const sortedAccounts = sortRows(
+    accounts,
+    accountSort.sort,
+    (a, key) =>
+      key === "activo"
+        ? a.activo
+          ? "Activa"
+          : "Inactiva"
+        : key === "tipo_producto"
+          ? a.tipo_producto || "Sin tipo"
+          : a[key],
+    ["saldo_inicial"],
+  );
+  const sortedCategories = sortRows(categories, categorySort.sort, (c, key) =>
+    key === "tipo_movimiento" ? labels[c.tipo_movimiento] : c.nombre,
+  );
+  const sortedAliases = sortRows(aliases, aliasSort.sort, (a, key) =>
+    key === "cuenta_id"
+      ? accountLabel(a.cuenta_id)
+      : key === "tipo_producto_csv"
+        ? a.tipo_producto_csv || "Sin tipo"
+        : a[key],
+  );
   return (
     <div className="settings-grid">
       <Panel
@@ -48,21 +92,41 @@ export function Settings({
         </p>
         {accounts.length ? (
           <div className="table-wrap">
-            <table aria-label="Cuentas y saldos">
+            <table className="compact-table" aria-label="Cuentas y saldos">
               <thead>
                 <tr>
-                  <th>Producto</th>
-                  <th>Entidad</th>
-                  <th>Tipo</th>
-                  <th>Moneda</th>
-                  <th>Saldo inicial</th>
-                  <th>Fecha del saldo inicial</th>
-                  <th>Estado</th>
+                  <SortHeader
+                    field="nombre_producto"
+                    label="Producto"
+                    {...accountSort}
+                  />
+                  <SortHeader
+                    field="entidad"
+                    label="Entidad"
+                    {...accountSort}
+                  />
+                  <SortHeader
+                    field="tipo_producto"
+                    label="Tipo"
+                    {...accountSort}
+                  />
+                  <SortHeader field="moneda" label="Moneda" {...accountSort} />
+                  <SortHeader
+                    field="saldo_inicial"
+                    label="Saldo inicial"
+                    {...accountSort}
+                  />
+                  <SortHeader
+                    field="fecha_saldo_inicial"
+                    label="Fecha del saldo inicial"
+                    {...accountSort}
+                  />
+                  <SortHeader field="activo" label="Estado" {...accountSort} />
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {accounts.map((a) => (
+                {sortedAccounts.map((a) => (
                   <tr key={a.id}>
                     <td>
                       <b>{a.nombre_producto}</b>
@@ -121,16 +185,20 @@ export function Settings({
       >
         {categories.length ? (
           <div className="table-wrap">
-            <table aria-label="Categorías">
+            <table className="compact-table" aria-label="Categorías">
               <thead>
                 <tr>
-                  <th>Nombre</th>
-                  <th>Tipo de movimiento</th>
+                  <SortHeader field="nombre" label="Nombre" {...categorySort} />
+                  <SortHeader
+                    field="tipo_movimiento"
+                    label="Tipo de movimiento"
+                    {...categorySort}
+                  />
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {categories.map((c) => (
+                {sortedCategories.map((c) => (
                   <tr key={c.id}>
                     <td>{c.nombre}</td>
                     <td>{labels[c.tipo_movimiento]}</td>
@@ -180,18 +248,34 @@ export function Settings({
         </p>
         {aliases.length ? (
           <div className="table-wrap">
-            <table aria-label="Alias del agregador">
+            <table className="compact-table" aria-label="Alias del agregador">
               <thead>
                 <tr>
-                  <th>Entidad CSV</th>
-                  <th>Producto CSV</th>
-                  <th>Tipo CSV</th>
-                  <th>Cuenta de destino</th>
+                  <SortHeader
+                    field="entidad_csv"
+                    label="Entidad CSV"
+                    {...aliasSort}
+                  />
+                  <SortHeader
+                    field="nombre_producto_csv"
+                    label="Producto CSV"
+                    {...aliasSort}
+                  />
+                  <SortHeader
+                    field="tipo_producto_csv"
+                    label="Tipo CSV"
+                    {...aliasSort}
+                  />
+                  <SortHeader
+                    field="cuenta_id"
+                    label="Cuenta de destino"
+                    {...aliasSort}
+                  />
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {aliases.map((a) => {
+                {sortedAliases.map((a) => {
                   const target = accounts.find((c) => c.id === a.cuenta_id);
                   return (
                     <tr key={a.id}>
