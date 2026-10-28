@@ -42,11 +42,11 @@ export function calculated(
   ]).toFixed(2);
 }
 export function isoDate(value: string): string {
-  const m = /^(\d{2})\/(\d{2})\/(\d{4}|\d{2})$/.exec(value.trim());
-  if (!m) throw new Error("Fecha inválida: usa DD/MM/YYYY o DD/MM/YY");
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4}|\d{2})$/.exec(value.trim());
+  if (!m) throw new Error("Fecha inválida: usa D/M/YYYY o D/M/YY");
   // El agregador abrevia los años 2000–2099; no usamos el pivote implícito de Date.
   const year = m[3].length === 2 ? "20" + m[3] : m[3];
-  const iso = `${year}-${m[2]}-${m[1]}`;
+  const iso = `${year}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
   const date = new Date(iso + "T00:00:00Z");
   if (
     !Number.isFinite(date.getTime()) ||

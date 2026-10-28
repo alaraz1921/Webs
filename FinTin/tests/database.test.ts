@@ -1,3 +1,4 @@
+import { parseCsv, headers } from "../src/csv";
 import { PGlite } from "@electric-sql/pglite";
 import { readFileSync } from "node:fs";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -58,6 +59,34 @@ beforeAll(async () => {
 }, 30000);
 afterAll(() => db.close());
 describe("Migración real en PostgreSQL embebido", () => {
+  it("publica CSV con operación vacía usando fecha valor sin cambiar el esquema", async () => {
+    await as(u);
+    await db.exec("BEGIN");
+    try {
+      const parsed = parseCsv(
+        headers.join(",") +
+          '\n1/2/26,,"-12,34",EUR,Compra ficticia,Banco ficticio,Cuenta ficticia,,Gasto,Prueba,',
+        2026,
+      );
+      expect(parsed.errors).toEqual([]);
+      const r = parsed.rows[0];
+      const id = await batch(2026, 1);
+      await db.query(
+        "INSERT INTO public.fintin_importacion_filas(importacion_id,user_id,numero_fila,fecha_valor,fecha_operacion,importe,moneda,entidad_csv,nombre_producto_csv,tipo_movimiento,categoria_csv) VALUES ($1,$2,1,$3,$4,$5,'EUR','Banco ficticio','Cuenta ficticia','gasto','Prueba')",
+        [id, u, r.fecha_valor, r.fecha_operacion, r.importe],
+      );
+      await publish(id);
+      const result = await db.query(
+        "SELECT fecha_valor::text, fecha_operacion::text FROM public.fintin_movimientos WHERE importacion_id=$1",
+        [id],
+      );
+      expect(result.rows).toEqual([
+        { fecha_valor: "2026-02-01", fecha_operacion: "2026-02-01" },
+      ]);
+    } finally {
+      await db.exec("ROLLBACK");
+    }
+  });
   it("grants mínimos, RLS en 8 tablas y vistas invocadoras", async () => {
     await as(u);
     expect(

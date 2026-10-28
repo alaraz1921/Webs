@@ -93,6 +93,32 @@ describe("Flujo de publicación CSV", () => {
       p_importacion_id: "batch",
     });
   });
+  it("previsualiza el aviso y publica fechas de operación vacías normalizadas", async () => {
+    const fixture = readFileSync("fixtures/agregador-ficticio.csv", "utf8");
+    csv.readCsv.mockResolvedValue(
+      fixture.replace(/(\d{2}\/\d{2}\/2026),\d{2}\/\d{2}\/2026/g, "$1,"),
+    );
+    api.prepare.mockResolvedValue("batch");
+    api.rpc.mockResolvedValue({ data: { filas_importadas: 3 }, error: null });
+    render(<ImportPage {...props} />);
+    const u = await upload();
+    expect(
+      await screen.findByText(
+        "3 filas sin fecha de operación: se usará su fecha valor como fecha de operación.",
+      ),
+    ).toBeTruthy();
+    await u.click(screen.getByRole("checkbox"));
+    await u.click(screen.getByRole("button", { name: "Publicar importación" }));
+    await screen.findByText(
+      "Importación confirmada: 3 movimientos CSV de 2026.",
+    );
+    expect(
+      api.prepare.mock.calls[0][4].every(
+        (r: { fecha_valor: string; fecha_operacion: string }) =>
+          r.fecha_operacion === r.fecha_valor,
+      ),
+    ).toBe(true);
+  });
   it("bloquea una moneda incompatible sin invocar publicación", async () => {
     api.list.mockResolvedValue([]);
     api.annual.mockResolvedValue([]);

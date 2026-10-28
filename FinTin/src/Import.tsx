@@ -160,8 +160,9 @@ export function ImportPage(
           los CSV del ejercicio, conservando manuales y otros años.
         </p>
         <p className="muted">
-          Fechas: DD/MM/YYYY o DD/MM/YY (00–99 corresponden a 2000–2099). La
-          fecha valor debe pertenecer al ejercicio seleccionado.
+          Fechas: D/M/YYYY o D/M/YY (00–99 corresponden a 2000–2099). La fecha
+          valor debe pertenecer al ejercicio seleccionado. Si falta la fecha de
+          operación, se usará la fecha valor.
         </p>
         <fieldset disabled={busy || loading}>
           <div className="form-grid">

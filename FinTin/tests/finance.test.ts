@@ -62,6 +62,52 @@ describe("CSV y cálculos exactos", () => {
         .errors,
     ).toContain("Fila 2: Fecha valor fuera del ejercicio seleccionado");
   });
+  it.each(["1/2/26", "01/2/26", "1/02/26", "01/02/26", "1/2/2026"])(
+    "normaliza día y mes de una o dos cifras: %s",
+    (date) => {
+      expect(isoDate(date)).toBe("2026-02-01");
+    },
+  );
+  it.each(["", "   "])(
+    "sustituye operación vacía por fecha valor y avisa: %s",
+    (operation) => {
+      const parsed = parseCsv(
+        csv(row.replace("10/01/2026,10/01/2026", "1/2/26," + operation)),
+        2026,
+      );
+      expect(parsed.errors).toEqual([]);
+      expect(parsed.rows[0]).toMatchObject({
+        fecha_valor: "2026-02-01",
+        fecha_operacion: "2026-02-01",
+      });
+      expect(parsed.warnings).toContain(
+        "1 filas sin fecha de operación: se usará su fecha valor como fecha de operación.",
+      );
+    },
+  );
+  it("valida las dos fechas por separado sin sustituir fechas presentes inválidas", () => {
+    const good = parseCsv(
+      csv(row.replace("10/01/2026,10/01/2026", "1/2/26,31/1/26")),
+      2026,
+    );
+    expect(good.errors).toEqual([]);
+    expect(good.rows[0].fecha_operacion).toBe("2026-01-31");
+    expect(good.warnings).toEqual([]);
+    const bad = parseCsv(
+      csv(row.replace("10/01/2026,10/01/2026", "1/2/26,31/2/26")),
+      2026,
+    );
+    expect(bad.rows).toEqual([]);
+    expect(bad.errors).toContain(
+      "Fila 1: Fecha de operación: Fecha inexistente",
+    );
+    expect(bad.warnings).toEqual([]);
+    const missingValue = parseCsv(
+      csv(row.replace("10/01/2026,10/01/2026", ",1/2/26")),
+      2026,
+    );
+    expect(missingValue.errors[0]).toContain("Fecha valor:");
+  });
   it("acepta BOM CRLF comillas y multilinea", () => {
     const r = parseCsv(
       "\uFEFF" +

@@ -45,6 +45,7 @@ export function parseCsv(text: string, year: number) {
     (e) => `Registro ${(e.row ?? 0) + 1}: ${e.message}`,
   );
   const rows: CsvRow[] = [];
+  let operationDateFallbacks = 0;
   if (JSON.stringify(parsed.data[0]) !== JSON.stringify(headers))
     return {
       rows,
@@ -56,8 +57,18 @@ export function parseCsv(text: string, year: number) {
   parsed.data.slice(1).forEach((r, i) => {
     try {
       if (r.length !== 11) throw new Error("Se esperaban 11 columnas");
-      const fecha_valor = isoDate(r[0]),
-        fecha_operacion = isoDate(r[1]);
+      let fecha_valor: string, fecha_operacion: string;
+      try {
+        fecha_valor = isoDate(r[0]);
+      } catch (e) {
+        throw new Error("Fecha valor: " + (e as Error).message);
+      }
+      const missingOperationDate = !r[1].trim();
+      try {
+        fecha_operacion = missingOperationDate ? fecha_valor : isoDate(r[1]);
+      } catch (e) {
+        throw new Error("Fecha de operación: " + (e as Error).message);
+      }
       if (Number(fecha_valor.slice(0, 4)) !== year)
         throw new Error("Fecha valor fuera del ejercicio seleccionado");
       const tipo_movimiento = mapping[r[8].trim().toLowerCase()];
@@ -79,6 +90,7 @@ export function parseCsv(text: string, year: number) {
         categoria_csv: r[9].trim(),
         nota: r[10],
       });
+      if (missingOperationDate) operationDateFallbacks++;
     } catch (e) {
       errors.push(`Fila ${i + 1}: ${(e as Error).message}`);
     }
@@ -95,6 +107,10 @@ export function parseCsv(text: string, year: number) {
         "Hay ingresos negativos o gastos positivos. Se conservarán sus signos originales.",
       ]
     : [];
+  if (operationDateFallbacks)
+    warnings.push(
+      `${operationDateFallbacks} filas sin fecha de operación: se usará su fecha valor como fecha de operación.`,
+    );
   return { rows, errors, warnings };
 }
 export function validateAccounts(
