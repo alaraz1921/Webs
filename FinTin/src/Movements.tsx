@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Movement, Kind } from "./types";
 import { kinds, labels } from "./types";
 import { movements, remove, save, type Filters } from "./api";
-import { amount, money } from "./finance";
+import { amount, money, displayDate } from "./finance";
 import { Field, Form, Empty, ErrorBox, text, ConfirmDelete, Panel } from "./ui";
 import { CategoryOptions, type MasterProps } from "./Settings";
 export const filtersFor = (year: number): Filters => ({
@@ -17,7 +17,11 @@ export const filtersFor = (year: number): Filters => ({
   currency: "",
 });
 export function MovementPage(
-  props: MasterProps & { filters: Filters; setFilters: (f: Filters) => void },
+  props: MasterProps & {
+    filters: Filters;
+    setFilters: (f: Filters) => void;
+    year?: number;
+  },
 ) {
   const { uid, accounts, categories, filters: f, setFilters } = props;
   const [page, setPage] = useState(0),
@@ -159,6 +163,17 @@ export function MovementPage(
             <option value="manual">Manual</option>
           </select>
         </Field>
+        <div className="filter-actions">
+          <button
+            type="button"
+            onClick={() => {
+              setFilters(filtersFor(props.year ?? new Date().getFullYear()));
+              setPage(0);
+            }}
+          >
+            Borrar filtros
+          </button>
+        </div>
       </div>
       <ErrorBox error={error} />
       {loading ? (
@@ -182,8 +197,8 @@ export function MovementPage(
                   {data.rows.map((r) => (
                     <tr key={r.id}>
                       <td>
-                        {r.fecha_valor}
-                        <small>{r.fecha_operacion}</small>
+                        {displayDate(r.fecha_valor)}
+                        <small>{displayDate(r.fecha_operacion)}</small>
                       </td>
                       <td>
                         {r.concepto || "Sin concepto"}

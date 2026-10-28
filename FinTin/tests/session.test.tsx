@@ -211,6 +211,70 @@ describe("Continuidad de sesión y autorización", () => {
     expect(screen.getByLabelText("Buscar concepto")).toBe(search);
     expect(api.list).toHaveBeenCalledTimes(listCalls);
   });
+  it("borra todos los filtros y reinicia la paginación conservando el ejercicio", async () => {
+    render(<App />);
+    const u = userEvent.setup();
+    await u.selectOptions(await screen.findByLabelText("Ejercicio"), "2025");
+    await u.click(await screen.findByRole("button", { name: "12,00 EUR" }));
+    await u.type(
+      await screen.findByLabelText("Buscar concepto"),
+      "texto ficticio",
+    );
+    await screen.findByText(/100 movimientos · página 1/);
+    await u.click(screen.getByRole("button", { name: "Siguiente" }));
+    await screen.findByText(/100 movimientos · página 2/);
+    await u.click(screen.getByRole("button", { name: "Borrar filtros" }));
+    expect(
+      (screen.getByLabelText("Buscar concepto") as HTMLInputElement).value,
+    ).toBe("");
+    expect((screen.getByLabelText("Desde") as HTMLInputElement).value).toBe(
+      "2025-01-01",
+    );
+    expect((screen.getByLabelText("Hasta") as HTMLInputElement).value).toBe(
+      "2025-12-31",
+    );
+    for (const label of [
+      "Cuenta",
+      "Moneda",
+      "Entidad",
+      "Categoría",
+      "Tipo",
+      "Origen",
+    ])
+      expect((screen.getByLabelText(label) as HTMLSelectElement).value).toBe(
+        "",
+      );
+    expect(
+      (screen.getByLabelText("Ejercicio") as HTMLSelectElement).value,
+    ).toBe("2025");
+    await screen.findByText(/100 movimientos · página 1/);
+  });
+  it("muestra cinco ejercicios en importación y desplaza el intervalo al seleccionar otro", async () => {
+    render(<App />);
+    const u = userEvent.setup();
+    await screen.findByRole("button", { name: "12,00 EUR" });
+    await u.selectOptions(screen.getByLabelText("Ejercicio"), "2026");
+    await u.click(screen.getByRole("link", { name: "Importación CSV" }));
+    await screen.findByRole("heading", {
+      name: "Importa un ejercicio completo",
+    });
+    const select = screen.getByLabelText("Ejercicio") as HTMLSelectElement;
+    expect(Array.from(select.options).map((o) => o.value)).toEqual([
+      "2028",
+      "2027",
+      "2026",
+      "2025",
+      "2024",
+    ]);
+    await u.selectOptions(select, "2028");
+    expect(Array.from(select.options).map((o) => o.value)).toEqual([
+      "2030",
+      "2029",
+      "2028",
+      "2027",
+      "2026",
+    ]);
+  });
   it("mantiene el desglose de categoría, ingreso y mes después de TOKEN_REFRESHED", async () => {
     render(<App />);
     const u = userEvent.setup();

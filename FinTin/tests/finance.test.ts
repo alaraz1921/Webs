@@ -1,7 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { parseCsv, headers, validateAccounts, aliasKey } from "../src/csv";
-import { amount, isoDate, totals, calculated } from "../src/finance";
+import {
+  amount,
+  isoDate,
+  totals,
+  calculated,
+  displayDate,
+} from "../src/finance";
 const row =
   '10/01/2026,10/01/2026,"-1.234,56 €",EUR,"Concepto, ficticio",Banco ficticio,Cuenta ficticia,Cuenta corriente,Gasto,Prueba,Nota';
 const csv = (r = row, h = headers.join(",")) => h + "\r\n" + r;
@@ -16,6 +22,8 @@ describe("CSV y cálculos exactos", () => {
   });
   it("valida fechas incluidas bisiestos", () => {
     expect(isoDate("29/02/2024")).toBe("2024-02-29");
+    expect(displayDate("2026-01-31")).toBe("31-01-2026");
+    expect(displayDate("2024-02-29")).toBe("29-02-2024");
     expect(() => isoDate("29/02/2026")).toThrow();
     expect(() => isoDate("31/04/2026")).toThrow();
   });

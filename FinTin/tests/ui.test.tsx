@@ -210,6 +210,8 @@ describe("Operaciones de interfaz", () => {
       />,
     );
     await screen.findByText("CSV · solo lectura");
+    expect(screen.getAllByText("02-01-2026")).toHaveLength(4);
+    expect(screen.queryByText("2026-01-02")).toBeNull();
     expect(screen.getAllByRole("button", { name: "Editar" })).toHaveLength(1);
     expect(screen.getAllByRole("button", { name: "Eliminar" })).toHaveLength(1);
     const u = userEvent.setup();

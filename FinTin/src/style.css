@@ -853,3 +853,9 @@ h1 {
   background: #0f172a55;
   border: 0;
 }
+
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 15px;
+}

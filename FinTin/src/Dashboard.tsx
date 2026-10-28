@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { annual, list, save, remove } from "./api";
 import type { Movement, Reconciliation, Balance } from "./types";
 import { kinds, labels, months } from "./types";
-import { totals, sum, money, amount } from "./finance";
+import { totals, sum, money, amount, displayDate } from "./finance";
 import { Field, Empty, ErrorBox, Panel, Form, text, ConfirmDelete } from "./ui";
 import type { MasterProps } from "./Settings";
 export interface YearProps extends MasterProps {
@@ -342,9 +342,12 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                         <tr key={a.id}>
                           <th>
                             {a.nombre_producto}
+                            <small>{a.entidad}</small>
                             <small>
-                              {a.entidad} · Inicio {a.fecha_saldo_inicial}:{" "}
-                              {money(a.saldo_inicial, currency)}
+                              Inicio {displayDate(a.fecha_saldo_inicial)}
+                            </small>
+                            <small>
+                              Saldo inicial {money(a.saldo_inicial, currency)}
                             </small>
                           </th>
                           {months.map((_, i) => {
@@ -443,7 +446,7 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                                 ?.nombre_producto
                             }
                           </td>
-                          <td>{r.fecha_cierre}</td>
+                          <td>{displayDate(r.fecha_cierre)}</td>
                           <td className="numeric">
                             {money(r.saldo_calculado, r.moneda)}
                           </td>
@@ -551,7 +554,7 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                           accounts.find((a) => a.id === b.cuenta_id)
                             ?.nombre_producto
                         }{" "}
-                        · {b.fecha_corte}
+                        · {displayDate(b.fecha_corte)}
                         <small>
                           {b.saldo_real} · {b.nota}
                         </small>

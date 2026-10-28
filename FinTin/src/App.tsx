@@ -364,7 +364,12 @@ function Workspace({ session }: { session: Session }) {
                     setFilters(filtersFor(y));
                   }}
                 >
-                  {Array.from({ length: 101 }, (_, i) => 2100 - i).map((y) => (
+                  {(page.id === "importacion"
+                    ? Array.from({ length: 5 }, (_, i) => year + 2 - i).filter(
+                        (y) => y >= 2000 && y <= 2100,
+                      )
+                    : Array.from({ length: 101 }, (_, i) => 2100 - i)
+                  ).map((y) => (
                     <option key={y} value={y}>
                       {y}
                     </option>
@@ -436,6 +441,7 @@ function Workspace({ session }: { session: Session }) {
               {page.id === "movimientos" && (
                 <MovementPage
                   {...base}
+                  year={year}
                   filters={filters}
                   setFilters={setFilters}
                 />
