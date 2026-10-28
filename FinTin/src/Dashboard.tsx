@@ -5,7 +5,16 @@ import { annual, list, save, remove } from "./api";
 import type { Movement, Reconciliation, Balance } from "./types";
 import { kinds, labels, months } from "./types";
 import { totals, sum, money, amount, displayDate } from "./finance";
-import { Field, Empty, ErrorBox, Panel, Form, text, ConfirmDelete } from "./ui";
+import {
+  Field,
+  Empty,
+  ErrorBox,
+  Panel,
+  Form,
+  text,
+  ConfirmDelete,
+  Modal,
+} from "./ui";
 import type { MasterProps } from "./Settings";
 export interface YearProps extends MasterProps {
   year: number;
@@ -275,6 +284,10 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
     [error, setError] = useState(""),
     [busy, setBusy] = useState(true),
     [refresh, setRefresh] = useState(0);
+  const [closingMonth, setClosingMonth] = useState(""),
+    [closingStatus, setClosingStatus] = useState(""),
+    [balanceDialog, setBalanceDialog] = useState<Reconciliation | null>(null),
+    [balanceBusy, setBalanceBusy] = useState(false);
   useEffect(() => {
     let live = true;
     setBusy(true);
@@ -330,7 +343,18 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
     monthlyKeys,
   );
   const sortedClosures = sortRows(
-    rows,
+    rows.filter((r) => {
+      if (
+        closingMonth &&
+        Number(r.fecha_cierre.slice(5, 7)) !== Number(closingMonth)
+      )
+        return false;
+      if (!closingStatus) return true;
+      if (closingStatus === "pending") return r.saldo_real === null;
+      if (r.saldo_real === null) return false;
+      const matches = new Decimal(r.saldo_real).eq(r.saldo_calculado);
+      return closingStatus === "matched" ? matches : !matches;
+    }),
     reconcileSort.sort,
     (r, key) => {
       if (key === "cuenta")
@@ -343,6 +367,16 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
       return r.diferencia;
     },
     ["calculado", "real", "diferencia"],
+  );
+  const selectedBalance = balanceDialog
+    ? balances.find(
+        (b) =>
+          b.cuenta_id === balanceDialog.cuenta_id &&
+          b.fecha_corte === balanceDialog.fecha_cierre,
+      )
+    : undefined;
+  const selectedAccount = accounts.find(
+    (a) => a.id === balanceDialog?.cuenta_id,
   );
   return (
     <>
@@ -370,6 +404,34 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                   Rojo: hay diferencia. Sin color: saldo real pendiente o mes
                   sin cierre.
                 </p>
+              )}
+              {reconcile && (
+                <div className="reconciliation-filters">
+                  <Field label="Mes de cierre">
+                    <select
+                      value={closingMonth}
+                      onChange={(e) => setClosingMonth(e.target.value)}
+                    >
+                      <option value="">Todos los meses</option>
+                      {months.map((m, i) => (
+                        <option key={m} value={i + 1}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Estado de conciliación">
+                    <select
+                      value={closingStatus}
+                      onChange={(e) => setClosingStatus(e.target.value)}
+                    >
+                      <option value="">Todos los estados</option>
+                      <option value="different">Con diferencia</option>
+                      <option value="matched">Sin diferencia</option>
+                      <option value="pending">Sin saldo real</option>
+                    </select>
+                  </Field>
+                </div>
               )}
               {!reconcile ? (
                 <div className="table-wrap">
@@ -523,18 +585,21 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                           field="calculado"
                           label="Calculado"
                           {...reconcileSort}
+                          numeric
                         />
                         <SortHeader
                           field="real"
                           label="Real"
                           {...reconcileSort}
+                          numeric
                         />
                         <SortHeader
                           field="diferencia"
                           label="Diferencia (real − calculado)"
                           {...reconcileSort}
+                          numeric
                         />
-                        <th>Movimientos</th>
+                        <th>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -557,14 +622,21 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                           </td>
                           <td
                             className={
-                              r.diferencia !== null &&
-                              Number(r.diferencia) !== 0
-                                ? "negative"
-                                : ""
+                              "numeric" +
+                              (r.diferencia !== null &&
+                              !new Decimal(r.diferencia).isZero()
+                                ? " negative"
+                                : "")
                             }
                           >
                             {r.diferencia === null ? (
-                              <span className="badge">Sin saldo real</span>
+                              <button
+                                type="button"
+                                className="badge"
+                                onClick={() => setBalanceDialog(r)}
+                              >
+                                Sin saldo real
+                              </button>
                             ) : (
                               money(r.diferencia, r.moneda)
                             )}
@@ -580,6 +652,14 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                             >
                               Revisar
                             </button>
+                            {r.saldo_real !== null && (
+                              <button
+                                type="button"
+                                onClick={() => setBalanceDialog(r)}
+                              >
+                                Editar
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -587,8 +667,8 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                   </table>
                 </div>
               )}
-              {!rows.length && (
-                <Empty>No hay cierres para estas cuentas y ejercicio.</Empty>
+              {!(reconcile ? sortedClosures : rows).length && (
+                <Empty>No hay cierres para los filtros seleccionados.</Empty>
               )}
             </Panel>
             <Panel title="Anotar saldo real">
@@ -671,6 +751,73 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
             </Panel>
           </>
         )
+      )}
+      {balanceDialog && (
+        <Modal
+          title={
+            balanceDialog.saldo_real === null
+              ? "Anotar saldo real"
+              : "Editar saldo real"
+          }
+          onClose={() => setBalanceDialog(null)}
+          busy={balanceBusy}
+        >
+          <Form
+            onBusyChange={setBalanceBusy}
+            onCancel={() => setBalanceDialog(null)}
+            onSave={async (d) => {
+              if (!selectedAccount)
+                throw new Error("La cuenta ya no está disponible.");
+              if (balanceDialog.saldo_real !== null && !selectedBalance)
+                throw new Error(
+                  "No se ha encontrado el saldo real. Actualiza la página antes de editarlo.",
+                );
+              await save(
+                "saldos",
+                uid,
+                {
+                  cuenta_id: balanceDialog.cuenta_id,
+                  fecha_corte: balanceDialog.fecha_cierre,
+                  saldo_real: amount(text(d, "saldo_real")),
+                  nota: text(d, "nota"),
+                },
+                selectedBalance?.id,
+              );
+              setBalanceDialog(null);
+              setRefresh((v) => v + 1);
+            }}
+          >
+            <Field label="Cuenta">
+              <input
+                readOnly
+                value={
+                  selectedAccount
+                    ? `${selectedAccount.nombre_producto} · ${selectedAccount.entidad} · ${selectedAccount.moneda}`
+                    : "Cuenta no disponible"
+                }
+              />
+            </Field>
+            <Field label="Fecha de corte">
+              <input type="date" readOnly value={balanceDialog.fecha_cierre} />
+            </Field>
+            <Field label="Saldo real">
+              <input
+                name="saldo_real"
+                inputMode="decimal"
+                required
+                placeholder="0,00"
+                defaultValue={(
+                  selectedBalance?.saldo_real ??
+                  balanceDialog.saldo_real ??
+                  ""
+                ).replace(".", ",")}
+              />
+            </Field>
+            <Field label="Nota">
+              <input name="nota" defaultValue={selectedBalance?.nota || ""} />
+            </Field>
+          </Form>
+        </Modal>
       )}
     </>
   );

@@ -70,6 +70,8 @@ PostgREST devuelve los importes con cast `::text`; Decimal.js calcula con precis
 
 Los cierres usan la vista invocadora SQL: saldo inicial + todos los movimientos posteriores al corte y hasta el cierre inclusive. Incluye meses sin movimientos hasta el mes actual según `Atlantic/Canary`, zona del SQL original. Meses futuros sin cierre. Saldos reales de otras fechas se guardan como observaciones; para conciliar un mes usar su último día. Guardar de nuevo cuenta/fecha actualiza ese saldo real.
 
+En Conciliación se combinan los filtros de mes y estado (Con diferencia, Sin diferencia, Sin saldo real) con ejercicio, cuenta y moneda. Sin diferencia exige un saldo real registrado, incluido cero; los pendientes no se consideran coincidentes. El botón «Sin saldo real» de la fila abre un modal de alta con cuenta y cierre fijos; «Editar», junto a «Revisar», abre el saldo existente y su nota. Guardar actualiza ese registro y refresca los cierres manteniendo mes, estado y ordenación. Cancelar no guarda cambios y los errores permanecen en el modal para poder corregir o reintentar.
+
 El listado pagina en servidor, 50 filas, con filtros y búsqueda por concepto. Resúmenes recorren el ejercicio en páginas de 1.000 sin truncarlo al límite habitual de Supabase. Para volúmenes muy grandes conviene añadir agregados invocadores por cuenta y moneda conservando RLS.
 
 ## Verificación
