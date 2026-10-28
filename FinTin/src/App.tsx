@@ -16,7 +16,7 @@ import type { Account, Alias, Category } from "./types";
 import { Summary, AccountsPage, type YearProps } from "./Dashboard";
 import { MovementPage, filtersFor } from "./Movements";
 import { ImportPage } from "./Import";
-import { Settings } from "./Settings";
+import { Settings, type SettingsSection } from "./Settings";
 import { YearPicker } from "./YearPicker";
 import { Field, Form, ErrorBox, Empty, text } from "./ui";
 import "./style.css";
@@ -56,6 +56,31 @@ const pages = [
     name: "Configuración",
     icon: SettingsIcon,
     description: "Tus cuentas, categorías y correspondencias.",
+  },
+];
+const settingsPages: {
+  id: string;
+  name: string;
+  description: string;
+  section: SettingsSection;
+}[] = [
+  {
+    id: "configuracion/cuentas",
+    name: "Cuentas",
+    description: "Gestiona tus cuentas y saldos de partida.",
+    section: "cuentas",
+  },
+  {
+    id: "configuracion/aliases",
+    name: "Alias de cuentas",
+    description: "Asocia los productos de tus CSV a las cuentas de FinTin.",
+    section: "aliases",
+  },
+  {
+    id: "configuracion/categorias",
+    name: "Categorías",
+    description: "Organiza las categorías de tus movimientos.",
+    section: "categorias",
   },
 ];
 export default function App() {
@@ -249,7 +274,10 @@ function Workspace({ session }: { session: Session }) {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [reload]);
-  const page = pages.find((p) => p.id === route) || pages[0];
+  const settingsPage =
+    settingsPages.find((p) => p.id === route) ||
+    (route === "configuracion" ? settingsPages[0] : undefined);
+  const page = settingsPage || pages.find((p) => p.id === route) || pages[0];
   const base = { uid, accounts, categories, aliases, reload };
   const open: YearProps["open"] = (f) => {
     const selected = accounts.find((a) => a.id === f.account);
@@ -284,16 +312,35 @@ function Workspace({ session }: { session: Session }) {
         <Brand />
         <nav aria-label="Principal">
           {pages.map((p) => (
-            <a
-              key={p.id}
-              href={"#" + p.id}
-              className={page.id === p.id ? "active" : ""}
-              aria-current={page.id === p.id ? "page" : undefined}
-            >
-              <p.icon size={19} />
-              {p.name}
-              {page.id === p.id && <span className="nav-dot" />}
-            </a>
+            <div key={p.id}>
+              <a
+                href={"#" + p.id}
+                className={page.id === p.id ? "active" : ""}
+                aria-current={page.id === p.id ? "page" : undefined}
+              >
+                <p.icon size={19} />
+                {p.name}
+                {page.id === p.id && <span className="nav-dot" />}
+              </a>
+              {p.id === "configuracion" && (
+                <div
+                  className="settings-subnav"
+                  role="group"
+                  aria-label="Configuración"
+                >
+                  {settingsPages.map((s) => (
+                    <a
+                      key={s.id}
+                      href={"#" + s.id}
+                      className={page.id === s.id ? "active" : ""}
+                      aria-current={page.id === s.id ? "page" : undefined}
+                    >
+                      {s.name}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
         <div className="sidebar-bottom">
@@ -335,7 +382,11 @@ function Workspace({ session }: { session: Session }) {
             <Menu />
           </button>
           <span>
-            FinTin <span className="muted">/ {page.name}</span>
+            FinTin{" "}
+            <span className="muted">
+              / {settingsPage ? "Configuración / " : ""}
+              {page.name}
+            </span>
           </span>
           <span className="connection">
             <i /> Conexión privada
@@ -353,7 +404,7 @@ function Workspace({ session }: { session: Session }) {
               </a>
             )}
           </div>
-          {page.id !== "configuracion" && (
+          {!settingsPage && (
             <div className="context-bar">
               <YearPicker
                 value={year}
@@ -436,12 +487,16 @@ function Workspace({ session }: { session: Session }) {
               {page.id === "importacion" && (
                 <ImportPage {...base} year={year} onBusy={setImportBusy} />
               )}{" "}
-              {page.id === "configuracion" && (
+              {settingsPage && (
                 <>
                   <p className="muted">
                     Usuario actual: {session.user.email} · UUID: {uid}
                   </p>
-                  <Settings {...base} />
+                  <Settings
+                    key={settingsPage.id}
+                    {...base}
+                    section={settingsPage.section}
+                  />
                 </>
               )}
             </>

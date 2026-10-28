@@ -127,6 +127,60 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe("Continuidad de sesión y autorización", () => {
+  it("navega a páginas independientes de configuración en el orden solicitado", async () => {
+    render(<App />);
+    const u = userEvent.setup();
+    const group = await screen.findByRole("group", { name: "Configuración" });
+    expect(
+      within(group)
+        .getAllByRole("link")
+        .map((a) => a.textContent),
+    ).toEqual(["Cuentas", "Alias de cuentas", "Categorías"]);
+    for (const [name, heading, hash] of [
+      ["Cuentas", "Cuentas y saldo de partida", "cuentas"],
+      ["Alias de cuentas", "Alias de cuentas", "aliases"],
+      ["Categorías", "Categorías", "categorias"],
+    ]) {
+      await u.click(within(group).getByRole("link", { name }));
+      await screen.findByRole("heading", { name: heading, level: 2 });
+      expect(location.hash).toBe("#configuracion/" + hash);
+      expect(screen.getAllByRole("button", { name: "Nueva" })).toHaveLength(1);
+      expect(screen.queryByRole("combobox", { name: /^Ejercicio/ })).toBeNull();
+      for (const other of [
+        "Cuentas y saldo de partida",
+        "Alias de cuentas",
+        "Categorías",
+      ].filter((h) => h !== heading))
+        expect(
+          screen.queryByRole("heading", { name: other, level: 2 }),
+        ).toBeNull();
+      expect(
+        within(group).getByRole("link", { name }).getAttribute("aria-current"),
+      ).toBe("page");
+    }
+  });
+  it("abre directamente la página de categorías desde su URL", async () => {
+    history.replaceState(null, "", "#configuracion/categorias");
+    render(<App />);
+    await screen.findByRole("table", { name: "Categorías" });
+    expect(
+      screen.queryByRole("table", { name: "Cuentas y saldos" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: "Alias de cuentas", level: 2 }),
+    ).toBeNull();
+  });
+  it("muestra la cuenta de destino en una columna independiente del concepto", async () => {
+    history.replaceState(null, "", "#movimientos");
+    render(<App />);
+    await screen.findByRole("columnheader", {
+      name: "Cuenta de destino",
+    });
+    const concept = await screen.findByRole("cell", { name: "Ingreso ficticio" });
+    const row = concept.closest("tr")!;
+    expect(row.children[1].textContent).toBe("Ingreso ficticio");
+    expect(row.children[2].textContent).toBe("Cuenta ficticiaBanco ficticio");
+  });
   it("muestra únicamente el acceso discreto con campos y mantiene el inicio de sesión", async () => {
     auth.getSession.mockResolvedValue({ data: { session: null }, error: null });
     auth.signInWithPassword.mockResolvedValue({ error: null });
@@ -259,7 +313,15 @@ describe("Continuidad de sesión y autorización", () => {
       render(<App />);
       const u = userEvent.setup();
       await screen.findByRole("button", { name: "12,00 EUR" });
-      await u.click(screen.getByRole("link", { name: page }));
+      await u.click(
+        screen
+          .getAllByRole("link", { name: page })
+          .find(
+            (a) =>
+              a.getAttribute("href") ===
+              (page === "Cuentas" ? "#cuentas" : a.getAttribute("href")),
+          )!,
+      );
       await screen.findByRole("heading", { name: page, level: 1 });
       await u.click(screen.getByRole("combobox", { name: /^Ejercicio/ }));
       expect(

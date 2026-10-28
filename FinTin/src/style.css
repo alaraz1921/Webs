@@ -215,6 +215,20 @@ form > .primary {
 .sidebar nav {
   display: grid;
   gap: 7px;
+  overflow-y: auto;
+  min-height: 0;
+  padding-bottom: 12px;
+}
+.settings-subnav {
+  display: grid;
+  gap: 3px;
+  margin: 4px 0 0 23px;
+  padding-left: 9px;
+  border-left: 1px solid #e2e8f0;
+}
+.sidebar nav .settings-subnav a {
+  padding: 8px 12px;
+  font-size: 12px;
 }
 .sidebar nav a {
   display: flex;

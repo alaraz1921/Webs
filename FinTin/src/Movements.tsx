@@ -186,7 +186,8 @@ export function MovementPage(
                 <thead>
                   <tr>
                     <th>Fecha valor / operación</th>
-                    <th>Concepto / cuenta</th>
+                    <th>Concepto</th>
+                    <th>Cuenta de destino</th>
                     <th>Categoría</th>
                     <th>Origen</th>
                     <th className="numeric">Importe</th>
@@ -202,12 +203,13 @@ export function MovementPage(
                       </td>
                       <td>
                         {r.concepto || "Sin concepto"}
+                        {r.nota && <small>{r.nota}</small>}
+                      </td>
+                      <td>
+                        {accounts.find((a) => a.id === r.cuenta_id)
+                          ?.nombre_producto || "Cuenta no disponible"}
                         <small>
-                          {
-                            accounts.find((a) => a.id === r.cuenta_id)
-                              ?.nombre_producto
-                          }{" "}
-                          {r.nota && `· ${r.nota}`}
+                          {accounts.find((a) => a.id === r.cuenta_id)?.entidad}
                         </small>
                       </td>
                       <td>

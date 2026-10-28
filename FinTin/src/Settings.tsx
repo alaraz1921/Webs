@@ -13,13 +13,15 @@ export interface MasterProps {
   aliases: Alias[];
   reload: () => Promise<void>;
 }
+export type SettingsSection = "cuentas" | "aliases" | "categorias";
 export function Settings({
   uid,
   accounts,
   categories,
   aliases,
   reload,
-}: MasterProps) {
+  section,
+}: MasterProps & { section?: SettingsSection }) {
   const [modal, setModal] = useState<"account" | "category" | "alias" | null>(
     null,
   );
@@ -72,257 +74,275 @@ export function Settings({
   );
   return (
     <div className="settings-grid">
-      <Panel
-        title="Cuentas y saldo de partida"
-        actions={
-          <button
-            className="primary"
-            onClick={() => {
-              setEdit(null);
-              setModal("account");
-            }}
-          >
-            Nueva
-          </button>
-        }
-      >
-        <p className="muted">
-          El saldo inicial corresponde al cierre de la fecha indicada. Los
-          movimientos deben ser posteriores.
-        </p>
-        {accounts.length ? (
-          <div className="table-wrap">
-            <table className="compact-table" aria-label="Cuentas y saldos">
-              <thead>
-                <tr>
-                  <SortHeader
-                    field="nombre_producto"
-                    label="Producto"
-                    {...accountSort}
-                  />
-                  <SortHeader
-                    field="entidad"
-                    label="Entidad"
-                    {...accountSort}
-                  />
-                  <SortHeader
-                    field="tipo_producto"
-                    label="Tipo"
-                    {...accountSort}
-                  />
-                  <SortHeader field="moneda" label="Moneda" {...accountSort} />
-                  <SortHeader
-                    field="saldo_inicial"
-                    label="Saldo inicial"
-                    {...accountSort}
-                  />
-                  <SortHeader
-                    field="fecha_saldo_inicial"
-                    label="Fecha del saldo inicial"
-                    {...accountSort}
-                  />
-                  <SortHeader field="activo" label="Estado" {...accountSort} />
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedAccounts.map((a) => (
-                  <tr key={a.id}>
-                    <td>
-                      <b>{a.nombre_producto}</b>
-                    </td>
-                    <td>{a.entidad}</td>
-                    <td>{a.tipo_producto || "Sin tipo"}</td>
-                    <td>{a.moneda}</td>
-                    <td className="settings-amount">
-                      {money(a.saldo_inicial, a.moneda)}
-                    </td>
-                    <td>
-                      {a.fecha_saldo_inicial.split("-").reverse().join("/")}
-                    </td>
-                    <td>{a.activo ? "Activa" : "Inactiva"}</td>
-                    <td className="settings-actions">
-                      <button
-                        aria-label={"Editar cuenta " + a.nombre_producto}
-                        onClick={() => {
-                          setEdit(a);
-                          setModal("account");
-                        }}
-                      >
-                        Editar
-                      </button>
-                      <ConfirmDelete
-                        onDelete={async () => {
-                          await remove("cuentas", uid, a.id);
-                          await reload();
-                        }}
-                      />
-                    </td>
+      {(!section || section === "cuentas") && (
+        <Panel
+          title="Cuentas y saldo de partida"
+          actions={
+            <button
+              className="primary"
+              onClick={() => {
+                setEdit(null);
+                setModal("account");
+              }}
+            >
+              Nueva
+            </button>
+          }
+        >
+          <p className="muted">
+            El saldo inicial corresponde al cierre de la fecha indicada. Los
+            movimientos deben ser posteriores.
+          </p>
+          {accounts.length ? (
+            <div className="table-wrap">
+              <table className="compact-table" aria-label="Cuentas y saldos">
+                <thead>
+                  <tr>
+                    <SortHeader
+                      field="nombre_producto"
+                      label="Producto"
+                      {...accountSort}
+                    />
+                    <SortHeader
+                      field="entidad"
+                      label="Entidad"
+                      {...accountSort}
+                    />
+                    <SortHeader
+                      field="tipo_producto"
+                      label="Tipo"
+                      {...accountSort}
+                    />
+                    <SortHeader
+                      field="moneda"
+                      label="Moneda"
+                      {...accountSort}
+                    />
+                    <SortHeader
+                      field="saldo_inicial"
+                      label="Saldo inicial"
+                      {...accountSort}
+                    />
+                    <SortHeader
+                      field="fecha_saldo_inicial"
+                      label="Fecha del saldo inicial"
+                      {...accountSort}
+                    />
+                    <SortHeader
+                      field="activo"
+                      label="Estado"
+                      {...accountSort}
+                    />
+                    <th>Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <Empty>
-            No hay cuentas. Crea una cuenta para definir su saldo de partida.
-          </Empty>
-        )}
-      </Panel>
-      <Panel
-        title="Categorías"
-        actions={
-          <button
-            className="primary"
-            onClick={() => {
-              setCategory(null);
-              setModal("category");
-            }}
-          >
-            Nueva
-          </button>
-        }
-      >
-        {categories.length ? (
-          <div className="table-wrap">
-            <table className="compact-table" aria-label="Categorías">
-              <thead>
-                <tr>
-                  <SortHeader field="nombre" label="Nombre" {...categorySort} />
-                  <SortHeader
-                    field="tipo_movimiento"
-                    label="Tipo de movimiento"
-                    {...categorySort}
-                  />
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedCategories.map((c) => (
-                  <tr key={c.id}>
-                    <td>{c.nombre}</td>
-                    <td>{labels[c.tipo_movimiento]}</td>
-                    <td className="settings-actions">
-                      <button
-                        aria-label={"Editar categoría " + c.nombre}
-                        onClick={() => {
-                          setCategory(c);
-                          setModal("category");
-                        }}
-                      >
-                        Editar
-                      </button>
-                      <ConfirmDelete
-                        onDelete={async () => {
-                          await remove("categorias", uid, c.id);
-                          await reload();
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <Empty>No hay categorías.</Empty>
-        )}
-      </Panel>
-      <Panel
-        title="Alias del agregador"
-        actions={
-          <button
-            className="primary"
-            onClick={() => {
-              setAlias(null);
-              setModal("alias");
-            }}
-          >
-            Nueva
-          </button>
-        }
-      >
-        <p className="muted">
-          La asignación exige entidad, nombre y tipo de producto completos. Los
-          cambios afectan a futuras importaciones.
-        </p>
-        {aliases.length ? (
-          <div className="table-wrap">
-            <table className="compact-table" aria-label="Alias del agregador">
-              <thead>
-                <tr>
-                  <SortHeader
-                    field="entidad_csv"
-                    label="Entidad CSV"
-                    {...aliasSort}
-                  />
-                  <SortHeader
-                    field="nombre_producto_csv"
-                    label="Producto CSV"
-                    {...aliasSort}
-                  />
-                  <SortHeader
-                    field="tipo_producto_csv"
-                    label="Tipo CSV"
-                    {...aliasSort}
-                  />
-                  <SortHeader
-                    field="cuenta_id"
-                    label="Cuenta de destino"
-                    {...aliasSort}
-                  />
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedAliases.map((a) => {
-                  const target = accounts.find((c) => c.id === a.cuenta_id);
-                  return (
+                </thead>
+                <tbody>
+                  {sortedAccounts.map((a) => (
                     <tr key={a.id}>
-                      <td>{a.entidad_csv}</td>
-                      <td>{a.nombre_producto_csv}</td>
-                      <td>{a.tipo_producto_csv || "Sin tipo"}</td>
                       <td>
-                        {target
-                          ? target.entidad +
-                            " · " +
-                            target.nombre_producto +
-                            " · " +
-                            target.moneda
-                          : "Cuenta no disponible"}
+                        <b>{a.nombre_producto}</b>
                       </td>
+                      <td>{a.entidad}</td>
+                      <td>{a.tipo_producto || "Sin tipo"}</td>
+                      <td>{a.moneda}</td>
+                      <td className="settings-amount">
+                        {money(a.saldo_inicial, a.moneda)}
+                      </td>
+                      <td>
+                        {a.fecha_saldo_inicial.split("-").reverse().join("/")}
+                      </td>
+                      <td>{a.activo ? "Activa" : "Inactiva"}</td>
                       <td className="settings-actions">
                         <button
-                          aria-label={
-                            "Editar alias " +
-                            a.entidad_csv +
-                            " " +
-                            a.nombre_producto_csv
-                          }
+                          aria-label={"Editar cuenta " + a.nombre_producto}
                           onClick={() => {
-                            setAlias(a);
-                            setModal("alias");
+                            setEdit(a);
+                            setModal("account");
                           }}
                         >
                           Editar
                         </button>
                         <ConfirmDelete
                           onDelete={async () => {
-                            await remove("cuenta_aliases", uid, a.id);
+                            await remove("cuentas", uid, a.id);
                             await reload();
                           }}
                         />
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <Empty>No hay alias del agregador.</Empty>
-        )}
-      </Panel>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <Empty>
+              No hay cuentas. Crea una cuenta para definir su saldo de partida.
+            </Empty>
+          )}
+        </Panel>
+      )}
+      {(!section || section === "categorias") && (
+        <Panel
+          title="Categorías"
+          actions={
+            <button
+              className="primary"
+              onClick={() => {
+                setCategory(null);
+                setModal("category");
+              }}
+            >
+              Nueva
+            </button>
+          }
+        >
+          {categories.length ? (
+            <div className="table-wrap">
+              <table className="compact-table" aria-label="Categorías">
+                <thead>
+                  <tr>
+                    <SortHeader
+                      field="nombre"
+                      label="Nombre"
+                      {...categorySort}
+                    />
+                    <SortHeader
+                      field="tipo_movimiento"
+                      label="Tipo de movimiento"
+                      {...categorySort}
+                    />
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedCategories.map((c) => (
+                    <tr key={c.id}>
+                      <td>{c.nombre}</td>
+                      <td>{labels[c.tipo_movimiento]}</td>
+                      <td className="settings-actions">
+                        <button
+                          aria-label={"Editar categoría " + c.nombre}
+                          onClick={() => {
+                            setCategory(c);
+                            setModal("category");
+                          }}
+                        >
+                          Editar
+                        </button>
+                        <ConfirmDelete
+                          onDelete={async () => {
+                            await remove("categorias", uid, c.id);
+                            await reload();
+                          }}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <Empty>No hay categorías.</Empty>
+          )}
+        </Panel>
+      )}
+      {(!section || section === "aliases") && (
+        <Panel
+          title="Alias de cuentas"
+          actions={
+            <button
+              className="primary"
+              onClick={() => {
+                setAlias(null);
+                setModal("alias");
+              }}
+            >
+              Nueva
+            </button>
+          }
+        >
+          <p className="muted">
+            La asignación exige entidad, nombre y tipo de producto completos.
+            Los cambios afectan a futuras importaciones.
+          </p>
+          {aliases.length ? (
+            <div className="table-wrap">
+              <table className="compact-table" aria-label="Alias del agregador">
+                <thead>
+                  <tr>
+                    <SortHeader
+                      field="entidad_csv"
+                      label="Entidad CSV"
+                      {...aliasSort}
+                    />
+                    <SortHeader
+                      field="nombre_producto_csv"
+                      label="Producto CSV"
+                      {...aliasSort}
+                    />
+                    <SortHeader
+                      field="tipo_producto_csv"
+                      label="Tipo CSV"
+                      {...aliasSort}
+                    />
+                    <SortHeader
+                      field="cuenta_id"
+                      label="Cuenta de destino"
+                      {...aliasSort}
+                    />
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedAliases.map((a) => {
+                    const target = accounts.find((c) => c.id === a.cuenta_id);
+                    return (
+                      <tr key={a.id}>
+                        <td>{a.entidad_csv}</td>
+                        <td>{a.nombre_producto_csv}</td>
+                        <td>{a.tipo_producto_csv || "Sin tipo"}</td>
+                        <td>
+                          {target
+                            ? target.entidad +
+                              " · " +
+                              target.nombre_producto +
+                              " · " +
+                              target.moneda
+                            : "Cuenta no disponible"}
+                        </td>
+                        <td className="settings-actions">
+                          <button
+                            aria-label={
+                              "Editar alias " +
+                              a.entidad_csv +
+                              " " +
+                              a.nombre_producto_csv
+                            }
+                            onClick={() => {
+                              setAlias(a);
+                              setModal("alias");
+                            }}
+                          >
+                            Editar
+                          </button>
+                          <ConfirmDelete
+                            onDelete={async () => {
+                              await remove("cuenta_aliases", uid, a.id);
+                              await reload();
+                            }}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <Empty>No hay alias del agregador.</Empty>
+          )}
+        </Panel>
+      )}
       {modal === "account" && (
         <Modal
           title={edit ? "Editar cuenta" : "Nueva cuenta"}
