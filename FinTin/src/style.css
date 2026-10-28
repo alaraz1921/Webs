@@ -536,7 +536,7 @@ td button {
 }
 .settings-grid {
   display: grid;
-  grid-template-columns: 3fr 2fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
   align-items: start;
 }
@@ -823,5 +823,46 @@ footer {
   footer span {
     max-width: 70%;
     text-align: right;
+  }
+}
+
+.settings-grid > .panel {
+  margin-bottom: 0;
+}
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.panel-heading h2 {
+  margin: 0;
+}
+.settings-actions {
+  min-width: 155px;
+}
+.settings-amount {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.settings-dialog {
+  border: 1px solid #e0e7de;
+  border-radius: 12px;
+  width: min(680px, calc(100% - 32px));
+  max-height: calc(100dvh - 40px);
+  padding: 26px;
+  overflow: auto;
+  color: inherit;
+}
+.settings-dialog::backdrop {
+  background: #0c2e25a8;
+}
+.settings-dialog form > .primary {
+  margin-right: 10px;
+}
+@media (max-width: 600px) {
+  .settings-dialog {
+    padding: 18px;
   }
 }
