@@ -14,6 +14,9 @@ export type ManualImportRow = Pick<
   | "categoria_id"
   | "categoria_csv"
   | "nota"
+  | "entidad_csv"
+  | "nombre_producto_csv"
+  | "tipo_producto_csv"
 >;
 export function manualImportRows(
   rows: CsvRow[],
@@ -51,6 +54,9 @@ export function manualImportRows(
       categoria_id: matching.length === 1 ? matching[0].id : null,
       categoria_csv: r.categoria_csv,
       nota: r.nota,
+      entidad_csv: r.entidad_csv,
+      nombre_producto_csv: r.nombre_producto_csv,
+      tipo_producto_csv: r.tipo_producto_csv,
     };
   });
 }

@@ -37,6 +37,9 @@ export interface Movement {
   categoria_csv: string;
   nota: string;
   origen: "csv" | "manual";
+  entidad_csv?: string | null;
+  nombre_producto_csv?: string | null;
+  tipo_producto_csv?: string | null;
 }
 export interface Balance {
   id: string;

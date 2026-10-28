@@ -161,6 +161,9 @@ const manual = {
   categoria_id: null,
   categoria_csv: "Prueba",
   nota: "",
+  entidad_csv: "Entidad CSV ficticia",
+  nombre_producto_csv: "Producto CSV ficticio",
+  tipo_producto_csv: "Cuenta",
 };
 describe("Carga manual atómica y reintentos", () => {
   it("envía un único INSERT y fuerza origen, propietario y columnas permitidas", async () => {
@@ -180,6 +183,11 @@ describe("Carga manual atómica y reintentos", () => {
       inserted.every((r) => r.user_id === "owner" && r.origen === "manual"),
     ).toBe(true);
     expect(inserted[0]).not.toHaveProperty("importacion_id");
+    expect(inserted[0]).toMatchObject({
+      entidad_csv: manual.entidad_csv,
+      nombre_producto_csv: manual.nombre_producto_csv,
+      tipo_producto_csv: manual.tipo_producto_csv,
+    });
   });
   it("reconoce una carga ya confirmada sin insertar duplicados ni actualizar", async () => {
     mock.fail = true;

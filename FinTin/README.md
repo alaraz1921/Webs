@@ -52,6 +52,18 @@ Solo `fintin_publicar_importacion` publica. Valida sesión, autorización, propi
 
 ## Cálculos y consulta
 
+### Origen CSV y cuentas de destino
+
+En instalaciones nuevas, aplicar después de la migración inicial `supabase/migrations/20261028000001_fintin_origen_alias.sql`. Ya está aplicada en el proyecto compartido el 28/10/2026; no reejecutarla. Se validó primero en PostgreSQL embebido y se comprobaron iguales las firmas de metadatos de otras aplicaciones y de movimientos, alias y saldos existentes antes y después. `supabase/verify-origin-alias.sql` permite comprobar estructura y seguridad en modo de solo lectura.
+
+Es una ampliación exclusiva de FinTin: conserva `entidad_csv`, `nombre_producto_csv` y `tipo_producto_csv` en cada movimiento antes de limpiar staging. No cambia los datos existentes, Auth, RLS ni permisos de otras aplicaciones. Las cargas CSV manuales también conservan estos campos. La tabla Movimientos muestra por separado el origen recibido y la cuenta de destino guardada.
+
+Los CSV publicados antes de esta ampliación no conservaban su origen. No se deduce por el destino, ni siquiera si actualmente tiene un único alias: mostrar «Origen no conservado». Para recuperarlo, reimportar cada ejercicio necesario una vez desde su CSV original; la sustitución anual mantiene los movimientos manuales. Los manuales históricos sin origen no pueden recuperarlo automáticamente y no se reasignan mediante alias.
+
+Cuentas agrupa por la cuenta de destino (`cuenta_id`), no por el nombre original del CSV: varios orígenes asignados al mismo destino aportan sus movimientos a un único saldo, con un único saldo inicial. Al cambiar el destino de un alias, un trigger privado reasigna los movimientos identificados por la misma terna normalizada (entidad, producto, tipo), incluidos los importados como manuales. Los manuales sin origen conservado mantienen su cuenta. No se alteran importes, fechas, categorías, notas ni los saldos reales anotados: estos últimos pertenecen a su cuenta de destino y fecha, por lo que puede aparecer una nueva diferencia de conciliación.
+
+La reasignación y el cambio de alias son atómicos. Si cualquier movimiento resulta incompatible con la moneda o fecha inicial del destino, se revierte todo y se muestra el error en el formulario. Se comprueban usuario autorizado y propietario, y se serializa con la publicación anual. Los CSV siguen protegidos contra ediciones directas desde el navegador. Cambiar los campos que identifican el origen de un alias lo convierte en una correspondencia para ese nuevo origen; no renombra los datos originales de movimientos históricos. Eliminar un alias no elimina ni mueve movimientos.
+
 El resumen presenta cuatro bloques en orden: Ingresos, Gastos, No computables y Totales y neto. Los tres primeros desglosan categorías y meses con subtotales mensuales y anual. El cuarto muestra solo los totales mensuales y anual de los tres tipos y el Neto. Como el CSV conserva gastos con signo negativo y devoluciones con signo positivo, el Neto suma ingresos y gastos con su signo, excluyendo no computables.
 
 PostgREST devuelve los importes con cast `::text`; Decimal.js calcula con precisión de 40 dígitos sin perder céntimos en numeric(18,2). Monedas separadas, sin conversión. Balance computable = ingresos + gastos con sus signos originales. No computables afectan al saldo, no al balance computable.

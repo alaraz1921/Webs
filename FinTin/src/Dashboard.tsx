@@ -365,8 +365,10 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
               </p>
               {!reconcile && (
                 <p className="muted">
-                  Verde: saldo real y calculado coinciden. Rojo: hay diferencia.
-                  Sin color: saldo real pendiente o mes sin cierre.
+                  Cada fila agrupa una cuenta de destino y los movimientos de
+                  todos sus alias. Verde: saldo real y calculado coinciden.
+                  Rojo: hay diferencia. Sin color: saldo real pendiente o mes
+                  sin cierre.
                 </p>
               )}
               {!reconcile ? (

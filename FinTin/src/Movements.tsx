@@ -187,6 +187,7 @@ export function MovementPage(
                   <tr>
                     <th>Fecha valor / operación</th>
                     <th>Concepto</th>
+                    <th>Cuenta de origen (CSV)</th>
                     <th>Cuenta de destino</th>
                     <th>Categoría</th>
                     <th>Origen</th>
@@ -204,6 +205,21 @@ export function MovementPage(
                       <td>
                         {r.concepto || "Sin concepto"}
                         {r.nota && <small>{r.nota}</small>}
+                      </td>
+                      <td>
+                        {r.nombre_producto_csv ||
+                          (r.origen === "csv"
+                            ? "Origen no conservado"
+                            : "Alta manual")}
+                        <small>{r.entidad_csv}</small>
+                        {r.tipo_producto_csv && (
+                          <small>{r.tipo_producto_csv}</small>
+                        )}
+                        {r.origen === "csv" && !r.nombre_producto_csv && (
+                          <small>
+                            Reimporta el CSV para recuperar su origen.
+                          </small>
+                        )}
                       </td>
                       <td>
                         {accounts.find((a) => a.id === r.cuenta_id)

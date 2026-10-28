@@ -54,6 +54,12 @@ beforeAll(async () => {
   await db.exec(
     `INSERT INTO auth.users VALUES ('${u}'),('${other}'),('${outsider}'); INSERT INTO public.fintin_usuarios_autorizados(user_id) VALUES ('${u}'),('${other}');`,
   );
+  await db.exec(
+    readFileSync(
+      "supabase/migrations/20261028000001_fintin_origen_alias.sql",
+      "utf8",
+    ),
+  );
   await as(u);
   await db.exec(
     `INSERT INTO public.fintin_cuentas(id,user_id,entidad,nombre_producto,moneda,saldo_inicial,fecha_saldo_inicial) VALUES ('${account}','${u}','Banco ficticio','Cuenta ficticia','EUR',100,'2025-12-31'); INSERT INTO public.fintin_cuenta_aliases(user_id,cuenta_id,entidad_csv,nombre_producto_csv) VALUES ('${u}','${account}','Banco ficticio','Cuenta ficticia'); INSERT INTO public.fintin_movimientos(user_id,origen,fecha_valor,fecha_operacion,importe,moneda,cuenta_id,tipo_movimiento) VALUES ('${u}','manual','2026-01-05','2026-01-05',20,'EUR','${account}','no_computable');`,

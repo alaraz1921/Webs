@@ -262,8 +262,10 @@ export function Settings({
           }
         >
           <p className="muted">
-            La asignación exige entidad, nombre y tipo de producto completos.
-            Los cambios afectan a futuras importaciones.
+            La asignación exige entidad, nombre y tipo de producto completos. Al
+            cambiar el destino se reasignan los movimientos cuyo origen CSV se
+            conserva. La moneda y la fecha inicial deben ser compatibles. Los
+            CSV antiguos sin origen conservado deben reimportarse una vez.
           </p>
           {aliases.length ? (
             <div className="table-wrap">

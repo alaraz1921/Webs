@@ -54,6 +54,12 @@ it("instala FinTin junto al esquema real local de TrackTin sin cambiar datos, po
       "utf8",
     ),
   );
+  await db.exec(
+    readFileSync(
+      "supabase/migrations/20261028000001_fintin_origen_alias.sql",
+      "utf8",
+    ),
+  );
   expect(await snapshot()).toEqual(before);
   expect((await db.exec(metadataSql))[1].rows).toEqual(signaturesBefore);
   await db.exec(`SET request.jwt.claim.sub='${uid}'; SET ROLE authenticated;`);

@@ -80,6 +80,9 @@ const movement = {
   categoria_csv: "",
   nota: "",
   origen: "csv",
+  entidad_csv: "Entidad original ficticia",
+  nombre_producto_csv: "Producto original del CSV",
+  tipo_producto_csv: "Cuenta corriente",
 };
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -176,10 +179,15 @@ describe("Continuidad de sesión y autorización", () => {
     await screen.findByRole("columnheader", {
       name: "Cuenta de destino",
     });
-    const concept = await screen.findByRole("cell", { name: "Ingreso ficticio" });
+    const concept = await screen.findByRole("cell", {
+      name: "Ingreso ficticio",
+    });
     const row = concept.closest("tr")!;
     expect(row.children[1].textContent).toBe("Ingreso ficticio");
-    expect(row.children[2].textContent).toBe("Cuenta ficticiaBanco ficticio");
+    expect(row.children[2].textContent).toBe(
+      "Producto original del CSVEntidad original ficticiaCuenta corriente",
+    );
+    expect(row.children[3].textContent).toBe("Cuenta ficticiaBanco ficticio");
   });
   it("muestra únicamente el acceso discreto con campos y mantiene el inicio de sesión", async () => {
     auth.getSession.mockResolvedValue({ data: { session: null }, error: null });

@@ -34,7 +34,7 @@ const selects: Record<string, string> = {
   cuentas:
     "id,user_id,entidad,nombre_producto,tipo_producto,moneda,saldo_inicial::text,fecha_saldo_inicial,activo",
   movimientos:
-    "id,user_id,cuenta_id,fecha_valor,fecha_operacion,importe::text,moneda,concepto,tipo_movimiento,categoria_id,categoria_csv,nota,origen",
+    "id,user_id,cuenta_id,fecha_valor,fecha_operacion,importe::text,moneda,concepto,tipo_movimiento,categoria_id,categoria_csv,nota,origen,entidad_csv,nombre_producto_csv,tipo_producto_csv",
   saldos: "id,user_id,cuenta_id,fecha_corte,saldo_real::text,nota",
   v_conciliacion_mensual:
     "user_id,cuenta_id,fecha_cierre,moneda,saldo_calculado::text,saldo_real::text,diferencia::text",
@@ -238,6 +238,9 @@ export async function importManual(uid: string, rows: ManualImportRow[]) {
     categoria_id: r.categoria_id,
     categoria_csv: r.categoria_csv,
     nota: r.nota,
+    entidad_csv: r.entidad_csv ?? null,
+    nombre_producto_csv: r.nombre_producto_csv ?? null,
+    tipo_producto_csv: r.tipo_producto_csv ?? null,
   }));
   const result = await client().from("fintin_movimientos").insert(values);
   if (result.error?.code === "23505") {
@@ -247,7 +250,7 @@ export async function importManual(uid: string, rows: ManualImportRow[]) {
         await client()
           .from("fintin_movimientos")
           .select(
-            "id,cuenta_id,fecha_valor,fecha_operacion,importe::text,moneda,concepto,tipo_movimiento,categoria_id,categoria_csv,nota",
+            "id,cuenta_id,fecha_valor,fecha_operacion,importe::text,moneda,concepto,tipo_movimiento,categoria_id,categoria_csv,nota,entidad_csv,nombre_producto_csv,tipo_producto_csv",
           )
           .eq("user_id", uid)
           .eq("origen", "manual")
