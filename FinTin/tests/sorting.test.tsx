@@ -85,6 +85,44 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 describe("Ordenación de tablas", () => {
+  it("resalta solo los cierres con saldo real, distinguiendo cero y diferencias de un céntimo", async () => {
+    api.list.mockImplementation(async (table) =>
+      table === "v_conciliacion_mensual"
+        ? [
+            ...rows,
+            {
+              ...rows[0],
+              fecha_cierre: "2026-03-31",
+              saldo_calculado: "9999999999999999.98",
+              saldo_real: "9999999999999999.99",
+              diferencia: "0.01",
+            },
+          ]
+        : [],
+    );
+    render(<AccountsPage {...props} />);
+    const table = await screen.findByRole("table", {
+      name: "Saldos mensuales por cuenta",
+    });
+    const accountRows = within(table).getAllByRole("row").slice(1);
+    expect(accountRows[0].children[1].className).toBe("balance-mismatch");
+    expect(accountRows[1].children[1].className).toBe("");
+    expect(accountRows[2].children[2].className).toBe("balance-match");
+    expect(accountRows[0].children[3].className).toBe("balance-mismatch");
+    expect(accountRows[0].children[4].className).toBe("");
+    expect(
+      within(accountRows[0].children[3] as HTMLElement).getByRole("button")
+        .title,
+    ).toBe("Diferencia: 0,01 EUR");
+    const u = userEvent.setup();
+    await u.click(
+      within(accountRows[2].children[2] as HTMLElement).getByRole("button"),
+    );
+    expect(props.open).toHaveBeenCalledWith({
+      account: "c",
+      through: "2026-02-28",
+    });
+  });
   it("ordena importes de precisión completa y deja pendientes al final en ambos sentidos", () => {
     const input = [
       { v: "9999999999999999.99" },

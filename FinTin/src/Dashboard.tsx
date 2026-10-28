@@ -1,5 +1,6 @@
 import { useTableSort, sortRows, SortHeader } from "./sorting";
 import { useEffect, useState } from "react";
+import Decimal from "decimal.js";
 import { annual, list, save, remove } from "./api";
 import type { Movement, Reconciliation, Balance } from "./types";
 import { kinds, labels, months } from "./types";
@@ -362,6 +363,12 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                 Saldo inicial + todos los movimientos posteriores al corte. Los
                 meses futuros aún no tienen cierre.
               </p>
+              {!reconcile && (
+                <p className="muted">
+                  Verde: saldo real y calculado coinciden. Rojo: hay diferencia.
+                  Sin color: saldo real pendiente o mes sin cierre.
+                </p>
+              )}
               {!reconcile ? (
                 <div className="table-wrap">
                   <table
@@ -405,11 +412,33 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                                 r.cuenta_id === a.id &&
                                 Number(r.fecha_cierre.slice(5, 7)) === i + 1,
                             );
+                            const matches =
+                              r && r.saldo_real !== null
+                                ? new Decimal(r.saldo_real).eq(
+                                    r.saldo_calculado,
+                                  )
+                                : null;
                             return (
-                              <td key={i}>
+                              <td
+                                key={i}
+                                className={
+                                  matches === null
+                                    ? undefined
+                                    : matches
+                                      ? "balance-match"
+                                      : "balance-mismatch"
+                                }
+                              >
                                 {r ? (
                                   <button
                                     className="cell"
+                                    title={
+                                      r.saldo_real === null
+                                        ? "Saldo real pendiente"
+                                        : matches
+                                          ? "Saldo real y calculado coinciden"
+                                          : `Diferencia: ${money(new Decimal(r.saldo_real).minus(r.saldo_calculado), currency)}`
+                                    }
                                     onClick={() =>
                                       open({
                                         account: a.id,

@@ -942,3 +942,15 @@ h1 {
 .account-matrix .cell small {
   white-space: normal;
 }
+.account-matrix .balance-match {
+  background: #ecfdf3;
+}
+.account-matrix .balance-mismatch {
+  background: #fff1f2;
+}
+.account-matrix .balance-match .cell:hover {
+  background: #dcfce7;
+}
+.account-matrix .balance-mismatch .cell:hover {
+  background: #ffe4e6;
+}
