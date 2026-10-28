@@ -31,7 +31,7 @@ La migración `supabase/migrations/20261027000001_fintin_inicial.sql` conserva �
 
 ## Importación
 
-Seleccionar ejercicio y codificación: UTF-8 o Windows-1252 como conversión explícita. La cabecera debe tener las once columnas exactas del contrato. Papa Parse maneja comillas, multilinea, BOM y CRLF. Se normalizan importes españoles a cadenas decimales sin floats y fechas a ISO. Tipos desconocidos, filas erróneas y años mezclados bloquean publicación. Los duplicados legítimos se conservan. Los signos no se transforman; se advierten gastos positivos e ingresos negativos.
+Seleccionar ejercicio y codificación: UTF-8 o Windows-1252 como conversión explícita. La cabecera debe tener las once columnas exactas del contrato. Papa Parse maneja comillas, multilinea, BOM y CRLF. Se normalizan importes españoles a cadenas decimales sin floats y fechas a ISO. Se aceptan DD/MM/YYYY y DD/MM/YY en ambas fechas; los años abreviados 00–99 corresponden explícitamente a 2000–2099. La fecha valor debe seguir coincidiendo con el ejercicio seleccionado. Tipos desconocidos, filas erróneas y años mezclados bloquean publicación. Los duplicados legítimos se conservan. Los signos no se transforman; se advierten gastos positivos e ingresos negativos.
 
 Resolver alias explícitos antes de publicar; no se hacen correspondencias parciales ni se crean cuentas automáticamente. La previsualización muestra las primeras 50 filas, los recuentos y los totales completos por tipo y moneda. Se requiere confirmar la sustitución del ejercicio. Se carga en lotes de 500 con progreso e índices 1..N. SHA-256 usa los bytes originales. El historial conserva metadatos y hash, nunca el archivo.
 

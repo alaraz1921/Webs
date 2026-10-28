@@ -159,6 +159,10 @@ export function ImportPage(
           El agregador es la fuente de verdad. Cada publicación sustituye todos
           los CSV del ejercicio, conservando manuales y otros años.
         </p>
+        <p className="muted">
+          Fechas: DD/MM/YYYY o DD/MM/YY (00–99 corresponden a 2000–2099). La
+          fecha valor debe pertenecer al ejercicio seleccionado.
+        </p>
         <fieldset disabled={busy || loading}>
           <div className="form-grid">
             <Field label={`CSV del ejercicio ${year}`}>

@@ -19,6 +19,49 @@ describe("CSV y cálculos exactos", () => {
     expect(() => isoDate("29/02/2026")).toThrow();
     expect(() => isoDate("31/04/2026")).toThrow();
   });
+  it("normaliza años abreviados sin pivote dependiente del navegador", () => {
+    expect(isoDate("27/10/26")).toBe("2026-10-27");
+    expect(isoDate(" 29/02/24 ")).toBe("2024-02-29");
+    expect(isoDate("01/01/00")).toBe("2000-01-01");
+    expect(isoDate("31/12/99")).toBe("2099-12-31");
+    expect(isoDate("31/12/1999")).toBe("1999-12-31");
+  });
+  it.each([
+    "29/02/26",
+    "31/04/26",
+    "00/10/26",
+    "27/00/26",
+    "27/13/26",
+    "27/10/026",
+    "27/10/6",
+  ])("rechaza fecha inválida %s", (date) => {
+    expect(() => isoDate(date)).toThrow();
+  });
+  it("importa las dos fechas abreviadas del agregador y conserva el control del ejercicio", () => {
+    const fictitious =
+      '27/10/26,26/10/26,"12,34",EUR,Transferencia ficticia,Banco ficticio,Cuenta ficticia,Cuenta,No computable,Prueba,Nota ficticia';
+    const parsed = parseCsv(csv(fictitious), 2026);
+    expect(parsed.errors).toEqual([]);
+    expect(parsed.rows[0]).toMatchObject({
+      fecha_valor: "2026-10-27",
+      fecha_operacion: "2026-10-26",
+      importe: "12.34",
+      tipo_movimiento: "no_computable",
+    });
+    expect(parseCsv(csv(fictitious), 2025).errors).toContain(
+      "Fila 1: Fecha valor fuera del ejercicio seleccionado",
+    );
+    const previousOperation = parseCsv(
+      csv(fictitious.replace("26/10/26", "31/12/25")),
+      2026,
+    );
+    expect(previousOperation.errors).toEqual([]);
+    expect(previousOperation.rows[0].fecha_operacion).toBe("2025-12-31");
+    expect(
+      parseCsv(csv(fictitious + "\r\n" + row.replaceAll("2026", "2025")), 2026)
+        .errors,
+    ).toContain("Fila 2: Fecha valor fuera del ejercicio seleccionado");
+  });
   it("acepta BOM CRLF comillas y multilinea", () => {
     const r = parseCsv(
       "\uFEFF" +
