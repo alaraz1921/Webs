@@ -671,84 +671,86 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                 <Empty>No hay cierres para los filtros seleccionados.</Empty>
               )}
             </Panel>
-            <Panel title="Anotar saldo real">
-              <p className="muted">
-                Para conciliar un mes, indica su último día. También puedes
-                guardar observaciones en otras fechas.
-              </p>
-              <Form
-                onSave={async (d) => {
-                  const a = text(d, "cuenta_id"),
-                    date = text(d, "fecha_corte");
-                  const existing = balances.find(
-                    (b) => b.cuenta_id === a && b.fecha_corte === date,
-                  );
-                  await save(
-                    "saldos",
-                    uid,
-                    {
-                      cuenta_id: a,
-                      fecha_corte: date,
-                      saldo_real: amount(text(d, "saldo_real")),
-                      nota: text(d, "nota"),
-                    },
-                    existing?.id,
-                  );
-                  setRefresh((v) => v + 1);
-                }}
-              >
-                <div className="form-grid">
-                  <Field label="Cuenta">
-                    <select name="cuenta_id" required>
-                      <option value="">Selecciona</option>
-                      {accounts.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.nombre_producto} · {a.moneda}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label="Fecha de corte">
-                    <input name="fecha_corte" type="date" required />
-                  </Field>
-                  <Field label="Saldo real">
-                    <input
-                      name="saldo_real"
-                      inputMode="decimal"
-                      placeholder="0,00"
-                      required
-                    />
-                  </Field>
-                  <Field label="Nota">
-                    <input name="nota" />
-                  </Field>
-                </div>
-              </Form>
-              <div className="item-list">
-                {balances
-                  .filter((b) => b.fecha_corte.startsWith(String(year)))
-                  .map((b) => (
-                    <div key={b.id}>
-                      <span>
-                        {
-                          accounts.find((a) => a.id === b.cuenta_id)
-                            ?.nombre_producto
-                        }{" "}
-                        · {displayDate(b.fecha_corte)}
-                        <small>
-                          {b.saldo_real} · {b.nota}
-                        </small>
-                      </span>
-                      <ConfirmDelete
-                        onDelete={async () => {
-                          await remove("saldos", uid, b.id);
-                          setRefresh((v) => v + 1);
-                        }}
+            {!reconcile && (
+              <Panel title="Anotar saldo real">
+                <p className="muted">
+                  Para conciliar un mes, indica su último día. También puedes
+                  guardar observaciones en otras fechas.
+                </p>
+                <Form
+                  onSave={async (d) => {
+                    const a = text(d, "cuenta_id"),
+                      date = text(d, "fecha_corte");
+                    const existing = balances.find(
+                      (b) => b.cuenta_id === a && b.fecha_corte === date,
+                    );
+                    await save(
+                      "saldos",
+                      uid,
+                      {
+                        cuenta_id: a,
+                        fecha_corte: date,
+                        saldo_real: amount(text(d, "saldo_real")),
+                        nota: text(d, "nota"),
+                      },
+                      existing?.id,
+                    );
+                    setRefresh((v) => v + 1);
+                  }}
+                >
+                  <div className="form-grid">
+                    <Field label="Cuenta">
+                      <select name="cuenta_id" required>
+                        <option value="">Selecciona</option>
+                        {accounts.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.nombre_producto} · {a.moneda}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Fecha de corte">
+                      <input name="fecha_corte" type="date" required />
+                    </Field>
+                    <Field label="Saldo real">
+                      <input
+                        name="saldo_real"
+                        inputMode="decimal"
+                        placeholder="0,00"
+                        required
                       />
-                    </div>
-                  ))}
-              </div>
-            </Panel>
+                    </Field>
+                    <Field label="Nota">
+                      <input name="nota" />
+                    </Field>
+                  </div>
+                </Form>
+                <div className="item-list">
+                  {balances
+                    .filter((b) => b.fecha_corte.startsWith(String(year)))
+                    .map((b) => (
+                      <div key={b.id}>
+                        <span>
+                          {
+                            accounts.find((a) => a.id === b.cuenta_id)
+                              ?.nombre_producto
+                          }{" "}
+                          · {displayDate(b.fecha_corte)}
+                          <small>
+                            {b.saldo_real} · {b.nota}
+                          </small>
+                        </span>
+                        <ConfirmDelete
+                          onDelete={async () => {
+                            await remove("saldos", uid, b.id);
+                            setRefresh((v) => v + 1);
+                          }}
+                        />
+                      </div>
+                    ))}
+                </div>
+              </Panel>
+            )}
           </>
         )
       )}
