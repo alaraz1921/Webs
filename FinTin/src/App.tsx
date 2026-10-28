@@ -355,36 +355,14 @@ function Workspace({ session }: { session: Session }) {
           </div>
           {page.id !== "configuracion" && (
             <div className="context-bar">
-              {page.id === "importacion" ? (
-                <YearPicker
-                  value={year}
-                  disabled={importBusy}
-                  onChange={(y) => {
-                    setYear(y);
-                    setFilters(filtersFor(y));
-                  }}
-                />
-              ) : (
-                <Field label="Ejercicio">
-                  <select
-                    disabled={importBusy}
-                    value={year}
-                    onChange={(e) => {
-                      const y = Number(e.target.value);
-                      setYear(y);
-                      setFilters(filtersFor(y));
-                    }}
-                  >
-                    {Array.from({ length: 101 }, (_, i) => 2100 - i).map(
-                      (y) => (
-                        <option key={y} value={y}>
-                          {y}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                </Field>
-              )}
+              <YearPicker
+                value={year}
+                disabled={importBusy}
+                onChange={(y) => {
+                  setYear(y);
+                  setFilters(filtersFor(y));
+                }}
+              />
               {["resumen", "cuentas", "conciliacion"].includes(page.id) && (
                 <>
                   <Field label="Moneda">

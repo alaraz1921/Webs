@@ -96,6 +96,10 @@ async function emit(
     auth.listener!(event, value);
   });
 }
+async function chooseYear(u: ReturnType<typeof userEvent.setup>, year: string) {
+  await u.click(await screen.findByRole("combobox", { name: /^Ejercicio/ }));
+  await u.click(screen.getByRole("option", { name: year }));
+}
 beforeEach(() => {
   vi.resetAllMocks();
   history.replaceState(null, "", "#resumen");
@@ -214,7 +218,7 @@ describe("Continuidad de sesión y autorización", () => {
   it("borra todos los filtros y reinicia la paginación conservando el ejercicio", async () => {
     render(<App />);
     const u = userEvent.setup();
-    await u.selectOptions(await screen.findByLabelText("Ejercicio"), "2025");
+    await chooseYear(u, "2025");
     await u.click(await screen.findByRole("button", { name: "12,00 EUR" }));
     await u.type(
       await screen.findByLabelText("Buscar concepto"),
@@ -245,15 +249,34 @@ describe("Continuidad de sesión y autorización", () => {
         "",
       );
     expect(
-      (screen.getByLabelText("Ejercicio") as HTMLSelectElement).value,
+      screen.getByRole("combobox", { name: /^Ejercicio/ }).textContent,
     ).toBe("2025");
     await screen.findByText(/100 movimientos · página 1/);
   });
+  it.each(["Resumen", "Cuentas", "Conciliación", "Movimientos"])(
+    "usa el desplegable compacto con todos los años en %s",
+    async (page) => {
+      render(<App />);
+      const u = userEvent.setup();
+      await screen.findByRole("button", { name: "12,00 EUR" });
+      await u.click(screen.getByRole("link", { name: page }));
+      await screen.findByRole("heading", { name: page, level: 1 });
+      await u.click(screen.getByRole("combobox", { name: /^Ejercicio/ }));
+      expect(
+        within(screen.getByRole("listbox")).getAllByRole("option"),
+      ).toHaveLength(101);
+      await u.click(screen.getByRole("option", { name: "2012" }));
+      expect(
+        screen.getByRole("combobox", { name: /^Ejercicio/ }).textContent,
+      ).toBe("2012");
+      expect(screen.queryByRole("listbox")).toBeNull();
+    },
+  );
   it("conserva todos los ejercicios en el desplegable compacto de importación", async () => {
     render(<App />);
     const u = userEvent.setup();
     await screen.findByRole("button", { name: "12,00 EUR" });
-    await u.selectOptions(screen.getByLabelText("Ejercicio"), "2026");
+    await chooseYear(u, "2026");
     await u.click(screen.getByRole("link", { name: "Importación CSV" }));
     await screen.findByRole("heading", {
       name: "Importa un ejercicio completo",
@@ -267,17 +290,13 @@ describe("Continuidad de sesión y autorización", () => {
     expect(combo.textContent).toBe("2010");
     expect(screen.queryByRole("listbox")).toBeNull();
     await u.click(combo);
-    expect(
-      screen.getByRole("option", { name: "2000" }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("option", { name: "2100" }),
-    ).toBeTruthy();
+    expect(screen.getByRole("option", { name: "2000" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "2100" })).toBeTruthy();
   });
   it("mantiene el desglose de categoría, ingreso y mes después de TOKEN_REFRESHED", async () => {
     render(<App />);
     const u = userEvent.setup();
-    await u.selectOptions(await screen.findByLabelText("Ejercicio"), "2026");
+    await chooseYear(u, "2026");
     await u.click(await screen.findByRole("button", { name: "12,00 EUR" }));
     const from = await screen.findByLabelText("Desde");
     expect((from as HTMLInputElement).value).toBe("2026-03-01");
