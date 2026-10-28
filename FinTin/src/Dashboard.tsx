@@ -113,7 +113,7 @@ export function Summary({
                   </p>
                   <div className="table-wrap">
                     <table
-                      className="matrix compact-table"
+                      className="matrix compact-table year-matrix"
                       aria-label={labels[kind] + " por categorías y meses"}
                     >
                       <SummaryColumns label="Categoría" currency={currency} />
@@ -205,7 +205,7 @@ export function Summary({
               </p>
               <div className="table-wrap">
                 <table
-                  className="matrix compact-table"
+                  className="matrix compact-table year-matrix"
                   aria-label="Totales mensuales y neto"
                 >
                   <SummaryColumns label="Tipo" currency={currency} />
@@ -365,7 +365,7 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
               {!reconcile ? (
                 <div className="table-wrap">
                   <table
-                    className="matrix compact-table account-matrix"
+                    className="matrix compact-table year-matrix account-matrix"
                     aria-label="Saldos mensuales por cuenta"
                   >
                     <thead>

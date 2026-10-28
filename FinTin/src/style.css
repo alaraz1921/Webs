@@ -920,17 +920,25 @@ h1 {
 .sort-heading:hover {
   background: #eff6ff;
 }
-.account-matrix td {
-  min-width: 106px;
+.year-matrix td {
+  min-width: 92px;
 }
-.account-matrix td,
-.account-matrix th {
-  padding-left: 8px;
-  padding-right: 8px;
+.year-matrix td,
+.year-matrix th {
+  padding-left: 5px;
+  padding-right: 5px;
 }
-.account-matrix .cell {
-  padding-left: 3px;
-  padding-right: 3px;
+.year-matrix th:first-child {
+  min-width: 150px;
+  width: 160px;
+  overflow-wrap: anywhere;
+}
+.year-matrix .cell {
+  padding-left: 0;
+  padding-right: 0;
   margin-left: 0;
   margin-right: 0;
+}
+.account-matrix .cell small {
+  white-space: normal;
 }
