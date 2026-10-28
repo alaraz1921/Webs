@@ -76,6 +76,32 @@ export function Summary({
       ) : (
         !error && (
           <>
+            <div
+              className="stats"
+              role="group"
+              aria-label="Totales del ejercicio"
+            >
+              {[...kinds, "balance" as const].map((key) => {
+                const label = key === "balance" ? "Neto" : labels[key];
+                return (
+                  <article
+                    className={"stat " + key}
+                    key={key}
+                    aria-label={"Total " + label}
+                  >
+                    <span>{label}</span>
+                    <strong>{money(t[key], currency)}</strong>
+                    <small>
+                      {key === "balance"
+                        ? "Ingresos menos gastos; sin no computables"
+                        : key === "no_computable"
+                          ? "Afectan al saldo de tus cuentas"
+                          : "Total del ejercicio seleccionado"}
+                    </small>
+                  </article>
+                );
+              })}
+            </div>
             {kinds.map((kind) => {
               const categoriesForKind = groups.filter((g) => g.kind === kind);
               return (

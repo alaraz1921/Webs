@@ -107,6 +107,17 @@ describe("Resumen separado por tipos", () => {
     expect(
       screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
     ).toEqual(["Ingresos", "Gastos", "No computables", "Totales y neto"]);
+    const cards = screen.getByRole("group", { name: "Totales del ejercicio" });
+    expect(
+      within(cards)
+        .getAllByRole("article")
+        .map((card) => within(card).getByText(/EUR$/).textContent),
+    ).toEqual(["120,00 EUR", "-75,00 EUR", "999,00 EUR", "45,00 EUR"]);
+    expect(
+      cards.compareDocumentPosition(
+        screen.getByRole("heading", { name: "Ingresos" }),
+      ) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     const income = screen.getByRole("table", {
       name: "Ingresos por categorías y meses",
     });
