@@ -41,6 +41,8 @@ Solo `fintin_publicar_importacion` publica. Valida sesión, autorización, propi
 
 ## Cálculos y consulta
 
+El resumen presenta cuatro bloques en orden: Ingresos, Gastos, No computables y Totales y neto. Los tres primeros desglosan categorías y meses con subtotales mensuales y anual. El cuarto muestra solo los totales mensuales y anual de los tres tipos y el Neto. Como el CSV conserva gastos con signo negativo y devoluciones con signo positivo, el Neto suma ingresos y gastos con su signo, excluyendo no computables.
+
 PostgREST devuelve los importes con cast `::text`; Decimal.js calcula con precisión de 40 dígitos sin perder céntimos en numeric(18,2). Monedas separadas, sin conversión. Balance computable = ingresos + gastos con sus signos originales. No computables afectan al saldo, no al balance computable.
 
 Los cierres usan la vista invocadora SQL: saldo inicial + todos los movimientos posteriores al corte y hasta el cierre inclusive. Incluye meses sin movimientos hasta el mes actual según `Atlantic/Canary`, zona del SQL original. Meses futuros sin cierre. Saldos reales de otras fechas se guardan como observaciones; para conciliar un mes usar su último día. Guardar de nuevo cuenta/fecha actualiza ese saldo real.

@@ -1,0 +1,170 @@
+// @vitest-environment jsdom
+import { cleanup, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Movement } from "../src/types";
+const api = vi.hoisted(() => ({
+  annual: vi.fn(),
+  list: vi.fn(),
+  save: vi.fn(),
+  remove: vi.fn(),
+}));
+vi.mock("../src/api", () => api);
+import { Summary } from "../src/Dashboard";
+function movement(id: string, changes: Partial<Movement>): Movement {
+  return {
+    id,
+    cuenta_id: "account",
+    fecha_valor: "2026-01-10",
+    fecha_operacion: "2026-01-10",
+    importe: "0.00",
+    moneda: "EUR",
+    concepto: "Movimiento ficticio",
+    tipo_movimiento: "ingreso",
+    categoria_id: null,
+    categoria_csv: "",
+    nota: "",
+    origen: "csv",
+    ...changes,
+  };
+}
+const rows = [
+  movement("income-jan", { importe: "100.00", categoria_id: "income" }),
+  movement("income-feb", {
+    importe: "20.00",
+    categoria_id: "income",
+    fecha_valor: "2026-02-10",
+  }),
+  movement("expense-jan", {
+    importe: "-30.00",
+    tipo_movimiento: "gasto",
+    categoria_id: "expense",
+  }),
+  movement("refund", {
+    importe: "5.00",
+    tipo_movimiento: "gasto",
+    categoria_id: "expense",
+  }),
+  movement("expense-feb", {
+    importe: "-50.00",
+    tipo_movimiento: "gasto",
+    categoria_id: "expense",
+    fecha_valor: "2026-02-10",
+  }),
+  movement("transfer", {
+    importe: "999.00",
+    tipo_movimiento: "no_computable",
+    categoria_csv: "Traspaso ficticio",
+  }),
+  movement("other-account", {
+    importe: "500.00",
+    cuenta_id: "other",
+    categoria_id: "income",
+  }),
+  movement("other-currency", {
+    importe: "1000.00",
+    moneda: "USD",
+    categoria_id: "income",
+  }),
+];
+const props = {
+  uid: "owner",
+  year: 2026,
+  currency: "EUR",
+  account: "account",
+  accounts: [],
+  aliases: [],
+  categories: [
+    {
+      id: "income",
+      user_id: "owner",
+      nombre: "Nómina ficticia",
+      tipo_movimiento: "ingreso" as const,
+    },
+    {
+      id: "expense",
+      user_id: "owner",
+      nombre: "Casa ficticia",
+      tipo_movimiento: "gasto" as const,
+    },
+  ],
+  reload: vi.fn(),
+  open: vi.fn(),
+};
+afterEach(cleanup);
+beforeEach(() => {
+  vi.clearAllMocks();
+  api.annual.mockResolvedValue(rows);
+});
+const numbers = (table: HTMLElement, name: string | RegExp) =>
+  within(within(table).getByRole("row", { name }))
+    .getAllByRole("cell")
+    .map((c) => c.textContent);
+describe("Resumen separado por tipos", () => {
+  it("ordena los cuatro grupos y calcula totales por mes, año y neto excluyendo no computables", async () => {
+    render(<Summary {...props} />);
+    await screen.findByRole("heading", { name: "Totales y neto" });
+    expect(
+      screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
+    ).toEqual(["Ingresos", "Gastos", "No computables", "Totales y neto"]);
+    const income = screen.getByRole("table", {
+      name: "Ingresos por categorías y meses",
+    });
+    const expense = screen.getByRole("table", {
+      name: "Gastos por categorías y meses",
+    });
+    const other = screen.getByRole("table", {
+      name: "No computables por categorías y meses",
+    });
+    expect(within(income).getByText("Nómina ficticia")).toBeTruthy();
+    expect(within(income).queryByText("Casa ficticia")).toBeNull();
+    expect(within(expense).getByText("Casa ficticia")).toBeTruthy();
+    expect(within(other).getByText("Traspaso ficticio")).toBeTruthy();
+    const incomeTotals = numbers(income, /^Total ingresos/);
+    expect(incomeTotals.slice(0, 2)).toEqual(["100,00 EUR", "20,00 EUR"]);
+    expect(incomeTotals.at(-1)).toBe("120,00 EUR");
+    const expenseTotals = numbers(expense, /^Total gastos/);
+    expect(expenseTotals.slice(0, 2)).toEqual(["-25,00 EUR", "-50,00 EUR"]);
+    expect(expenseTotals.at(-1)).toBe("-75,00 EUR");
+    const total = screen.getByRole("table", {
+      name: "Totales mensuales y neto",
+    });
+    const net = numbers(total, /^Neto/);
+    expect(net.slice(0, 2)).toEqual(["75,00 EUR", "-30,00 EUR"]);
+    expect(net.at(-1)).toBe("45,00 EUR");
+    expect(
+      within(total)
+        .getAllByRole("rowheader")
+        .map((h) => h.textContent),
+    ).toEqual(["Ingresos", "Gastos", "No computables", "Neto"]);
+  });
+  it("abre el mes y la categoría del grupo correcto", async () => {
+    render(<Summary {...props} />);
+    const u = userEvent.setup();
+    await u.click(await screen.findByRole("button", { name: "-25,00 EUR" }));
+    expect(props.open).toHaveBeenCalledWith({
+      month: 1,
+      category: "expense",
+      kind: "gasto",
+    });
+    await u.click(screen.getByRole("button", { name: "999,00 EUR" }));
+    expect(props.open).toHaveBeenLastCalledWith({
+      month: 1,
+      category: "__none",
+      kind: "no_computable",
+    });
+  });
+  it("mantiene los grupos vacíos y sus totales a cero", async () => {
+    api.annual.mockResolvedValue([]);
+    render(<Summary {...props} />);
+    const table = await screen.findByRole("table", {
+      name: "Totales mensuales y neto",
+    });
+    expect(screen.getAllByRole("table")).toHaveLength(4);
+    expect(
+      within(table)
+        .getAllByRole("cell")
+        .every((c) => c.textContent === "0,00 EUR"),
+    ).toBe(true);
+  });
+});

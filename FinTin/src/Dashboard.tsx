@@ -64,8 +64,9 @@ export function Summary({
         },
       ]),
     ).values(),
-  ].sort(
-    (a, b) => a.kind.localeCompare(b.kind) || a.name.localeCompare(b.name),
+  ].sort((a, b) => a.name.localeCompare(b.name, "es"));
+  const monthly = months.map((_, i) =>
+    totals(rows.filter((r) => Number(r.fecha_valor.slice(5, 7)) === i + 1)),
   );
   return (
     <>
@@ -75,136 +76,164 @@ export function Summary({
       ) : (
         !error && (
           <>
-            <div className="stats">
-              {[...kinds, "balance" as const].map((k) => (
-                <article className={"stat " + k} key={k}>
-                  <span>
-                    {k === "balance" ? "Balance computable" : labels[k]}
-                  </span>
-                  <strong>{money(t[k], currency)}</strong>
-                  <small>
-                    {k === "balance"
-                      ? "Ingresos + gastos con signo"
-                      : k === "no_computable"
-                        ? "Afectan al saldo de tus cuentas"
-                        : "Total del ejercicio seleccionado"}
-                  </small>
-                </article>
-              ))}
-            </div>
-            <Panel title="El año, categoría a categoría">
-              <p className="muted">
-                Selecciona una cifra para explorar sus movimientos. Cada moneda
-                se muestra por separado.
-              </p>
-              <div className="table-wrap">
-                <table className="matrix">
-                  <thead>
-                    <tr>
-                      <th>Categoría / {currency}</th>
-                      {months.map((m) => (
-                        <th key={m}>{m}</th>
-                      ))}
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {groups.map((g) => (
-                      <tr key={g.kind + g.id + g.name}>
-                        <th>
-                          {g.name}
-                          <small>{labels[g.kind]}</small>
-                        </th>
-                        {months.map((_, i) => {
-                          const subset = rows.filter(
+            {kinds.map((kind) => {
+              const categoriesForKind = groups.filter((g) => g.kind === kind);
+              return (
+                <Panel key={kind} title={labels[kind]}>
+                  <p className="muted">
+                    Detalle por categoría y mes. Selecciona una cifra para
+                    explorar sus movimientos.
+                  </p>
+                  <div className="table-wrap">
+                    <table
+                      className="matrix"
+                      aria-label={labels[kind] + " por categorías y meses"}
+                    >
+                      <SummaryColumns label="Categoría" currency={currency} />
+                      <tbody>
+                        {categoriesForKind.map((g) => {
+                          const categoryRows = rows.filter(
                             (r) =>
-                              r.tipo_movimiento === g.kind &&
+                              r.tipo_movimiento === kind &&
                               (g.id
                                 ? r.categoria_id === g.id
                                 : !r.categoria_id &&
                                   (r.categoria_csv || "Sin categoría") ===
-                                    g.name) &&
-                              Number(r.fecha_valor.slice(5, 7)) === i + 1,
+                                    g.name),
                           );
                           return (
-                            <td key={i}>
-                              <button
-                                className="cell"
-                                onClick={() =>
-                                  open({
-                                    month: i + 1,
-                                    category: g.id || "__none",
-                                    kind: g.kind,
-                                  })
-                                }
-                              >
-                                {money(
-                                  sum(subset.map((r) => r.importe)),
-                                  currency,
-                                )}
-                              </button>
-                            </td>
+                            <tr key={g.id + g.name}>
+                              <th scope="row">{g.name}</th>
+                              {months.map((_, i) => (
+                                <td key={i}>
+                                  <button
+                                    className="cell"
+                                    onClick={() =>
+                                      open({
+                                        month: i + 1,
+                                        category: g.id || "__none",
+                                        kind,
+                                      })
+                                    }
+                                  >
+                                    {money(
+                                      sum(
+                                        categoryRows
+                                          .filter(
+                                            (r) =>
+                                              Number(
+                                                r.fecha_valor.slice(5, 7),
+                                              ) ===
+                                              i + 1,
+                                          )
+                                          .map((r) => r.importe),
+                                      ),
+                                      currency,
+                                    )}
+                                  </button>
+                                </td>
+                              ))}
+                              <td className="numeric">
+                                <b>
+                                  {money(
+                                    sum(categoryRows.map((r) => r.importe)),
+                                    currency,
+                                  )}
+                                </b>
+                              </td>
+                            </tr>
                           );
                         })}
-                        <td className="numeric">
-                          <b>
-                            {money(
-                              sum(
-                                rows
-                                  .filter(
-                                    (r) =>
-                                      r.tipo_movimiento === g.kind &&
-                                      (g.id
-                                        ? r.categoria_id === g.id
-                                        : !r.categoria_id &&
-                                          (r.categoria_csv ||
-                                            "Sin categoría") === g.name),
-                                  )
-                                  .map((r) => r.importe),
-                              ),
-                              currency,
-                            )}
-                          </b>
-                        </td>
-                      </tr>
-                    ))}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th scope="row">
+                            Total {labels[kind].toLowerCase()}
+                          </th>
+                          {monthly.map((m, i) => (
+                            <td className="numeric" key={i}>
+                              <b>{money(m[kind], currency)}</b>
+                            </td>
+                          ))}
+                          <td className="numeric">
+                            <b>{money(t[kind], currency)}</b>
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  {!categoriesForKind.length && (
+                    <Empty>
+                      No hay {labels[kind].toLowerCase()} para esta selección.
+                    </Empty>
+                  )}
+                </Panel>
+              );
+            })}
+            <Panel title="Totales y neto">
+              <p className="muted">
+                El Neto descuenta los gastos de los ingresos y excluye los no
+                computables. Los importes conservan el signo del CSV, incluidas
+                las devoluciones.
+              </p>
+              <div className="table-wrap">
+                <table className="matrix" aria-label="Totales mensuales y neto">
+                  <SummaryColumns label="Tipo" currency={currency} />
+                  <tbody>
+                    {[...kinds, "neto" as const].map((kind) => {
+                      const key = kind === "neto" ? "balance" : kind;
+                      return (
+                        <tr
+                          key={kind}
+                          className={
+                            kind === "neto" ? "summary-net" : undefined
+                          }
+                        >
+                          <th scope="row">
+                            {kind === "neto" ? "Neto" : labels[kind]}
+                          </th>
+                          {monthly.map((m, i) => (
+                            <td className="numeric" key={i}>
+                              {money(m[key], currency)}
+                            </td>
+                          ))}
+                          <td className="numeric">
+                            <b>{money(t[key], currency)}</b>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
-                  <tfoot>
-                    <tr>
-                      <th>Total movimientos</th>
-                      {months.map((_, i) => (
-                        <td key={i} className="numeric">
-                          {money(
-                            sum(
-                              rows
-                                .filter(
-                                  (r) =>
-                                    Number(r.fecha_valor.slice(5, 7)) === i + 1,
-                                )
-                                .map((r) => r.importe),
-                            ),
-                            currency,
-                          )}
-                        </td>
-                      ))}
-                      <td className="numeric">
-                        {money(sum(rows.map((r) => r.importe)), currency)}
-                      </td>
-                    </tr>
-                  </tfoot>
                 </table>
               </div>
-              {!rows.length && (
-                <Empty>
-                  Tu resumen empieza aquí. Crea tus cuentas e importa un CSV o
-                  añade un movimiento manual.
-                </Empty>
-              )}
             </Panel>
           </>
         )
       )}
     </>
+  );
+}
+function SummaryColumns({
+  label,
+  currency,
+}: {
+  label: string;
+  currency: string;
+}) {
+  return (
+    <thead>
+      <tr>
+        <th scope="col">
+          {label} / {currency}
+        </th>
+        {months.map((m) => (
+          <th scope="col" key={m}>
+            {m}
+          </th>
+        ))}
+        <th scope="col">Total</th>
+      </tr>
+    </thead>
   );
 }
 export function AccountsPage(props: YearProps & { reconcile?: boolean }) {

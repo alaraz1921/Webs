@@ -866,3 +866,10 @@ footer {
     padding: 18px;
   }
 }
+
+.summary-net th,
+.summary-net td {
+  background: #edf3e8;
+  font-weight: 700;
+  border-top: 2px solid #cfddc7;
+}
