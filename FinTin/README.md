@@ -15,7 +15,7 @@ Copy-Item .env.example .env.local
 npm run dev
 ```
 
-Abrir la URL de Vite, normalmente `http://127.0.0.1:5173/FinTin/`. Sin variables aparece una pantalla de configuración, sin datos simulados. No se habilitan registros ni se modifica Supabase Auth. Usar correo y contraseña de una cuenta existente. Cerrar sesión afecta únicamente a la sesión local de FinTin. La sesión se mantiene en memoria: al recargar se inicia sesión de nuevo. No se almacenan claves secretas ni movimientos en localStorage.
+Abrir la URL de Vite, normalmente `http://127.0.0.1:5173/FinTin/`. Sin variables aparece una pantalla de configuración, sin datos simulados. No se habilitan registros ni se modifica Supabase Auth. Usar correo y contraseña de una cuenta existente. Cerrar sesión afecta únicamente a la sesión local de FinTin. La sesión se mantiene en memoria: al recargar se inicia sesión de nuevo. Al volver a la pestaña o renovarse el token del mismo usuario, se conserva la pantalla montada y sus filtros y paginación; la autorización se revalida en segundo plano. Un cierre de sesión, un cambio de UUID o una autorización revocada retiran el acceso. No se almacenan claves secretas ni movimientos en localStorage.
 
 Variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` o, alternativamente, `VITE_SUPABASE_ANON_KEY` pública legacy. Nunca usar `service_role`, `sb_secret_…` ni contraseñas de PostgreSQL en Vite o Actions. `.env.local` está ignorado. Vite rechaza claves secretas o JWT de roles privilegiados antes de compilar. La clave pública es visible en la compilación: grants y RLS son la frontera de seguridad.
 

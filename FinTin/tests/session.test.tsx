@@ -1,0 +1,246 @@
+// @vitest-environment jsdom
+import { act, cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
+const auth = vi.hoisted(() => ({
+  getSession: vi.fn(),
+  signOut: vi.fn(),
+  unsubscribe: vi.fn(),
+  listener: null as
+    ((event: AuthChangeEvent, session: Session | null) => void) | null,
+}));
+const api = vi.hoisted(() => ({
+  rpc: vi.fn(),
+  list: vi.fn(),
+  annual: vi.fn(),
+  movements: vi.fn(),
+  save: vi.fn(),
+  remove: vi.fn(),
+  prepare: vi.fn(),
+}));
+vi.mock("../src/api", () => {
+  const db = {
+    auth: {
+      ...auth,
+      onAuthStateChange: (listener: typeof auth.listener) => {
+        auth.listener = listener;
+        return { data: { subscription: { unsubscribe: auth.unsubscribe } } };
+      },
+    },
+    rpc: api.rpc,
+  };
+  return {
+    ...api,
+    configured: true,
+    db,
+    client: () => db,
+    checked: (r: { data: unknown }) => r.data,
+  };
+});
+import App from "../src/App";
+const session: Session = {
+  access_token: "synthetic-access",
+  refresh_token: "synthetic-refresh",
+  token_type: "bearer",
+  expires_in: 3600,
+  user: {
+    id: "owner",
+    email: "ejemplo@example.invalid",
+    app_metadata: {},
+    user_metadata: {},
+    aud: "authenticated",
+    created_at: "2026-01-01T00:00:00Z",
+  },
+};
+const account = {
+  id: "account",
+  user_id: "owner",
+  entidad: "Banco ficticio",
+  nombre_producto: "Cuenta ficticia",
+  tipo_producto: "Cuenta",
+  moneda: "EUR",
+  saldo_inicial: "100.00",
+  fecha_saldo_inicial: "2025-12-31",
+  activo: true,
+};
+const movement = {
+  id: "movement",
+  user_id: "owner",
+  cuenta_id: "account",
+  fecha_valor: "2026-03-10",
+  fecha_operacion: "2026-03-10",
+  importe: "12.00",
+  moneda: "EUR",
+  concepto: "Ingreso ficticio",
+  tipo_movimiento: "ingreso",
+  categoria_id: "category",
+  categoria_csv: "",
+  nota: "",
+  origen: "csv",
+};
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((r) => {
+    resolve = r;
+  });
+  return { promise, resolve };
+}
+async function emit(
+  event: AuthChangeEvent,
+  value: Session | null = { ...session },
+) {
+  await act(async () => {
+    auth.listener!(event, value);
+  });
+}
+beforeEach(() => {
+  vi.resetAllMocks();
+  history.replaceState(null, "", "#resumen");
+  auth.getSession.mockResolvedValue({ data: { session }, error: null });
+  api.rpc.mockResolvedValue({ data: true, error: null });
+  api.list.mockImplementation(async (table) =>
+    table === "cuentas"
+      ? [account]
+      : table === "categorias"
+        ? [
+            {
+              id: "category",
+              user_id: "owner",
+              nombre: "Ingreso ficticio",
+              tipo_movimiento: "ingreso",
+            },
+          ]
+        : [],
+  );
+  api.annual.mockResolvedValue([movement]);
+  api.movements.mockResolvedValue({ rows: [movement], count: 100 });
+});
+afterEach(cleanup);
+describe("Continuidad de sesión y autorización", () => {
+  it("conserva filtros, paginación y nodos al repetir SIGNED_IN por recuperar foco", async () => {
+    render(<App />);
+    const u = userEvent.setup();
+    await screen.findByRole("button", { name: "12,00 EUR" });
+    await u.click(screen.getByRole("link", { name: "Movimientos" }));
+    const search = await screen.findByLabelText("Buscar concepto");
+    await u.type(search, "filtro ficticio");
+    await screen.findByText(/100 movimientos · página 1/);
+    await u.click(screen.getByRole("button", { name: "Siguiente" }));
+    await screen.findByText(/100 movimientos · página 2/);
+    const pending = deferred<{ data: boolean; error: null }>();
+    api.rpc.mockReturnValueOnce(pending.promise);
+    const listCalls = api.list.mock.calls.length;
+    await emit("SIGNED_IN");
+    expect(screen.getByLabelText("Buscar concepto")).toBe(search);
+    expect((search as HTMLInputElement).value).toBe("filtro ficticio");
+    expect(screen.getByText(/100 movimientos · página 2/)).toBeTruthy();
+    expect(
+      screen.queryByText("Verificando autorización de FinTin…"),
+    ).toBeNull();
+    await act(async () => {
+      pending.resolve({ data: true, error: null });
+    });
+    expect(screen.getByLabelText("Buscar concepto")).toBe(search);
+    expect(api.list).toHaveBeenCalledTimes(listCalls);
+  });
+  it("mantiene el desglose de categoría, ingreso y mes después de TOKEN_REFRESHED", async () => {
+    render(<App />);
+    const u = userEvent.setup();
+    await u.selectOptions(await screen.findByLabelText("Ejercicio"), "2026");
+    await u.click(await screen.findByRole("button", { name: "12,00 EUR" }));
+    const from = await screen.findByLabelText("Desde");
+    expect((from as HTMLInputElement).value).toBe("2026-03-01");
+    expect((screen.getByLabelText("Hasta") as HTMLInputElement).value).toBe(
+      "2026-03-31",
+    );
+    expect((screen.getByLabelText("Tipo") as HTMLSelectElement).value).toBe(
+      "ingreso",
+    );
+    expect(
+      (screen.getByLabelText("Categoría") as HTMLSelectElement).value,
+    ).toBe("category");
+    await emit("TOKEN_REFRESHED", {
+      ...session,
+      access_token: "synthetic-refreshed",
+    });
+    expect(screen.getByLabelText("Desde")).toBe(from);
+    expect((screen.getByLabelText("Tipo") as HTMLSelectElement).value).toBe(
+      "ingreso",
+    );
+    expect(
+      (screen.getByLabelText("Categoría") as HTMLSelectElement).value,
+    ).toBe("category");
+  });
+  it("retira Workspace si se revoca la autorización en una revalidación", async () => {
+    render(<App />);
+    await screen.findByRole("button", { name: "12,00 EUR" });
+    api.rpc.mockResolvedValueOnce({ data: false, error: null });
+    await emit("SIGNED_IN");
+    await screen.findByRole("heading", { name: "Acceso no autorizado" });
+    expect(screen.queryByRole("navigation", { name: "Principal" })).toBeNull();
+  });
+  it("no reutiliza la autorización de otro UUID y descarta respuestas obsoletas", async () => {
+    render(<App />);
+    await screen.findByRole("button", { name: "12,00 EUR" });
+    const previous = deferred<{ data: boolean; error: null }>();
+    api.rpc.mockReturnValueOnce(previous.promise);
+    await emit("TOKEN_REFRESHED");
+    const next = deferred<{ data: boolean; error: null }>();
+    api.rpc.mockReturnValueOnce(next.promise);
+    await emit("SIGNED_IN", {
+      ...session,
+      user: { ...session.user, id: "other" },
+    });
+    expect(
+      screen.getByText("Verificando autorización de FinTin…"),
+    ).toBeTruthy();
+    await act(async () => {
+      previous.resolve({ data: true, error: null });
+    });
+    expect(screen.queryByRole("navigation", { name: "Principal" })).toBeNull();
+    await act(async () => {
+      next.resolve({ data: false, error: null });
+    });
+    await screen.findByRole("heading", { name: "Acceso no autorizado" });
+  });
+  it("limpia la autorización al cerrar sesión y exige revalidación al volver", async () => {
+    render(<App />);
+    await screen.findByRole("button", { name: "12,00 EUR" });
+    await emit("SIGNED_OUT", null);
+    await screen.findByRole("button", { name: "Entrar en FinTin" });
+    const pending = deferred<{ data: boolean; error: null }>();
+    api.rpc.mockReturnValueOnce(pending.promise);
+    await emit("SIGNED_IN");
+    expect(
+      screen.getByText("Verificando autorización de FinTin…"),
+    ).toBeTruthy();
+    await act(async () => {
+      pending.resolve({ data: true, error: null });
+    });
+    await screen.findByRole("navigation", { name: "Principal" });
+  });
+  it("un getSession antiguo no restaura la sesión después de SIGNED_OUT", async () => {
+    const pending = deferred<{ data: { session: Session }; error: null }>();
+    auth.getSession.mockReturnValueOnce(pending.promise);
+    render(<App />);
+    await emit("SIGNED_OUT", null);
+    await act(async () => {
+      pending.resolve({ data: { session }, error: null });
+    });
+    expect(
+      screen.getByRole("button", { name: "Entrar en FinTin" }),
+    ).toBeTruthy();
+    expect(api.rpc).not.toHaveBeenCalled();
+  });
+  it("un fallo de red al revalidar retira el acceso", async () => {
+    render(<App />);
+    await screen.findByRole("button", { name: "12,00 EUR" });
+    api.rpc.mockRejectedValueOnce(new Error("Error de comprobación ficticio"));
+    await emit("TOKEN_REFRESHED");
+    await screen.findByRole("heading", { name: "Acceso no autorizado" });
+    expect(screen.getByRole("alert").textContent).toContain(
+      "Error de comprobación ficticio",
+    );
+  });
+});

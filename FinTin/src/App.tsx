@@ -61,46 +61,62 @@ const pages = [
 export default function App() {
   const [session, setSession] = useState<Session | null>(null),
     [authReady, setAuthReady] = useState(false),
-    [allowed, setAllowed] = useState<boolean | null>(null),
+    [authorization, setAuthorization] = useState<{
+      uid: string;
+      allowed: boolean;
+    } | null>(null),
     [authError, setAuthError] = useState("");
   useEffect(() => {
     if (!db) {
       setAuthReady(true);
       return;
     }
+    let live = true;
+    let receivedAuthEvent = false;
     db.auth.getSession().then(({ data, error }) => {
+      if (!live || receivedAuthEvent) return;
       if (error) setAuthError(error.message);
       setSession(data.session);
       setAuthReady(true);
     });
-    const { data } = db.auth.onAuthStateChange((_, s) => {
-      setAllowed(null);
+    const { data } = db.auth.onAuthStateChange((event, s) => {
+      if (!live) return;
+      receivedAuthEvent = true;
+      if (!s || event === "SIGNED_OUT") setAuthorization(null);
       setSession(s);
+      setAuthReady(true);
     });
-    return () => data.subscription.unsubscribe();
+    return () => {
+      live = false;
+      data.subscription.unsubscribe();
+    };
   }, []);
   useEffect(() => {
     let live = true;
-    setAllowed(null);
     if (session) {
-      client()
-        .rpc("fintin_usuario_habilitado")
+      const uid = session.user.id;
+      // Revalidar la misma sesión no debe desmontar Workspace ni borrar sus filtros.
+      // La autorización solo es reutilizable para el mismo UUID; RLS sigue vigente.
+      Promise.resolve(client().rpc("fintin_usuario_habilitado"))
         .then((r) => {
-          if (live) {
-            if (r.error) {
-              setAuthError(r.error.message);
-              setAllowed(false);
-            } else {
-              setAuthError("");
-              setAllowed(r.data === true);
-            }
-          }
+          if (!live) return;
+          setAuthError(r.error?.message || "");
+          setAuthorization({ uid, allowed: !r.error && r.data === true });
+        })
+        .catch((error: Error) => {
+          if (!live) return;
+          setAuthError(error.message);
+          setAuthorization({ uid, allowed: false });
         });
     }
     return () => {
       live = false;
     };
   }, [session]);
+  const allowed =
+    session && authorization?.uid === session.user.id
+      ? authorization.allowed
+      : null;
   if (!configured)
     return (
       <Access>
