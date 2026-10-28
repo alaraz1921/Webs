@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
@@ -249,7 +249,7 @@ describe("Continuidad de sesión y autorización", () => {
     ).toBe("2025");
     await screen.findByText(/100 movimientos · página 1/);
   });
-  it("muestra cinco ejercicios en importación y desplaza el intervalo al seleccionar otro", async () => {
+  it("conserva todos los ejercicios en el desplegable compacto de importación", async () => {
     render(<App />);
     const u = userEvent.setup();
     await screen.findByRole("button", { name: "12,00 EUR" });
@@ -258,22 +258,21 @@ describe("Continuidad de sesión y autorización", () => {
     await screen.findByRole("heading", {
       name: "Importa un ejercicio completo",
     });
-    const select = screen.getByLabelText("Ejercicio") as HTMLSelectElement;
-    expect(Array.from(select.options).map((o) => o.value)).toEqual([
-      "2028",
-      "2027",
-      "2026",
-      "2025",
-      "2024",
-    ]);
-    await u.selectOptions(select, "2028");
-    expect(Array.from(select.options).map((o) => o.value)).toEqual([
-      "2030",
-      "2029",
-      "2028",
-      "2027",
-      "2026",
-    ]);
+    const combo = screen.getByRole("combobox", { name: /^Ejercicio/ });
+    await u.click(combo);
+    expect(
+      within(screen.getByRole("listbox")).getAllByRole("option"),
+    ).toHaveLength(101);
+    await u.click(screen.getByRole("option", { name: "2010" }));
+    expect(combo.textContent).toBe("2010");
+    expect(screen.queryByRole("listbox")).toBeNull();
+    await u.click(combo);
+    expect(
+      screen.getByRole("option", { name: "2000" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("option", { name: "2100" }),
+    ).toBeTruthy();
   });
   it("mantiene el desglose de categoría, ingreso y mes después de TOKEN_REFRESHED", async () => {
     render(<App />);

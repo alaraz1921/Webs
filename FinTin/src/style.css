@@ -859,3 +859,45 @@ h1 {
   align-items: flex-end;
   padding-bottom: 15px;
 }
+
+.year-picker {
+  position: relative;
+}
+.year-trigger {
+  width: 100%;
+  min-height: 39px;
+  justify-content: space-between;
+  padding: 10px 11px;
+  font-size: inherit;
+}
+.year-options {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  height: 182px;
+  max-height: 50vh;
+  overflow-y: auto;
+  z-index: 12;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0;
+  box-shadow: 0 4px 12px #0f172a14;
+  outline-offset: 2px;
+}
+.year-option {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 0 11px;
+  cursor: pointer;
+}
+.year-option:hover,
+.year-option.active {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.year-option[aria-selected="true"] {
+  font-weight: 700;
+}

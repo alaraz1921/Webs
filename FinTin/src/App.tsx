@@ -17,6 +17,7 @@ import { Summary, AccountsPage, type YearProps } from "./Dashboard";
 import { MovementPage, filtersFor } from "./Movements";
 import { ImportPage } from "./Import";
 import { Settings } from "./Settings";
+import { YearPicker } from "./YearPicker";
 import { Field, Form, ErrorBox, Empty, text } from "./ui";
 import "./style.css";
 const pages = [
@@ -354,28 +355,36 @@ function Workspace({ session }: { session: Session }) {
           </div>
           {page.id !== "configuracion" && (
             <div className="context-bar">
-              <Field label="Ejercicio">
-                <select
-                  disabled={importBusy}
+              {page.id === "importacion" ? (
+                <YearPicker
                   value={year}
-                  onChange={(e) => {
-                    const y = Number(e.target.value);
+                  disabled={importBusy}
+                  onChange={(y) => {
                     setYear(y);
                     setFilters(filtersFor(y));
                   }}
-                >
-                  {(page.id === "importacion"
-                    ? Array.from({ length: 5 }, (_, i) => year + 2 - i).filter(
-                        (y) => y >= 2000 && y <= 2100,
-                      )
-                    : Array.from({ length: 101 }, (_, i) => 2100 - i)
-                  ).map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+                />
+              ) : (
+                <Field label="Ejercicio">
+                  <select
+                    disabled={importBusy}
+                    value={year}
+                    onChange={(e) => {
+                      const y = Number(e.target.value);
+                      setYear(y);
+                      setFilters(filtersFor(y));
+                    }}
+                  >
+                    {Array.from({ length: 101 }, (_, i) => 2100 - i).map(
+                      (y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </Field>
+              )}
               {["resumen", "cuentas", "conciliacion"].includes(page.id) && (
                 <>
                   <Field label="Moneda">
