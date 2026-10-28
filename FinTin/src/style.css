@@ -873,3 +873,22 @@ footer {
   font-weight: 700;
   border-top: 2px solid #cfddc7;
 }
+
+/* Densidad de las tablas de resumen y movimientos, sin reducir la tipografía. */
+.compact-table td,
+.compact-table th {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  line-height: 1.4;
+}
+.compact-table td button {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  min-height: 28px;
+}
+.compact-table .badge {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}

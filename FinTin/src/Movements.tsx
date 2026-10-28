@@ -167,7 +167,7 @@ export function MovementPage(
         !error && (
           <>
             <div className="table-wrap">
-              <table>
+              <table className="compact-table">
                 <thead>
                   <tr>
                     <th>Fecha valor / operación</th>

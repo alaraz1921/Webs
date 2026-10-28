@@ -112,7 +112,7 @@ export function Summary({
                   </p>
                   <div className="table-wrap">
                     <table
-                      className="matrix"
+                      className="matrix compact-table"
                       aria-label={labels[kind] + " por categorías y meses"}
                     >
                       <SummaryColumns label="Categoría" currency={currency} />
@@ -203,7 +203,10 @@ export function Summary({
                 las devoluciones.
               </p>
               <div className="table-wrap">
-                <table className="matrix" aria-label="Totales mensuales y neto">
+                <table
+                  className="matrix compact-table"
+                  aria-label="Totales mensuales y neto"
+                >
                   <SummaryColumns label="Tipo" currency={currency} />
                   <tbody>
                     {[...kinds, "neto" as const].map((kind) => {
@@ -325,7 +328,7 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
               </p>
               {!reconcile ? (
                 <div className="table-wrap">
-                  <table className="matrix">
+                  <table className="matrix compact-table">
                     <thead>
                       <tr>
                         <th>Cuenta / {currency}</th>
