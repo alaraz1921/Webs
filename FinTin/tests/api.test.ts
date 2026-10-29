@@ -216,3 +216,90 @@ describe("Carga manual atómica y reintentos", () => {
     await expect(api.importManual("owner", [])).rejects.toThrow("Carga manual");
   });
 });
+
+describe("Totales de movimientos filtrados", () => {
+  it("suma más de mil resultados con decimales exactos y separa las monedas aplicando todos los filtros", async () => {
+    const queries: { columns: string; calls: unknown[][] }[] = [];
+    mock.from
+      .mockImplementationOnce(build)
+      .mockImplementationOnce(build)
+      .mockImplementationOnce(build);
+    function build() {
+      const record = { columns: "", calls: [] as unknown[][] };
+      queries.push(record);
+      const q: Record<string, unknown> = {};
+      for (const method of ["eq", "gte", "lte", "is", "ilike", "in", "order"])
+        q[method] = (...args: unknown[]) => {
+          record.calls.push([method, ...args]);
+          return q;
+        };
+      q.select = (columns: string) => {
+        record.columns = columns;
+        return q;
+      };
+      q.range = async (from: number, to: number) => {
+        record.calls.push(["range", from, to]);
+        return {
+          error: null,
+          count: 1004,
+          data:
+            record.columns === "importe::text,moneda"
+              ? from === 0
+                ? Array.from({ length: 1000 }, () => ({
+                    importe: "0.10",
+                    moneda: "EUR",
+                  }))
+                : [
+                    { importe: "-0.20", moneda: "EUR" },
+                    { importe: "0.00", moneda: "EUR" },
+                    { importe: "1.00", moneda: "USD" },
+                    { importe: "-2.01", moneda: "USD" },
+                  ]
+              : [{ id: "visible" }],
+        };
+      };
+      return q;
+    }
+    const f = {
+      from: "2026-01-01",
+      to: "2026-12-31",
+      account: "a",
+      category: "__none",
+      kind: "gasto",
+      origin: "manual",
+      search: "10%_",
+      entity: "Banco",
+      currency: "EUR",
+    };
+    const result = await api.movements("owner", f, 2, ["a"]);
+    expect(result.totals).toEqual([
+      {
+        currency: "EUR",
+        total: "99.80",
+        positive: "100.00",
+        negative: "-0.20",
+      },
+      { currency: "USD", total: "-1.01", positive: "1.00", negative: "-2.01" },
+    ]);
+    expect(result.rows).toEqual([{ id: "visible" }]);
+    expect(result.count).toBe(1004);
+    for (const q of queries) {
+      expect(q.calls).toEqual(
+        expect.arrayContaining([
+          ["eq", "user_id", "owner"],
+          ["gte", "fecha_valor", f.from],
+          ["lte", "fecha_valor", f.to],
+          ["eq", "cuenta_id", "a"],
+          ["eq", "moneda", "EUR"],
+          ["is", "categoria_id", null],
+          ["eq", "tipo_movimiento", "gasto"],
+          ["eq", "origen", "manual"],
+          ["ilike", "concepto", "%10\\%\\_%"],
+          ["in", "cuenta_id", ["a"]],
+        ]),
+      );
+    }
+    expect(queries[1].calls).toContainEqual(["range", 1000, 1999]);
+    expect(queries[2].calls).toContainEqual(["range", 100, 149]);
+  });
+});

@@ -43,6 +43,85 @@ const common = {
   aliases: [],
   reload: vi.fn().mockResolvedValue(undefined),
 };
+it("ordena los filtros y sus opciones y actualiza las sumas al filtrar", async () => {
+  api.movements.mockResolvedValueOnce({
+    rows: [],
+    count: 70,
+    totals: [
+      {
+        currency: "EUR",
+        total: "20.10",
+        positive: "30.20",
+        negative: "-10.10",
+      },
+    ],
+  });
+  const props = {
+    ...common,
+    filters: filtersFor(2026),
+    setFilters: vi.fn(),
+    accounts: [
+      { ...account, id: "z", nombre_producto: "Zeta", entidad: "Zeta" },
+      { ...account, id: "a", nombre_producto: "Álamo", entidad: "Álamo" },
+    ],
+    categories: [
+      { ...category, id: "z", nombre: "Zeta" },
+      { ...category, id: "a", nombre: "Álamo" },
+    ],
+  };
+  const view = render(<MovementPage {...props} />);
+  expect(
+    [...view.container.querySelectorAll(".filters .field > span")].map(
+      (e) => e.textContent,
+    ),
+  ).toEqual([
+    "Desde",
+    "Hasta",
+    "Concepto",
+    "Origen",
+    "Tipo",
+    "Categoría",
+    "Entidad",
+    "Cuenta",
+    "Moneda",
+  ]);
+  for (const label of ["Entidad", "Cuenta"])
+    expect(
+      within(screen.getByLabelText(label))
+        .getAllByRole("option")
+        .map((e) => e.textContent),
+    ).toEqual(["Todas", "Álamo", "Zeta"]);
+  expect(
+    within(screen.getByLabelText("Categoría"))
+      .getAllByRole("option")
+      .map((e) => e.textContent),
+  ).toEqual(["Todas", "Sin categoría", "Álamo", "Zeta"]);
+  let totals = await screen.findByRole("region", {
+    name: "Totales de movimientos filtrados",
+  });
+  expect(totals.textContent).toContain("20,10 EUR");
+  expect(totals.textContent).toContain("30,20 EUR");
+  expect(totals.textContent).toContain("-10,10 EUR");
+  const u = userEvent.setup();
+  await u.selectOptions(screen.getByLabelText("Origen"), "manual");
+  expect(props.setFilters).toHaveBeenLastCalledWith({
+    ...props.filters,
+    origin: "manual",
+  });
+  api.movements.mockResolvedValueOnce({ rows: [], count: 0, totals: [] });
+  view.rerender(
+    <MovementPage
+      {...props}
+      filters={{ ...props.filters, origin: "manual" }}
+    />,
+  );
+  await screen.findByText("No hay movimientos para estos filtros.");
+  totals = screen.getByRole("region", {
+    name: "Totales de movimientos filtrados",
+  });
+  expect(within(totals).getAllByText("0,00 EUR")).toHaveLength(3);
+  expect(totals.textContent).not.toContain("20,10 EUR");
+});
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function () {
     this.open = true;

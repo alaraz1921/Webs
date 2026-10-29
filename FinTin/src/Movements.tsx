@@ -1,3 +1,4 @@
+import { alphabetical, compareText } from "./alphabetical";
 import { useEffect, useState } from "react";
 import type { Movement, Kind } from "./types";
 import { kinds, labels } from "./types";
@@ -26,7 +27,16 @@ export function MovementPage(
 ) {
   const { uid, accounts, categories, filters: f, setFilters } = props;
   const [page, setPage] = useState(0),
-    [data, setData] = useState<{ rows: Movement[]; count: number }>({
+    [data, setData] = useState<{
+      rows: Movement[];
+      count: number;
+      totals?: {
+        currency: string;
+        total: string;
+        positive: string;
+        negative: string;
+      }[];
+    }>({
       rows: [],
       count: 0,
     }),
@@ -84,13 +94,64 @@ export function MovementPage(
             />
           </Field>
         ))}
-        <Field label="Buscar concepto">
+        <Field label="Concepto">
           <input
+            aria-label="Buscar concepto"
             type="search"
             placeholder="Concepto…"
             value={f.search}
             onChange={(e) => change("search", e.target.value)}
           />
+        </Field>
+        <Field label="Origen">
+          <select
+            value={f.origin}
+            onChange={(e) => change("origin", e.target.value)}
+          >
+            <option value="">Todos</option>
+            <option value="csv">CSV</option>
+            <option value="manual">Manual</option>
+          </select>
+        </Field>
+        <Field label="Tipo">
+          <select
+            value={f.kind}
+            onChange={(e) => change("kind", e.target.value)}
+          >
+            <option value="">Todos</option>
+            {alphabetical(kinds, (k) => labels[k]).map((k) => (
+              <option key={k} value={k}>
+                {labels[k]}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Categoría">
+          <select
+            value={f.category}
+            onChange={(e) => change("category", e.target.value)}
+          >
+            <option value="">Todas</option>
+            <option value="__none">Sin categoría</option>
+            {alphabetical(categories, (c) => c.nombre).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nombre}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Entidad">
+          <select
+            value={f.entity}
+            onChange={(e) => change("entity", e.target.value)}
+          >
+            <option value="">Todas</option>
+            {[...new Set(accounts.map((a) => a.entidad))]
+              .sort(compareText)
+              .map((a) => (
+                <option key={a}>{a}</option>
+              ))}
+          </select>
         </Field>
         <Field label="Cuenta">
           <select
@@ -98,7 +159,7 @@ export function MovementPage(
             onChange={(e) => change("account", e.target.value)}
           >
             <option value="">Todas</option>
-            {accounts.map((a) => (
+            {alphabetical(accounts, (a) => a.nombre_producto).map((a) => (
               <option key={a.id} value={a.id}>
                 {a.nombre_producto}
               </option>
@@ -111,57 +172,11 @@ export function MovementPage(
             onChange={(e) => change("currency", e.target.value)}
           >
             <option value="">Todas</option>
-            {[...new Set(accounts.map((a) => a.moneda))].map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Entidad">
-          <select
-            value={f.entity}
-            onChange={(e) => change("entity", e.target.value)}
-          >
-            <option value="">Todas</option>
-            {[...new Set(accounts.map((a) => a.entidad))].map((a) => (
-              <option key={a}>{a}</option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Categoría">
-          <select
-            value={f.category}
-            onChange={(e) => change("category", e.target.value)}
-          >
-            <option value="">Todas</option>
-            <option value="__none">Sin categoría</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nombre}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Tipo">
-          <select
-            value={f.kind}
-            onChange={(e) => change("kind", e.target.value)}
-          >
-            <option value="">Todos</option>
-            {kinds.map((k) => (
-              <option key={k} value={k}>
-                {labels[k]}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Origen">
-          <select
-            value={f.origin}
-            onChange={(e) => change("origin", e.target.value)}
-          >
-            <option value="">Todos</option>
-            <option value="csv">CSV</option>
-            <option value="manual">Manual</option>
+            {[...new Set(accounts.map((a) => a.moneda))]
+              .sort(compareText)
+              .map((c) => (
+                <option key={c}>{c}</option>
+              ))}
           </select>
         </Field>
         <div className="filter-actions">
@@ -182,6 +197,45 @@ export function MovementPage(
       ) : (
         !error && (
           <>
+            <section
+              className="movement-totals"
+              aria-label="Totales de movimientos filtrados"
+            >
+              {(data.totals?.length
+                ? data.totals
+                : [
+                    {
+                      currency: f.currency || "EUR",
+                      total: "0",
+                      positive: "0",
+                      negative: "0",
+                    },
+                  ]
+              ).map((t) => (
+                <div className="movement-total-row" key={t.currency}>
+                  <div>
+                    <span>Total</span>
+                    <strong>{money(t.total, t.currency)}</strong>
+                  </div>
+                  <div>
+                    <span>Positivos</span>
+                    <strong className="positive">
+                      {money(t.positive, t.currency)}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Negativos</span>
+                    <strong className="negative">
+                      {money(t.negative, t.currency)}
+                    </strong>
+                  </div>
+                </div>
+              ))}
+              <small>
+                Todos los movimientos filtrados, incluyendo las demás páginas.
+                Importes separados por moneda.
+              </small>
+            </section>
             <div className="table-wrap">
               <table className="compact-table movements-table">
                 <thead>
@@ -377,7 +431,7 @@ function MovementForm({
             defaultValue={edit?.cuenta_id || ""}
           >
             <option value="">Selecciona una cuenta</option>
-            {accounts.map((a) => (
+            {alphabetical(accounts, (a) => a.nombre_producto).map((a) => (
               <option key={a.id} value={a.id}>
                 {a.nombre_producto} · {a.moneda}
               </option>
@@ -399,7 +453,7 @@ function MovementForm({
             value={kind}
             onChange={(e) => setKind(e.target.value as Kind)}
           >
-            {kinds.map((k) => (
+            {alphabetical(kinds, (k) => labels[k]).map((k) => (
               <option key={k} value={k}>
                 {labels[k]}
               </option>

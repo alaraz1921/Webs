@@ -1,3 +1,4 @@
+import { alphabetical } from "./alphabetical";
 import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
@@ -276,7 +277,7 @@ function Workspace({ session }: { session: Session }) {
       list<Category>("categorias", uid),
       list<Alias>("cuenta_aliases", uid),
     ]);
-    setAccounts(a);
+    setAccounts(alphabetical(a, (v) => v.nombre_producto));
     setCategories(c);
     setAliases(l);
     setRevision((v) => v + 1);
@@ -445,11 +446,11 @@ function Workspace({ session }: { session: Session }) {
                         setAccount("");
                       }}
                     >
-                      {[
-                        ...new Set(["EUR", ...accounts.map((a) => a.moneda)]),
-                      ].map((c) => (
-                        <option key={c}>{c}</option>
-                      ))}
+                      {[...new Set(["EUR", ...accounts.map((a) => a.moneda)])]
+                        .sort()
+                        .map((c) => (
+                          <option key={c}>{c}</option>
+                        ))}
                     </select>
                   </Field>
                   <Field label="Cuenta">

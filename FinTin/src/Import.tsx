@@ -1,3 +1,4 @@
+import { alphabetical } from "./alphabetical";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   manualImportRows,
@@ -429,7 +430,11 @@ export function ImportPage(
                     <option value="">
                       Selecciona explícitamente una cuenta
                     </option>
-                    {accounts.map((a) => (
+                    {alphabetical(
+                      accounts,
+                      (a) =>
+                        `${a.entidad} · ${a.nombre_producto} · ${a.moneda}`,
+                    ).map((a) => (
                       <option key={a.id} value={a.id}>
                         {a.entidad} · {a.nombre_producto} · {a.moneda}
                       </option>
@@ -687,7 +692,10 @@ function AliasResolver({
         <Field label="Asignar a cuenta">
           <select name="cuenta_id" required>
             <option value="">Selecciona explícitamente</option>
-            {accounts.map((a) => (
+            {alphabetical(
+              accounts,
+              (a) => `${a.entidad} · ${a.nombre_producto} · ${a.moneda}`,
+            ).map((a) => (
               <option key={a.id} value={a.id}>
                 {a.entidad} · {a.nombre_producto} · {a.tipo_producto} ·{" "}
                 {a.moneda}

@@ -1,3 +1,4 @@
+import { alphabetical } from "./alphabetical";
 import { useTableSort, sortRows, SortHeader } from "./sorting";
 import { useState } from "react";
 import type { Account, Alias, Category, Kind } from "./types";
@@ -457,7 +458,7 @@ export function Settings({
                 name="tipo_movimiento"
                 defaultValue={category?.tipo_movimiento}
               >
-                {kinds.map((k) => (
+                {alphabetical(kinds, (k) => labels[k]).map((k) => (
                   <option key={k} value={k}>
                     {labels[k]}
                   </option>
@@ -513,7 +514,10 @@ export function Settings({
                 defaultValue={alias?.cuenta_id || ""}
               >
                 <option value="">Selecciona una cuenta</option>
-                {accounts.map((a) => (
+                {alphabetical(
+                  accounts,
+                  (a) => `${a.entidad} · ${a.nombre_producto} · ${a.moneda}`,
+                ).map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.entidad} · {a.nombre_producto} · {a.moneda}
                   </option>
@@ -536,7 +540,7 @@ export function CategoryOptions({
   return (
     <>
       <option value="">Sin categoría</option>
-      {categories
+      {alphabetical(categories, (c) => c.nombre)
         .filter((c) => !kind || c.tipo_movimiento === kind)
         .map((c) => (
           <option key={c.id} value={c.id}>

@@ -2,6 +2,7 @@ import { MAX_MANUAL_IMPORT_ROWS, type ManualImportRow } from "./manual-import";
 import { publicKey, validUrl } from "./config";
 import { createClient } from "@supabase/supabase-js";
 import type { CsvRow, Movement } from "./types";
+import Decimal from "decimal.js";
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
@@ -104,29 +105,68 @@ export async function movements(
   page: number,
   accountIds?: string[],
 ) {
-  let q = client()
-    .from("fintin_movimientos")
-    .select(selects.movimientos, { count: "exact" })
-    .eq("user_id", uid)
-    .gte("fecha_valor", f.from)
-    .lte("fecha_valor", f.to);
-  if (f.account) q = q.eq("cuenta_id", f.account);
-  if (f.currency) q = q.eq("moneda", f.currency);
-  if (f.category)
-    q =
-      f.category === "__none"
-        ? q.is("categoria_id", null)
-        : q.eq("categoria_id", f.category);
-  if (f.kind) q = q.eq("tipo_movimiento", f.kind);
-  if (f.origin) q = q.eq("origen", f.origin);
-  if (f.search)
-    q = q.ilike("concepto", "%" + f.search.replace(/[%_\\]/g, "\\$&") + "%");
-  if (accountIds) q = q.in("cuenta_id", accountIds);
-  const r = await q
+  const query = (columns: string, count = false) => {
+    let q = client()
+      .from("fintin_movimientos")
+      .select(columns, count ? { count: "exact" } : {})
+      .eq("user_id", uid)
+      .gte("fecha_valor", f.from)
+      .lte("fecha_valor", f.to);
+    if (f.account) q = q.eq("cuenta_id", f.account);
+    if (f.currency) q = q.eq("moneda", f.currency);
+    if (f.category)
+      q =
+        f.category === "__none"
+          ? q.is("categoria_id", null)
+          : q.eq("categoria_id", f.category);
+    if (f.kind) q = q.eq("tipo_movimiento", f.kind);
+    if (f.origin) q = q.eq("origen", f.origin);
+    if (f.search)
+      q = q.ilike("concepto", "%" + f.search.replace(/[%_\\]/g, "\\$&") + "%");
+    if (accountIds) q = q.in("cuenta_id", accountIds);
+    return q;
+  };
+  const totals = new Map<
+    string,
+    { total: Decimal; positive: Decimal; negative: Decimal }
+  >();
+  // Recorre todos los resultados filtrados, no solo la página visible.
+  for (let from = 0; ; from += 1000) {
+    const rows = checked(
+      await query("importe::text,moneda")
+        .order("id")
+        .range(from, from + 999),
+    ) as unknown as Pick<Movement, "importe" | "moneda">[];
+    for (const row of rows) {
+      const t = totals.get(row.moneda) ?? {
+        total: new Decimal(0),
+        positive: new Decimal(0),
+        negative: new Decimal(0),
+      };
+      const value = new Decimal(row.importe);
+      t.total = t.total.plus(value);
+      if (value.gt(0)) t.positive = t.positive.plus(value);
+      if (value.lt(0)) t.negative = t.negative.plus(value);
+      totals.set(row.moneda, t);
+    }
+    if (rows.length < 1000) break;
+  }
+  const r = await query(selects.movimientos, true)
     .order("fecha_valor", { ascending: false })
     .order("id")
     .range(page * 50, page * 50 + 49);
-  return { rows: checked(r) as unknown as Movement[], count: r.count || 0 };
+  return {
+    rows: checked(r) as unknown as Movement[],
+    count: r.count || 0,
+    totals: [...totals]
+      .sort(([a], [b]) => a.localeCompare(b, "es"))
+      .map(([currency, t]) => ({
+        currency,
+        total: t.total.toFixed(2),
+        positive: t.positive.toFixed(2),
+        negative: t.negative.toFixed(2),
+      })),
+  };
 }
 export async function annual(uid: string, year: number) {
   const result: Movement[] = [];
