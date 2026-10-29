@@ -155,6 +155,7 @@ it("abre el mismo modal desde Cuentas para altas, ediciones y meses sin cierre c
   await u.click(pendingCell);
   await u.click(screen.getByRole("menuitem", { name: "Saldo real" }));
   let d = screen.getByRole("dialog", { name: "Anotar saldo real" });
+  expect(document.activeElement).toBe(within(d).getByLabelText("Saldo real"));
   expect(
     (within(d).getByLabelText("Cuenta") as HTMLInputElement).value,
   ).toContain("Cuenta ficticia b");
@@ -169,6 +170,14 @@ it("abre el mismo modal desde Cuentas para altas, ediciones y meses sin cierre c
   await u.click(await accountCell(1, 1));
   await u.click(screen.getByRole("menuitem", { name: "Saldo real" }));
   d = screen.getByRole("dialog", { name: "Editar saldo real" });
+  const accountAmount = within(d).getByLabelText(
+    "Saldo real",
+  ) as HTMLInputElement;
+  expect(document.activeElement).toBe(accountAmount);
+  expect([accountAmount.selectionStart, accountAmount.selectionEnd]).toEqual([
+    0,
+    accountAmount.value.length,
+  ]);
   expect(
     (within(d).getByLabelText("Saldo real") as HTMLInputElement).value,
   ).toBe("9,00");
@@ -303,6 +312,14 @@ it("edita el saldo existente mediante su id y conserva Revisar junto a Editar", 
   });
   await u.click(within(row).getByRole("button", { name: "Editar" }));
   const d = screen.getByRole("dialog", { name: "Editar saldo real" });
+  const closingAmount = within(d).getByLabelText(
+    "Saldo real",
+  ) as HTMLInputElement;
+  expect(document.activeElement).toBe(closingAmount);
+  expect([closingAmount.selectionStart, closingAmount.selectionEnd]).toEqual([
+    0,
+    closingAmount.value.length,
+  ]);
   expect(
     (within(d).getByLabelText("Saldo real") as HTMLInputElement).value,
   ).toBe("9,00");

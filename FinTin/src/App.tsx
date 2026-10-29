@@ -17,6 +17,7 @@ import { Summary, AccountsPage, type YearProps } from "./Dashboard";
 import { MovementPage, filtersFor } from "./Movements";
 import { ImportPage } from "./Import";
 import { Settings, type SettingsSection } from "./Settings";
+import { GeneralSettings, useShowFlows } from "./GeneralSettings";
 import { YearPicker } from "./YearPicker";
 import { Field, Form, ErrorBox, Empty, text } from "./ui";
 import "./style.css";
@@ -62,7 +63,7 @@ const settingsPages: {
   id: string;
   name: string;
   description: string;
-  section: SettingsSection;
+  section: SettingsSection | "general";
 }[] = [
   {
     id: "configuracion/cuentas",
@@ -81,6 +82,12 @@ const settingsPages: {
     name: "Categorías",
     description: "Organiza las categorías de tus movimientos.",
     section: "categorias",
+  },
+  {
+    id: "configuracion/general",
+    name: "General",
+    description: "Preferencias generales de FinTin.",
+    section: "general",
   },
 ];
 export default function App() {
@@ -235,6 +242,7 @@ function Brand() {
   return <div className="brand">FinTin</div>;
 }
 function Workspace({ session }: { session: Session }) {
+  const [showFlows, setShowFlows] = useShowFlows();
   const uid = session.user.id,
     [route, setRoute] = useState(location.hash.slice(1) || "resumen"),
     [year, setYear] = useState(new Date().getFullYear()),
@@ -301,7 +309,7 @@ function Workspace({ session }: { session: Session }) {
     });
     location.hash = "movimientos";
   };
-  const yearProps = { ...base, year, currency, account, open };
+  const yearProps = { ...base, year, currency, account, open, showFlows };
   return (
     <div className={menu ? "app menu-open" : "app menu-closed"}>
       <aside
@@ -492,11 +500,18 @@ function Workspace({ session }: { session: Session }) {
                   <p className="muted">
                     Usuario actual: {session.user.email} · UUID: {uid}
                   </p>
-                  <Settings
-                    key={settingsPage.id}
-                    {...base}
-                    section={settingsPage.section}
-                  />
+                  {settingsPage.section === "general" ? (
+                    <GeneralSettings
+                      showFlows={showFlows}
+                      onShowFlows={setShowFlows}
+                    />
+                  ) : (
+                    <Settings
+                      key={settingsPage.id}
+                      {...base}
+                      section={settingsPage.section}
+                    />
+                  )}
                 </>
               )}
             </>

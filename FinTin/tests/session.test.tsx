@@ -105,6 +105,7 @@ async function chooseYear(u: ReturnType<typeof userEvent.setup>, year: string) {
 }
 beforeEach(() => {
   vi.resetAllMocks();
+  localStorage.clear();
   history.replaceState(null, "", "#resumen");
   auth.getSession.mockResolvedValue({ data: { session }, error: null });
   api.rpc.mockResolvedValue({ data: true, error: null });
@@ -130,6 +131,70 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe("Continuidad de sesión y autorización", () => {
+  it("recuerda la preferencia General y muestra entradas y salidas sin moneda", async () => {
+    history.replaceState(null, "", "#configuracion/general");
+    api.list.mockImplementation(async (t) =>
+      t === "cuentas"
+        ? [account]
+        : t === "v_conciliacion_mensual"
+          ? [
+              {
+                cuenta_id: "account",
+                fecha_cierre: "2026-03-31",
+                moneda: "EUR",
+                saldo_calculado: "112.00",
+                saldo_real: null,
+                diferencia: null,
+              },
+            ]
+          : [],
+    );
+    const app = render(<App />),
+      u = userEvent.setup();
+    const toggle = await screen.findByRole("checkbox", {
+      name: "Mostrar entradas y salidas",
+    });
+    expect((toggle as HTMLInputElement).checked).toBe(true);
+    await u.click(toggle);
+    const accountLink = () =>
+      screen
+        .getAllByRole("link", { name: "Cuentas" })
+        .find((a) => a.getAttribute("href") === "#cuentas")!;
+    await u.click(accountLink());
+    await chooseYear(u, "2026");
+    let t = await screen.findByRole("table", {
+      name: "Saldos mensuales por cuenta",
+    });
+    expect(t.textContent).not.toContain("Entradas");
+    expect(t.textContent).toContain("112,00 EUR");
+    await u.click(screen.getByRole("link", { name: "General" }));
+    await u.click(
+      await screen.findByRole("checkbox", {
+        name: "Mostrar entradas y salidas",
+      }),
+    );
+    await u.click(accountLink());
+    t = await screen.findByRole("table", {
+      name: "Saldos mensuales por cuenta",
+    });
+    expect(within(t).getByText("Entradas 12,00")).toBeTruthy();
+    expect(within(t).getByText("Salidas 0,00")).toBeTruthy();
+    await u.click(screen.getByRole("link", { name: "General" }));
+    await u.click(
+      await screen.findByRole("checkbox", {
+        name: "Mostrar entradas y salidas",
+      }),
+    );
+    app.unmount();
+    render(<App />);
+    expect(
+      (
+        (await screen.findByRole("checkbox", {
+          name: "Mostrar entradas y salidas",
+        })) as HTMLInputElement
+      ).checked,
+    ).toBe(false);
+  });
   it("navega a páginas independientes de configuración en el orden solicitado", async () => {
     render(<App />);
     const u = userEvent.setup();
@@ -138,7 +203,7 @@ describe("Continuidad de sesión y autorización", () => {
       within(group)
         .getAllByRole("link")
         .map((a) => a.textContent),
-    ).toEqual(["Cuentas", "Alias de cuentas", "Categorías"]);
+    ).toEqual(["Cuentas", "Alias de cuentas", "Categorías", "General"]);
     for (const [name, heading, hash] of [
       ["Cuentas", "Cuentas y saldo de partida", "cuentas"],
       ["Alias de cuentas", "Alias de cuentas", "aliases"],

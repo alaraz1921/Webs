@@ -10,13 +10,13 @@ export function amount(input: string): string {
     throw new Error("Importe fuera de numeric(18,2)");
   return value.toFixed(2);
 }
-export const money = (value: string | Decimal, currency = "EUR") =>
+export const formatAmount = (value: string | Decimal) =>
   new Decimal(value)
     .toFixed(2)
     .replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-    .replace(".", ",") +
-  " " +
-  currency;
+    .replace(".", ",");
+export const money = (value: string | Decimal, currency = "EUR") =>
+  formatAmount(value) + " " + currency;
 export const sum = (values: string[]) =>
   values.reduce((a, b) => a.plus(b), new Decimal(0));
 export function totals(rows: Pick<Movement, "tipo_movimiento" | "importe">[]) {

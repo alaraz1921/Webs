@@ -156,6 +156,11 @@ export function Modal({
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     dialog.showModal();
+    const initialInput = dialog.querySelector<HTMLInputElement>(
+      "input[data-initial-focus]",
+    );
+    initialInput?.focus();
+    initialInput?.select();
     return () => {
       dialog.close();
       document.body.style.overflow = overflow;

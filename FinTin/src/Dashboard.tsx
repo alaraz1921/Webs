@@ -6,13 +6,21 @@ import { annual, list, save } from "./api";
 import { decimalComma } from "./amount-input";
 import type { Movement, Reconciliation, Balance } from "./types";
 import { kinds, labels, months } from "./types";
-import { totals, sum, money, amount, displayDate } from "./finance";
+import {
+  totals,
+  sum,
+  money,
+  amount,
+  displayDate,
+  formatAmount,
+} from "./finance";
 import { Field, Empty, ErrorBox, Panel, Form, text, Modal } from "./ui";
 import type { MasterProps } from "./Settings";
 export interface YearProps extends MasterProps {
   year: number;
   currency: string;
   account: string;
+  showFlows?: boolean;
   open: (f: {
     month?: number;
     category?: string;
@@ -270,7 +278,16 @@ function SummaryColumns({
   );
 }
 export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
-  const { uid, year, currency, account, accounts, open, reconcile } = props;
+  const {
+    uid,
+    year,
+    currency,
+    account,
+    accounts,
+    open,
+    reconcile,
+    showFlows = true,
+  } = props;
   const [data, setData] = useState<Reconciliation[]>([]),
     [flows, setFlows] = useState<Movement[]>([]),
     [balances, setBalances] = useState<Balance[]>([]),
@@ -533,44 +550,54 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                                           ? "Real pendiente"
                                           : `Real ${money(r.saldo_real, currency)}`}
                                       </small>
-                                      <small>
-                                        Entradas{" "}
-                                        {money(
-                                          sum(
-                                            flows
-                                              .filter(
-                                                (f) =>
-                                                  f.cuenta_id === a.id &&
-                                                  Number(
-                                                    f.fecha_valor.slice(5, 7),
-                                                  ) ===
-                                                    i + 1 &&
-                                                  !f.importe.startsWith("-"),
-                                              )
-                                              .map((f) => f.importe),
-                                          ),
-                                          currency,
-                                        )}
-                                      </small>
-                                      <small>
-                                        Salidas{" "}
-                                        {money(
-                                          sum(
-                                            flows
-                                              .filter(
-                                                (f) =>
-                                                  f.cuenta_id === a.id &&
-                                                  Number(
-                                                    f.fecha_valor.slice(5, 7),
-                                                  ) ===
-                                                    i + 1 &&
-                                                  f.importe.startsWith("-"),
-                                              )
-                                              .map((f) => f.importe),
-                                          ),
-                                          currency,
-                                        )}
-                                      </small>
+                                      {showFlows && (
+                                        <>
+                                          <small>
+                                            Entradas{" "}
+                                            {formatAmount(
+                                              sum(
+                                                flows
+                                                  .filter(
+                                                    (f) =>
+                                                      f.cuenta_id === a.id &&
+                                                      Number(
+                                                        f.fecha_valor.slice(
+                                                          5,
+                                                          7,
+                                                        ),
+                                                      ) ===
+                                                        i + 1 &&
+                                                      !f.importe.startsWith(
+                                                        "-",
+                                                      ),
+                                                  )
+                                                  .map((f) => f.importe),
+                                              ),
+                                            )}
+                                          </small>
+                                          <small>
+                                            Salidas{" "}
+                                            {formatAmount(
+                                              sum(
+                                                flows
+                                                  .filter(
+                                                    (f) =>
+                                                      f.cuenta_id === a.id &&
+                                                      Number(
+                                                        f.fecha_valor.slice(
+                                                          5,
+                                                          7,
+                                                        ),
+                                                      ) ===
+                                                        i + 1 &&
+                                                      f.importe.startsWith("-"),
+                                                  )
+                                                  .map((f) => f.importe),
+                                              ),
+                                            )}
+                                          </small>
+                                        </>
+                                      )}
                                     </>
                                   ) : (
                                     "—"
@@ -751,6 +778,7 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
             <Field label="Saldo real">
               <input
                 name="saldo_real"
+                data-initial-focus
                 inputMode="decimal"
                 onKeyDown={decimalComma}
                 required
