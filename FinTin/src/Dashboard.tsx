@@ -23,12 +23,14 @@ export interface YearProps extends MasterProps {
   account: string;
   showFlows?: boolean;
   showInitial?: boolean;
+  month?: string;
   open: (f: {
     month?: number;
     category?: string;
     kind?: string;
     account?: string;
     through?: string;
+    currency?: string;
   }) => void;
 }
 export function Summary({
@@ -37,8 +39,14 @@ export function Summary({
   currency,
   account,
   categories,
-  open,
+  open: navigate,
+  month = "",
 }: YearProps) {
+  const open: YearProps["open"] = (filters) =>
+    navigate({ ...filters, currency });
+  const visibleMonths = months
+    .map((name, i) => ({ name, i }))
+    .filter((m) => !month || m.i + 1 === Number(month));
   const [chartPeriods, setChartPeriods] = useState<ChartPeriods>({
     balance: "rolling",
     flow: "rolling",
@@ -65,7 +73,10 @@ export function Summary({
     };
   }, [uid, year]);
   const rows = data.filter(
-      (r) => r.moneda === currency && (!account || r.cuenta_id === account),
+      (r) =>
+        r.moneda === currency &&
+        (!account || r.cuenta_id === account) &&
+        (!month || r.fecha_valor.slice(5, 7) === month),
     ),
     t = totals(rows);
   const groups = [
@@ -127,7 +138,9 @@ export function Summary({
                         ? "Ingresos menos gastos; sin no computables"
                         : key === "no_computable"
                           ? "Afectan al saldo de tus cuentas"
-                          : "Total del ejercicio seleccionado"}
+                          : month
+                            ? `Total de ${months[Number(month) - 1]} del ejercicio seleccionado`
+                            : "Total del ejercicio seleccionado"}
                     </small>
                   </article>
                 );
@@ -158,7 +171,11 @@ export function Summary({
                       className="matrix compact-table year-matrix"
                       aria-label={labels[kind] + " por categorías y meses"}
                     >
-                      <SummaryColumns label="Categoría" currency={currency} />
+                      <SummaryColumns
+                        label="Categoría"
+                        currency={currency}
+                        month={month}
+                      />
                       <tbody>
                         {categoriesForKind.map((g) => {
                           const categoryRows = rows.filter(
@@ -173,7 +190,7 @@ export function Summary({
                           return (
                             <tr key={g.id + g.name}>
                               <th scope="row">{g.name}</th>
-                              {months.map((_, i) => (
+                              {visibleMonths.map(({ i }) => (
                                 <td key={i}>
                                   <button
                                     className="cell"
@@ -219,9 +236,9 @@ export function Summary({
                           <th scope="row">
                             Total {labels[kind].toLowerCase()}
                           </th>
-                          {monthly.map((m, i) => (
+                          {visibleMonths.map(({ i }) => (
                             <td className="numeric" key={i}>
-                              <b>{money(m[kind], currency)}</b>
+                              <b>{money(monthly[i][kind], currency)}</b>
                             </td>
                           ))}
                           <td className="numeric">
@@ -250,7 +267,11 @@ export function Summary({
                   className="matrix compact-table year-matrix"
                   aria-label="Totales mensuales y neto"
                 >
-                  <SummaryColumns label="Tipo" currency={currency} />
+                  <SummaryColumns
+                    label="Tipo"
+                    currency={currency}
+                    month={month}
+                  />
                   <tbody>
                     {[...kinds, "neto" as const].map((kind) => {
                       const key = kind === "neto" ? "balance" : kind;
@@ -264,9 +285,9 @@ export function Summary({
                           <th scope="row">
                             {kind === "neto" ? "Neto" : labels[kind]}
                           </th>
-                          {monthly.map((m, i) => (
+                          {visibleMonths.map(({ i }) => (
                             <td className="numeric" key={i}>
-                              {money(m[key], currency)}
+                              {money(monthly[i][key], currency)}
                             </td>
                           ))}
                           <td className="numeric">
@@ -288,9 +309,11 @@ export function Summary({
 function SummaryColumns({
   label,
   currency,
+  month,
 }: {
   label: string;
   currency: string;
+  month: string;
 }) {
   return (
     <thead>
@@ -298,11 +321,13 @@ function SummaryColumns({
         <th scope="col">
           {label} / {currency}
         </th>
-        {months.map((m) => (
-          <th scope="col" key={m}>
-            {m}
-          </th>
-        ))}
+        {months
+          .filter((_, i) => !month || i + 1 === Number(month))
+          .map((m) => (
+            <th scope="col" key={m}>
+              {m}
+            </th>
+          ))}
         <th scope="col">Total</th>
       </tr>
     </thead>

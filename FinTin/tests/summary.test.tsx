@@ -209,12 +209,14 @@ describe("Resumen separado por tipos", () => {
       month: 1,
       category: "expense",
       kind: "gasto",
+      currency: "EUR",
     });
     await u.click(screen.getByRole("button", { name: "999,00 EUR" }));
     expect(props.open).toHaveBeenLastCalledWith({
       month: 1,
       category: "__none",
       kind: "no_computable",
+      currency: "EUR",
     });
   });
   it("mantiene los grupos vacíos y sus totales a cero", async () => {
@@ -233,6 +235,45 @@ describe("Resumen separado por tipos", () => {
         .getAllByRole("cell")
         .every((c) => c.textContent === "0,00 EUR"),
     ).toBe(true);
+  });
+  it("filtra tarjetas y columnas por mes, conserva los periodos de los gráficos y abre el mes correcto", async () => {
+    render(<Summary {...props} month="02" />);
+    const u = userEvent.setup();
+    const cards = await screen.findByRole("group", {
+      name: "Totales del ejercicio",
+    });
+    expect(
+      within(cards).getByRole("article", { name: "Total Ingresos" })
+        .textContent,
+    ).toContain("20,00 EUR");
+    expect(
+      within(cards).getByRole("article", { name: "Total Gastos" }).textContent,
+    ).toContain("-50,00 EUR");
+    expect(
+      within(cards).getByRole("article", { name: "Total Neto" }).textContent,
+    ).toContain("-30,00 EUR");
+    const table = screen.getByRole("table", {
+      name: "Gastos por categorías y meses",
+    });
+    expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((h) => h.textContent),
+    ).toEqual(["Categoría / EUR", "Feb", "Total"]);
+    expect(
+      (
+        screen.getByLabelText(
+          "Periodo del balance mensual",
+        ) as HTMLSelectElement
+      ).value,
+    ).toBe("rolling");
+    await u.click(within(table).getByRole("button", { name: "-50,00 EUR" }));
+    expect(props.open).toHaveBeenCalledWith({
+      month: 2,
+      category: "expense",
+      kind: "gasto",
+      currency: "EUR",
+    });
   });
   it("muestra en rojo el importe del neto negativo", async () => {
     api.annual.mockResolvedValue([

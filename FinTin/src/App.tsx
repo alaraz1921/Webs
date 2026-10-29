@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { configured, db, client, list } from "./api";
 import type { Account, Alias, Category } from "./types";
+import { months } from "./types";
 import { Summary, AccountsPage, type YearProps } from "./Dashboard";
 import { MovementPage, filtersFor } from "./Movements";
 import { ImportPage } from "./Import";
@@ -254,6 +255,7 @@ function Workspace({ session }: { session: Session }) {
     [year, setYear] = useState(new Date().getFullYear()),
     [currency, setCurrency] = useState("EUR"),
     [account, setAccount] = useState(""),
+    [summaryMonth, setSummaryMonth] = useState(""),
     [accounts, setAccounts] = useState<Account[]>([]),
     [categories, setCategories] = useState<Category[]>([]),
     [aliases, setAliases] = useState<Alias[]>([]),
@@ -311,7 +313,7 @@ function Workspace({ session }: { session: Session }) {
       account: f.account || account,
       category: f.category || "",
       kind: f.kind || "",
-      currency,
+      currency: f.currency || currency,
     });
     location.hash = "movimientos";
   };
@@ -324,6 +326,12 @@ function Workspace({ session }: { session: Session }) {
     showFlows,
     showInitial,
   };
+  const summaryCurrencies = [
+    ...new Set(
+      accounts.filter((a) => !account || a.id === account).map((a) => a.moneda),
+    ),
+  ].sort();
+  if (!summaryCurrencies.length) summaryCurrencies.push("EUR");
   return (
     <div className={menu ? "app menu-open" : "app menu-closed"}>
       <aside
@@ -438,29 +446,56 @@ function Workspace({ session }: { session: Session }) {
               />
               {["resumen", "cuentas", "conciliacion"].includes(page.id) && (
                 <>
-                  <Field label="Moneda">
-                    <select
-                      value={currency}
-                      onChange={(e) => {
-                        setCurrency(e.target.value);
-                        setAccount("");
-                      }}
-                    >
-                      {[...new Set(["EUR", ...accounts.map((a) => a.moneda)])]
-                        .sort()
-                        .map((c) => (
-                          <option key={c}>{c}</option>
+                  {page.id === "resumen" ? (
+                    <Field label="Mes">
+                      <select
+                        value={summaryMonth}
+                        onChange={(e) => setSummaryMonth(e.target.value)}
+                      >
+                        <option value="">Todos</option>
+                        {months.map((m, i) => (
+                          <option
+                            key={m}
+                            value={String(i + 1).padStart(2, "0")}
+                          >
+                            {m}
+                          </option>
                         ))}
-                    </select>
-                  </Field>
+                      </select>
+                    </Field>
+                  ) : (
+                    <Field label="Moneda">
+                      <select
+                        value={currency}
+                        onChange={(e) => {
+                          setCurrency(e.target.value);
+                          setAccount("");
+                        }}
+                      >
+                        {[...new Set(["EUR", ...accounts.map((a) => a.moneda)])]
+                          .sort()
+                          .map((c) => (
+                            <option key={c}>{c}</option>
+                          ))}
+                      </select>
+                    </Field>
+                  )}
                   <Field label="Cuenta">
                     <select
                       value={account}
-                      onChange={(e) => setAccount(e.target.value)}
+                      onChange={(e) => {
+                        setAccount(e.target.value);
+                        const selected = accounts.find(
+                          (a) => a.id === e.target.value,
+                        );
+                        if (selected) setCurrency(selected.moneda);
+                      }}
                     >
                       <option value="">Todas las cuentas</option>
                       {accounts
-                        .filter((a) => a.moneda === currency)
+                        .filter(
+                          (a) => page.id === "resumen" || a.moneda === currency,
+                        )
                         .map((a) => (
                           <option key={a.id} value={a.id}>
                             {a.nombre_producto}
@@ -489,9 +524,20 @@ function Workspace({ session }: { session: Session }) {
             </button>
           ) : (
             <>
-              {page.id === "resumen" && (
-                <Summary key={revision} {...yearProps} />
-              )}{" "}
+              {page.id === "resumen" &&
+                summaryCurrencies.map((code) => (
+                  <section
+                    key={`${revision}|${code}`}
+                    aria-label={`Resumen en ${code}`}
+                  >
+                    {summaryCurrencies.length > 1 && <h2>Resumen en {code}</h2>}
+                    <Summary
+                      {...yearProps}
+                      currency={code}
+                      month={summaryMonth}
+                    />
+                  </section>
+                ))}{" "}
               {page.id === "cuentas" && (
                 <AccountsPage key={revision} {...yearProps} />
               )}{" "}

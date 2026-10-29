@@ -131,6 +131,93 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe("Continuidad de sesión y autorización", () => {
+  it("sustituye moneda por mes solo en Resumen y conserva la elección al renovar sesión", async () => {
+    render(<App />);
+    const u = userEvent.setup();
+    await screen.findByRole("button", { name: "12,00 EUR" });
+    expect(screen.queryByLabelText("Moneda")).toBeNull();
+    await u.selectOptions(screen.getByLabelText("Mes", { exact: true }), "03");
+    await emit("SIGNED_IN");
+    expect(
+      (screen.getByLabelText("Mes", { exact: true }) as HTMLSelectElement)
+        .value,
+    ).toBe("03");
+    await u.click(
+      screen
+        .getAllByRole("link", { name: "Cuentas" })
+        .find((a) => a.getAttribute("href") === "#cuentas")!,
+    );
+    expect(screen.getByLabelText("Moneda")).toBeTruthy();
+    expect(screen.queryByLabelText("Mes", { exact: true })).toBeNull();
+  });
+  it("muestra todas las monedas por separado y abre movimientos en la moneda del bloque", async () => {
+    api.list.mockImplementation(async (table) =>
+      table === "cuentas"
+        ? [
+            account,
+            {
+              ...account,
+              id: "usd",
+              nombre_producto: "Cuenta USD ficticia",
+              moneda: "USD",
+            },
+          ]
+        : [],
+    );
+    api.annual.mockResolvedValue([
+      movement,
+      {
+        ...movement,
+        id: "usd-move",
+        cuenta_id: "usd",
+        moneda: "USD",
+        importe: "1000.00",
+      },
+    ]);
+    render(<App />);
+    const u = userEvent.setup();
+    const usd = await screen.findByRole("region", { name: "Resumen en USD" });
+    await u.click(
+      await within(usd).findByRole("button", { name: "1.000,00 USD" }),
+    );
+    expect(
+      ((await screen.findByLabelText("Moneda")) as HTMLSelectElement).value,
+    ).toBe("USD");
+    expect((screen.getByLabelText("Desde") as HTMLInputElement).value).toBe(
+      "2026-03-01",
+    );
+  });
+  it("deduce la moneda al elegir una cuenta de Resumen y mantiene Cuentas coherente", async () => {
+    api.list.mockImplementation(async (table) =>
+      table === "cuentas"
+        ? [
+            account,
+            {
+              ...account,
+              id: "usd",
+              nombre_producto: "Cuenta USD ficticia",
+              moneda: "USD",
+            },
+          ]
+        : [],
+    );
+    render(<App />);
+    const u = userEvent.setup();
+    await screen.findByRole("region", { name: "Resumen en USD" });
+    await u.selectOptions(screen.getByLabelText("Cuenta"), "usd");
+    expect(screen.queryByRole("region", { name: "Resumen en EUR" })).toBeNull();
+    await u.click(
+      screen
+        .getAllByRole("link", { name: "Cuentas" })
+        .find((a) => a.getAttribute("href") === "#cuentas")!,
+    );
+    expect((screen.getByLabelText("Moneda") as HTMLSelectElement).value).toBe(
+      "USD",
+    );
+    expect((screen.getByLabelText("Cuenta") as HTMLSelectElement).value).toBe(
+      "usd",
+    );
+  });
   it("recuerda la preferencia General y muestra entradas y salidas sin moneda", async () => {
     history.replaceState(null, "", "#configuracion/general");
     api.list.mockImplementation(async (t) =>
