@@ -185,7 +185,7 @@ describe("Continuidad de sesión y autorización", () => {
     const row = concept.closest("tr")!;
     expect(row.children[1].textContent).toBe("Ingreso ficticio");
     expect(row.children[2].textContent).toBe(
-      "Producto original del CSVEntidad original ficticiaCuenta corriente",
+      "Producto original del CSVEntidad original ficticia",
     );
     expect(row.children[3].textContent).toBe("Cuenta ficticiaBanco ficticio");
   });

@@ -622,7 +622,15 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                     </thead>
                     <tbody>
                       {sortedClosures.map((r) => (
-                        <tr key={r.cuenta_id + r.fecha_cierre}>
+                        <tr
+                          key={r.cuenta_id + r.fecha_cierre}
+                          className={
+                            r.saldo_real !== null &&
+                            !new Decimal(r.saldo_real).eq(r.saldo_calculado)
+                              ? "reconciliation-difference"
+                              : undefined
+                          }
+                        >
                           <td>
                             {
                               accounts.find((a) => a.id === r.cuenta_id)

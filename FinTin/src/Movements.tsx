@@ -183,7 +183,7 @@ export function MovementPage(
         !error && (
           <>
             <div className="table-wrap">
-              <table className="compact-table">
+              <table className="compact-table movements-table">
                 <thead>
                   <tr>
                     <th>Fecha valor / operación</th>
@@ -213,9 +213,6 @@ export function MovementPage(
                             ? "Origen no conservado"
                             : "Alta manual")}
                         <small>{r.entidad_csv}</small>
-                        {r.tipo_producto_csv && (
-                          <small>{r.tipo_producto_csv}</small>
-                        )}
                         {r.origen === "csv" && !r.nombre_producto_csv && (
                           <small>
                             Reimporta el CSV para recuperar su origen.
