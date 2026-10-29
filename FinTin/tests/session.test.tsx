@@ -137,6 +137,12 @@ describe("Continuidad de sesión y autorización", () => {
     await screen.findByRole("button", { name: "12,00 EUR" });
     expect(screen.queryByLabelText("Moneda")).toBeNull();
     await u.selectOptions(screen.getByLabelText("Mes", { exact: true }), "03");
+    expect(
+      (screen.getByLabelText("Mes de categorías") as HTMLSelectElement).value,
+    ).toBe("03");
+    expect(
+      (screen.getByLabelText("Mes de evolución") as HTMLSelectElement).value,
+    ).toBe("03");
     await emit("SIGNED_IN");
     expect(
       (screen.getByLabelText("Mes", { exact: true }) as HTMLSelectElement)

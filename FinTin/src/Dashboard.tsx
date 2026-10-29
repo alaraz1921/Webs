@@ -147,6 +147,7 @@ export function Summary({
               })}
             </div>
             <SummaryCharts
+              month={month}
               chartPeriods={chartPeriods}
               setChartPeriod={(chart, value) =>
                 setChartPeriods((previous) => ({ ...previous, [chart]: value }))

@@ -73,6 +73,7 @@ export function SummaryCharts({
   account,
   chartPeriods,
   setChartPeriod,
+  month = "",
 }: {
   uid: string;
   year: number;
@@ -82,13 +83,14 @@ export function SummaryCharts({
   account: string;
   chartPeriods: ChartPeriods;
   setChartPeriod: (chart: keyof ChartPeriods, value: ChartPeriod) => void;
+  month?: string;
 }) {
   const [today] = useState(() => dateInMadrid(new Date()));
   const periods = lastTwelveMonths(today);
   const [topYear, setTopYear] = useState(year),
-    [topMonth, setTopMonth] = useState("");
+    [topMonth, setTopMonth] = useState(month);
   const [evolutionYear, setEvolutionYear] = useState(year),
-    [evolutionMonth, setEvolutionMonth] = useState(""),
+    [evolutionMonth, setEvolutionMonth] = useState(month),
     [category, setCategory] = useState("");
   const cache = useRef({ uid, years: new Map<number, Movement[]>() });
   const [loaded, setLoaded] = useState(new Map<number, Movement[]>()),
@@ -108,6 +110,10 @@ export function SummaryCharts({
     setTopYear(year);
     setEvolutionYear(year);
   }, [year]);
+  useEffect(() => {
+    setTopMonth(month);
+    setEvolutionMonth(month);
+  }, [month]);
   useEffect(() => {
     let live = true;
     if (cache.current.uid !== uid) cache.current = { uid, years: new Map() };

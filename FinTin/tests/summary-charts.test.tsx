@@ -111,6 +111,56 @@ it("carga los doce meses hasta hoy y filtra por moneda y cuenta sin incluir fech
     within(table).getByRole("row", { name: /Oct 26/ }).textContent,
   ).not.toContain("999,00");
 });
+it("aplica el mes general a ambos gráficos y Todos recupera la vista anual sin perder categoría ni periodos", async () => {
+  const view = render(<SummaryCharts {...props} month="02" />);
+  const u = userEvent.setup();
+  await screen.findByRole("list", { name: "Categorías con más gasto" });
+  expect(
+    (screen.getByLabelText("Mes de categorías") as HTMLSelectElement).value,
+  ).toBe("02");
+  expect(
+    (screen.getByLabelText("Mes de evolución") as HTMLSelectElement).value,
+  ).toBe("02");
+  expect(
+    screen.getByRole("list", { name: "Categorías con más gasto" }).textContent,
+  ).toBe("Categoría B20,59 EUR");
+  await u.selectOptions(
+    screen.getByLabelText("Categoría de evolución"),
+    "id:b",
+  );
+  expect(
+    screen.getByRole("img", { name: "10 · Categoría B: 20,59 EUR" }),
+  ).toBeTruthy();
+  view.rerender(<SummaryCharts {...props} month="01" />);
+  expect(
+    (screen.getByLabelText("Mes de categorías") as HTMLSelectElement).value,
+  ).toBe("01");
+  expect(
+    (screen.getByLabelText("Mes de evolución") as HTMLSelectElement).value,
+  ).toBe("01");
+  expect(
+    screen.getByRole("list", { name: "Categorías con más gasto" }).textContent,
+  ).toBe("Categoría A1.234,56 EUR");
+  view.rerender(<SummaryCharts {...props} month="" />);
+  expect(
+    (screen.getByLabelText("Mes de categorías") as HTMLSelectElement).value,
+  ).toBe("");
+  expect(
+    (screen.getByLabelText("Mes de evolución") as HTMLSelectElement).value,
+  ).toBe("");
+  expect(
+    screen.getByRole("figure", { name: "Gasto mensual de la categoría" }),
+  ).toBeTruthy();
+  expect(
+    (screen.getByLabelText("Categoría de evolución") as HTMLSelectElement)
+      .value,
+  ).toBe("id:b");
+  expect(
+    (screen.getByLabelText("Periodo del balance mensual") as HTMLSelectElement)
+      .value,
+  ).toBe("rolling");
+  expect(api.annual).toHaveBeenCalledTimes(1);
+});
 it("cambia mes y ejercicio del ranking y mes/categoría de evolución de forma independiente", async () => {
   render(<SummaryCharts {...props} />);
   const u = userEvent.setup();
