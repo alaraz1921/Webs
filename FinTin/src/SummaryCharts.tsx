@@ -39,6 +39,31 @@ function MonthFilter({
 }
 const periodLabel = (period: string) =>
   `${months[Number(period.slice(5, 7)) - 1]} ${period.slice(2, 4)}`;
+export type ChartPeriod = "rolling" | "year";
+export type ChartPeriods = { balance: ChartPeriod; flow: ChartPeriod };
+function PeriodFilter({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: ChartPeriod;
+  onChange: (value: ChartPeriod) => void;
+}) {
+  return (
+    <div className="chart-filters chart-period-filter">
+      <Field label={label}>
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value as ChartPeriod)}
+        >
+          <option value="year">Doce meses del ejercicio</option>
+          <option value="rolling">Últimos 12 meses</option>
+        </select>
+      </Field>
+    </div>
+  );
+}
 export function SummaryCharts({
   uid,
   year,
@@ -46,6 +71,8 @@ export function SummaryCharts({
   categories,
   currency,
   account,
+  chartPeriods,
+  setChartPeriod,
 }: {
   uid: string;
   year: number;
@@ -53,6 +80,8 @@ export function SummaryCharts({
   categories: Category[];
   currency: string;
   account: string;
+  chartPeriods: ChartPeriods;
+  setChartPeriod: (chart: keyof ChartPeriods, value: ChartPeriod) => void;
 }) {
   const [today] = useState(() => dateInMadrid(new Date()));
   const periods = lastTwelveMonths(today);
@@ -70,6 +99,7 @@ export function SummaryCharts({
       ...periods.map((p) => Number(p.slice(0, 4))),
       topYear,
       evolutionYear,
+      year,
     ]),
   ]
     .sort()
@@ -121,7 +151,11 @@ export function SummaryCharts({
   const rollingRows = [...new Set(periods.map((p) => Number(p.slice(0, 4))))]
     .flatMap(filtered)
     .filter((r) => r.fecha_valor <= today);
-  const monthly = monthlyChartData(rollingRows, periods);
+  const exercisePeriods = months.map(
+    (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`,
+  );
+  const chartMonths = (period: ChartPeriod) =>
+    period === "rolling" ? periods : exercisePeriods;
   const top = topExpenses(filtered(topYear), categories, topMonth);
   const options = expenseCategories(filtered(evolutionYear), categories);
   const selected = options.some((c) => c.key === category)
@@ -133,20 +167,30 @@ export function SummaryCharts({
     evolutionMonth,
     selected,
   );
-  const series = [
-    {
-      name: "Ingresos",
-      color: "#2563eb",
-      values: monthly.map((m) => m.income),
-    },
-    { name: "Gastos", color: "#dc2626", values: monthly.map((m) => m.expense) },
-    {
-      name: "No computables",
-      color: "#94a3b8",
-      values: monthly.map((m) => m.other),
-    },
-    { name: "Neto", color: "#15803d", values: monthly.map((m) => m.net) },
-  ];
+  const seriesFor = (period: ChartPeriod) => {
+    const monthly = monthlyChartData(
+      period === "rolling" ? rollingRows : filtered(year),
+      chartMonths(period),
+    );
+    return [
+      {
+        name: "Ingresos",
+        color: "#2563eb",
+        values: monthly.map((m) => m.income),
+      },
+      {
+        name: "Gastos",
+        color: "#dc2626",
+        values: monthly.map((m) => m.expense),
+      },
+      {
+        name: "No computables",
+        color: "#94a3b8",
+        values: monthly.map((m) => m.other),
+      },
+      { name: "Neto", color: "#15803d", values: monthly.map((m) => m.net) },
+    ];
+  };
   const chart = (content: React.ReactNode) =>
     busy ? (
       <Empty>Cargando gráficos…</Empty>
@@ -157,31 +201,60 @@ export function SummaryCharts({
     );
   return (
     <section className="summary-charts" aria-label="Gráficos financieros">
-      <Panel title="Balance mensual · últimos 12 meses">
+      <Panel
+        title={
+          chartPeriods.balance === "rolling"
+            ? "Balance mensual · últimos 12 meses"
+            : `Balance mensual · ejercicio ${year}`
+        }
+      >
+        <PeriodFilter
+          label="Periodo del balance mensual"
+          value={chartPeriods.balance}
+          onChange={(value) => setChartPeriod("balance", value)}
+        />
         <p className="muted">
-          {periodLabel(periods[0])} – {periodLabel(periods[11])}, hasta hoy.
-          Gastos con devoluciones descontadas; neto = ingresos − gastos.
+          {periodLabel(chartMonths(chartPeriods.balance)[0])} –{" "}
+          {periodLabel(chartMonths(chartPeriods.balance)[11])}
+          {chartPeriods.balance === "rolling" ? ", hasta hoy." : "."} Gastos con
+          devoluciones descontadas; neto = ingresos − gastos.
         </p>
         {chart(
           <FinanceChart
-            title="Balance mensual de los últimos 12 meses"
-            labels={periods.map(periodLabel)}
-            series={series}
+            title={
+              chartPeriods.balance === "rolling"
+                ? "Balance mensual de los últimos 12 meses"
+                : `Balance mensual del ejercicio ${year}`
+            }
+            labels={chartMonths(chartPeriods.balance).map(periodLabel)}
+            series={seriesFor(chartPeriods.balance)}
             currency={currency}
             bars
           />,
         )}
       </Panel>
-      <Panel title="Evolución de ingresos y gastos · últimos 12 meses">
+      <Panel
+        title={
+          chartPeriods.flow === "rolling"
+            ? "Evolución de ingresos y gastos · últimos 12 meses"
+            : `Evolución de ingresos y gastos · ejercicio ${year}`
+        }
+      >
+        <PeriodFilter
+          label="Periodo de ingresos y gastos"
+          value={chartPeriods.flow}
+          onChange={(value) => setChartPeriod("flow", value)}
+        />
         <p className="muted">
-          {periodLabel(periods[0])} – {periodLabel(periods[11])}. Se aplican la
+          {periodLabel(chartMonths(chartPeriods.flow)[0])} –{" "}
+          {periodLabel(chartMonths(chartPeriods.flow)[11])}. Se aplican la
           cuenta y moneda seleccionadas.
         </p>
         {chart(
           <FinanceChart
             title="Evolución mensual de ingresos y gastos"
-            labels={periods.map(periodLabel)}
-            series={series.slice(0, 2)}
+            labels={chartMonths(chartPeriods.flow).map(periodLabel)}
+            series={seriesFor(chartPeriods.flow).slice(0, 2)}
             currency={currency}
           />,
         )}

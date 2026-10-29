@@ -3,9 +3,30 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { Movement } from "../src/types";
+import { useState, type ComponentProps } from "react";
 const api = vi.hoisted(() => ({ annual: vi.fn() }));
 vi.mock("../src/api", () => api);
-import { SummaryCharts } from "../src/SummaryCharts";
+import {
+  SummaryCharts as Charts,
+  type ChartPeriods,
+} from "../src/SummaryCharts";
+function SummaryCharts(
+  props: Omit<ComponentProps<typeof Charts>, "chartPeriods" | "setChartPeriod">,
+) {
+  const [chartPeriods, setPeriods] = useState<ChartPeriods>({
+    balance: "rolling",
+    flow: "rolling",
+  });
+  return (
+    <Charts
+      {...props}
+      chartPeriods={chartPeriods}
+      setChartPeriod={(chart, value) =>
+        setPeriods((p) => ({ ...p, [chart]: value }))
+      }
+    />
+  );
+}
 const row = (changes: Partial<Movement>): Movement => ({
   id: "ficticio",
   cuenta_id: "a",
@@ -124,4 +145,56 @@ it("cambia mes y ejercicio del ranking y mes/categoría de evolución de forma i
   expect(
     (screen.getByLabelText("Mes de evolución") as HTMLSelectElement).value,
   ).toBe("02");
+});
+it("alterna de forma independiente entre últimos doce meses y enero a diciembre del ejercicio", async () => {
+  render(<SummaryCharts {...props} />);
+  const u = userEvent.setup();
+  await screen.findByRole("img", {
+    name: /^Balance mensual de los últimos 12 meses\./,
+  });
+  await u.selectOptions(
+    screen.getByLabelText("Periodo del balance mensual"),
+    "year",
+  );
+  const balance = screen.getByRole("figure", {
+    name: "Balance mensual del ejercicio 2026",
+  });
+  await u.click(within(balance).getByText("Ver datos"));
+  const table = within(balance).getByRole("table");
+  expect(within(table).getAllByRole("row")).toHaveLength(13);
+  expect(
+    within(table).getByRole("row", { name: /Ene 26/ }).textContent,
+  ).toContain("1.234,56 EUR");
+  expect(
+    within(table).getByRole("row", { name: /Oct 26/ }).textContent,
+  ).toContain("999,00 EUR");
+  expect(within(table).getByRole("row", { name: /Dic 26/ })).toBeTruthy();
+  expect(within(table).queryByRole("row", { name: /Nov 25/ })).toBeNull();
+  expect(
+    (screen.getByLabelText("Periodo de ingresos y gastos") as HTMLSelectElement)
+      .value,
+  ).toBe("rolling");
+  await u.selectOptions(
+    screen.getByLabelText("Periodo de ingresos y gastos"),
+    "year",
+  );
+  const flow = screen.getByRole("figure", {
+    name: "Evolución mensual de ingresos y gastos",
+  });
+  await u.click(within(flow).getByText("Ver datos"));
+  expect(within(flow).getByRole("row", { name: /Dic 26/ })).toBeTruthy();
+  await u.selectOptions(
+    screen.getByLabelText("Periodo del balance mensual"),
+    "rolling",
+  );
+  expect(
+    screen.getByRole("figure", {
+      name: "Balance mensual de los últimos 12 meses",
+    }),
+  ).toBeTruthy();
+  expect(
+    (screen.getByLabelText("Periodo de ingresos y gastos") as HTMLSelectElement)
+      .value,
+  ).toBe("year");
+  expect(api.annual).toHaveBeenCalledTimes(1);
 });

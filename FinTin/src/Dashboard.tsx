@@ -16,7 +16,7 @@ import {
 } from "./finance";
 import { Field, Empty, ErrorBox, Panel, Form, text, Modal } from "./ui";
 import type { MasterProps } from "./Settings";
-import { SummaryCharts } from "./SummaryCharts";
+import { SummaryCharts, type ChartPeriods } from "./SummaryCharts";
 export interface YearProps extends MasterProps {
   year: number;
   currency: string;
@@ -39,6 +39,10 @@ export function Summary({
   categories,
   open,
 }: YearProps) {
+  const [chartPeriods, setChartPeriods] = useState<ChartPeriods>({
+    balance: "rolling",
+    flow: "rolling",
+  });
   const [data, setData] = useState<Movement[]>([]),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(true);
@@ -130,6 +134,10 @@ export function Summary({
               })}
             </div>
             <SummaryCharts
+              chartPeriods={chartPeriods}
+              setChartPeriod={(chart, value) =>
+                setChartPeriods((previous) => ({ ...previous, [chart]: value }))
+              }
               uid={uid}
               year={year}
               rows={data}

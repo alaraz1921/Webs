@@ -101,6 +101,34 @@ const numbers = (table: HTMLElement, name: string | RegExp) =>
     .getAllByRole("cell")
     .map((c) => c.textContent);
 describe("Resumen separado por tipos", () => {
+  it("mantiene el modo de ejercicio en los gráficos al cambiar el ejercicio general", async () => {
+    const view = render(<Summary {...props} />);
+    const u = userEvent.setup();
+    await u.selectOptions(
+      await screen.findByLabelText("Periodo del balance mensual"),
+      "year",
+    );
+    await u.selectOptions(
+      screen.getByLabelText("Periodo de ingresos y gastos"),
+      "year",
+    );
+    view.rerender(<Summary {...props} year={2025} />);
+    await screen.findByRole("heading", {
+      name: "Balance mensual · ejercicio 2025",
+    });
+    expect(
+      (
+        screen.getByLabelText(
+          "Periodo del balance mensual",
+        ) as HTMLSelectElement
+      ).value,
+    ).toBe("year");
+    expect(
+      screen.getByRole("heading", {
+        name: "Evolución de ingresos y gastos · ejercicio 2025",
+      }),
+    ).toBeTruthy();
+  });
   it("ordena los cuatro grupos y calcula totales por mes, año y neto excluyendo no computables", async () => {
     render(<Summary {...props} />);
     await screen.findByRole("heading", { name: "Totales y neto" });

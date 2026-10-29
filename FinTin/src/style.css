@@ -484,6 +484,9 @@ form > .primary {
   gap: 12px;
   margin: 12px 0 18px;
 }
+.chart-period-filter {
+  max-width: 300px;
+}
 .chart-filters > * {
   flex: 1 1 125px;
   min-width: 0;
