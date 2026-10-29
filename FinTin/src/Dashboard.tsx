@@ -558,11 +558,11 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                                 >
                                   {r ? (
                                     <>
-                                      {money(r.saldo_calculado, currency)}
+                                      {formatAmount(r.saldo_calculado)}
                                       <small>
                                         {r.saldo_real === null
                                           ? "Real pendiente"
-                                          : `Real ${money(r.saldo_real, currency)}`}
+                                          : `Real ${formatAmount(r.saldo_real)}`}
                                       </small>
                                       {showFlows && (
                                         <>

@@ -238,7 +238,7 @@ it("mantiene el cuadrante montado y su scroll mientras se refresca un saldo guar
       ),
     );
   });
-  await within(t).findByText("Real 2,00 EUR");
+  await within(t).findByText("Real 2,00");
   expect(wrapper.scrollLeft).toBe(320);
   expect(t.isConnected).toBe(true);
 });

@@ -175,7 +175,8 @@ describe("Continuidad de sesión y autorización", () => {
     expect(t.textContent).not.toContain("Saldo inicial");
     expect(t.textContent).not.toContain("Inicio");
     expect(t.classList.contains("accounts-condensed")).toBe(true);
-    expect(t.textContent).toContain("112,00 EUR");
+    expect(t.textContent).toContain("112,00");
+    expect(t.textContent).not.toContain("112,00 EUR");
     await u.click(screen.getByRole("link", { name: "General" }));
     await u.click(
       await screen.findByRole("checkbox", {
