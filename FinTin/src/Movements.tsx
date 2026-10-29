@@ -3,6 +3,7 @@ import type { Movement, Kind } from "./types";
 import { kinds, labels } from "./types";
 import { movements, remove, save, type Filters } from "./api";
 import { amount, money, displayDate } from "./finance";
+import { decimalComma } from "./amount-input";
 import { Field, Form, Empty, ErrorBox, text, ConfirmDelete, Panel } from "./ui";
 import { CategoryOptions, type MasterProps } from "./Settings";
 export const filtersFor = (year: number): Filters => ({
@@ -390,6 +391,7 @@ function MovementForm({
           <input
             name="importe"
             inputMode="decimal"
+            onKeyDown={decimalComma}
             required
             placeholder="-10,00"
             defaultValue={edit?.importe.replace(".", ",")}

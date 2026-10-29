@@ -6,6 +6,7 @@ import {
   cleanup,
   waitFor,
   within,
+  fireEvent,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Account, Category, Movement } from "../src/types";
@@ -17,6 +18,7 @@ const api = vi.hoisted(() => ({
 vi.mock("../src/api", () => api);
 import { Settings } from "../src/Settings";
 import { MovementPage, filtersFor } from "../src/Movements";
+import { decimalComma } from "../src/amount-input";
 const account: Account = {
   id: "account",
   user_id: "owner",
@@ -54,6 +56,41 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 describe("Operaciones de interfaz", () => {
+  it("usa coma decimal del teclado numérico respetando selección, cursor y punto de miles", async () => {
+    render(
+      <input
+        aria-label="Importe ficticio"
+        defaultValue="1234"
+        onKeyDown={decimalComma}
+      />,
+    );
+    const input = screen.getByLabelText("Importe ficticio") as HTMLInputElement;
+    input.setSelectionRange(2, 2);
+    expect(
+      fireEvent.keyDown(input, {
+        key: ".",
+        code: "NumpadDecimal",
+        location: 3,
+      }),
+    ).toBe(false);
+    expect(input.value).toBe("12,34");
+    expect(input.selectionStart).toBe(3);
+    input.setSelectionRange(2, 5);
+    fireEvent.keyDown(input, { key: "Decimal", location: 3 });
+    expect(input.value).toBe("12,");
+    expect(fireEvent.keyDown(input, { key: ".", code: "Period" })).toBe(true);
+    expect(
+      fireEvent.keyDown(input, {
+        key: "Delete",
+        code: "NumpadDecimal",
+        location: 3,
+      }),
+    ).toBe(true);
+    const u = userEvent.setup();
+    await u.clear(input);
+    await u.type(input, "1.234,56");
+    expect(input.value).toBe("1.234,56");
+  });
   it("crea una cuenta con decimal exacto y propietario explícito", async () => {
     api.save.mockResolvedValue(undefined);
     const u = userEvent.setup();

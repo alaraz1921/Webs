@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Account, Alias, Category, Kind } from "./types";
 import { kinds, labels } from "./types";
 import { amount, money } from "./finance";
+import { decimalComma } from "./amount-input";
 import { validCurrency } from "./csv";
 import { save, remove } from "./api";
 import { Panel, Field, Form, text, ConfirmDelete, Modal, Empty } from "./ui";
@@ -401,6 +402,7 @@ export function Settings({
                   required
                   defaultValue={edit?.saldo_inicial.replace(".", ",") || "0,00"}
                   inputMode="decimal"
+                  onKeyDown={decimalComma}
                 />
               </Field>
               <Field label="Fecha del saldo inicial">
