@@ -16,6 +16,7 @@ import {
 } from "./finance";
 import { Field, Empty, ErrorBox, Panel, Form, text, Modal } from "./ui";
 import type { MasterProps } from "./Settings";
+import { SummaryCharts } from "./SummaryCharts";
 export interface YearProps extends MasterProps {
   year: number;
   currency: string;
@@ -103,7 +104,20 @@ export function Summary({
                     aria-label={"Total " + label}
                   >
                     <span>{label}</span>
-                    <strong>{money(t[key], currency)}</strong>
+                    <strong
+                      className={
+                        key === "ingreso"
+                          ? "income-amount"
+                          : key === "gasto" ||
+                              (key === "balance" && t.balance.lt(0))
+                            ? "negative"
+                            : key === "balance"
+                              ? "positive"
+                              : undefined
+                      }
+                    >
+                      {money(t[key], currency)}
+                    </strong>
                     <small>
                       {key === "balance"
                         ? "Ingresos menos gastos; sin no computables"
@@ -115,6 +129,14 @@ export function Summary({
                 );
               })}
             </div>
+            <SummaryCharts
+              uid={uid}
+              year={year}
+              rows={data}
+              categories={categories}
+              currency={currency}
+              account={account}
+            />
             {kinds.map((kind) => {
               const categoriesForKind = groups.filter((g) => g.kind === kind);
               return (

@@ -5,10 +5,12 @@ export function YearPicker({
   value,
   disabled = false,
   onChange,
+  label = "Ejercicio",
 }: {
   value: number;
   disabled?: boolean;
   onChange: (year: number) => void;
+  label?: string;
 }) {
   const [open, setOpen] = useState(false),
     [active, setActive] = useState(value);
@@ -97,7 +99,7 @@ export function YearPicker({
         if (!event.currentTarget.contains(event.relatedTarget as Node)) close();
       }}
     >
-      <span id={`${id}-label`}>Ejercicio</span>
+      <span id={`${id}-label`}>{label}</span>
       <button
         ref={button}
         type="button"

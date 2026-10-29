@@ -100,7 +100,7 @@ async function emit(
   });
 }
 async function chooseYear(u: ReturnType<typeof userEvent.setup>, year: string) {
-  await u.click(await screen.findByRole("combobox", { name: /^Ejercicio/ }));
+  await u.click(await screen.findByRole("combobox", { name: /^Ejercicio \d/ }));
   await u.click(screen.getByRole("option", { name: year }));
 }
 beforeEach(() => {
@@ -236,7 +236,9 @@ describe("Continuidad de sesión y autorización", () => {
       await screen.findByRole("heading", { name: heading, level: 2 });
       expect(location.hash).toBe("#configuracion/" + hash);
       expect(screen.getAllByRole("button", { name: "Nueva" })).toHaveLength(1);
-      expect(screen.queryByRole("combobox", { name: /^Ejercicio/ })).toBeNull();
+      expect(
+        screen.queryByRole("combobox", { name: /^Ejercicio \d/ }),
+      ).toBeNull();
       for (const other of [
         "Cuentas y saldo de partida",
         "Alias de cuentas",
@@ -399,7 +401,7 @@ describe("Continuidad de sesión y autorización", () => {
         "",
       );
     expect(
-      screen.getByRole("combobox", { name: /^Ejercicio/ }).textContent,
+      screen.getByRole("combobox", { name: /^Ejercicio \d/ }).textContent,
     ).toBe("2025");
     await screen.findByText(/100 movimientos · página 1/);
   });
@@ -419,13 +421,13 @@ describe("Continuidad de sesión y autorización", () => {
           )!,
       );
       await screen.findByRole("heading", { name: page, level: 1 });
-      await u.click(screen.getByRole("combobox", { name: /^Ejercicio/ }));
+      await u.click(screen.getByRole("combobox", { name: /^Ejercicio \d/ }));
       expect(
         within(screen.getByRole("listbox")).getAllByRole("option"),
       ).toHaveLength(101);
       await u.click(screen.getByRole("option", { name: "2012" }));
       expect(
-        screen.getByRole("combobox", { name: /^Ejercicio/ }).textContent,
+        screen.getByRole("combobox", { name: /^Ejercicio \d/ }).textContent,
       ).toBe("2012");
       expect(screen.queryByRole("listbox")).toBeNull();
     },
@@ -439,7 +441,7 @@ describe("Continuidad de sesión y autorización", () => {
     await screen.findByRole("heading", {
       name: "Importa un ejercicio completo",
     });
-    const combo = screen.getByRole("combobox", { name: /^Ejercicio/ });
+    const combo = screen.getByRole("combobox", { name: /^Ejercicio \d/ });
     await u.click(combo);
     expect(
       within(screen.getByRole("listbox")).getAllByRole("option"),

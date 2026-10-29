@@ -106,13 +106,37 @@ describe("Resumen separado por tipos", () => {
     await screen.findByRole("heading", { name: "Totales y neto" });
     expect(
       screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
-    ).toEqual(["Ingresos", "Gastos", "No computables", "Totales y neto"]);
+    ).toEqual([
+      "Balance mensual · últimos 12 meses",
+      "Evolución de ingresos y gastos · últimos 12 meses",
+      "Gastos por categorías · las 6 principales",
+      "Evolución del gasto de una categoría",
+      "Ingresos",
+      "Gastos",
+      "No computables",
+      "Totales y neto",
+    ]);
     const cards = screen.getByRole("group", { name: "Totales del ejercicio" });
     expect(
       within(cards)
         .getAllByRole("article")
         .map((card) => within(card).getByText(/EUR$/).textContent),
     ).toEqual(["120,00 EUR", "-75,00 EUR", "999,00 EUR", "45,00 EUR"]);
+    expect(
+      within(cards)
+        .getByRole("article", { name: "Total Ingresos" })
+        .querySelector("strong")?.className,
+    ).toBe("income-amount");
+    expect(
+      within(cards)
+        .getByRole("article", { name: "Total Gastos" })
+        .querySelector("strong")?.className,
+    ).toBe("negative");
+    expect(
+      within(cards)
+        .getByRole("article", { name: "Total Neto" })
+        .querySelector("strong")?.className,
+    ).toBe("positive");
     expect(
       cards.compareDocumentPosition(
         screen.getByRole("heading", { name: "Ingresos" }),
@@ -171,11 +195,24 @@ describe("Resumen separado por tipos", () => {
     const table = await screen.findByRole("table", {
       name: "Totales mensuales y neto",
     });
-    expect(screen.getAllByRole("table")).toHaveLength(4);
+    expect(
+      screen.getAllByRole("table", {
+        name: /por categorías y meses|Totales mensuales y neto/,
+      }),
+    ).toHaveLength(4);
     expect(
       within(table)
         .getAllByRole("cell")
         .every((c) => c.textContent === "0,00 EUR"),
     ).toBe(true);
+  });
+  it("muestra en rojo el importe del neto negativo", async () => {
+    api.annual.mockResolvedValue([
+      movement("expense", { tipo_movimiento: "gasto", importe: "-1234.56" }),
+    ]);
+    render(<Summary {...props} />);
+    const card = await screen.findByRole("article", { name: "Total Neto" });
+    expect(card.querySelector("strong")?.className).toBe("negative");
+    expect(card.textContent).toContain("-1.234,56 EUR");
   });
 });
