@@ -130,6 +130,54 @@ beforeAll(() => {
     this.open = false;
   };
 });
+
+it("ordena Movimientos desde las cabeceras en ambos sentidos y vuelve a la primera página", async () => {
+  api.movements.mockResolvedValue({ rows: [], count: 101, totals: [] });
+  render(
+    <MovementPage
+      {...common}
+      filters={filtersFor(2026)}
+      setFilters={vi.fn()}
+    />,
+  );
+  const u = userEvent.setup();
+  await screen.findByText(/101 movimientos · página 1/);
+  await u.click(screen.getByRole("button", { name: "Siguiente" }));
+  await screen.findByText(/101 movimientos · página 2/);
+  await u.click(screen.getByRole("button", { name: "Importe" }));
+  await screen.findByText(/101 movimientos · página 1/);
+  expect(api.movements.mock.lastCall?.[4]).toEqual({
+    key: "amount",
+    direction: "asc",
+  });
+  expect(
+    screen
+      .getByRole("button", { name: "Importe" })
+      .closest("th")
+      ?.getAttribute("aria-sort"),
+  ).toBe("ascending");
+  await u.click(screen.getByRole("button", { name: "Importe" }));
+  await screen.findByText(/101 movimientos · página 1/);
+  expect(api.movements.mock.lastCall?.[4]).toEqual({
+    key: "amount",
+    direction: "desc",
+  });
+  for (const label of [
+    "Fecha valor / operación",
+    "Concepto",
+    "Cuenta de origen (CSV)",
+    "Cuenta de destino",
+    "Categoría",
+    "Origen",
+  ])
+    expect(screen.getByRole("button", { name: label })).toBeTruthy();
+  expect(
+    screen
+      .getByRole("button", { name: "Importe" })
+      .closest("th")
+      ?.getAttribute("aria-sort"),
+  ).toBe("descending");
+});
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();

@@ -218,6 +218,63 @@ describe("Carga manual atómica y reintentos", () => {
 });
 
 describe("Totales de movimientos filtrados", () => {
+  it("ordena el conjunto completo antes de paginar, incluyendo filas posteriores al límite de mil", async () => {
+    const ranges: number[][] = [];
+    const q = {
+      select: () => q,
+      eq: () => q,
+      gte: () => q,
+      lte: () => q,
+      order: () => q,
+      range: async (from: number, to: number) => {
+        ranges.push([from, to]);
+        return {
+          error: null,
+          data:
+            from === 0
+              ? Array.from({ length: 1000 }, (_, i) => ({
+                  id: String(i),
+                  importe: "10.00",
+                  moneda: "EUR",
+                }))
+              : [{ id: "last", importe: "-0.01", moneda: "EUR" }],
+        };
+      },
+    };
+    mock.from.mockImplementationOnce(() => q).mockImplementationOnce(() => q);
+    const result = await api.movements(
+      "owner",
+      {
+        from: "2026-01-01",
+        to: "2026-12-31",
+        account: "",
+        category: "",
+        kind: "",
+        origin: "",
+        search: "",
+        entity: "",
+        currency: "",
+      },
+      0,
+      undefined,
+      { key: "amount", direction: "asc" },
+    );
+    expect(result.rows).toHaveLength(50);
+    expect(result.rows[0].id).toBe("last");
+    expect(result.count).toBe(1001);
+    expect(result.totals).toEqual([
+      {
+        currency: "EUR",
+        total: "9999.99",
+        positive: "10000.00",
+        negative: "-0.01",
+      },
+    ]);
+    expect(ranges).toEqual([
+      [0, 999],
+      [1000, 1999],
+    ]);
+  });
   it("suma más de mil resultados con decimales exactos y separa las monedas aplicando todos los filtros", async () => {
     const queries: { columns: string; calls: unknown[][] }[] = [];
     mock.from

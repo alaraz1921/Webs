@@ -7,6 +7,8 @@ import { amount, money, displayDate } from "./finance";
 import { decimalComma } from "./amount-input";
 import { Field, Form, Empty, ErrorBox, text, ConfirmDelete, Panel } from "./ui";
 import { CategoryOptions, type MasterProps } from "./Settings";
+import { SortHeader, useTableSort } from "./sorting";
+import type { MovementSortKey } from "./movement-sorting";
 export const filtersFor = (year: number): Filters => ({
   from: `${year}-01-01`,
   to: `${year}-12-31`,
@@ -26,6 +28,11 @@ export function MovementPage(
   },
 ) {
   const { uid, accounts, categories, filters: f, setFilters } = props;
+  const { sort, onSort } = useTableSort<MovementSortKey>();
+  const sortColumn = (key: MovementSortKey) => {
+    setPage(0);
+    onSort(key);
+  };
   const [page, setPage] = useState(0),
     [data, setData] = useState<{
       rows: Movement[];
@@ -60,6 +67,8 @@ export function MovementPage(
         f.entity
           ? accounts.filter((a) => a.entidad === f.entity).map((a) => a.id)
           : undefined,
+        sort,
+        { accounts, categories },
       )
         .then((d) => {
           if (live) setData(d);
@@ -75,7 +84,7 @@ export function MovementPage(
       live = false;
       clearTimeout(timer);
     };
-  }, [uid, f, page, refresh, accounts]);
+  }, [uid, f, page, refresh, accounts, categories, sort]);
   return (
     <>
       <div className="toolbar">
@@ -240,13 +249,26 @@ export function MovementPage(
               <table className="compact-table movements-table">
                 <thead>
                   <tr>
-                    <th>Fecha valor / operación</th>
-                    <th>Concepto</th>
-                    <th>Cuenta de origen (CSV)</th>
-                    <th>Cuenta de destino</th>
-                    <th>Categoría</th>
-                    <th>Origen</th>
-                    <th className="numeric">Importe</th>
+                    {(
+                      [
+                        ["date", "Fecha valor / operación"],
+                        ["concept", "Concepto"],
+                        ["source", "Cuenta de origen (CSV)"],
+                        ["destination", "Cuenta de destino"],
+                        ["category", "Categoría"],
+                        ["origin", "Origen"],
+                        ["amount", "Importe"],
+                      ] as const
+                    ).map(([field, label]) => (
+                      <SortHeader
+                        key={field}
+                        field={field}
+                        label={label}
+                        sort={sort}
+                        onSort={sortColumn}
+                        numeric={field === "amount"}
+                      />
+                    ))}
                     <th>Acciones</th>
                   </tr>
                 </thead>

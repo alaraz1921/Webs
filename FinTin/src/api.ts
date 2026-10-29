@@ -3,6 +3,12 @@ import { publicKey, validUrl } from "./config";
 import { createClient } from "@supabase/supabase-js";
 import type { CsvRow, Movement } from "./types";
 import Decimal from "decimal.js";
+import {
+  sortedMovements,
+  type MovementSortKey,
+  type MovementLookups,
+} from "./movement-sorting";
+import type { SortState } from "./sorting";
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
@@ -104,6 +110,8 @@ export async function movements(
   f: Filters,
   page: number,
   accountIds?: string[],
+  sort: SortState<MovementSortKey> = null,
+  lookups: MovementLookups = { accounts: [], categories: [] },
 ) {
   const query = (columns: string, count = false) => {
     let q = client()
@@ -130,13 +138,15 @@ export async function movements(
     string,
     { total: Decimal; positive: Decimal; negative: Decimal }
   >();
+  const allRows: Movement[] = [];
   // Recorre todos los resultados filtrados, no solo la página visible.
   for (let from = 0; ; from += 1000) {
     const rows = checked(
-      await query("importe::text,moneda")
+      await query(sort ? selects.movimientos : "importe::text,moneda")
         .order("id")
         .range(from, from + 999),
     ) as unknown as Pick<Movement, "importe" | "moneda">[];
+    if (sort) allRows.push(...(rows as Movement[]));
     for (const row of rows) {
       const t = totals.get(row.moneda) ?? {
         total: new Decimal(0),
@@ -151,13 +161,17 @@ export async function movements(
     }
     if (rows.length < 1000) break;
   }
-  const r = await query(selects.movimientos, true)
-    .order("fecha_valor", { ascending: false })
-    .order("id")
-    .range(page * 50, page * 50 + 49);
+  const r = sort
+    ? null
+    : await query(selects.movimientos, true)
+        .order("fecha_valor", { ascending: false })
+        .order("id")
+        .range(page * 50, page * 50 + 49);
   return {
-    rows: checked(r) as unknown as Movement[],
-    count: r.count || 0,
+    rows: sort
+      ? sortedMovements(allRows, sort, lookups).slice(page * 50, page * 50 + 50)
+      : (checked(r!) as unknown as Movement[]),
+    count: sort ? allRows.length : r!.count || 0,
     totals: [...totals]
       .sort(([a], [b]) => a.localeCompare(b, "es"))
       .map(([currency, t]) => ({
