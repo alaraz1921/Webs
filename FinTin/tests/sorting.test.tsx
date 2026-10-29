@@ -118,9 +118,10 @@ describe("Ordenación de tablas", () => {
     await u.click(
       within(accountRows[2].children[2] as HTMLElement).getByRole("button"),
     );
+    await u.click(screen.getByRole("menuitem", { name: "Ver movimientos" }));
     expect(props.open).toHaveBeenCalledWith({
       account: "c",
-      through: "2026-02-28",
+      month: 2,
     });
   });
   it("ordena importes de precisión completa y deja pendientes al final en ambos sentidos", () => {

@@ -978,3 +978,22 @@ h1 {
   min-width: 180px;
   margin-bottom: 0;
 }
+.account-cell-menu {
+  position: fixed;
+  z-index: 9;
+  width: 210px;
+  max-width: calc(100vw - 16px);
+  padding: 5px;
+  border: 1px solid #dce3ec;
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 5px 18px #0f172a1f;
+}
+.account-cell-menu button {
+  display: block;
+  width: 100%;
+  border: 0;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 12px;
+}

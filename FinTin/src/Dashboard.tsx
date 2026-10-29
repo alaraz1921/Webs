@@ -1,6 +1,7 @@
 import { useTableSort, sortRows, SortHeader } from "./sorting";
 import { useEffect, useState } from "react";
 import Decimal from "decimal.js";
+import { AccountCell } from "./AccountCell";
 import { annual, list, save, remove } from "./api";
 import type { Movement, Reconciliation, Balance } from "./types";
 import { kinds, labels, months } from "./types";
@@ -286,7 +287,10 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
     [refresh, setRefresh] = useState(0);
   const [closingMonth, setClosingMonth] = useState(""),
     [closingStatus, setClosingStatus] = useState(""),
-    [balanceDialog, setBalanceDialog] = useState<Reconciliation | null>(null),
+    [balanceDialog, setBalanceDialog] = useState<Pick<
+      Reconciliation,
+      "cuenta_id" | "fecha_cierre" | "saldo_real"
+    > | null>(null),
     [balanceBusy, setBalanceBusy] = useState(false);
   useEffect(() => {
     let live = true;
@@ -482,6 +486,11 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                                     r.saldo_calculado,
                                   )
                                 : null;
+                            const closingDate =
+                              r?.fecha_cierre ||
+                              new Date(Date.UTC(year, i + 1, 0))
+                                .toISOString()
+                                .slice(0, 10);
                             return (
                               <td
                                 key={i}
@@ -493,71 +502,88 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                                       : "balance-mismatch"
                                 }
                               >
-                                {r ? (
-                                  <button
-                                    className="cell"
-                                    title={
-                                      r.saldo_real === null
+                                <AccountCell
+                                  title={
+                                    !r
+                                      ? "Mes sin cierre calculado"
+                                      : r.saldo_real === null
                                         ? "Saldo real pendiente"
                                         : matches
                                           ? "Saldo real y calculado coinciden"
                                           : `Diferencia: ${money(new Decimal(r.saldo_real).minus(r.saldo_calculado), currency)}`
-                                    }
-                                    onClick={() =>
-                                      open({
-                                        account: a.id,
-                                        through: r.fecha_cierre,
-                                      })
-                                    }
-                                  >
-                                    {money(r.saldo_calculado, currency)}
-                                    <small>
-                                      {r.saldo_real === null
-                                        ? "Real pendiente"
-                                        : `Real ${money(r.saldo_real, currency)}`}
-                                    </small>
-                                    <small>
-                                      Entradas{" "}
-                                      {money(
-                                        sum(
-                                          flows
-                                            .filter(
-                                              (f) =>
-                                                f.cuenta_id === a.id &&
-                                                Number(
-                                                  f.fecha_valor.slice(5, 7),
-                                                ) ===
-                                                  i + 1 &&
-                                                !f.importe.startsWith("-"),
-                                            )
-                                            .map((f) => f.importe),
-                                        ),
-                                        currency,
-                                      )}
-                                    </small>
-                                    <small>
-                                      Salidas{" "}
-                                      {money(
-                                        sum(
-                                          flows
-                                            .filter(
-                                              (f) =>
-                                                f.cuenta_id === a.id &&
-                                                Number(
-                                                  f.fecha_valor.slice(5, 7),
-                                                ) ===
-                                                  i + 1 &&
-                                                f.importe.startsWith("-"),
-                                            )
-                                            .map((f) => f.importe),
-                                        ),
-                                        currency,
-                                      )}
-                                    </small>
-                                  </button>
-                                ) : (
-                                  "—"
-                                )}
+                                  }
+                                  onMovements={() =>
+                                    open({
+                                      account: a.id,
+                                      month: i + 1,
+                                    })
+                                  }
+                                  onBalance={() =>
+                                    setBalanceDialog(
+                                      r || {
+                                        cuenta_id: a.id,
+                                        fecha_cierre: closingDate,
+                                        saldo_real:
+                                          balances.find(
+                                            (b) =>
+                                              b.cuenta_id === a.id &&
+                                              b.fecha_corte === closingDate,
+                                          )?.saldo_real ?? null,
+                                      },
+                                    )
+                                  }
+                                >
+                                  {r ? (
+                                    <>
+                                      {money(r.saldo_calculado, currency)}
+                                      <small>
+                                        {r.saldo_real === null
+                                          ? "Real pendiente"
+                                          : `Real ${money(r.saldo_real, currency)}`}
+                                      </small>
+                                      <small>
+                                        Entradas{" "}
+                                        {money(
+                                          sum(
+                                            flows
+                                              .filter(
+                                                (f) =>
+                                                  f.cuenta_id === a.id &&
+                                                  Number(
+                                                    f.fecha_valor.slice(5, 7),
+                                                  ) ===
+                                                    i + 1 &&
+                                                  !f.importe.startsWith("-"),
+                                              )
+                                              .map((f) => f.importe),
+                                          ),
+                                          currency,
+                                        )}
+                                      </small>
+                                      <small>
+                                        Salidas{" "}
+                                        {money(
+                                          sum(
+                                            flows
+                                              .filter(
+                                                (f) =>
+                                                  f.cuenta_id === a.id &&
+                                                  Number(
+                                                    f.fecha_valor.slice(5, 7),
+                                                  ) ===
+                                                    i + 1 &&
+                                                  f.importe.startsWith("-"),
+                                              )
+                                              .map((f) => f.importe),
+                                          ),
+                                          currency,
+                                        )}
+                                      </small>
+                                    </>
+                                  ) : (
+                                    "—"
+                                  )}
+                                </AccountCell>
                               </td>
                             );
                           })}

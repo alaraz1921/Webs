@@ -109,6 +109,84 @@ beforeEach(() => {
   api.save.mockResolvedValue(undefined);
 });
 afterEach(cleanup);
+async function accountCell(row: number, month: number) {
+  const t = await screen.findByRole("table", {
+    name: "Saldos mensuales por cuenta",
+  });
+  return within(
+    within(t).getAllByRole("row")[row].children[month] as HTMLElement,
+  ).getByRole("button");
+}
+it("abre el menú de Cuentas, navega con teclado y filtra movimientos por el mes de la celda", async () => {
+  render(<AccountsPage {...props} reconcile={false} />);
+  const u = userEvent.setup(),
+    cell = await accountCell(1, 1);
+  await u.click(cell);
+  expect(cell.getAttribute("aria-expanded")).toBe("true");
+  expect(document.activeElement).toBe(
+    screen.getByRole("menuitem", { name: "Ver movimientos" }),
+  );
+  await u.keyboard("{ArrowDown}");
+  expect(document.activeElement).toBe(
+    screen.getByRole("menuitem", { name: "Saldo real" }),
+  );
+  await u.keyboard("{Escape}");
+  expect(screen.queryByRole("menu")).toBeNull();
+  expect(document.activeElement).toBe(cell);
+  await u.keyboard("{Enter}");
+  await u.click(screen.getByRole("menuitem", { name: "Ver movimientos" }));
+  expect(props.open).toHaveBeenCalledWith({ account: "a", month: 1 });
+  expect(screen.queryByRole("menu")).toBeNull();
+  await u.click(cell);
+  await u.click(document.body);
+  expect(screen.queryByRole("menu")).toBeNull();
+});
+it("abre el mismo modal desde Cuentas para altas, ediciones y meses sin cierre calculado", async () => {
+  balances.push({
+    id: "balance-dec",
+    cuenta_id: "b",
+    fecha_corte: "2026-12-31",
+    saldo_real: "11.00",
+    nota: "Saldo futuro ficticio",
+  });
+  render(<AccountsPage {...props} reconcile={false} />);
+  const u = userEvent.setup();
+  const pendingCell = await accountCell(2, 1);
+  await u.click(pendingCell);
+  await u.click(screen.getByRole("menuitem", { name: "Saldo real" }));
+  let d = screen.getByRole("dialog", { name: "Anotar saldo real" });
+  expect(
+    (within(d).getByLabelText("Cuenta") as HTMLInputElement).value,
+  ).toContain("Cuenta ficticia b");
+  expect(
+    (within(d).getByLabelText("Fecha de corte") as HTMLInputElement).value,
+  ).toBe("2026-01-31");
+  expect(
+    (within(d).getByLabelText("Saldo real") as HTMLInputElement).value,
+  ).toBe("");
+  await u.click(within(d).getByRole("button", { name: "Cancelar" }));
+  expect(document.activeElement).toBe(pendingCell);
+  await u.click(await accountCell(1, 1));
+  await u.click(screen.getByRole("menuitem", { name: "Saldo real" }));
+  d = screen.getByRole("dialog", { name: "Editar saldo real" });
+  expect(
+    (within(d).getByLabelText("Saldo real") as HTMLInputElement).value,
+  ).toBe("9,00");
+  expect((within(d).getByLabelText("Nota") as HTMLInputElement).value).toBe(
+    "Anotación ficticia",
+  );
+  await u.click(within(d).getByRole("button", { name: "Cancelar" }));
+  await u.click(await accountCell(2, 12));
+  await u.click(screen.getByRole("menuitem", { name: "Saldo real" }));
+  d = screen.getByRole("dialog", { name: "Editar saldo real" });
+  expect(
+    (within(d).getByLabelText("Fecha de corte") as HTMLInputElement).value,
+  ).toBe("2026-12-31");
+  expect(
+    (within(d).getByLabelText("Saldo real") as HTMLInputElement).value,
+  ).toBe("11,00");
+  expect(api.save).not.toHaveBeenCalled();
+});
 async function table() {
   return screen.findByRole("table", { name: "Conciliación" });
 }
