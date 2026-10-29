@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { Panel } from "./ui";
-const preferenceKey = "fintin.display.showFlows";
-export function useShowFlows() {
-  const [showFlows, setShowFlows] = useState(() => {
+function useDisplayPreference(preferenceKey: string) {
+  const [visible, setVisible] = useState(() => {
     try {
-      return localStorage.getItem(preferenceKey) !== "false";
+      return localStorage.getItem(preferenceKey) === "true";
     } catch {
-      return true;
+      return false;
     }
   });
   const update = (value: boolean) => {
-    setShowFlows(value);
+    setVisible(value);
     // Solo una preferencia visual booleana; sin sesión ni datos financieros.
     try {
       localStorage.setItem(preferenceKey, String(value));
@@ -18,28 +17,45 @@ export function useShowFlows() {
       /* La preferencia sigue funcionando durante esta sesión. */
     }
   };
-  return [showFlows, update] as const;
+  return [visible, update] as const;
 }
+export const useShowFlows = () =>
+  useDisplayPreference("fintin.display.showFlows");
+export const useShowInitial = () =>
+  useDisplayPreference("fintin.display.showInitial");
 export function GeneralSettings({
   showFlows,
   onShowFlows,
+  showInitial,
+  onShowInitial,
 }: {
   showFlows: boolean;
   onShowFlows: (value: boolean) => void;
+  showInitial: boolean;
+  onShowInitial: (value: boolean) => void;
 }) {
   return (
     <Panel title="Visualización de Cuentas">
       <label className="check">
         <input
           type="checkbox"
-          checked={showFlows}
-          onChange={(e) => onShowFlows(e.target.checked)}
+          checked={!showFlows}
+          onChange={(e) => onShowFlows(!e.target.checked)}
         />
-        Mostrar entradas y salidas
+        Ocultar entradas y salidas
+      </label>
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={!showInitial}
+          onChange={(e) => onShowInitial(!e.target.checked)}
+        />
+        Ocultar saldo y fecha inicial
       </label>
       <p className="muted">
-        Muestra el detalle mensual de entradas y salidas en el cuadrante de
-        Cuentas. Esta preferencia se recuerda en este navegador.
+        Por defecto se ocultan ambos detalles. Si las dos opciones están
+        marcadas, las filas del cuadrante de Cuentas se muestran más compactas.
+        Las preferencias se recuerdan en este navegador.
       </p>
     </Panel>
   );

@@ -1009,3 +1009,17 @@ h1 {
 .reconciliation-difference td {
   background: #fff1f2;
 }
+.accounts-condensed td,
+.accounts-condensed th {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.accounts-condensed .cell {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  min-height: 0;
+  line-height: 1.25;
+}
+.accounts-condensed small {
+  line-height: 1.25;
+}

@@ -5,6 +5,7 @@ import {
   screen,
   within,
   waitFor,
+  act,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, afterEach, it, expect, vi } from "vitest";
@@ -199,6 +200,48 @@ it("abre el mismo modal desde Cuentas para altas, ediciones y meses sin cierre c
 async function table() {
   return screen.findByRole("table", { name: "Conciliación" });
 }
+it("mantiene el cuadrante montado y su scroll mientras se refresca un saldo guardado", async () => {
+  let finish!: (rows: Reconciliation[]) => void;
+  const pending = new Promise<Reconciliation[]>((resolve) => {
+    finish = resolve;
+  });
+  let refreshing = false;
+  api.list.mockImplementation(async (t) =>
+    t === "saldos" ? balances : refreshing ? pending : closures,
+  );
+  api.save.mockImplementation(async () => {
+    refreshing = true;
+  });
+  render(<AccountsPage {...props} reconcile={false} />);
+  const u = userEvent.setup(),
+    cell = await accountCell(2, 1);
+  const t = screen.getByRole("table", { name: "Saldos mensuales por cuenta" });
+  const wrapper = t.parentElement!;
+  wrapper.scrollLeft = 320;
+  await u.click(cell);
+  await u.click(screen.getByRole("menuitem", { name: "Saldo real" }));
+  const d = screen.getByRole("dialog", { name: "Anotar saldo real" });
+  await u.type(within(d).getByLabelText("Saldo real"), "2,00");
+  await u.click(within(d).getByRole("button", { name: "Guardar" }));
+  await waitFor(() => expect(api.list).toHaveBeenCalledTimes(4));
+  expect(
+    screen.getByRole("table", { name: "Saldos mensuales por cuenta" }),
+  ).toBe(t);
+  expect(screen.queryByText("Cargando cierres…")).toBeNull();
+  expect(wrapper.scrollLeft).toBe(320);
+  await act(async () => {
+    finish(
+      closures.map((r) =>
+        r.cuenta_id === "b"
+          ? { ...r, saldo_real: "2.00", diferencia: "0.00" }
+          : r,
+      ),
+    );
+  });
+  await within(t).findByText("Real 2,00 EUR");
+  expect(wrapper.scrollLeft).toBe(320);
+  expect(t.isConnected).toBe(true);
+});
 it("alinea importes y combina mes y estado, distinguiendo pendiente, cero y un céntimo", async () => {
   render(<AccountsPage {...props} />);
   const u = userEvent.setup(),

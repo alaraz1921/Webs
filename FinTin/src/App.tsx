@@ -17,7 +17,11 @@ import { Summary, AccountsPage, type YearProps } from "./Dashboard";
 import { MovementPage, filtersFor } from "./Movements";
 import { ImportPage } from "./Import";
 import { Settings, type SettingsSection } from "./Settings";
-import { GeneralSettings, useShowFlows } from "./GeneralSettings";
+import {
+  GeneralSettings,
+  useShowFlows,
+  useShowInitial,
+} from "./GeneralSettings";
 import { YearPicker } from "./YearPicker";
 import { Field, Form, ErrorBox, Empty, text } from "./ui";
 import "./style.css";
@@ -243,6 +247,7 @@ function Brand() {
 }
 function Workspace({ session }: { session: Session }) {
   const [showFlows, setShowFlows] = useShowFlows();
+  const [showInitial, setShowInitial] = useShowInitial();
   const uid = session.user.id,
     [route, setRoute] = useState(location.hash.slice(1) || "resumen"),
     [year, setYear] = useState(new Date().getFullYear()),
@@ -309,7 +314,15 @@ function Workspace({ session }: { session: Session }) {
     });
     location.hash = "movimientos";
   };
-  const yearProps = { ...base, year, currency, account, open, showFlows };
+  const yearProps = {
+    ...base,
+    year,
+    currency,
+    account,
+    open,
+    showFlows,
+    showInitial,
+  };
   return (
     <div className={menu ? "app menu-open" : "app menu-closed"}>
       <aside
@@ -504,6 +517,8 @@ function Workspace({ session }: { session: Session }) {
                     <GeneralSettings
                       showFlows={showFlows}
                       onShowFlows={setShowFlows}
+                      showInitial={showInitial}
+                      onShowInitial={setShowInitial}
                     />
                   ) : (
                     <Settings

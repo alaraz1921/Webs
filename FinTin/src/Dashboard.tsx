@@ -1,5 +1,5 @@
 import { useTableSort, sortRows, SortHeader } from "./sorting";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Decimal from "decimal.js";
 import { AccountCell } from "./AccountCell";
 import { annual, list, save } from "./api";
@@ -21,6 +21,7 @@ export interface YearProps extends MasterProps {
   currency: string;
   account: string;
   showFlows?: boolean;
+  showInitial?: boolean;
   open: (f: {
     month?: number;
     category?: string;
@@ -286,7 +287,8 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
     accounts,
     open,
     reconcile,
-    showFlows = true,
+    showFlows = false,
+    showInitial = false,
   } = props;
   const [data, setData] = useState<Reconciliation[]>([]),
     [flows, setFlows] = useState<Movement[]>([]),
@@ -301,9 +303,13 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
       "cuenta_id" | "fecha_cierre" | "saldo_real"
     > | null>(null),
     [balanceBusy, setBalanceBusy] = useState(false);
+  const requestedPeriod = useRef("");
   useEffect(() => {
     let live = true;
-    setBusy(true);
+    const period = `${uid}|${year}`;
+    // Refrescar un saldo no desmonta la tabla: conserva altura y scroll.
+    if (requestedPeriod.current !== period) setBusy(true);
+    requestedPeriod.current = period;
     setError("");
     Promise.all([
       list<Reconciliation>("v_conciliacion_mensual", uid),
@@ -397,7 +403,7 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
       {busy ? (
         <Empty>Cargando cierres…</Empty>
       ) : (
-        !error && (
+        (!error || data.length > 0) && (
           <>
             <Panel
               title={
@@ -449,7 +455,10 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
               {!reconcile ? (
                 <div className="table-wrap">
                   <table
-                    className="matrix compact-table year-matrix account-matrix"
+                    className={
+                      "matrix compact-table year-matrix account-matrix" +
+                      (!showFlows && !showInitial ? " accounts-condensed" : "")
+                    }
                     aria-label="Saldos mensuales por cuenta"
                   >
                     <thead>
@@ -476,12 +485,17 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                           <th>
                             {a.nombre_producto}
                             <small>{a.entidad}</small>
-                            <small>
-                              Inicio {displayDate(a.fecha_saldo_inicial)}
-                            </small>
-                            <small>
-                              Saldo inicial {money(a.saldo_inicial, currency)}
-                            </small>
+                            {showInitial && (
+                              <>
+                                <small>
+                                  Inicio {displayDate(a.fecha_saldo_inicial)}
+                                </small>
+                                <small>
+                                  Saldo inicial{" "}
+                                  {money(a.saldo_inicial, currency)}
+                                </small>
+                              </>
+                            )}
                           </th>
                           {months.map((_, i) => {
                             const r = rows.find(

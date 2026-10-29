@@ -152,10 +152,16 @@ describe("Continuidad de sesión y autorización", () => {
     const app = render(<App />),
       u = userEvent.setup();
     const toggle = await screen.findByRole("checkbox", {
-      name: "Mostrar entradas y salidas",
+      name: "Ocultar entradas y salidas",
     });
     expect((toggle as HTMLInputElement).checked).toBe(true);
-    await u.click(toggle);
+    expect(
+      (
+        screen.getByRole("checkbox", {
+          name: "Ocultar saldo y fecha inicial",
+        }) as HTMLInputElement
+      ).checked,
+    ).toBe(true);
     const accountLink = () =>
       screen
         .getAllByRole("link", { name: "Cuentas" })
@@ -166,12 +172,18 @@ describe("Continuidad de sesión y autorización", () => {
       name: "Saldos mensuales por cuenta",
     });
     expect(t.textContent).not.toContain("Entradas");
+    expect(t.textContent).not.toContain("Saldo inicial");
+    expect(t.textContent).not.toContain("Inicio");
+    expect(t.classList.contains("accounts-condensed")).toBe(true);
     expect(t.textContent).toContain("112,00 EUR");
     await u.click(screen.getByRole("link", { name: "General" }));
     await u.click(
       await screen.findByRole("checkbox", {
-        name: "Mostrar entradas y salidas",
+        name: "Ocultar entradas y salidas",
       }),
+    );
+    await u.click(
+      screen.getByRole("checkbox", { name: "Ocultar saldo y fecha inicial" }),
     );
     await u.click(accountLink());
     t = await screen.findByRole("table", {
@@ -179,10 +191,13 @@ describe("Continuidad de sesión y autorización", () => {
     });
     expect(within(t).getByText("Entradas 12,00")).toBeTruthy();
     expect(within(t).getByText("Salidas 0,00")).toBeTruthy();
+    expect(t.textContent).toContain("Saldo inicial 100,00 EUR");
+    expect(t.textContent).toContain("Inicio 31-12-2025");
+    expect(t.classList.contains("accounts-condensed")).toBe(false);
     await u.click(screen.getByRole("link", { name: "General" }));
     await u.click(
       await screen.findByRole("checkbox", {
-        name: "Mostrar entradas y salidas",
+        name: "Ocultar entradas y salidas",
       }),
     );
     app.unmount();
@@ -190,8 +205,15 @@ describe("Continuidad de sesión y autorización", () => {
     expect(
       (
         (await screen.findByRole("checkbox", {
-          name: "Mostrar entradas y salidas",
+          name: "Ocultar entradas y salidas",
         })) as HTMLInputElement
+      ).checked,
+    ).toBe(true);
+    expect(
+      (
+        screen.getByRole("checkbox", {
+          name: "Ocultar saldo y fecha inicial",
+        }) as HTMLInputElement
       ).checked,
     ).toBe(false);
   });
