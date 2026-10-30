@@ -3,6 +3,7 @@ import { sortRows, type SortState } from "./sorting";
 
 export type MovementSortKey =
   | "date"
+  | "operationDate"
   | "concept"
   | "source"
   | "destination"
@@ -25,6 +26,8 @@ export function sortedMovements(
       switch (key) {
         case "date":
           return r.fecha_valor;
+        case "operationDate":
+          return r.fecha_operacion;
         case "concept":
           return r.concepto || "Sin concepto";
         case "source":

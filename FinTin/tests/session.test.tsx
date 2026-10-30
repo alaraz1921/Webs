@@ -16,6 +16,7 @@ const api = vi.hoisted(() => ({
   list: vi.fn(),
   annual: vi.fn(),
   movements: vi.fn(),
+  accountBalances: vi.fn(),
   save: vi.fn(),
   remove: vi.fn(),
   prepare: vi.fn(),
@@ -125,6 +126,11 @@ beforeEach(() => {
   );
   api.annual.mockResolvedValue([movement]);
   api.movements.mockResolvedValue({ rows: [movement], count: 100 });
+  api.accountBalances.mockResolvedValue({
+    calculated: "112.00",
+    real: null,
+    realDate: null,
+  });
 });
 afterEach(() => {
   cleanup();
@@ -366,11 +372,11 @@ describe("Continuidad de sesión y autorización", () => {
       name: "Ingreso ficticio",
     });
     const row = concept.closest("tr")!;
-    expect(row.children[1].textContent).toBe("Ingreso ficticio");
-    expect(row.children[2].textContent).toBe(
+    expect(row.children[2].textContent).toBe("Ingreso ficticio");
+    expect(row.children[3].textContent).toBe(
       "Producto original del CSVEntidad original ficticia",
     );
-    expect(row.children[3].textContent).toBe("Cuenta ficticiaBanco ficticio");
+    expect(row.children[4].textContent).toBe("Cuenta ficticiaBanco ficticio");
   });
   it("muestra únicamente el acceso discreto con campos y mantiene el inicio de sesión", async () => {
     auth.getSession.mockResolvedValue({ data: { session: null }, error: null });

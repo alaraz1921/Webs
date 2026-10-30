@@ -14,6 +14,7 @@ const api = vi.hoisted(() => ({
   save: vi.fn(),
   remove: vi.fn(),
   movements: vi.fn(),
+  accountBalances: vi.fn(),
 }));
 vi.mock("../src/api", () => api);
 import { Settings } from "../src/Settings";
@@ -122,6 +123,59 @@ it("ordena los filtros y sus opciones y actualiza las sumas al filtrar", async (
   expect(within(totals).getAllByText("0,00 EUR")).toHaveLength(3);
   expect(totals.textContent).not.toContain("20,10 EUR");
 });
+it("muestra ambos saldos de la cuenta y distingue las dos fechas", async () => {
+  api.movements.mockResolvedValue({
+    rows: [
+      {
+        id: "movement",
+        cuenta_id: account.id,
+        fecha_valor: "2026-01-31",
+        fecha_operacion: "2026-01-30",
+        importe: "10.00",
+        moneda: "EUR",
+        concepto: "Apunte ficticio",
+        tipo_movimiento: "ingreso",
+        categoria_id: null,
+        categoria_csv: "",
+        nota: "",
+        origen: "manual",
+      } satisfies Movement,
+    ],
+    count: 1,
+    totals: [
+      { currency: "EUR", total: "10.00", positive: "10.00", negative: "0.00" },
+    ],
+  });
+  api.accountBalances.mockResolvedValue({
+    calculated: "110.00",
+    real: "109.50",
+    realDate: "2026-01-15",
+  });
+  render(
+    <MovementPage
+      {...common}
+      filters={{ ...filtersFor(2026), account: account.id, to: "2026-01-31" }}
+      setFilters={vi.fn()}
+    />,
+  );
+  const totals = await screen.findByRole("region", {
+    name: "Totales de movimientos filtrados",
+  });
+  expect(totals.textContent).toContain("Saldo calculado · 31-01-2026");
+  expect(totals.textContent).toContain("110,00 EUR");
+  expect(totals.textContent).toContain("Saldo real · 15-01-2026");
+  expect(totals.textContent).toContain("109,50 EUR");
+  expect(api.accountBalances).toHaveBeenCalledWith(
+    "owner",
+    account,
+    "2026-01-31",
+  );
+  const row = screen.getByText("Apunte ficticio").closest("tr")!;
+  expect(row.children[0].textContent).toBe("31-01-2026");
+  expect(row.children[1].querySelector("strong")?.textContent).toBe(
+    "30-01-2026",
+  );
+});
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function () {
     this.open = true;
@@ -163,7 +217,8 @@ it("ordena Movimientos desde las cabeceras en ambos sentidos y vuelve a la prime
     direction: "desc",
   });
   for (const label of [
-    "Fecha valor / operación",
+    "Fecha valor",
+    "Fecha operación",
     "Concepto",
     "Cuenta de origen (CSV)",
     "Cuenta de destino",

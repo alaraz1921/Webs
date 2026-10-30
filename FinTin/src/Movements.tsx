@@ -2,7 +2,7 @@ import { alphabetical, compareText } from "./alphabetical";
 import { useEffect, useState } from "react";
 import type { Movement, Kind } from "./types";
 import { kinds, labels } from "./types";
-import { movements, remove, save, type Filters } from "./api";
+import { accountBalances, movements, remove, save, type Filters } from "./api";
 import { amount, money, displayDate } from "./finance";
 import { decimalComma } from "./amount-input";
 import { Field, Form, Empty, ErrorBox, text, ConfirmDelete, Panel } from "./ui";
@@ -28,6 +28,7 @@ export function MovementPage(
   },
 ) {
   const { uid, accounts, categories, filters: f, setFilters } = props;
+  const selectedAccount = accounts.find((account) => account.id === f.account);
   const { sort, onSort } = useTableSort<MovementSortKey>();
   const sortColumn = (key: MovementSortKey) => {
     setPage(0);
@@ -51,6 +52,11 @@ export function MovementPage(
     [loading, setLoading] = useState(false),
     [refresh, setRefresh] = useState(0),
     [edit, setEdit] = useState<Movement | null | undefined>(undefined);
+  const [balances, setBalances] = useState<{
+    calculated: string | null;
+    real: string | null;
+    realDate: string | null;
+  } | null>(null);
   const change = (key: keyof Filters, value: string) => {
     setFilters({ ...f, [key]: value });
     setPage(0);
@@ -60,18 +66,26 @@ export function MovementPage(
     setLoading(true);
     setError("");
     const timer = setTimeout(() => {
-      movements(
-        uid,
-        f,
-        page,
-        f.entity
-          ? accounts.filter((a) => a.entidad === f.entity).map((a) => a.id)
-          : undefined,
-        sort,
-        { accounts, categories },
-      )
-        .then((d) => {
-          if (live) setData(d);
+      Promise.all([
+        movements(
+          uid,
+          f,
+          page,
+          f.entity
+            ? accounts.filter((a) => a.entidad === f.entity).map((a) => a.id)
+            : undefined,
+          sort,
+          { accounts, categories },
+        ),
+        selectedAccount && f.to
+          ? accountBalances(uid, selectedAccount, f.to)
+          : Promise.resolve(null),
+      ])
+        .then(([d, balance]) => {
+          if (live) {
+            setData(d);
+            setBalances(balance);
+          }
         })
         .catch((e) => {
           if (live) setError(e.message);
@@ -84,7 +98,7 @@ export function MovementPage(
       live = false;
       clearTimeout(timer);
     };
-  }, [uid, f, page, refresh, accounts, categories, sort]);
+  }, [uid, f, page, refresh, accounts, categories, sort, selectedAccount]);
   return (
     <>
       <div className="toolbar">
@@ -214,14 +228,17 @@ export function MovementPage(
                 ? data.totals
                 : [
                     {
-                      currency: f.currency || "EUR",
+                      currency: selectedAccount?.moneda || f.currency || "EUR",
                       total: "0",
                       positive: "0",
                       negative: "0",
                     },
                   ]
               ).map((t) => (
-                <div className="movement-total-row" key={t.currency}>
+                <div
+                  className={`movement-total-row${selectedAccount ? " with-balances" : ""}`}
+                  key={t.currency}
+                >
                   <div>
                     <span>Total</span>
                     <strong>{money(t.total, t.currency)}</strong>
@@ -238,6 +255,43 @@ export function MovementPage(
                       {money(t.negative, t.currency)}
                     </strong>
                   </div>
+                  {selectedAccount && (
+                    <>
+                      <div>
+                        <span>
+                          Saldo calculado
+                          {f.to ? ` · ${displayDate(f.to)}` : ""}
+                        </span>
+                        <strong>
+                          {!f.to
+                            ? "Indica fecha Hasta"
+                            : balances?.calculated === null
+                              ? "Sin saldo inicial para esta fecha"
+                              : balances?.calculated != null
+                                ? money(
+                                    balances.calculated,
+                                    selectedAccount.moneda,
+                                  )
+                                : "—"}
+                        </strong>
+                      </div>
+                      <div>
+                        <span>
+                          Saldo real
+                          {balances?.realDate
+                            ? ` · ${displayDate(balances.realDate)}`
+                            : ""}
+                        </span>
+                        <strong>
+                          {!f.to
+                            ? "Indica fecha Hasta"
+                            : balances?.real != null
+                              ? money(balances.real, selectedAccount.moneda)
+                              : "Sin saldo real"}
+                        </strong>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
               <small>
@@ -251,7 +305,8 @@ export function MovementPage(
                   <tr>
                     {(
                       [
-                        ["date", "Fecha valor / operación"],
+                        ["date", "Fecha valor"],
+                        ["operationDate", "Fecha operación"],
                         ["concept", "Concepto"],
                         ["source", "Cuenta de origen (CSV)"],
                         ["destination", "Cuenta de destino"],
@@ -275,9 +330,13 @@ export function MovementPage(
                 <tbody>
                   {data.rows.map((r) => (
                     <tr key={r.id}>
+                      <td>{displayDate(r.fecha_valor)}</td>
                       <td>
-                        {displayDate(r.fecha_valor)}
-                        <small>{displayDate(r.fecha_operacion)}</small>
+                        {r.fecha_operacion !== r.fecha_valor ? (
+                          <strong>{displayDate(r.fecha_operacion)}</strong>
+                        ) : (
+                          displayDate(r.fecha_operacion)
+                        )}
                       </td>
                       <td>
                         {r.concepto || "Sin concepto"}

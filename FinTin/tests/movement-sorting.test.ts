@@ -15,6 +15,7 @@ const rows = [
     concepto: "Zeta",
     nombre_producto_csv: "Zeta",
     fecha_valor: "2026-01-31",
+    fecha_operacion: "2026-02-02",
     importe: "9999999999999999.99",
     origen: "csv",
   },
@@ -26,6 +27,7 @@ const rows = [
     concepto: "Álamo",
     nombre_producto_csv: "Álamo",
     fecha_valor: "2026-02-01",
+    fecha_operacion: "2026-02-01",
     importe: "9999999999999999.98",
     origen: "manual",
   },
@@ -71,3 +73,12 @@ it.each<MovementSortKey>(["date", "origin"])(
     ).toEqual(["b", "a"]);
   },
 );
+it("ordena la fecha de operación independientemente de la fecha valor", () => {
+  expect(
+    sortedMovements(
+      rows,
+      { key: "operationDate", direction: "asc" },
+      lookups,
+    ).map((r) => r.id),
+  ).toEqual(["b", "a"]);
+});

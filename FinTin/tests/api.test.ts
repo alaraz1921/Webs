@@ -360,3 +360,73 @@ describe("Totales de movimientos filtrados", () => {
     expect(queries[2].calls).toContainEqual(["range", 100, 149]);
   });
 });
+describe("Saldos de la cuenta en Movimientos", () => {
+  it("suma el historial completo hasta el corte y obtiene el último real sin aplicar los filtros de la tabla", async () => {
+    const calls: { table: string; parts: unknown[][] }[] = [];
+    mock.from.mockImplementation((table: string) => {
+      const record = { table, parts: [] as unknown[][] };
+      calls.push(record);
+      const q: Record<string, unknown> = {};
+      q.select = (...args: unknown[]) => {
+        record.parts.push(["select", ...args]);
+        return q;
+      };
+      for (const method of ["eq", "gt", "lte", "order"])
+        q[method] = (...args: unknown[]) => {
+          record.parts.push([method, ...args]);
+          return q;
+        };
+      q.range = async (from: number, to: number) => {
+        record.parts.push(["range", from, to]);
+        return {
+          error: null,
+          data:
+            table === "fintin_saldos"
+              ? [{ fecha_corte: "2026-01-15", saldo_real: "99.00" }]
+              : from === 0
+                ? Array.from({ length: 1000 }, () => ({ importe: "0.01" }))
+                : [{ importe: "-1.00" }],
+        };
+      };
+      return q;
+    });
+    const result = await api.accountBalances(
+      "owner",
+      {
+        id: "account",
+        user_id: "owner",
+        entidad: "Ficticia",
+        nombre_producto: "Cuenta",
+        tipo_producto: "Cuenta",
+        moneda: "EUR",
+        saldo_inicial: "100.00",
+        fecha_saldo_inicial: "2025-12-31",
+        activo: true,
+      },
+      "2026-01-31",
+    );
+    expect(result).toEqual({
+      calculated: "109.00",
+      real: "99.00",
+      realDate: "2026-01-15",
+    });
+    expect(calls.map((q) => q.table)).toEqual([
+      "fintin_movimientos",
+      "fintin_movimientos",
+      "fintin_saldos",
+    ]);
+    for (const q of calls) {
+      expect(q.parts).toContainEqual(["eq", "user_id", "owner"]);
+      expect(q.parts).toContainEqual(["eq", "cuenta_id", "account"]);
+    }
+    expect(calls[0].parts).toContainEqual(["gt", "fecha_valor", "2025-12-31"]);
+    expect(calls[0].parts).toContainEqual(["lte", "fecha_valor", "2026-01-31"]);
+    expect(calls[1].parts).toContainEqual(["range", 1000, 1999]);
+    expect(calls[2].parts).toContainEqual(["lte", "fecha_corte", "2026-01-31"]);
+    expect(calls[2].parts).toContainEqual([
+      "order",
+      "fecha_corte",
+      { ascending: false },
+    ]);
+  });
+});

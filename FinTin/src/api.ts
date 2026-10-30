@@ -1,7 +1,7 @@
 import { MAX_MANUAL_IMPORT_ROWS, type ManualImportRow } from "./manual-import";
 import { publicKey, validUrl } from "./config";
 import { createClient } from "@supabase/supabase-js";
-import type { CsvRow, Movement } from "./types";
+import type { Account, CsvRow, Movement } from "./types";
 import Decimal from "decimal.js";
 import {
   sortedMovements,
@@ -104,6 +104,45 @@ export interface Filters {
   search: string;
   entity: string;
   currency: string;
+}
+export async function accountBalances(
+  uid: string,
+  account: Account,
+  to: string,
+) {
+  if (to < account.fecha_saldo_inicial)
+    return { calculated: null, real: null, realDate: null };
+  let calculated = new Decimal(account.saldo_inicial);
+  for (let from = 0; ; from += 1000) {
+    const rows = checked(
+      await client()
+        .from("fintin_movimientos")
+        .select("importe::text")
+        .eq("user_id", uid)
+        .eq("cuenta_id", account.id)
+        .gt("fecha_valor", account.fecha_saldo_inicial)
+        .lte("fecha_valor", to)
+        .order("id")
+        .range(from, from + 999),
+    ) as unknown as { importe: string }[];
+    for (const row of rows) calculated = calculated.plus(row.importe);
+    if (rows.length < 1000) break;
+  }
+  const balances = checked(
+    await client()
+      .from("fintin_saldos")
+      .select("fecha_corte,saldo_real::text")
+      .eq("user_id", uid)
+      .eq("cuenta_id", account.id)
+      .lte("fecha_corte", to)
+      .order("fecha_corte", { ascending: false })
+      .range(0, 0),
+  ) as unknown as { fecha_corte: string; saldo_real: string }[];
+  return {
+    calculated: calculated.toFixed(2),
+    real: balances[0]?.saldo_real ?? null,
+    realDate: balances[0]?.fecha_corte ?? null,
+  };
 }
 export async function movements(
   uid: string,
