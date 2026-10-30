@@ -3,7 +3,7 @@ import { useTableSort, sortRows, SortHeader } from "./sorting";
 import { useState } from "react";
 import type { Account, Alias, Category, Kind } from "./types";
 import { kinds, labels } from "./types";
-import { amount, money } from "./finance";
+import { amount, moneyWithSymbol } from "./finance";
 import { decimalComma } from "./amount-input";
 import { validCurrency } from "./csv";
 import { save, remove } from "./api";
@@ -124,6 +124,7 @@ export function Settings({
                       field="saldo_inicial"
                       label="Saldo inicial"
                       {...accountSort}
+                      numeric
                     />
                     <SortHeader
                       field="fecha_saldo_inicial"
@@ -147,8 +148,8 @@ export function Settings({
                       <td>{a.entidad}</td>
                       <td>{a.tipo_producto || "Sin tipo"}</td>
                       <td>{a.moneda}</td>
-                      <td className="settings-amount">
-                        {money(a.saldo_inicial, a.moneda)}
+                      <td className="settings-amount numeric">
+                        {moneyWithSymbol(a.saldo_inicial, a.moneda)}
                       </td>
                       <td>
                         {a.fecha_saldo_inicial.split("-").reverse().join("/")}

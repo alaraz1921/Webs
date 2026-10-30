@@ -7,15 +7,15 @@ import {
   totals,
   calculated,
   displayDate,
-  cardMoney,
+  moneyWithSymbol,
 } from "../src/finance";
 const row =
   '10/01/2026,10/01/2026,"-1.234,56 €",EUR,"Concepto, ficticio",Banco ficticio,Cuenta ficticia,Cuenta corriente,Gasto,Prueba,Nota';
 const csv = (r = row, h = headers.join(",")) => h + "\r\n" + r;
 describe("CSV y cálculos exactos", () => {
   it("usa el símbolo euro solo al formatear importes de tarjetas", () => {
-    expect(cardMoney("1234.50", "EUR")).toBe("1.234,50 €");
-    expect(cardMoney("1234.50", "USD")).toBe("1.234,50 USD");
+    expect(moneyWithSymbol("1234.50", "EUR")).toBe("1.234,50 €");
+    expect(moneyWithSymbol("1234.50", "USD")).toBe("1.234,50 USD");
   });
   it("interpreta negativo, millares y céntimos sin floats", () => {
     expect(amount("-1.234,56 €")).toBe("-1234.56");

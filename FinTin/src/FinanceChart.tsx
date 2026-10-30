@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { formatAmount, money } from "./finance";
+import { formatAmount, moneyWithSymbol } from "./finance";
 
 export type ChartSeries = { name: string; color: string; values: string[] };
 export function FinanceChart({
@@ -16,6 +16,7 @@ export function FinanceChart({
   bars?: boolean;
 }) {
   const id = useId();
+  const currencyLabel = currency === "EUR" ? "€" : currency;
   const [active, setActive] = useState<{
     series: number;
     point: number;
@@ -55,8 +56,8 @@ export function FinanceChart({
       <div className="chart-plot">
         <svg viewBox="0 0 820 265" role="img" aria-labelledby={id}>
           <title id={id}>
-            {title}. Importes en {currency}. El detalle exacto está disponible
-            en Ver datos.
+            {title}. Importes en {currencyLabel}. El detalle exacto está
+            disponible en Ver datos.
           </title>
           {Array.from({ length: 5 }, (_, i) => hi - (span * i) / 4).map(
             (value, i) => (
@@ -114,7 +115,7 @@ export function FinanceChart({
                 />
               )}
               {numbers[si].map((n, i) => {
-                const description = `${labels[i]} · ${s.name}: ${money(s.values[i], currency)}`;
+                const description = `${labels[i]} · ${s.name}: ${moneyWithSymbol(s.values[i], currency)}`;
                 const props = {
                   tabIndex: 0,
                   role: "img",
@@ -157,8 +158,8 @@ export function FinanceChart({
       </div>
       <div className="chart-tooltip" aria-live="polite">
         {active && active.point < labels.length && active.series < series.length
-          ? `${labels[active.point]} · ${series[active.series].name}: ${money(series[active.series].values[active.point], currency)}`
-          : `Importes en ${currency}. Sitúa el cursor o el foco sobre un dato.`}
+          ? `${labels[active.point]} · ${series[active.series].name}: ${moneyWithSymbol(series[active.series].values[active.point], currency)}`
+          : `Importes en ${currencyLabel}. Sitúa el cursor o el foco sobre un dato.`}
       </div>
       <details className="chart-details">
         <summary>Ver datos</summary>
@@ -180,7 +181,7 @@ export function FinanceChart({
                   <th scope="row">{label}</th>
                   {series.map((s) => (
                     <td className="numeric" key={s.name}>
-                      {money(s.values[i], currency)}
+                      {moneyWithSymbol(s.values[i], currency)}
                     </td>
                   ))}
                 </tr>

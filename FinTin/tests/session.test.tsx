@@ -141,7 +141,7 @@ describe("Continuidad de sesión y autorización", () => {
   it("sustituye moneda por mes solo en Resumen y conserva la elección al renovar sesión", async () => {
     render(<App />);
     const u = userEvent.setup();
-    await screen.findByRole("button", { name: "12,00 EUR" });
+    await screen.findByRole("button", { name: "12,00 €" });
     expect(screen.queryByLabelText("Moneda")).toBeNull();
     await u.selectOptions(screen.getByLabelText("Mes", { exact: true }), "03");
     expect(
@@ -276,7 +276,7 @@ describe("Continuidad de sesión y autorización", () => {
     expect(t.textContent).not.toContain("Inicio");
     expect(t.classList.contains("accounts-condensed")).toBe(true);
     expect(t.textContent).toContain("112,00");
-    expect(t.textContent).not.toContain("112,00 EUR");
+    expect(t.textContent).not.toContain("112,00 €");
     await u.click(screen.getByRole("link", { name: "General" }));
     await u.click(
       await screen.findByRole("checkbox", {
@@ -407,7 +407,7 @@ describe("Continuidad de sesión y autorización", () => {
   it("oculta y despliega el menú de escritorio sin perder filtros ni navegación", async () => {
     render(<App />);
     const u = userEvent.setup();
-    await screen.findByRole("button", { name: "12,00 EUR" });
+    await screen.findByRole("button", { name: "12,00 €" });
     await u.click(screen.getByRole("link", { name: "Movimientos" }));
     const search = await screen.findByLabelText("Buscar concepto");
     await u.type(search, "Filtro ficticio");
@@ -434,7 +434,7 @@ describe("Continuidad de sesión y autorización", () => {
     vi.stubGlobal("innerWidth", 390);
     render(<App />);
     const u = userEvent.setup();
-    await screen.findByRole("button", { name: "12,00 EUR" });
+    await screen.findByRole("button", { name: "12,00 €" });
     expect(screen.queryByRole("navigation", { name: "Principal" })).toBeNull();
     await u.click(screen.getByRole("button", { name: "Mostrar menú" }));
     await u.click(screen.getByRole("link", { name: "Movimientos" }));
@@ -444,7 +444,7 @@ describe("Continuidad de sesión y autorización", () => {
   it("conserva filtros, paginación y nodos al repetir SIGNED_IN por recuperar foco", async () => {
     render(<App />);
     const u = userEvent.setup();
-    await screen.findByRole("button", { name: "12,00 EUR" });
+    await screen.findByRole("button", { name: "12,00 €" });
     await u.click(screen.getByRole("link", { name: "Movimientos" }));
     const search = await screen.findByLabelText("Buscar concepto");
     await u.type(search, "filtro ficticio");
@@ -471,7 +471,7 @@ describe("Continuidad de sesión y autorización", () => {
     render(<App />);
     const u = userEvent.setup();
     await chooseYear(u, "2025");
-    await u.click(await screen.findByRole("button", { name: "12,00 EUR" }));
+    await u.click(await screen.findByRole("button", { name: "12,00 €" }));
     await u.type(
       await screen.findByLabelText("Buscar concepto"),
       "texto ficticio",
@@ -510,7 +510,7 @@ describe("Continuidad de sesión y autorización", () => {
     async (page) => {
       render(<App />);
       const u = userEvent.setup();
-      await screen.findByRole("button", { name: "12,00 EUR" });
+      await screen.findByRole("button", { name: "12,00 €" });
       await u.click(
         screen
           .getAllByRole("link", { name: page })
@@ -535,7 +535,7 @@ describe("Continuidad de sesión y autorización", () => {
   it("conserva todos los ejercicios en el desplegable compacto de importación", async () => {
     render(<App />);
     const u = userEvent.setup();
-    await screen.findByRole("button", { name: "12,00 EUR" });
+    await screen.findByRole("button", { name: "12,00 €" });
     await chooseYear(u, "2026");
     await u.click(screen.getByRole("link", { name: "Importación CSV" }));
     await screen.findByRole("heading", {
@@ -557,7 +557,7 @@ describe("Continuidad de sesión y autorización", () => {
     render(<App />);
     const u = userEvent.setup();
     await chooseYear(u, "2026");
-    await u.click(await screen.findByRole("button", { name: "12,00 EUR" }));
+    await u.click(await screen.findByRole("button", { name: "12,00 €" }));
     const from = await screen.findByLabelText("Desde");
     expect((from as HTMLInputElement).value).toBe("2026-03-01");
     expect((screen.getByLabelText("Hasta") as HTMLInputElement).value).toBe(
@@ -583,7 +583,7 @@ describe("Continuidad de sesión y autorización", () => {
   });
   it("retira Workspace si se revoca la autorización en una revalidación", async () => {
     render(<App />);
-    await screen.findByRole("button", { name: "12,00 EUR" });
+    await screen.findByRole("button", { name: "12,00 €" });
     api.rpc.mockResolvedValueOnce({ data: false, error: null });
     await emit("SIGNED_IN");
     await screen.findByRole("heading", { name: "Acceso no autorizado" });
@@ -591,7 +591,7 @@ describe("Continuidad de sesión y autorización", () => {
   });
   it("no reutiliza la autorización de otro UUID y descarta respuestas obsoletas", async () => {
     render(<App />);
-    await screen.findByRole("button", { name: "12,00 EUR" });
+    await screen.findByRole("button", { name: "12,00 €" });
     const previous = deferred<{ data: boolean; error: null }>();
     api.rpc.mockReturnValueOnce(previous.promise);
     await emit("TOKEN_REFRESHED");
@@ -615,7 +615,7 @@ describe("Continuidad de sesión y autorización", () => {
   });
   it("limpia la autorización al cerrar sesión y exige revalidación al volver", async () => {
     render(<App />);
-    await screen.findByRole("button", { name: "12,00 EUR" });
+    await screen.findByRole("button", { name: "12,00 €" });
     await emit("SIGNED_OUT", null);
     await screen.findByRole("button", { name: "Entrar en FinTin" });
     const pending = deferred<{ data: boolean; error: null }>();
@@ -644,7 +644,7 @@ describe("Continuidad de sesión y autorización", () => {
   });
   it("un fallo de red al revalidar retira el acceso", async () => {
     render(<App />);
-    await screen.findByRole("button", { name: "12,00 EUR" });
+    await screen.findByRole("button", { name: "12,00 €" });
     api.rpc.mockRejectedValueOnce(new Error("Error de comprobación ficticio"));
     await emit("TOKEN_REFRESHED");
     await screen.findByRole("heading", { name: "Acceso no autorizado" });

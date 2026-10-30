@@ -189,17 +189,17 @@ describe("Resumen separado por tipos", () => {
     expect(within(expense).getByText("Casa ficticia")).toBeTruthy();
     expect(within(other).getByText("Traspaso ficticio")).toBeTruthy();
     const incomeTotals = numbers(income, /^Total ingresos/);
-    expect(incomeTotals.slice(0, 2)).toEqual(["100,00 EUR", "20,00 EUR"]);
-    expect(incomeTotals.at(-1)).toBe("120,00 EUR");
+    expect(incomeTotals.slice(0, 2)).toEqual(["100,00 €", "20,00 €"]);
+    expect(incomeTotals.at(-1)).toBe("120,00 €");
     const expenseTotals = numbers(expense, /^Total gastos/);
-    expect(expenseTotals.slice(0, 2)).toEqual(["-25,00 EUR", "-50,00 EUR"]);
-    expect(expenseTotals.at(-1)).toBe("-75,00 EUR");
+    expect(expenseTotals.slice(0, 2)).toEqual(["-25,00 €", "-50,00 €"]);
+    expect(expenseTotals.at(-1)).toBe("-75,00 €");
     const total = screen.getByRole("table", {
       name: "Totales mensuales y neto",
     });
     const net = numbers(total, /^Neto/);
-    expect(net.slice(0, 2)).toEqual(["75,00 EUR", "-30,00 EUR"]);
-    expect(net.at(-1)).toBe("45,00 EUR");
+    expect(net.slice(0, 2)).toEqual(["75,00 €", "-30,00 €"]);
+    expect(net.at(-1)).toBe("45,00 €");
     expect(
       within(total)
         .getAllByRole("rowheader")
@@ -209,14 +209,14 @@ describe("Resumen separado por tipos", () => {
   it("abre el mes y la categoría del grupo correcto", async () => {
     render(<Summary {...props} />);
     const u = userEvent.setup();
-    await u.click(await screen.findByRole("button", { name: "-25,00 EUR" }));
+    await u.click(await screen.findByRole("button", { name: "-25,00 €" }));
     expect(props.open).toHaveBeenCalledWith({
       month: 1,
       category: "expense",
       kind: "gasto",
       currency: "EUR",
     });
-    await u.click(screen.getByRole("button", { name: "999,00 EUR" }));
+    await u.click(screen.getByRole("button", { name: "999,00 €" }));
     expect(props.open).toHaveBeenLastCalledWith({
       month: 1,
       category: "__none",
@@ -238,7 +238,7 @@ describe("Resumen separado por tipos", () => {
     expect(
       within(table)
         .getAllByRole("cell")
-        .every((c) => c.textContent === "0,00 EUR"),
+        .every((c) => c.textContent === "0,00 €"),
     ).toBe(true);
   });
   it("filtra tarjetas y columnas por mes, conserva los periodos de los gráficos y abre el mes correcto", async () => {
@@ -264,7 +264,7 @@ describe("Resumen separado por tipos", () => {
       within(table)
         .getAllByRole("columnheader")
         .map((h) => h.textContent),
-    ).toEqual(["Categoría / EUR", "Feb", "Total"]);
+    ).toEqual(["Categoría / €", "Feb", "Total"]);
     expect(
       (
         screen.getByLabelText(
@@ -272,7 +272,7 @@ describe("Resumen separado por tipos", () => {
         ) as HTMLSelectElement
       ).value,
     ).toBe("rolling");
-    await u.click(within(table).getByRole("button", { name: "-50,00 EUR" }));
+    await u.click(within(table).getByRole("button", { name: "-50,00 €" }));
     expect(props.open).toHaveBeenCalledWith({
       month: 2,
       category: "expense",

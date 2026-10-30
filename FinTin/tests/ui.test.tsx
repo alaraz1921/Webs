@@ -188,6 +188,7 @@ it("muestra ambos saldos de la cuenta y distingue las dos fechas", async () => {
   );
   const row = screen.getByText("Apunte ficticio").closest("tr")!;
   expect(row.children[0].textContent).toBe("31-01-2026");
+  expect(row.querySelector("td.numeric")?.textContent).toBe("10,00 €");
   expect(row.children[1].querySelector("strong")?.textContent).toBe(
     "30-01-2026",
   );
@@ -347,7 +348,21 @@ describe("Operaciones de interfaz", () => {
     render(<Settings {...common} />);
     expect(
       screen.getByRole("table", { name: "Cuentas y saldos" }).textContent,
-    ).toContain("100,00 EUR");
+    ).toContain("100,00 €");
+    const accountTable = screen.getByRole("table", {
+      name: "Cuentas y saldos",
+    });
+    expect(
+      within(accountTable)
+        .getByRole("columnheader", { name: "Saldo inicial" })
+        .classList.contains("numeric"),
+    ).toBe(true);
+    expect(
+      within(accountTable)
+        .getByText("100,00 €")
+        .closest("td")
+        ?.classList.contains("numeric"),
+    ).toBe(true);
     expect(screen.getByText("31/12/2025")).toBeTruthy();
     expect(screen.queryByLabelText("Saldo inicial")).toBeNull();
     const editButton = screen.getByRole("button", {

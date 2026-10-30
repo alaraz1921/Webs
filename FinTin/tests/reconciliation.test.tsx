@@ -259,10 +259,7 @@ it("alinea importes y combina mes y estado, distinguiendo pendiente, cero y un c
   await u.selectOptions(month, "3");
   expect(within(t).getAllByRole("row")).toHaveLength(2);
   expect(
-    within(t)
-      .getByText("0,01 EUR")
-      .closest("td")
-      ?.classList.contains("numeric"),
+    within(t).getByText("0,01 €").closest("td")?.classList.contains("numeric"),
   ).toBe(true);
   await u.selectOptions(month, "");
   await u.selectOptions(status, "matched");

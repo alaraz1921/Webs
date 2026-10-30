@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { annual } from "./api";
 import type { Category, Movement } from "./types";
 import { months } from "./types";
-import { money } from "./finance";
+import { moneyWithSymbol } from "./finance";
 import {
   categoryEvolution,
   dateInMadrid,
@@ -287,7 +287,7 @@ export function SummaryCharts({
                 <li key={c.key}>
                   <div>
                     <span>{c.name}</span>
-                    <strong>{money(c.value, currency)}</strong>
+                    <strong>{moneyWithSymbol(c.value, currency)}</strong>
                   </div>
                   <div className="category-bar-track">
                     <div

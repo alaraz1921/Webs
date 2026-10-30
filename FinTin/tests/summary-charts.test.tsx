@@ -103,10 +103,10 @@ it("carga los doce meses hasta hoy y filtra por moneda y cuenta sin incluir fech
   expect(within(table).getAllByRole("row")).toHaveLength(13);
   expect(
     within(table).getByRole("row", { name: /Nov 25/ }).textContent,
-  ).toContain("50,00 EUR");
+  ).toContain("50,00 €");
   expect(
     within(table).getByRole("row", { name: /Ene 26/ }).textContent,
-  ).toContain("1.234,56 EUR");
+  ).toContain("1.234,56 €");
   expect(
     within(table).getByRole("row", { name: /Oct 26/ }).textContent,
   ).not.toContain("999,00");
@@ -123,13 +123,13 @@ it("aplica el mes general a ambos gráficos y Todos recupera la vista anual sin 
   ).toBe("02");
   expect(
     screen.getByRole("list", { name: "Categorías con más gasto" }).textContent,
-  ).toBe("Categoría B20,59 EUR");
+  ).toBe("Categoría B20,59 €");
   await u.selectOptions(
     screen.getByLabelText("Categoría de evolución"),
     "id:b",
   );
   expect(
-    screen.getByRole("img", { name: "10 · Categoría B: 20,59 EUR" }),
+    screen.getByRole("img", { name: "10 · Categoría B: 20,59 €" }),
   ).toBeTruthy();
   view.rerender(<SummaryCharts {...props} month="01" />);
   expect(
@@ -140,7 +140,7 @@ it("aplica el mes general a ambos gráficos y Todos recupera la vista anual sin 
   ).toBe("01");
   expect(
     screen.getByRole("list", { name: "Categorías con más gasto" }).textContent,
-  ).toBe("Categoría A1.234,56 EUR");
+  ).toBe("Categoría A1.234,56 €");
   view.rerender(<SummaryCharts {...props} month="" />);
   expect(
     (screen.getByLabelText("Mes de categorías") as HTMLSelectElement).value,
@@ -168,14 +168,14 @@ it("cambia mes y ejercicio del ranking y mes/categoría de evolución de forma i
   await u.selectOptions(screen.getByLabelText("Mes de categorías"), "02");
   expect(
     screen.getByRole("list", { name: "Categorías con más gasto" }).textContent,
-  ).toBe("Categoría B20,59 EUR");
+  ).toBe("Categoría B20,59 €");
   await u.selectOptions(screen.getByLabelText("Mes de evolución"), "02");
   await u.selectOptions(
     screen.getByLabelText("Categoría de evolución"),
     "id:b",
   );
   expect(
-    screen.getByRole("img", { name: "10 · Categoría B: 20,59 EUR" }),
+    screen.getByRole("img", { name: "10 · Categoría B: 20,59 €" }),
   ).toBeTruthy();
   expect(api.annual).toHaveBeenCalledTimes(1);
   await u.selectOptions(screen.getByLabelText("Mes de categorías"), "");
@@ -186,7 +186,7 @@ it("cambia mes y ejercicio del ranking y mes/categoría de evolución de forma i
   const ranking = await screen.findByRole("list", {
     name: "Categorías con más gasto",
   });
-  expect(ranking.textContent).toBe("Categoría A77,77 EUR");
+  expect(ranking.textContent).toBe("Categoría A77,77 €");
   expect(api.annual).toHaveBeenLastCalledWith("owner", 2024);
   expect(
     screen.getByRole("combobox", { name: /^Ejercicio de evolución/ })
@@ -214,10 +214,10 @@ it("alterna de forma independiente entre últimos doce meses y enero a diciembre
   expect(within(table).getAllByRole("row")).toHaveLength(13);
   expect(
     within(table).getByRole("row", { name: /Ene 26/ }).textContent,
-  ).toContain("1.234,56 EUR");
+  ).toContain("1.234,56 €");
   expect(
     within(table).getByRole("row", { name: /Oct 26/ }).textContent,
-  ).toContain("999,00 EUR");
+  ).toContain("999,00 €");
   expect(within(table).getByRole("row", { name: /Dic 26/ })).toBeTruthy();
   expect(within(table).queryByRole("row", { name: /Nov 25/ })).toBeNull();
   expect(

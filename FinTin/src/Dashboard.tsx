@@ -10,7 +10,7 @@ import {
   totals,
   sum,
   money,
-  cardMoney,
+  moneyWithSymbol,
   amount,
   displayDate,
   formatAmount,
@@ -132,7 +132,7 @@ export function Summary({
                               : undefined
                       }
                     >
-                      {cardMoney(t[key], currency)}
+                      {moneyWithSymbol(t[key], currency)}
                     </strong>
                     <small>
                       {key === "balance"
@@ -204,7 +204,7 @@ export function Summary({
                                       })
                                     }
                                   >
-                                    {money(
+                                    {moneyWithSymbol(
                                       sum(
                                         categoryRows
                                           .filter(
@@ -223,7 +223,7 @@ export function Summary({
                               ))}
                               <td className="numeric">
                                 <b>
-                                  {money(
+                                  {moneyWithSymbol(
                                     sum(categoryRows.map((r) => r.importe)),
                                     currency,
                                   )}
@@ -240,11 +240,13 @@ export function Summary({
                           </th>
                           {visibleMonths.map(({ i }) => (
                             <td className="numeric" key={i}>
-                              <b>{money(monthly[i][kind], currency)}</b>
+                              <b>
+                                {moneyWithSymbol(monthly[i][kind], currency)}
+                              </b>
                             </td>
                           ))}
                           <td className="numeric">
-                            <b>{money(t[kind], currency)}</b>
+                            <b>{moneyWithSymbol(t[kind], currency)}</b>
                           </td>
                         </tr>
                       </tfoot>
@@ -289,11 +291,11 @@ export function Summary({
                           </th>
                           {visibleMonths.map(({ i }) => (
                             <td className="numeric" key={i}>
-                              {money(monthly[i][key], currency)}
+                              {moneyWithSymbol(monthly[i][key], currency)}
                             </td>
                           ))}
                           <td className="numeric">
-                            <b>{money(t[key], currency)}</b>
+                            <b>{moneyWithSymbol(t[key], currency)}</b>
                           </td>
                         </tr>
                       );
@@ -321,7 +323,7 @@ function SummaryColumns({
     <thead>
       <tr>
         <th scope="col">
-          {label} / {currency}
+          {label} / {currency === "EUR" ? "€" : currency}
         </th>
         {months
           .filter((_, i) => !month || i + 1 === Number(month))
@@ -737,12 +739,12 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                           </td>
                           <td>{displayDate(r.fecha_cierre)}</td>
                           <td className="numeric">
-                            {money(r.saldo_calculado, r.moneda)}
+                            {moneyWithSymbol(r.saldo_calculado, r.moneda)}
                           </td>
                           <td className="numeric">
                             {r.saldo_real === null
                               ? "Pendiente"
-                              : money(r.saldo_real, r.moneda)}
+                              : moneyWithSymbol(r.saldo_real, r.moneda)}
                           </td>
                           <td
                             className={
@@ -762,7 +764,7 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                                 Sin saldo real
                               </button>
                             ) : (
-                              money(r.diferencia, r.moneda)
+                              moneyWithSymbol(r.diferencia, r.moneda)
                             )}
                           </td>
                           <td>
