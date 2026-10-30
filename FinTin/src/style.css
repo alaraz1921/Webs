@@ -539,25 +539,6 @@ form > .primary {
   background: #eff6ff;
   border-color: #bfdbfe;
 }
-.stat.ingreso:before,
-.stat.gasto:before,
-.stat.no_computable:before,
-.stat.balance:before {
-  content: "";
-  height: 5px;
-  width: 5px;
-  border-radius: 50%;
-  background: #3b82f6;
-  position: absolute;
-  right: 20px;
-  top: 27px;
-}
-.stat.gasto:before {
-  background: #c67c62;
-}
-.stat.no_computable:before {
-  background: #94a3b8;
-}
 .panel {
   background: white;
   border: 1px solid #e2e8f0;
