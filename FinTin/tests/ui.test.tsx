@@ -148,6 +148,7 @@ it("muestra ambos saldos de la cuenta y distingue las dos fechas", async () => {
   });
   api.accountBalances.mockResolvedValue({
     calculated: "110.00",
+    crossMonth: "-0.50",
     real: "109.50",
     realDate: "2026-01-15",
   });
@@ -163,12 +164,27 @@ it("muestra ambos saldos de la cuenta y distingue las dos fechas", async () => {
   });
   expect(totals.textContent).toContain("Saldo calculado · 31-01-2026");
   expect(totals.textContent).toContain("110,00 EUR");
+  expect(totals.textContent).toContain("Suma de movimientos entre meses");
+  expect(totals.textContent).toContain("-0,50 EUR");
+  expect(
+    [...totals.querySelectorAll(".movement-total-row > div > span")].map(
+      (element) => element.textContent,
+    ),
+  ).toEqual([
+    "Total",
+    "Positivos",
+    "Negativos",
+    "Saldo calculado · 31-01-2026",
+    "Suma de movimientos entre meses",
+    "Saldo real · 15-01-2026",
+  ]);
   expect(totals.textContent).toContain("Saldo real · 15-01-2026");
   expect(totals.textContent).toContain("109,50 EUR");
   expect(api.accountBalances).toHaveBeenCalledWith(
     "owner",
     account,
     "2026-01-31",
+    "2026-01-01",
   );
   const row = screen.getByText("Apunte ficticio").closest("tr")!;
   expect(row.children[0].textContent).toBe("31-01-2026");
@@ -176,6 +192,32 @@ it("muestra ambos saldos de la cuenta y distingue las dos fechas", async () => {
     "30-01-2026",
   );
 });
+it.each([
+  { calculated: "100.00", real: "100.0" },
+  { calculated: "100.00", real: null },
+])(
+  "oculta la suma entre meses si los saldos coinciden o no hay real: %j",
+  async (balance) => {
+    api.movements.mockResolvedValue({ rows: [], count: 0, totals: [] });
+    api.accountBalances.mockResolvedValue({
+      ...balance,
+      crossMonth: "12.00",
+      realDate: null,
+    });
+    render(
+      <MovementPage
+        {...common}
+        filters={{ ...filtersFor(2026), account: account.id }}
+        setFilters={vi.fn()}
+      />,
+    );
+    const totals = await screen.findByRole("region", {
+      name: "Totales de movimientos filtrados",
+    });
+    expect(totals.textContent).toContain("Saldo calculado");
+    expect(totals.textContent).not.toContain("Suma de movimientos entre meses");
+  },
+);
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function () {
     this.open = true;

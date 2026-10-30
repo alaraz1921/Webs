@@ -109,23 +109,36 @@ export async function accountBalances(
   uid: string,
   account: Account,
   to: string,
+  from: string,
 ) {
   if (to < account.fecha_saldo_inicial)
-    return { calculated: null, real: null, realDate: null };
+    return { calculated: null, crossMonth: "0.00", real: null, realDate: null };
   let calculated = new Decimal(account.saldo_inicial);
-  for (let from = 0; ; from += 1000) {
+  let crossMonth = new Decimal(0);
+  for (let offset = 0; ; offset += 1000) {
     const rows = checked(
       await client()
         .from("fintin_movimientos")
-        .select("importe::text")
+        .select("importe::text,fecha_valor,fecha_operacion")
         .eq("user_id", uid)
         .eq("cuenta_id", account.id)
         .gt("fecha_valor", account.fecha_saldo_inicial)
         .lte("fecha_valor", to)
         .order("id")
-        .range(from, from + 999),
-    ) as unknown as { importe: string }[];
-    for (const row of rows) calculated = calculated.plus(row.importe);
+        .range(offset, offset + 999),
+    ) as unknown as Pick<
+      Movement,
+      "importe" | "fecha_valor" | "fecha_operacion"
+    >[];
+    for (const row of rows) {
+      calculated = calculated.plus(row.importe);
+      if (
+        (!from || row.fecha_valor >= from) &&
+        row.fecha_operacion &&
+        row.fecha_valor.slice(0, 7) !== row.fecha_operacion.slice(0, 7)
+      )
+        crossMonth = crossMonth.plus(row.importe);
+    }
     if (rows.length < 1000) break;
   }
   const balances = checked(
@@ -140,6 +153,7 @@ export async function accountBalances(
   ) as unknown as { fecha_corte: string; saldo_real: string }[];
   return {
     calculated: calculated.toFixed(2),
+    crossMonth: crossMonth.toFixed(2),
     real: balances[0]?.saldo_real ?? null,
     realDate: balances[0]?.fecha_corte ?? null,
   };

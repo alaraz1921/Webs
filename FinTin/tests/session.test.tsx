@@ -128,6 +128,7 @@ beforeEach(() => {
   api.movements.mockResolvedValue({ rows: [movement], count: 100 });
   api.accountBalances.mockResolvedValue({
     calculated: "112.00",
+    crossMonth: "0.00",
     real: null,
     realDate: null,
   });

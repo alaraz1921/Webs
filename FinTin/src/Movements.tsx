@@ -9,6 +9,7 @@ import { Field, Form, Empty, ErrorBox, text, ConfirmDelete, Panel } from "./ui";
 import { CategoryOptions, type MasterProps } from "./Settings";
 import { SortHeader, useTableSort } from "./sorting";
 import type { MovementSortKey } from "./movement-sorting";
+import Decimal from "decimal.js";
 export const filtersFor = (year: number): Filters => ({
   from: `${year}-01-01`,
   to: `${year}-12-31`,
@@ -54,9 +55,14 @@ export function MovementPage(
     [edit, setEdit] = useState<Movement | null | undefined>(undefined);
   const [balances, setBalances] = useState<{
     calculated: string | null;
+    crossMonth: string;
     real: string | null;
     realDate: string | null;
   } | null>(null);
+  const hasBalanceDifference =
+    balances?.calculated != null &&
+    balances.real != null &&
+    !new Decimal(balances.calculated).eq(balances.real);
   const change = (key: keyof Filters, value: string) => {
     setFilters({ ...f, [key]: value });
     setPage(0);
@@ -78,7 +84,7 @@ export function MovementPage(
           { accounts, categories },
         ),
         selectedAccount && f.to
-          ? accountBalances(uid, selectedAccount, f.to)
+          ? accountBalances(uid, selectedAccount, f.to, f.from)
           : Promise.resolve(null),
       ])
         .then(([d, balance]) => {
@@ -236,7 +242,7 @@ export function MovementPage(
                   ]
               ).map((t) => (
                 <div
-                  className={`movement-total-row${selectedAccount ? " with-balances" : ""}`}
+                  className={`movement-total-row${selectedAccount ? " with-balances" : ""}${hasBalanceDifference ? " with-difference" : ""}`}
                   key={t.currency}
                 >
                   <div>
@@ -275,6 +281,15 @@ export function MovementPage(
                                 : "—"}
                         </strong>
                       </div>
+                      {hasBalanceDifference && (
+                        <div>
+                          <span>Suma de movimientos entre meses</span>
+                          <strong>
+                            {money(balances.crossMonth, selectedAccount.moneda)}
+                          </strong>
+                          <small>Fecha valor en el periodo filtrado</small>
+                        </div>
+                      )}
                       <div>
                         <span>
                           Saldo real

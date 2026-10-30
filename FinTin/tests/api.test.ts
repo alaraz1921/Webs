@@ -384,8 +384,23 @@ describe("Saldos de la cuenta en Movimientos", () => {
             table === "fintin_saldos"
               ? [{ fecha_corte: "2026-01-15", saldo_real: "99.00" }]
               : from === 0
-                ? Array.from({ length: 1000 }, () => ({ importe: "0.01" }))
-                : [{ importe: "-1.00" }],
+                ? Array.from({ length: 1000 }, (_, i) => ({
+                    importe: "0.01",
+                    fecha_valor: "2026-01-10",
+                    fecha_operacion: i === 0 ? "2025-12-31" : "2026-01-10",
+                  }))
+                : [
+                    {
+                      importe: "-1.00",
+                      fecha_valor: "2026-01-31",
+                      fecha_operacion: "2026-02-01",
+                    },
+                    {
+                      importe: "0.25",
+                      fecha_valor: "2026-01-31",
+                      fecha_operacion: "2025-12-31",
+                    },
+                  ],
         };
       };
       return q;
@@ -404,9 +419,11 @@ describe("Saldos de la cuenta en Movimientos", () => {
         activo: true,
       },
       "2026-01-31",
+      "2026-01-20",
     );
     expect(result).toEqual({
-      calculated: "109.00",
+      calculated: "109.25",
+      crossMonth: "-0.75",
       real: "99.00",
       realDate: "2026-01-15",
     });
