@@ -101,6 +101,11 @@ const numbers = (table: HTMLElement, name: string | RegExp) =>
     .getAllByRole("cell")
     .map((c) => c.textContent);
 describe("Resumen separado por tipos", () => {
+  it("mantiene el código de las otras monedas en las tarjetas", async () => {
+    render(<Summary {...props} currency="USD" />);
+    const card = await screen.findByRole("article", { name: "Total Ingresos" });
+    expect(card.textContent).toContain("1.000,00 USD");
+  });
   it("mantiene el modo de ejercicio en los gráficos al cambiar el ejercicio general", async () => {
     const view = render(<Summary {...props} />);
     const u = userEvent.setup();
@@ -148,8 +153,8 @@ describe("Resumen separado por tipos", () => {
     expect(
       within(cards)
         .getAllByRole("article")
-        .map((card) => within(card).getByText(/EUR$/).textContent),
-    ).toEqual(["120,00 EUR", "-75,00 EUR", "999,00 EUR", "45,00 EUR"]);
+        .map((card) => within(card).getByText(/€$/).textContent),
+    ).toEqual(["120,00 €", "-75,00 €", "999,00 €", "45,00 €"]);
     expect(
       within(cards)
         .getByRole("article", { name: "Total Ingresos" })
@@ -245,13 +250,13 @@ describe("Resumen separado por tipos", () => {
     expect(
       within(cards).getByRole("article", { name: "Total Ingresos" })
         .textContent,
-    ).toContain("20,00 EUR");
+    ).toContain("20,00 €");
     expect(
       within(cards).getByRole("article", { name: "Total Gastos" }).textContent,
-    ).toContain("-50,00 EUR");
+    ).toContain("-50,00 €");
     expect(
       within(cards).getByRole("article", { name: "Total Neto" }).textContent,
-    ).toContain("-30,00 EUR");
+    ).toContain("-30,00 €");
     const table = screen.getByRole("table", {
       name: "Gastos por categorías y meses",
     });
@@ -282,6 +287,6 @@ describe("Resumen separado por tipos", () => {
     render(<Summary {...props} />);
     const card = await screen.findByRole("article", { name: "Total Neto" });
     expect(card.querySelector("strong")?.className).toBe("negative");
-    expect(card.textContent).toContain("-1.234,56 EUR");
+    expect(card.textContent).toContain("-1.234,56 €");
   });
 });

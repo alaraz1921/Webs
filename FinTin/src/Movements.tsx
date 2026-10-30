@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { Movement, Kind } from "./types";
 import { kinds, labels } from "./types";
 import { accountBalances, movements, remove, save, type Filters } from "./api";
-import { amount, money, displayDate } from "./finance";
+import { amount, cardMoney, money, displayDate } from "./finance";
 import { decimalComma } from "./amount-input";
 import { Field, Form, Empty, ErrorBox, text, ConfirmDelete, Panel } from "./ui";
 import { CategoryOptions, type MasterProps } from "./Settings";
@@ -247,18 +247,18 @@ export function MovementPage(
                 >
                   <div>
                     <span>Total</span>
-                    <strong>{money(t.total, t.currency)}</strong>
+                    <strong>{cardMoney(t.total, t.currency)}</strong>
                   </div>
                   <div>
                     <span>Positivos</span>
                     <strong className="positive">
-                      {money(t.positive, t.currency)}
+                      {cardMoney(t.positive, t.currency)}
                     </strong>
                   </div>
                   <div>
                     <span>Negativos</span>
                     <strong className="negative">
-                      {money(t.negative, t.currency)}
+                      {cardMoney(t.negative, t.currency)}
                     </strong>
                   </div>
                   {selectedAccount && (
@@ -274,7 +274,7 @@ export function MovementPage(
                             : balances?.calculated === null
                               ? "Sin saldo inicial para esta fecha"
                               : balances?.calculated != null
-                                ? money(
+                                ? cardMoney(
                                     balances.calculated,
                                     selectedAccount.moneda,
                                   )
@@ -285,7 +285,10 @@ export function MovementPage(
                         <div>
                           <span>Suma de movimientos entre meses</span>
                           <strong>
-                            {money(balances.crossMonth, selectedAccount.moneda)}
+                            {cardMoney(
+                              balances.crossMonth,
+                              selectedAccount.moneda,
+                            )}
                           </strong>
                           <small>Fecha valor en el periodo filtrado</small>
                         </div>
@@ -301,7 +304,7 @@ export function MovementPage(
                           {!f.to
                             ? "Indica fecha Hasta"
                             : balances?.real != null
-                              ? money(balances.real, selectedAccount.moneda)
+                              ? cardMoney(balances.real, selectedAccount.moneda)
                               : "Sin saldo real"}
                         </strong>
                       </div>

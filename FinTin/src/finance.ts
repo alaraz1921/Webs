@@ -16,6 +16,8 @@ export const formatAmount = (value: string | Decimal) => {
 };
 export const money = (value: string | Decimal, currency = "EUR") =>
   formatAmount(value) + " " + currency;
+export const cardMoney = (value: string | Decimal, currency = "EUR") =>
+  money(value, currency === "EUR" ? "€" : currency);
 export const sum = (values: string[]) =>
   values.reduce((a, b) => a.plus(b), new Decimal(0));
 export function totals(rows: Pick<Movement, "tipo_movimiento" | "importe">[]) {

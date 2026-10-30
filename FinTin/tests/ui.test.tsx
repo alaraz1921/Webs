@@ -100,9 +100,9 @@ it("ordena los filtros y sus opciones y actualiza las sumas al filtrar", async (
   let totals = await screen.findByRole("region", {
     name: "Totales de movimientos filtrados",
   });
-  expect(totals.textContent).toContain("20,10 EUR");
-  expect(totals.textContent).toContain("30,20 EUR");
-  expect(totals.textContent).toContain("-10,10 EUR");
+  expect(totals.textContent).toContain("20,10 €");
+  expect(totals.textContent).toContain("30,20 €");
+  expect(totals.textContent).toContain("-10,10 €");
   const u = userEvent.setup();
   await u.selectOptions(screen.getByLabelText("Origen"), "manual");
   expect(props.setFilters).toHaveBeenLastCalledWith({
@@ -120,8 +120,8 @@ it("ordena los filtros y sus opciones y actualiza las sumas al filtrar", async (
   totals = screen.getByRole("region", {
     name: "Totales de movimientos filtrados",
   });
-  expect(within(totals).getAllByText("0,00 EUR")).toHaveLength(3);
-  expect(totals.textContent).not.toContain("20,10 EUR");
+  expect(within(totals).getAllByText("0,00 €")).toHaveLength(3);
+  expect(totals.textContent).not.toContain("20,10 €");
 });
 it("muestra ambos saldos de la cuenta y distingue las dos fechas", async () => {
   api.movements.mockResolvedValue({
@@ -163,9 +163,9 @@ it("muestra ambos saldos de la cuenta y distingue las dos fechas", async () => {
     name: "Totales de movimientos filtrados",
   });
   expect(totals.textContent).toContain("Saldo calculado · 31-01-2026");
-  expect(totals.textContent).toContain("110,00 EUR");
+  expect(totals.textContent).toContain("110,00 €");
   expect(totals.textContent).toContain("Suma de movimientos entre meses");
-  expect(totals.textContent).toContain("-0,50 EUR");
+  expect(totals.textContent).toContain("-0,50 €");
   expect(
     [...totals.querySelectorAll(".movement-total-row > div > span")].map(
       (element) => element.textContent,
@@ -179,7 +179,7 @@ it("muestra ambos saldos de la cuenta y distingue las dos fechas", async () => {
     "Saldo real · 15-01-2026",
   ]);
   expect(totals.textContent).toContain("Saldo real · 15-01-2026");
-  expect(totals.textContent).toContain("109,50 EUR");
+  expect(totals.textContent).toContain("109,50 €");
   expect(api.accountBalances).toHaveBeenCalledWith(
     "owner",
     account,

@@ -10,6 +10,7 @@ import {
   totals,
   sum,
   money,
+  cardMoney,
   amount,
   displayDate,
   formatAmount,
@@ -131,7 +132,7 @@ export function Summary({
                               : undefined
                       }
                     >
-                      {money(t[key], currency)}
+                      {cardMoney(t[key], currency)}
                     </strong>
                     <small>
                       {key === "balance"
