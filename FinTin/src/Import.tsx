@@ -456,46 +456,6 @@ export function ImportPage(
                 </p>
               )}
           </Panel>
-          <Panel title="Previsualización">
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Fila</th>
-                    <th>Fecha valor</th>
-                    <th>Concepto</th>
-                    <th>Cuenta CSV</th>
-                    <th>Tipo / categoría</th>
-                    <th>Importe</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {preview.rows.slice(0, 50).map((r) => (
-                    <tr key={r.numero_fila}>
-                      <td>{r.numero_fila}</td>
-                      <td>{r.fecha_valor}</td>
-                      <td>
-                        {r.concepto}
-                        <small>{r.nota}</small>
-                      </td>
-                      <td>
-                        {r.entidad_csv} / {r.nombre_producto_csv}
-                        {mode === "csv" && ` / ${r.tipo_producto_csv}`}
-                      </td>
-                      <td>
-                        {labels[r.tipo_movimiento]} / {r.categoria_csv}
-                      </td>
-                      <td>{money(r.importe, r.moneda)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="muted">
-              Primeras 50 filas. Los duplicados se conservan como movimientos
-              distintos.
-            </p>
-          </Panel>
           <Panel
             title={
               mode === "csv"
@@ -620,6 +580,46 @@ export function ImportPage(
                 aria-label="Carga del lote"
               />
             )}
+          </Panel>
+          <Panel title="Previsualización">
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fila</th>
+                    <th>Fecha valor</th>
+                    <th>Concepto</th>
+                    <th>Cuenta CSV</th>
+                    <th>Tipo / categoría</th>
+                    <th>Importe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.rows.slice(0, 50).map((r) => (
+                    <tr key={r.numero_fila}>
+                      <td>{r.numero_fila}</td>
+                      <td>{r.fecha_valor}</td>
+                      <td>
+                        {r.concepto}
+                        <small>{r.nota}</small>
+                      </td>
+                      <td>
+                        {r.entidad_csv} / {r.nombre_producto_csv}
+                        {mode === "csv" && ` / ${r.tipo_producto_csv}`}
+                      </td>
+                      <td>
+                        {labels[r.tipo_movimiento]} / {r.categoria_csv}
+                      </td>
+                      <td>{money(r.importe, r.moneda)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="muted">
+              Primeras 50 filas. Los duplicados se conservan como movimientos
+              distintos.
+            </p>
           </Panel>
         </>
       )}

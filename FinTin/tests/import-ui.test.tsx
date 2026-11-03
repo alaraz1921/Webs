@@ -82,6 +82,15 @@ describe("Flujo de publicación CSV", () => {
     api.rpc.mockResolvedValue({ data: { filas_importadas: 3 }, error: null });
     render(<ImportPage {...props} />);
     const u = await upload();
+    const headings = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((heading) => heading.textContent);
+    expect(headings.indexOf("Validación y correspondencias")).toBeLessThan(
+      headings.indexOf("Confirmar sustitución"),
+    );
+    expect(headings.indexOf("Confirmar sustitución")).toBeLessThan(
+      headings.indexOf("Previsualización"),
+    );
     const button = screen.getByRole("button", { name: "Publicar importación" });
     expect((button as HTMLButtonElement).disabled).toBe(true);
     await u.click(screen.getByRole("checkbox"));
