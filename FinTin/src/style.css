@@ -1137,11 +1137,17 @@ h1 {
 .account-matrix .balance-mismatch {
   background: #fff1f2;
 }
+.account-matrix .balance-explained {
+  background: #fffbeb;
+}
 .account-matrix .balance-match .cell:hover {
   background: #dcfce7;
 }
 .account-matrix .balance-mismatch .cell:hover {
   background: #ffe4e6;
+}
+.account-matrix .balance-explained .cell:hover {
+  background: #fef3c7;
 }
 .reconciliation-filters {
   display: flex;

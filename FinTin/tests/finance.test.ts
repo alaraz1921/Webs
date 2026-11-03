@@ -8,6 +8,7 @@ import {
   calculated,
   displayDate,
   moneyWithSymbol,
+  isCrossMonthMovement,
 } from "../src/finance";
 const row =
   '10/01/2026,10/01/2026,"-1.234,56 €",EUR,"Concepto, ficticio",Banco ficticio,Cuenta ficticia,Cuenta corriente,Gasto,Prueba,Nota';
@@ -16,6 +17,29 @@ describe("CSV y cálculos exactos", () => {
   it("usa el símbolo euro solo al formatear importes de tarjetas", () => {
     expect(moneyWithSymbol("1234.50", "EUR")).toBe("1.234,50 €");
     expect(moneyWithSymbol("1234.50", "USD")).toBe("1.234,50 USD");
+  });
+  it("distingue el mes y el año de valor frente a operación", () => {
+    expect(
+      isCrossMonthMovement({
+        fecha_valor: "2026-01-31",
+        fecha_operacion: "2026-02-01",
+      }),
+    ).toBe(true);
+    expect(
+      isCrossMonthMovement({
+        fecha_valor: "2026-01-31",
+        fecha_operacion: "2025-01-31",
+      }),
+    ).toBe(true);
+    expect(
+      isCrossMonthMovement({
+        fecha_valor: "2026-01-31",
+        fecha_operacion: "2026-01-01",
+      }),
+    ).toBe(false);
+    expect(
+      isCrossMonthMovement({ fecha_valor: "2026-01-31", fecha_operacion: "" }),
+    ).toBe(false);
   });
   it("interpreta negativo, millares y céntimos sin floats", () => {
     expect(amount("-1.234,56 €")).toBe("-1234.56");

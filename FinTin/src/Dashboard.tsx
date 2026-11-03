@@ -14,6 +14,7 @@ import {
   amount,
   displayDate,
   formatAmount,
+  isCrossMonthMovement,
 } from "./finance";
 import { Field, Empty, ErrorBox, Panel, Form, text, Modal } from "./ui";
 import type { MasterProps } from "./Settings";
@@ -479,8 +480,9 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                 <p className="muted">
                   Cada fila agrupa una cuenta de destino y los movimientos de
                   todos sus alias. Verde: saldo real y calculado coinciden.
-                  Rojo: hay diferencia. Sin color: saldo real pendiente o mes
-                  sin cierre.
+                  Amarillo: la diferencia coincide con los movimientos cuyo mes
+                  de valor y de operación difieren. Rojo: hay otra diferencia.
+                  Sin color: saldo real pendiente o mes sin cierre.
                 </p>
               )}
               {reconcile && (
@@ -562,17 +564,40 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                                 r.cuenta_id === a.id &&
                                 Number(r.fecha_cierre.slice(5, 7)) === i + 1,
                             );
+                            const closingDate =
+                              r?.fecha_cierre ||
+                              new Date(Date.UTC(year, i + 1, 0))
+                                .toISOString()
+                                .slice(0, 10);
                             const matches =
                               r && r.saldo_real !== null
                                 ? new Decimal(r.saldo_real).eq(
                                     r.saldo_calculado,
                                   )
                                 : null;
-                            const closingDate =
-                              r?.fecha_cierre ||
-                              new Date(Date.UTC(year, i + 1, 0))
-                                .toISOString()
-                                .slice(0, 10);
+                            const crossMonth =
+                              r && matches === false
+                                ? sum(
+                                    flows
+                                      .filter(
+                                        (flow) =>
+                                          flow.cuenta_id === a.id &&
+                                          flow.fecha_valor >
+                                            a.fecha_saldo_inicial &&
+                                          flow.fecha_valor.slice(0, 7) ===
+                                            closingDate.slice(0, 7) &&
+                                          flow.fecha_valor <= closingDate &&
+                                          isCrossMonthMovement(flow),
+                                      )
+                                      .map((flow) => flow.importe),
+                                  )
+                                : null;
+                            const explained =
+                              r?.saldo_real != null &&
+                              crossMonth !== null &&
+                              new Decimal(r.saldo_real)
+                                .plus(crossMonth)
+                                .eq(r.saldo_calculado);
                             return (
                               <td
                                 key={i}
@@ -581,7 +606,9 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                                     ? undefined
                                     : matches
                                       ? "balance-match"
-                                      : "balance-mismatch"
+                                      : explained
+                                        ? "balance-explained"
+                                        : "balance-mismatch"
                                 }
                               >
                                 <AccountCell
@@ -592,7 +619,9 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                                         ? "Saldo real pendiente"
                                         : matches
                                           ? "Saldo real y calculado coinciden"
-                                          : `Diferencia: ${money(new Decimal(r.saldo_real).minus(r.saldo_calculado), currency)}`
+                                          : explained
+                                            ? `Diferencia explicada por movimientos entre meses: ${money(crossMonth!, currency)}`
+                                            : `Diferencia: ${money(new Decimal(r.saldo_real).minus(r.saldo_calculado), currency)}`
                                   }
                                   onMovements={() =>
                                     open({

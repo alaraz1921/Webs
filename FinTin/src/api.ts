@@ -3,6 +3,7 @@ import { publicKey, validUrl } from "./config";
 import { createClient } from "@supabase/supabase-js";
 import type { Account, CsvRow, Movement } from "./types";
 import Decimal from "decimal.js";
+import { isCrossMonthMovement } from "./finance";
 import {
   sortedMovements,
   type MovementSortKey,
@@ -132,11 +133,7 @@ export async function accountBalances(
     >[];
     for (const row of rows) {
       calculated = calculated.plus(row.importe);
-      if (
-        (!from || row.fecha_valor >= from) &&
-        row.fecha_operacion &&
-        row.fecha_valor.slice(0, 7) !== row.fecha_operacion.slice(0, 7)
-      )
+      if ((!from || row.fecha_valor >= from) && isCrossMonthMovement(row))
         crossMonth = crossMonth.plus(row.importe);
     }
     if (rows.length < 1000) break;

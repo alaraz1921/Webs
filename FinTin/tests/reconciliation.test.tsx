@@ -9,7 +9,7 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, afterEach, it, expect, vi } from "vitest";
-import type { Account, Balance, Reconciliation } from "../src/types";
+import type { Account, Balance, Movement, Reconciliation } from "../src/types";
 const api = vi.hoisted(() => ({
   list: vi.fn(),
   annual: vi.fn(),
@@ -43,6 +43,26 @@ const props = {
   open: vi.fn(),
   reconcile: true,
 };
+const movement = (
+  id: string,
+  cuenta_id: string,
+  fecha_valor: string,
+  fecha_operacion: string,
+  importe: string,
+): Movement => ({
+  id,
+  cuenta_id,
+  fecha_valor,
+  fecha_operacion,
+  importe,
+  moneda: "EUR",
+  concepto: "Movimiento ficticio",
+  tipo_movimiento: "no_computable",
+  categoria_id: null,
+  categoria_csv: "",
+  nota: "",
+  origen: "manual",
+});
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function () {
     this.open = true;
@@ -118,6 +138,34 @@ async function accountCell(row: number, month: number) {
     within(t).getAllByRole("row")[row].children[month] as HTMLElement,
   ).getByRole("button");
 }
+it("marca en amarillo solo los meses cuya diferencia coincide con los movimientos entre meses de la cuenta", async () => {
+  closures[2] = {
+    ...closures[2],
+    saldo_real: "1.00",
+    diferencia: "1.00",
+  };
+  api.annual.mockResolvedValue([
+    movement("cross-a", "a", "2026-01-31", "2026-02-01", "1.00"),
+    movement("same-a", "a", "2026-01-10", "2026-01-11", "9.00"),
+    movement("other-b", "b", "2026-01-31", "2026-02-01", "1.00"),
+    movement("cross-c", "c", "2026-02-01", "2026-01-31", "-1.00"),
+  ]);
+  render(<AccountsPage {...props} reconcile={false} />);
+  const table = await screen.findByRole("table", {
+    name: "Saldos mensuales por cuenta",
+  });
+  const rows = within(table).getAllByRole("row");
+  expect(rows[1].children[1].className).toBe("balance-explained");
+  expect(
+    within(rows[1].children[1] as HTMLElement).getByRole("button").title,
+  ).toContain("Diferencia explicada por movimientos entre meses: 1,00 EUR");
+  expect(rows[1].children[3].className).toBe("balance-mismatch");
+  expect(rows[2].children[1].className).toBe("");
+  expect(rows[3].children[2].className).toBe("balance-explained");
+  expect(table.parentElement?.parentElement?.textContent).toContain(
+    "Amarillo: la diferencia coincide con los movimientos",
+  );
+});
 it("abre el menú de Cuentas, navega con teclado y filtra movimientos por el mes de la celda", async () => {
   render(<AccountsPage {...props} reconcile={false} />);
   const u = userEvent.setup(),

@@ -164,8 +164,9 @@ it("muestra ambos saldos de la cuenta y distingue las dos fechas", async () => {
   });
   expect(totals.textContent).toContain("Saldo calculado · 31-01-2026");
   expect(totals.textContent).toContain("110,00 €");
-  expect(totals.textContent).toContain("Suma de movimientos entre meses");
+  expect(totals.textContent).toContain("Suma movimientos");
   expect(totals.textContent).toContain("-0,50 €");
+  expect(totals.textContent).toContain("Mes valor <> Mes operación");
   expect(
     [...totals.querySelectorAll(".movement-total-row > div > span")].map(
       (element) => element.textContent,
@@ -175,7 +176,7 @@ it("muestra ambos saldos de la cuenta y distingue las dos fechas", async () => {
     "Positivos",
     "Negativos",
     "Saldo calculado · 31-01-2026",
-    "Suma de movimientos entre meses",
+    "Suma movimientos",
     "Saldo real · 15-01-2026",
   ]);
   expect(totals.textContent).toContain("Saldo real · 15-01-2026");
@@ -216,7 +217,7 @@ it.each([
       name: "Totales de movimientos filtrados",
     });
     expect(totals.textContent).toContain("Saldo calculado");
-    expect(totals.textContent).not.toContain("Suma de movimientos entre meses");
+    expect(totals.textContent).not.toContain("Suma movimientos");
   },
 );
 beforeAll(() => {

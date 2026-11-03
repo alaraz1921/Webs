@@ -20,6 +20,11 @@ export const moneyWithSymbol = (value: string | Decimal, currency = "EUR") =>
   money(value, currency === "EUR" ? "€" : currency);
 export const sum = (values: string[]) =>
   values.reduce((a, b) => a.plus(b), new Decimal(0));
+export const isCrossMonthMovement = (
+  row: Pick<Movement, "fecha_valor" | "fecha_operacion">,
+) =>
+  Boolean(row.fecha_operacion) &&
+  row.fecha_valor.slice(0, 7) !== row.fecha_operacion.slice(0, 7);
 export function totals(rows: Pick<Movement, "tipo_movimiento" | "importe">[]) {
   const by = Object.fromEntries(
     ["ingreso", "gasto", "no_computable"].map((k) => [

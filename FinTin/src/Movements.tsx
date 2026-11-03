@@ -283,14 +283,14 @@ export function MovementPage(
                       </div>
                       {hasBalanceDifference && (
                         <div>
-                          <span>Suma de movimientos entre meses</span>
+                          <span>Suma movimientos</span>
                           <strong>
                             {moneyWithSymbol(
                               balances.crossMonth,
                               selectedAccount.moneda,
                             )}
                           </strong>
-                          <small>Fecha valor en el periodo filtrado</small>
+                          <small>Mes valor {"<>"} Mes operación</small>
                         </div>
                       )}
                       <div>
