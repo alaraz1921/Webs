@@ -1077,20 +1077,6 @@ body.games-page .project-card-icon {
     transform: translateY(-50%);
 }
 
-body.games-page .project-card-badge {
-    display: grid;
-    place-items: center;
-    box-sizing: border-box;
-    background: #334155;
-    color: #ffffff;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1.35rem;
-    font-weight: 900;
-    letter-spacing: -0.04em;
-}
-
-body.games-page .project-card-badge-evenpic { background: #be185d; }
-
 @media (max-width: 520px) {
     body.games-page .projects-list a {
         min-height: 76px;
