@@ -206,11 +206,20 @@ form > .primary {
   z-index: 5;
 }
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 21px;
   font-weight: 600;
   color: #1d4ed8;
   margin: 0 14px 28px;
   letter-spacing: -0.5px;
+}
+.brand img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  flex: none;
 }
 .sidebar nav {
   display: grid;
@@ -796,8 +805,20 @@ footer {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
 }
+.access-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 26px;
+}
+.access-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  flex: none;
+}
 .access-heading h1 {
-  margin: 0 0 26px;
+  margin: 0;
   font-size: 19px;
   font-weight: 600;
   letter-spacing: -0.3px;

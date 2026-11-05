@@ -433,6 +433,9 @@ describe("Continuidad de sesión y autorización", () => {
     expect(screen.getAllByRole("heading").map((h) => h.textContent)).toEqual([
       "FinTin",
     ]);
+    expect(document.querySelector<HTMLImageElement>(".access-logo")?.src).toContain(
+      "fintin-logo.png",
+    );
     expect(
       screen.queryByText(
         /Haz espacio|Todo en orden|MENOS RUIDO|Acceso exclusivo/,
@@ -453,6 +456,9 @@ describe("Continuidad de sesión y autorización", () => {
     render(<App />);
     const u = userEvent.setup();
     await screen.findByRole("button", { name: "12,00 €" });
+    expect(document.querySelector<HTMLImageElement>(".brand img")?.src).toContain(
+      "fintin-logo.png",
+    );
     await u.click(screen.getByRole("link", { name: "Movimientos" }));
     const search = await screen.findByLabelText("Buscar concepto");
     await u.type(search, "Filtro ficticio");

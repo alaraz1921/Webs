@@ -32,6 +32,7 @@ import {
 } from "./GeneralSettings";
 import { YearPicker } from "./YearPicker";
 import { Field, Form, ErrorBox, Empty, text } from "./ui";
+import fintinLogo from "./fintin-logo.png";
 import "./style.css";
 const pages = [
   {
@@ -285,6 +286,7 @@ function Access({ children }: { children: React.ReactNode }) {
     <div className="access">
       <main className="access-form">
         <header className="access-heading">
+          <img className="access-logo" src={fintinLogo} alt="" />
           <h1>FinTin</h1>
         </header>
         {children}
@@ -293,7 +295,12 @@ function Access({ children }: { children: React.ReactNode }) {
   );
 }
 function Brand() {
-  return <div className="brand">FinTin</div>;
+  return (
+    <div className="brand">
+      <img src={fintinLogo} alt="" />
+      <span>FinTin</span>
+    </div>
+  );
 }
 function Workspace({ session }: { session: Session }) {
   const [showFlows, setShowFlows] = useShowFlows();
