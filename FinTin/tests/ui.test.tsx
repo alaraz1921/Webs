@@ -14,6 +14,7 @@ const api = vi.hoisted(() => ({
   save: vi.fn(),
   remove: vi.fn(),
   movements: vi.fn(),
+  movementsForPrint: vi.fn(),
   accountBalances: vi.fn(),
 }));
 vi.mock("../src/api", () => api);
@@ -122,6 +123,41 @@ it("ordena los filtros y sus opciones y actualiza las sumas al filtrar", async (
   });
   expect(within(totals).getAllByText("0,00 €")).toHaveLength(3);
   expect(totals.textContent).not.toContain("20,10 €");
+});
+it("imprime todos los movimientos del filtro y limpia el informe tras cerrar el diálogo", async () => {
+  const print = vi.spyOn(window, "print").mockImplementation(() => {});
+  api.movements.mockResolvedValue({ rows: [], count: 0, totals: [] });
+  api.movementsForPrint.mockResolvedValue([
+    {
+      id: "first",
+      cuenta_id: account.id,
+      fecha_valor: "2026-02-01",
+      fecha_operacion: "2026-01-31",
+      importe: "12.34",
+      moneda: "EUR",
+      concepto: "Apunte ficticio",
+      tipo_movimiento: "ingreso",
+      categoria_id: null,
+      categoria_csv: "",
+      nota: "",
+      origen: "csv",
+    } satisfies Movement,
+  ]);
+  const filters = { ...filtersFor(2026), search: "ficticio" };
+  render(<MovementPage {...common} filters={filters} setFilters={vi.fn()} />);
+  await userEvent
+    .setup()
+    .click(screen.getByRole("button", { name: "Imprimir" }));
+  await waitFor(() => expect(print).toHaveBeenCalledOnce());
+  expect(api.movementsForPrint.mock.calls[0][1]).toEqual(filters);
+  const report = document.querySelector(".movement-print-report")!;
+  expect(report.textContent).toContain("Concepto: ficticio");
+  expect(report.querySelectorAll("tbody tr")).toHaveLength(1);
+  expect(report.textContent).toContain("12,34 €");
+  window.dispatchEvent(new Event("afterprint"));
+  await waitFor(() =>
+    expect(document.querySelector(".movement-print-report")).toBeNull(),
+  );
 });
 it("muestra ambos saldos de la cuenta y distingue las dos fechas", async () => {
   api.movements.mockResolvedValue({
@@ -280,6 +316,7 @@ it("ordena Movimientos desde las cabeceras en ambos sentidos y vuelve a la prime
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.restoreAllMocks();
 });
 describe("Operaciones de interfaz", () => {
   it("usa coma decimal del teclado numérico respetando selección, cursor y punto de miles", async () => {

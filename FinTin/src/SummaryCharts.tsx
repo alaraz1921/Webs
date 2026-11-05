@@ -266,6 +266,10 @@ export function SummaryCharts({
         )}
       </Panel>
       <Panel title="Gastos por categorías · las 6 principales">
+        <p className="print-only print-context">
+          Ejercicio {topYear} · Mes:{" "}
+          {topMonth ? months[Number(topMonth) - 1] : "Todos"}
+        </p>
         <div className="chart-filters">
           <div>
             <YearPicker
@@ -305,6 +309,12 @@ export function SummaryCharts({
         )}
       </Panel>
       <Panel title="Evolución del gasto de una categoría">
+        <p className="print-only print-context">
+          Ejercicio {evolutionYear} · Mes:{" "}
+          {evolutionMonth ? months[Number(evolutionMonth) - 1] : "Todos"} ·
+          Categoría:{" "}
+          {options.find((c) => c.key === selected)?.name || "Ninguna"}
+        </p>
         <div className="chart-filters">
           <div>
             <YearPicker

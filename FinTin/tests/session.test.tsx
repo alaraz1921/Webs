@@ -16,6 +16,7 @@ const api = vi.hoisted(() => ({
   list: vi.fn(),
   annual: vi.fn(),
   movements: vi.fn(),
+  movementsForPrint: vi.fn(),
   accountBalances: vi.fn(),
   save: vi.fn(),
   remove: vi.fn(),
@@ -138,6 +139,23 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe("Continuidad de sesión y autorización", () => {
+  it("ofrece Informe en Resumen e Imprimir en Cuentas", async () => {
+    const print = vi.spyOn(window, "print").mockImplementation(() => {});
+    render(<App />);
+    const u = userEvent.setup();
+    const report = await screen.findByRole("button", { name: "Informe" });
+    expect(report.parentElement?.textContent).toContain("Importar CSV");
+    await u.click(report);
+    expect(print).toHaveBeenCalledOnce();
+    await u.click(
+      screen
+        .getAllByRole("link", { name: "Cuentas" })
+        .find((a) => a.getAttribute("href") === "#cuentas")!,
+    );
+    await u.click(await screen.findByRole("button", { name: "Imprimir" }));
+    expect(print).toHaveBeenCalledTimes(2);
+    print.mockRestore();
+  });
   it("sustituye moneda por mes solo en Resumen y conserva la elección al renovar sesión", async () => {
     render(<App />);
     const u = userEvent.setup();

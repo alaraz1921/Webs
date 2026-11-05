@@ -548,10 +548,10 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                             <small>{a.entidad}</small>
                             {showInitial && (
                               <>
-                                <small>
+                                <small className="account-initial">
                                   Inicio {displayDate(a.fecha_saldo_inicial)}
                                 </small>
-                                <small>
+                                <small className="account-initial">
                                   Saldo inicial{" "}
                                   {money(a.saldo_inicial, currency)}
                                 </small>
@@ -654,7 +654,7 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                                       </small>
                                       {showFlows && (
                                         <>
-                                          <small>
+                                          <small className="account-flow">
                                             Entradas{" "}
                                             {formatAmount(
                                               sum(
@@ -677,7 +677,7 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
                                               ),
                                             )}
                                           </small>
-                                          <small>
+                                          <small className="account-flow">
                                             Salidas{" "}
                                             {formatAmount(
                                               sum(

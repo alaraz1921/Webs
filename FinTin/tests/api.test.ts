@@ -218,6 +218,89 @@ describe("Carga manual atómica y reintentos", () => {
 });
 
 describe("Totales de movimientos filtrados", () => {
+  it("prepara todas las filas del informe con los mismos filtros y orden antes de imprimir", async () => {
+    const calls: unknown[][] = [];
+    const buildQuery = (table: string) => {
+      expect(table).toBe("fintin_movimientos");
+      const q: Record<string, unknown> = {};
+      for (const method of [
+        "select",
+        "eq",
+        "gte",
+        "lte",
+        "is",
+        "ilike",
+        "in",
+        "order",
+      ])
+        q[method] = (...args: unknown[]) => {
+          calls.push([method, ...args]);
+          return q;
+        };
+      q.range = async (from: number, to: number) => {
+        calls.push(["range", from, to]);
+        return {
+          error: null,
+          data:
+            from === 0
+              ? Array.from({ length: 1000 }, (_, i) => ({
+                  id: String(i),
+                  importe: "10.00",
+                  moneda: "EUR",
+                  fecha_valor: "2026-01-10",
+                }))
+              : [
+                  {
+                    id: "last",
+                    importe: "-0.01",
+                    moneda: "EUR",
+                    fecha_valor: "2026-01-10",
+                  },
+                ],
+        };
+      };
+      return q;
+    };
+    mock.from
+      .mockImplementationOnce(buildQuery)
+      .mockImplementationOnce(buildQuery);
+    const filters = {
+      from: "2026-01-01",
+      to: "2026-12-31",
+      account: "a",
+      category: "__none",
+      kind: "gasto",
+      origin: "manual",
+      search: "10%_",
+      entity: "Banco",
+      currency: "EUR",
+    };
+    const rows = await api.movementsForPrint(
+      "owner",
+      filters,
+      ["a"],
+      { key: "amount", direction: "asc" },
+      { accounts: [], categories: [] },
+    );
+    expect(rows).toHaveLength(1001);
+    expect(rows[0].id).toBe("last");
+    expect(calls).toEqual(
+      expect.arrayContaining([
+        ["eq", "user_id", "owner"],
+        ["gte", "fecha_valor", filters.from],
+        ["lte", "fecha_valor", filters.to],
+        ["eq", "cuenta_id", "a"],
+        ["eq", "moneda", "EUR"],
+        ["is", "categoria_id", null],
+        ["eq", "tipo_movimiento", "gasto"],
+        ["eq", "origen", "manual"],
+        ["ilike", "concepto", "%10\\%\\_%"],
+        ["in", "cuenta_id", ["a"]],
+        ["range", 0, 999],
+        ["range", 1000, 1999],
+      ]),
+    );
+  });
   it("ordena el conjunto completo antes de paginar, incluyendo filas posteriores al límite de mil", async () => {
     const ranges: number[][] = [];
     const q = {

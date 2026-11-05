@@ -346,6 +346,14 @@ form > .primary {
 .page-heading .button {
   font-size: 12px;
 }
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.print-only {
+  display: none;
+}
 .context-bar {
   display: flex;
   gap: 16px;
@@ -1045,6 +1053,7 @@ h1 {
 
 .filter-actions {
   display: flex;
+  gap: 9px;
   align-items: flex-end;
   padding-bottom: 15px;
 }
@@ -1203,4 +1212,177 @@ h1 {
 }
 .accounts-condensed small {
   line-height: 1.25;
+}
+@page {
+  size: A4 landscape;
+  margin: 9mm;
+}
+@media print {
+  :root {
+    background: white;
+    color: #111827;
+    font-size: 9pt;
+  }
+  body {
+    background: white;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .app {
+    display: block;
+  }
+  .sidebar,
+  .topbar,
+  .menu-backdrop,
+  .page-heading,
+  .context-bar,
+  .movement-screen,
+  .chart-filters,
+  .chart-period-filter,
+  .chart-details,
+  .chart-tooltip,
+  .modal-backdrop,
+  .account-cell-menu {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .workspace,
+  .app.menu-closed .workspace {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+  .content {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+  .print-heading,
+  .movement-print-report > h1 {
+    margin: 0 0 4mm;
+  }
+  .print-heading h1,
+  .movement-print-report h1 {
+    font-size: 16pt;
+    margin: 0 0 2mm;
+  }
+  .print-context {
+    font-size: 8pt;
+    line-height: 1.35;
+    margin: 0 0 3mm;
+  }
+  .stats {
+    gap: 3mm;
+    margin-bottom: 5mm;
+  }
+  .stat {
+    padding: 2mm 3mm;
+  }
+  .stat strong {
+    font-size: 15pt;
+    margin: 1mm 0;
+  }
+  .summary-charts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4mm;
+    margin-bottom: 5mm;
+  }
+  .summary-charts > .panel {
+    break-inside: avoid;
+  }
+  .finance-chart svg {
+    max-height: 55mm;
+  }
+  .chart-plot,
+  .table-wrap {
+    overflow: visible !important;
+  }
+  .panel {
+    border: 0;
+    padding: 0;
+    margin: 0 0 5mm;
+    break-inside: auto;
+  }
+  .panel h2 {
+    font-size: 11pt;
+    margin-bottom: 2mm;
+    break-after: avoid;
+  }
+  table {
+    width: 100% !important;
+    max-width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: 6.5pt;
+  }
+  table thead {
+    display: table-header-group;
+  }
+  table tr {
+    break-inside: avoid;
+  }
+  table th,
+  table td {
+    border: 0.3pt solid #aeb8c5;
+    padding: 1mm !important;
+    min-width: 0 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
+  }
+  table thead th {
+    background: #f1f5f9;
+  }
+  .matrix th:first-child,
+  .year-matrix th:first-child {
+    position: static;
+    min-width: 0;
+    width: 20%;
+  }
+  .year-matrix td {
+    min-width: 0;
+  }
+  .matrix .cell {
+    color: inherit;
+    background: transparent;
+    border: 0;
+    min-height: 0;
+    padding: 0 !important;
+    margin: 0;
+    font-size: inherit;
+    line-height: 1.2;
+  }
+  .account-matrix .account-flow,
+  .account-matrix .account-initial {
+    display: none;
+  }
+  .account-matrix .cell small {
+    font-size: 5.5pt;
+    line-height: 1.2;
+  }
+  .movement-print-report .print-grid th:nth-child(1),
+  .movement-print-report .print-grid th:nth-child(2) {
+    width: 8%;
+  }
+  .movement-print-report .print-grid th:nth-child(3) {
+    width: 22%;
+  }
+  .movement-print-report .print-grid th:nth-child(4),
+  .movement-print-report .print-grid th:nth-child(5) {
+    width: 14%;
+  }
+  .movement-print-report .print-grid th:nth-child(6) {
+    width: 8%;
+  }
+  .movement-print-report .print-grid th:nth-child(7) {
+    width: 11%;
+  }
+  .movement-print-report .print-grid th:nth-child(8) {
+    width: 6%;
+  }
+  .movement-print-report .print-grid th:nth-child(9) {
+    width: 9%;
+  }
 }

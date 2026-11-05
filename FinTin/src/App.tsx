@@ -429,11 +429,37 @@ function Workspace({ session }: { session: Session }) {
               <p>{page.description}</p>
             </div>
             {page.id === "resumen" && (
-              <a className="button" href="#importacion">
-                Importar CSV <ArrowUpRight size={17} />
-              </a>
+              <div className="page-actions">
+                <button type="button" onClick={() => window.print()}>
+                  Informe
+                </button>
+                <a className="button" href="#importacion">
+                  Importar CSV <ArrowUpRight size={17} />
+                </a>
+              </div>
+            )}
+            {page.id === "cuentas" && (
+              <div className="page-actions">
+                <button type="button" onClick={() => window.print()}>
+                  Imprimir
+                </button>
+              </div>
             )}
           </div>
+          {(page.id === "resumen" || page.id === "cuentas") && (
+            <div className="print-only print-heading">
+              <h1>FinTin · {page.name}</h1>
+              <p className="print-context">
+                Ejercicio {year} ·{" "}
+                {page.id === "resumen"
+                  ? `Mes: ${summaryMonth ? months[Number(summaryMonth) - 1] : "Todos"}`
+                  : `Moneda: ${currency}`}{" "}
+                · Cuenta:{" "}
+                {accounts.find((a) => a.id === account)?.nombre_producto ||
+                  "Todas"}
+              </p>
+            </div>
+          )}
           {!settingsPage && (
             <div className="context-bar">
               <YearPicker

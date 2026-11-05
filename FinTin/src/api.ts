@@ -155,6 +155,54 @@ export async function accountBalances(
     realDate: balances[0]?.fecha_corte ?? null,
   };
 }
+function movementQuery(
+  uid: string,
+  f: Filters,
+  columns: string,
+  accountIds?: string[],
+  count = false,
+) {
+  let q = client()
+    .from("fintin_movimientos")
+    .select(columns, count ? { count: "exact" } : {})
+    .eq("user_id", uid)
+    .gte("fecha_valor", f.from)
+    .lte("fecha_valor", f.to);
+  if (f.account) q = q.eq("cuenta_id", f.account);
+  if (f.currency) q = q.eq("moneda", f.currency);
+  if (f.category)
+    q =
+      f.category === "__none"
+        ? q.is("categoria_id", null)
+        : q.eq("categoria_id", f.category);
+  if (f.kind) q = q.eq("tipo_movimiento", f.kind);
+  if (f.origin) q = q.eq("origen", f.origin);
+  if (f.search)
+    q = q.ilike("concepto", "%" + f.search.replace(/[%_\\]/g, "\\$&") + "%");
+  if (accountIds) q = q.in("cuenta_id", accountIds);
+  return q;
+}
+export async function movementsForPrint(
+  uid: string,
+  f: Filters,
+  accountIds: string[] | undefined,
+  sort: SortState<MovementSortKey>,
+  lookups: MovementLookups,
+) {
+  const result: Movement[] = [];
+  for (let from = 0; ; from += 1000) {
+    let q = movementQuery(uid, f, selects.movimientos, accountIds);
+    q = sort
+      ? q.order("id")
+      : q.order("fecha_valor", { ascending: false }).order("id");
+    const rows = checked(
+      await q.range(from, from + 999),
+    ) as unknown as Movement[];
+    result.push(...rows);
+    if (rows.length < 1000) break;
+  }
+  return sort ? sortedMovements(result, sort, lookups) : result;
+}
 export async function movements(
   uid: string,
   f: Filters,
@@ -163,27 +211,8 @@ export async function movements(
   sort: SortState<MovementSortKey> = null,
   lookups: MovementLookups = { accounts: [], categories: [] },
 ) {
-  const query = (columns: string, count = false) => {
-    let q = client()
-      .from("fintin_movimientos")
-      .select(columns, count ? { count: "exact" } : {})
-      .eq("user_id", uid)
-      .gte("fecha_valor", f.from)
-      .lte("fecha_valor", f.to);
-    if (f.account) q = q.eq("cuenta_id", f.account);
-    if (f.currency) q = q.eq("moneda", f.currency);
-    if (f.category)
-      q =
-        f.category === "__none"
-          ? q.is("categoria_id", null)
-          : q.eq("categoria_id", f.category);
-    if (f.kind) q = q.eq("tipo_movimiento", f.kind);
-    if (f.origin) q = q.eq("origen", f.origin);
-    if (f.search)
-      q = q.ilike("concepto", "%" + f.search.replace(/[%_\\]/g, "\\$&") + "%");
-    if (accountIds) q = q.in("cuenta_id", accountIds);
-    return q;
-  };
+  const query = (columns: string, count = false) =>
+    movementQuery(uid, f, columns, accountIds, count);
   const totals = new Map<
     string,
     { total: Decimal; positive: Decimal; negative: Decimal }
