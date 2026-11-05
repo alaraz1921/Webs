@@ -138,6 +138,48 @@ async function accountCell(row: number, month: number) {
     within(t).getAllByRole("row")[row].children[month] as HTMLElement,
   ).getByRole("button");
 }
+it("agrupa los saldos calculados por tipo en el último cierre y respeta el filtro de cuenta", async () => {
+  const typedAccounts = accounts.map((a) => ({
+    ...a,
+    tipo_producto: a.id === "c" ? "Tarjeta de crédito" : "Cuenta",
+  }));
+  closures = [
+    { ...closures[0], saldo_calculado: "1000.00" },
+    { ...closures[0], fecha_cierre: "2026-02-28", saldo_calculado: "10.01" },
+    { ...closures[1], fecha_cierre: "2026-02-28", saldo_calculado: "0.02" },
+    { ...closures[2], saldo_calculado: "-3.00" },
+  ];
+  const { rerender } = render(
+    <AccountsPage {...props} accounts={typedAccounts} reconcile={false} />,
+  );
+  const totals = await screen.findByRole("group", {
+    name: "Totales de cuentas por tipo",
+  });
+  expect(totals.className).toContain("account-totals");
+  const cards = within(totals).getAllByRole("article");
+  expect(cards.map((card) => card.querySelector("span")?.textContent)).toEqual([
+    "Cuenta",
+    "Tarjeta de crédito",
+    "Total cuentas",
+  ]);
+  expect(cards[0].textContent).toContain("10,03 €");
+  expect(cards[1].textContent).toContain("-3,00 €");
+  expect(cards[2].textContent).toContain("7,03 €");
+  expect(cards[2].textContent).toContain(
+    "28-02-2026 · 3 de 3 cuentas con cierre",
+  );
+  rerender(
+    <AccountsPage
+      {...props}
+      accounts={typedAccounts}
+      account="a"
+      reconcile={false}
+    />,
+  );
+  expect(within(totals).getAllByRole("article")).toHaveLength(2);
+  expect(totals.textContent).toContain("10,01 €");
+  expect(totals.textContent).not.toContain("7,03 €");
+});
 it("marca en amarillo solo los meses cuya diferencia coincide con los movimientos entre meses de la cuenta", async () => {
   closures[2] = {
     ...closures[2],

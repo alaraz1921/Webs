@@ -93,6 +93,8 @@ El listado pagina en servidor, 50 filas, con filtros y búsqueda por concepto. L
 
 «Informe» en Resumen imprime las tarjetas, gráficos y tablas con el ejercicio, mes y cuenta seleccionados. Los gráficos con selectores propios conservan su periodo, ejercicio, mes y categoría y muestran esos datos en el informe. «Imprimir» en Cuentas genera el cuadrante del ejercicio, moneda y cuenta seleccionados, con saldo calculado y saldo real por mes. «Imprimir» en el filtro de Movimientos prepara **todas** las filas que cumplen los filtros y el orden actuales, incluidas las de otras páginas, y las presenta como tabla.
 
+Encima del cuadrante de Cuentas se muestran tarjetas con el saldo calculado por tipo de producto y el total de cuentas, usando el último cierre disponible del ejercicio y los filtros de cuenta y moneda. Todas las tarjetas usan la misma fecha; el recuento indica cuántas cuentas tienen cierre en ella. Si no existe cierre, aparece «—». Estas tarjetas se incluyen en el PDF de Cuentas.
+
 El navegador abre su diálogo de impresión: elegir «Guardar como PDF» para obtener el archivo. La hoja se configura en A4 horizontal, con cuadrícula y cabeceras repetidas cuando una tabla ocupa varias páginas. Los datos consultados para imprimir se mantienen solo en memoria y se liberan al cerrar el diálogo.
 
 ## Verificación

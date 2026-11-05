@@ -377,6 +377,9 @@ form > .primary {
   gap: 17px;
   margin-bottom: 25px;
 }
+.account-totals {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
 .stat {
   background: #fff;
   border: 1px solid #e2e8f0;
@@ -1276,6 +1279,12 @@ h1 {
   .stats {
     gap: 3mm;
     margin-bottom: 5mm;
+  }
+  .account-totals {
+    grid-template-columns: repeat(auto-fit, minmax(42mm, 1fr));
+  }
+  .account-totals .stat {
+    break-inside: avoid;
   }
   .stat {
     padding: 2mm 3mm;

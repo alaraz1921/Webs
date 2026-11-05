@@ -405,6 +405,27 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
         r.fecha_cierre.startsWith(String(year)) &&
         visible.some((a) => a.id === r.cuenta_id),
     );
+  const latestClose = rows.reduce(
+    (latest, r) => (r.fecha_cierre > latest ? r.fecha_cierre : latest),
+    "",
+  );
+  const latestRows = rows.filter((r) => r.fecha_cierre === latestClose);
+  const accountTypes = [
+    ...new Set(visible.map((a) => a.tipo_producto.trim() || "Sin tipo")),
+  ]
+    .sort((a, b) => a.localeCompare(b, "es"))
+    .map((name) => {
+      const ids = new Set(
+        visible
+          .filter((a) => (a.tipo_producto.trim() || "Sin tipo") === name)
+          .map((a) => a.id),
+      );
+      return {
+        name,
+        accounts: ids.size,
+        rows: latestRows.filter((r) => ids.has(r.cuenta_id)),
+      };
+    });
   const monthlyKeys: AccountKey[] = months.map(
     (_, i) => `month-${i + 1}` as AccountKey,
   );
@@ -465,6 +486,39 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
       ) : (
         (!error || data.length > 0) && (
           <>
+            {!reconcile && (
+              <div
+                className="stats account-totals"
+                role="group"
+                aria-label="Totales de cuentas por tipo"
+              >
+                {[
+                  ...accountTypes,
+                  {
+                    name: "Total cuentas",
+                    accounts: visible.length,
+                    rows: latestRows,
+                  },
+                ].map((group, index) => (
+                  <article className="stat" key={`${index}-${group.name}`}>
+                    <span>{group.name}</span>
+                    <strong>
+                      {latestClose && group.rows.length
+                        ? moneyWithSymbol(
+                            sum(group.rows.map((r) => r.saldo_calculado)),
+                            currency,
+                          )
+                        : "—"}
+                    </strong>
+                    <small>
+                      {latestClose
+                        ? `Calculado al ${displayDate(latestClose)} · ${group.rows.length} de ${group.accounts} cuentas con cierre`
+                        : "Sin cierres en el ejercicio"}
+                    </small>
+                  </article>
+                ))}
+              </div>
+            )}
             <Panel
               title={
                 reconcile
