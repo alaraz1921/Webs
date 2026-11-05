@@ -503,7 +503,10 @@ function Workspace({ session }: { session: Session }) {
           </div>
           {(page.id === "resumen" || page.id === "cuentas") && (
             <div className="print-only print-heading">
-              <h1>FinTin · {page.name}</h1>
+              <div className="print-title">
+                <img src={fintinLogo} alt="" />
+                <h1>FinTin · {page.name}</h1>
+              </div>
               <p className="print-context">
                 Ejercicio {year} ·{" "}
                 {page.id === "resumen"

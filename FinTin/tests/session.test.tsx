@@ -172,6 +172,11 @@ describe("Continuidad de sesión y autorización", () => {
     const u = userEvent.setup();
     const report = await screen.findByRole("button", { name: "Informe" });
     expect(report.parentElement?.textContent).toContain("Importar CSV");
+    expect(
+      document.querySelector<HTMLImageElement>(
+        ".print-heading .print-title img",
+      )?.src,
+    ).toContain("fintin-logo.png");
     await u.click(report);
     expect(print).toHaveBeenCalledOnce();
     await u.click(
@@ -180,6 +185,11 @@ describe("Continuidad de sesión y autorización", () => {
         .find((a) => a.getAttribute("href") === "#cuentas")!,
     );
     await u.click(await screen.findByRole("button", { name: "Imprimir" }));
+    expect(
+      document.querySelector<HTMLImageElement>(
+        ".print-heading .print-title img",
+      )?.src,
+    ).toContain("fintin-logo.png");
     expect(print).toHaveBeenCalledTimes(2);
     print.mockRestore();
   });
@@ -433,9 +443,9 @@ describe("Continuidad de sesión y autorización", () => {
     expect(screen.getAllByRole("heading").map((h) => h.textContent)).toEqual([
       "FinTin",
     ]);
-    expect(document.querySelector<HTMLImageElement>(".access-logo")?.src).toContain(
-      "fintin-logo.png",
-    );
+    expect(
+      document.querySelector<HTMLImageElement>(".access-logo")?.src,
+    ).toContain("fintin-logo.png");
     expect(
       screen.queryByText(
         /Haz espacio|Todo en orden|MENOS RUIDO|Acceso exclusivo/,
@@ -456,9 +466,9 @@ describe("Continuidad de sesión y autorización", () => {
     render(<App />);
     const u = userEvent.setup();
     await screen.findByRole("button", { name: "12,00 €" });
-    expect(document.querySelector<HTMLImageElement>(".brand img")?.src).toContain(
-      "fintin-logo.png",
-    );
+    expect(
+      document.querySelector<HTMLImageElement>(".brand img")?.src,
+    ).toContain("fintin-logo.png");
     await u.click(screen.getByRole("link", { name: "Movimientos" }));
     const search = await screen.findByLabelText("Buscar concepto");
     await u.type(search, "Filtro ficticio");

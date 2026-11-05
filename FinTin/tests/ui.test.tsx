@@ -151,6 +151,9 @@ it("imprime todos los movimientos del filtro y limpia el informe tras cerrar el 
   await waitFor(() => expect(print).toHaveBeenCalledOnce());
   expect(api.movementsForPrint.mock.calls[0][1]).toEqual(filters);
   const report = document.querySelector(".movement-print-report")!;
+  expect(
+    report.querySelector(".print-title img")?.getAttribute("src"),
+  ).toContain("fintin-logo.png");
   expect(report.textContent).toContain("Concepto: ficticio");
   expect(report.querySelectorAll("tbody tr")).toHaveLength(1);
   expect(report.textContent).toContain("12,34 €");

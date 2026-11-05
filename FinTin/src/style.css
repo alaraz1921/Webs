@@ -211,7 +211,7 @@ form > .primary {
   gap: 10px;
   font-size: 21px;
   font-weight: 600;
-  color: #1d4ed8;
+  color: #334155;
   margin: 0 14px 28px;
   letter-spacing: -0.5px;
 }
@@ -1283,14 +1283,28 @@ h1 {
     padding: 0;
     margin: 0;
   }
-  .print-heading,
-  .movement-print-report > h1 {
+  .print-heading {
     margin: 0 0 4mm;
+  }
+  .print-title {
+    display: flex;
+    align-items: center;
+    gap: 3mm;
+    margin: 0 0 2mm;
+    break-inside: avoid;
+  }
+  .print-title img {
+    width: 11mm;
+    height: 11mm;
+    object-fit: contain;
+  }
+  .movement-print-report > .print-title {
+    margin-bottom: 4mm;
   }
   .print-heading h1,
   .movement-print-report h1 {
     font-size: 16pt;
-    margin: 0 0 2mm;
+    margin: 0;
   }
   .print-context {
     font-size: 8pt;

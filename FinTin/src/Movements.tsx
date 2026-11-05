@@ -16,6 +16,7 @@ import { Field, Form, Empty, ErrorBox, text, ConfirmDelete, Panel } from "./ui";
 import { CategoryOptions, type MasterProps } from "./Settings";
 import { SortHeader, useTableSort } from "./sorting";
 import type { MovementSortKey } from "./movement-sorting";
+import fintinLogo from "./fintin-logo.png";
 import Decimal from "decimal.js";
 export const filtersFor = (year: number): Filters => ({
   from: `${year}-01-01`,
@@ -555,7 +556,10 @@ function MovementPrintReport({
   const category = categories.find((c) => c.id === filters.category);
   return (
     <section className="print-only movement-print-report">
-      <h1>FinTin · Movimientos</h1>
+      <div className="print-title">
+        <img src={fintinLogo} alt="" />
+        <h1>FinTin · Movimientos</h1>
+      </div>
       <p className="print-context">
         Desde {displayDate(filters.from)} · Hasta {displayDate(filters.to)} ·
         Cuenta: {selected?.nombre_producto || "Todas"} · Moneda:{" "}
