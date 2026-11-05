@@ -13,6 +13,12 @@ import {
   Menu,
 } from "lucide-react";
 import { configured, db, client, list } from "./api";
+import {
+  authStartedKey,
+  beginFinTinSignIn,
+  clearFinTinSession,
+  remainingSessionMs,
+} from "./auth-session";
 import type { Account, Alias, Category } from "./types";
 import { months } from "./types";
 import { Summary, AccountsPage, type YearProps } from "./Dashboard";
@@ -109,19 +115,30 @@ export default function App() {
       setAuthReady(true);
       return;
     }
+    const auth = db.auth;
     let live = true;
     let receivedAuthEvent = false;
-    db.auth.getSession().then(({ data, error }) => {
+    auth.getSession().then(({ data, error }) => {
       if (!live || receivedAuthEvent) return;
       if (error) setAuthError(error.message);
-      setSession(data.session);
+      if (data.session && remainingSessionMs() === 0) {
+        setSession(null);
+        void auth.signOut({ scope: "local" });
+      } else setSession(data.session);
       setAuthReady(true);
     });
-    const { data } = db.auth.onAuthStateChange((event, s) => {
+    const { data } = auth.onAuthStateChange((event, s) => {
       if (!live) return;
       receivedAuthEvent = true;
-      if (!s || event === "SIGNED_OUT") setAuthorization(null);
-      setSession(s);
+      if (!s || event === "SIGNED_OUT") {
+        clearFinTinSession();
+        setAuthorization(null);
+      }
+      if (s && remainingSessionMs() === 0) {
+        setAuthorization(null);
+        setSession(null);
+        void auth.signOut({ scope: "local" });
+      } else setSession(s);
       setAuthReady(true);
     });
     return () => {
@@ -129,6 +146,36 @@ export default function App() {
       data.subscription.unsubscribe();
     };
   }, []);
+  useEffect(() => {
+    if (!session || !db) return;
+    const auth = db.auth;
+    let timer: ReturnType<typeof setTimeout>;
+    const checkExpiry = () => {
+      clearTimeout(timer);
+      const remaining = remainingSessionMs();
+      if (remaining <= 0) {
+        setSession(null);
+        setAuthorization(null);
+        void auth.signOut({ scope: "local" });
+      } else timer = setTimeout(checkExpiry, remaining + 10);
+    };
+    const onVisibility = () => {
+      if (!document.hidden) checkExpiry();
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === authStartedKey) checkExpiry();
+    };
+    checkExpiry();
+    window.addEventListener("focus", checkExpiry);
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("focus", checkExpiry);
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [session?.user.id]);
   useEffect(() => {
     let live = true;
     if (session) {
@@ -183,6 +230,7 @@ export default function App() {
         <Form
           button="Entrar en FinTin"
           onSave={async (d) => {
+            beginFinTinSignIn();
             const r = await client().auth.signInWithPassword({
               email: text(d, "email"),
               password: String(d.get("password") || ""),

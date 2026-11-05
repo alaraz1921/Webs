@@ -43,6 +43,11 @@ vi.mock("../src/api", () => {
   };
 });
 import App from "../src/App";
+import {
+  authStartedKey,
+  ensureSessionStart,
+  sessionLifetimeMs,
+} from "../src/auth-session";
 const session: Session = {
   access_token: "synthetic-access",
   refresh_token: "synthetic-refresh",
@@ -98,6 +103,7 @@ async function emit(
   value: Session | null = { ...session },
 ) {
   await act(async () => {
+    if (event === "SIGNED_IN") ensureSessionStart();
     auth.listener!(event, value);
   });
 }
@@ -108,6 +114,7 @@ async function chooseYear(u: ReturnType<typeof userEvent.setup>, year: string) {
 beforeEach(() => {
   vi.resetAllMocks();
   localStorage.clear();
+  localStorage.setItem(authStartedKey, String(Date.now()));
   history.replaceState(null, "", "#resumen");
   auth.getSession.mockResolvedValue({ data: { session }, error: null });
   api.rpc.mockResolvedValue({ data: true, error: null });
@@ -139,6 +146,26 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe("Continuidad de sesión y autorización", () => {
+  it("restaura el acceso dentro del plazo y lo cierra tras 12 horas al volver a la pestaña", async () => {
+    const start = Date.now();
+    render(<App />);
+    await screen.findByRole("navigation", { name: "Principal" });
+    vi.spyOn(Date, "now").mockReturnValue(start + sessionLifetimeMs);
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    await screen.findByRole("button", { name: "Entrar en FinTin" });
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+    vi.restoreAllMocks();
+  });
+  it("rechaza una sesión guardada cuyo inicio ya tiene más de 12 horas", async () => {
+    localStorage.setItem(
+      authStartedKey,
+      String(Date.now() - sessionLifetimeMs - 1),
+    );
+    render(<App />);
+    await screen.findByRole("button", { name: "Entrar en FinTin" });
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(api.rpc).not.toHaveBeenCalled();
+  });
   it("ofrece Informe en Resumen e Imprimir en Cuentas", async () => {
     const print = vi.spyOn(window, "print").mockImplementation(() => {});
     render(<App />);

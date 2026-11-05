@@ -1,5 +1,6 @@
 import { MAX_MANUAL_IMPORT_ROWS, type ManualImportRow } from "./manual-import";
 import { publicKey, validUrl } from "./config";
+import { authStorage, authStorageKey } from "./auth-session";
 import { createClient } from "@supabase/supabase-js";
 import type { Account, CsvRow, Movement } from "./types";
 import Decimal from "decimal.js";
@@ -21,9 +22,11 @@ export const configured = Boolean(
 export const db = configured
   ? createClient(url, key, {
       auth: {
-        persistSession: false,
+        persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: false,
+        storageKey: authStorageKey,
+        storage: authStorage,
       },
     })
   : null;
