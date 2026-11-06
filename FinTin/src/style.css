@@ -365,6 +365,7 @@ form > .primary {
 }
 .context-bar {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   align-items: center;
   border-top: 1px solid #e2e8f0;

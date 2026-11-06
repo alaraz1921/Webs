@@ -1,4 +1,4 @@
-import { alphabetical } from "./alphabetical";
+import { alphabetical, compareText } from "./alphabetical";
 import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
@@ -309,6 +309,7 @@ function Workspace({ session }: { session: Session }) {
     [route, setRoute] = useState(location.hash.slice(1) || "resumen"),
     [year, setYear] = useState(new Date().getFullYear()),
     [currency, setCurrency] = useState("EUR"),
+    [entity, setEntity] = useState(""),
     [account, setAccount] = useState(""),
     [summaryMonth, setSummaryMonth] = useState(""),
     [accounts, setAccounts] = useState<Account[]>([]),
@@ -366,6 +367,7 @@ function Workspace({ session }: { session: Session }) {
           ? new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10)
           : `${year}-12-31`),
       account: f.account || account,
+      entity,
       category: f.category || "",
       kind: f.kind || "",
       currency: f.currency || currency,
@@ -376,6 +378,7 @@ function Workspace({ session }: { session: Session }) {
     ...base,
     year,
     currency,
+    entity,
     account,
     open,
     showFlows,
@@ -383,7 +386,12 @@ function Workspace({ session }: { session: Session }) {
   };
   const summaryCurrencies = [
     ...new Set(
-      accounts.filter((a) => !account || a.id === account).map((a) => a.moneda),
+      accounts
+        .filter(
+          (a) =>
+            (!entity || a.entidad === entity) && (!account || a.id === account),
+        )
+        .map((a) => a.moneda),
     ),
   ].sort();
   if (!summaryCurrencies.length) summaryCurrencies.push("EUR");
@@ -512,7 +520,7 @@ function Workspace({ session }: { session: Session }) {
                 {page.id === "resumen"
                   ? `Mes: ${summaryMonth ? months[Number(summaryMonth) - 1] : "Todos"}`
                   : `Moneda: ${currency}`}{" "}
-                · Cuenta:{" "}
+                · Entidad: {entity || "Todas"} · Cuenta:{" "}
                 {accounts.find((a) => a.id === account)?.nombre_producto ||
                   "Todas"}
               </p>
@@ -564,6 +572,31 @@ function Workspace({ session }: { session: Session }) {
                       </select>
                     </Field>
                   )}
+                  <Field label="Entidad">
+                    <select
+                      value={entity}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        setEntity(next);
+                        if (
+                          next &&
+                          account &&
+                          accounts.find((a) => a.id === account)?.entidad !==
+                            next
+                        )
+                          setAccount("");
+                      }}
+                    >
+                      <option value="">Todas</option>
+                      {[...new Set(accounts.map((a) => a.entidad))]
+                        .sort(compareText)
+                        .map((name) => (
+                          <option key={name} value={name}>
+                            {name}
+                          </option>
+                        ))}
+                    </select>
+                  </Field>
                   <Field label="Cuenta">
                     <select
                       value={account}
@@ -578,7 +611,9 @@ function Workspace({ session }: { session: Session }) {
                       <option value="">Todas las cuentas</option>
                       {accounts
                         .filter(
-                          (a) => page.id === "resumen" || a.moneda === currency,
+                          (a) =>
+                            (!entity || a.entidad === entity) &&
+                            (page.id === "resumen" || a.moneda === currency),
                         )
                         .map((a) => (
                           <option key={a.id} value={a.id}>

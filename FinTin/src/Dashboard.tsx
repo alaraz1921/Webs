@@ -22,6 +22,7 @@ import { SummaryCharts, type ChartPeriods } from "./SummaryCharts";
 export interface YearProps extends MasterProps {
   year: number;
   currency: string;
+  entity?: string;
   account: string;
   showFlows?: boolean;
   showInitial?: boolean;
@@ -39,7 +40,9 @@ export function Summary({
   uid,
   year,
   currency,
+  entity = "",
   account,
+  accounts,
   categories,
   open: navigate,
   month = "",
@@ -74,9 +77,16 @@ export function Summary({
       live = false;
     };
   }, [uid, year]);
+  const entityAccountIds = entity
+    ? accounts.filter((a) => a.entidad === entity).map((a) => a.id)
+    : undefined;
+  const entityAccountSet = entityAccountIds
+    ? new Set(entityAccountIds)
+    : undefined;
   const rows = data.filter(
       (r) =>
         r.moneda === currency &&
+        (!entityAccountSet || entityAccountSet.has(r.cuenta_id)) &&
         (!account || r.cuenta_id === account) &&
         (!month || r.fecha_valor.slice(5, 7) === month),
     ),
@@ -162,6 +172,7 @@ export function Summary({
               categories={categories}
               currency={currency}
               account={account}
+              entityAccountIds={entityAccountIds}
             />
             {kinds.map((kind) => {
               const categoriesForKind = groups.filter((g) => g.kind === kind);
@@ -345,6 +356,7 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
     uid,
     year,
     currency,
+    entity = "",
     account,
     accounts,
     open,
@@ -400,7 +412,10 @@ export function AccountsPage(props: YearProps & { reconcile?: boolean }) {
   const accountSort = useTableSort<AccountKey>(),
     reconcileSort = useTableSort<ReconcileKey>();
   const visible = accounts.filter(
-      (a) => a.moneda === currency && (!account || a.id === account),
+      (a) =>
+        a.moneda === currency &&
+        (!entity || a.entidad === entity) &&
+        (!account || a.id === account),
     ),
     rows = data.filter(
       (r) =>

@@ -111,6 +111,20 @@ it("carga los doce meses hasta hoy y filtra por moneda y cuenta sin incluir fech
     within(table).getByRole("row", { name: /Oct 26/ }).textContent,
   ).not.toContain("999,00");
 });
+it("aplica la entidad seleccionada a los gráficos del resumen", async () => {
+  render(<SummaryCharts {...props} account="" entityAccountIds={["other"]} />);
+  const u = userEvent.setup();
+  await screen.findByRole("img", {
+    name: /^Balance mensual de los últimos 12 meses\./,
+  });
+  await u.click(screen.getAllByText("Ver datos")[0]);
+  const table = screen.getByRole("table", {
+    name: "Datos: Balance mensual de los últimos 12 meses",
+  });
+  const january = within(table).getByRole("row", { name: /Ene 26/ });
+  expect(january.textContent).toContain("999,00 €");
+  expect(january.textContent).not.toContain("1.234,56 €");
+});
 it("aplica el mes general a ambos gráficos y Todos recupera la vista anual sin perder categoría ni periodos", async () => {
   const view = render(<SummaryCharts {...props} month="02" />);
   const u = userEvent.setup();

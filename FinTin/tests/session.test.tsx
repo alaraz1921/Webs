@@ -286,6 +286,83 @@ describe("Continuidad de sesión y autorización", () => {
       "usd",
     );
   });
+  it("filtra Resumen, Cuentas y Conciliación por entidad y limita las cuentas disponibles", async () => {
+    const other = {
+      ...account,
+      id: "other",
+      entidad: "Banco Z",
+      nombre_producto: "Cuenta Z",
+    };
+    api.list.mockImplementation(async (table) =>
+      table === "cuentas"
+        ? [account, other]
+        : table === "v_conciliacion_mensual"
+          ? [
+              {
+                cuenta_id: account.id,
+                fecha_cierre: "2026-03-31",
+                moneda: "EUR",
+                saldo_calculado: "112.00",
+                saldo_real: null,
+                diferencia: null,
+              },
+              {
+                cuenta_id: other.id,
+                fecha_cierre: "2026-03-31",
+                moneda: "EUR",
+                saldo_calculado: "120.00",
+                saldo_real: null,
+                diferencia: null,
+              },
+            ]
+          : [],
+    );
+    api.annual.mockResolvedValue([
+      movement,
+      { ...movement, id: "other-move", cuenta_id: other.id, importe: "20.00" },
+    ]);
+    render(<App />);
+    const u = userEvent.setup();
+    const summary = await screen.findByRole("region", {
+      name: "Resumen en EUR",
+    });
+    await within(summary).findByRole("article", { name: "Total Ingresos" });
+    await u.selectOptions(screen.getByLabelText("Entidad"), "Banco Z");
+    expect(
+      within(screen.getByLabelText("Cuenta"))
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual(["Todas las cuentas", "Cuenta Z"]);
+    expect(
+      within(summary).getByRole("article", { name: "Total Ingresos" })
+        .textContent,
+    ).toContain("20,00 €");
+    await u.selectOptions(screen.getByLabelText("Cuenta"), other.id);
+    await u.selectOptions(screen.getByLabelText("Entidad"), account.entidad);
+    expect((screen.getByLabelText("Cuenta") as HTMLSelectElement).value).toBe(
+      "",
+    );
+    await u.selectOptions(screen.getByLabelText("Entidad"), "Banco Z");
+    await u.click(
+      screen
+        .getAllByRole("link", { name: "Cuentas" })
+        .find((a) => a.getAttribute("href") === "#cuentas")!,
+    );
+    const accountsTable = await screen.findByRole("table", {
+      name: "Saldos mensuales por cuenta",
+    });
+    expect(accountsTable.textContent).toContain("Cuenta Z");
+    expect(accountsTable.textContent).not.toContain("Cuenta ficticia");
+    expect(document.querySelector(".print-heading")?.textContent).toContain(
+      "Entidad: Banco Z",
+    );
+    await u.click(screen.getByRole("link", { name: "Conciliación" }));
+    const reconciliation = await screen.findByRole("table", {
+      name: "Conciliación",
+    });
+    expect(reconciliation.textContent).toContain("Cuenta Z");
+    expect(reconciliation.textContent).not.toContain("Cuenta ficticia");
+  });
   it("recuerda la preferencia General y muestra entradas y salidas sin moneda", async () => {
     history.replaceState(null, "", "#configuracion/general");
     api.list.mockImplementation(async (t) =>

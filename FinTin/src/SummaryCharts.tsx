@@ -71,6 +71,7 @@ export function SummaryCharts({
   categories,
   currency,
   account,
+  entityAccountIds,
   chartPeriods,
   setChartPeriod,
   month = "",
@@ -81,6 +82,7 @@ export function SummaryCharts({
   categories: Category[];
   currency: string;
   account: string;
+  entityAccountIds?: string[];
   chartPeriods: ChartPeriods;
   setChartPeriod: (chart: keyof ChartPeriods, value: ChartPeriod) => void;
   month?: string;
@@ -152,7 +154,10 @@ export function SummaryCharts({
   }, [uid, year, rows, required]);
   const filtered = (y: number) =>
     (loaded.get(y) || []).filter(
-      (r) => r.moneda === currency && (!account || r.cuenta_id === account),
+      (r) =>
+        r.moneda === currency &&
+        (!account || r.cuenta_id === account) &&
+        (!entityAccountIds || entityAccountIds.includes(r.cuenta_id)),
     );
   const rollingRows = [...new Set(periods.map((p) => Number(p.slice(0, 4))))]
     .flatMap(filtered)
