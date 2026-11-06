@@ -154,7 +154,7 @@ describe("Resumen separado por tipos", () => {
       within(cards)
         .getAllByRole("article")
         .map((card) => within(card).getByText(/€$/).textContent),
-    ).toEqual(["120,00 €", "-75,00 €", "999,00 €", "45,00 €"]);
+    ).toEqual(["120,00 €", "-75,00 €", "45,00 €", "999,00 €"]);
     expect(
       within(cards)
         .getByRole("article", { name: "Total Ingresos" })

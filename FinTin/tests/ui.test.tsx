@@ -9,6 +9,7 @@ import {
   fireEvent,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import type { Account, Category, Movement } from "../src/types";
 const api = vi.hoisted(() => ({
   save: vi.fn(),
@@ -123,6 +124,70 @@ it("ordena los filtros y sus opciones y actualiza las sumas al filtrar", async (
   });
   expect(within(totals).getAllByText("0,00 €")).toHaveLength(3);
   expect(totals.textContent).not.toContain("20,10 €");
+});
+it("limita categorías por tipo y cuentas por entidad sin conservar selecciones incompatibles", async () => {
+  api.movements.mockResolvedValue({ rows: [], count: 0, totals: [] });
+  api.accountBalances.mockResolvedValue({
+    calculated: "0.00",
+    crossMonth: "0.00",
+    real: null,
+    realDate: null,
+  });
+  const accounts = [
+    { ...account, id: "a1", entidad: "Banco A", nombre_producto: "A uno" },
+    { ...account, id: "a2", entidad: "Banco A", nombre_producto: "A dos" },
+    { ...account, id: "b1", entidad: "Banco B", nombre_producto: "B uno" },
+  ];
+  const categories: Category[] = [
+    { ...category, id: "income", nombre: "Sueldo", tipo_movimiento: "ingreso" },
+    { ...category, id: "expense", nombre: "Casa", tipo_movimiento: "gasto" },
+    {
+      ...category,
+      id: "other",
+      nombre: "Traspaso",
+      tipo_movimiento: "no_computable",
+    },
+  ];
+  function FilterHarness() {
+    const [filters, setFilters] = useState(filtersFor(2026));
+    return (
+      <MovementPage
+        {...common}
+        accounts={accounts}
+        categories={categories}
+        filters={filters}
+        setFilters={setFilters}
+      />
+    );
+  }
+  render(<FilterHarness />);
+  const u = userEvent.setup();
+  const values = (label: string) =>
+    within(screen.getByLabelText(label))
+      .getAllByRole("option")
+      .map((option) => option.getAttribute("value"));
+  await u.selectOptions(screen.getByLabelText("Tipo"), "ingreso");
+  expect(values("Categoría")).toEqual(["", "__none", "income"]);
+  await u.selectOptions(screen.getByLabelText("Categoría"), "income");
+  await u.selectOptions(screen.getByLabelText("Tipo"), "gasto");
+  expect((screen.getByLabelText("Categoría") as HTMLSelectElement).value).toBe(
+    "",
+  );
+  expect(values("Categoría")).toEqual(["", "__none", "expense"]);
+  await u.selectOptions(screen.getByLabelText("Entidad"), "Banco A");
+  expect(values("Cuenta")).toEqual(["", "a2", "a1"]);
+  await u.selectOptions(screen.getByLabelText("Cuenta"), "a1");
+  await u.selectOptions(screen.getByLabelText("Entidad"), "Banco B");
+  expect((screen.getByLabelText("Cuenta") as HTMLSelectElement).value).toBe("");
+  expect(values("Cuenta")).toEqual(["", "b1"]);
+  await waitFor(() =>
+    expect(api.movements.mock.lastCall?.[1]).toMatchObject({
+      kind: "gasto",
+      category: "",
+      entity: "Banco B",
+      account: "",
+    }),
+  );
 });
 it("imprime todos los movimientos del filtro y limpia el informe tras cerrar el diálogo", async () => {
   const print = vi.spyOn(window, "print").mockImplementation(() => {});

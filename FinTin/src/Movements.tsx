@@ -78,7 +78,23 @@ export function MovementPage(
     balances.real != null &&
     !new Decimal(balances.calculated).eq(balances.real);
   const change = (key: keyof Filters, value: string) => {
-    setFilters({ ...f, [key]: value });
+    const next = { ...f, [key]: value };
+    if (
+      key === "kind" &&
+      value &&
+      f.category &&
+      f.category !== "__none" &&
+      categories.find((c) => c.id === f.category)?.tipo_movimiento !== value
+    )
+      next.category = "";
+    if (
+      key === "entity" &&
+      value &&
+      f.account &&
+      accounts.find((a) => a.id === f.account)?.entidad !== value
+    )
+      next.account = "";
+    setFilters(next);
     setPage(0);
   };
   useEffect(() => {
@@ -209,7 +225,12 @@ export function MovementPage(
             >
               <option value="">Todas</option>
               <option value="__none">Sin categoría</option>
-              {alphabetical(categories, (c) => c.nombre).map((c) => (
+              {alphabetical(
+                categories.filter(
+                  (c) => !f.kind || c.tipo_movimiento === f.kind,
+                ),
+                (c) => c.nombre,
+              ).map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.nombre}
                 </option>
@@ -235,7 +256,10 @@ export function MovementPage(
               onChange={(e) => change("account", e.target.value)}
             >
               <option value="">Todas</option>
-              {alphabetical(accounts, (a) => a.nombre_producto).map((a) => (
+              {alphabetical(
+                accounts.filter((a) => !f.entity || a.entidad === f.entity),
+                (a) => a.nombre_producto,
+              ).map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.nombre_producto}
                 </option>

@@ -112,41 +112,43 @@ export function Summary({
               role="group"
               aria-label="Totales del ejercicio"
             >
-              {[...kinds, "balance" as const].map((key) => {
-                const label = key === "balance" ? "Neto" : labels[key];
-                return (
-                  <article
-                    className={"stat " + key}
-                    key={key}
-                    aria-label={"Total " + label}
-                  >
-                    <span>{label}</span>
-                    <strong
-                      className={
-                        key === "ingreso"
-                          ? "income-amount"
-                          : key === "gasto" ||
-                              (key === "balance" && t.balance.lt(0))
-                            ? "negative"
-                            : key === "balance"
-                              ? "positive"
-                              : undefined
-                      }
+              {(["ingreso", "gasto", "balance", "no_computable"] as const).map(
+                (key) => {
+                  const label = key === "balance" ? "Neto" : labels[key];
+                  return (
+                    <article
+                      className={"stat " + key}
+                      key={key}
+                      aria-label={"Total " + label}
                     >
-                      {moneyWithSymbol(t[key], currency)}
-                    </strong>
-                    <small>
-                      {key === "balance"
-                        ? "Ingresos menos gastos; sin no computables"
-                        : key === "no_computable"
-                          ? "Afectan al saldo de tus cuentas"
-                          : month
-                            ? `Total de ${months[Number(month) - 1]} del ejercicio seleccionado`
-                            : "Total del ejercicio seleccionado"}
-                    </small>
-                  </article>
-                );
-              })}
+                      <span>{label}</span>
+                      <strong
+                        className={
+                          key === "ingreso"
+                            ? "income-amount"
+                            : key === "gasto" ||
+                                (key === "balance" && t.balance.lt(0))
+                              ? "negative"
+                              : key === "balance"
+                                ? "positive"
+                                : undefined
+                        }
+                      >
+                        {moneyWithSymbol(t[key], currency)}
+                      </strong>
+                      <small>
+                        {key === "balance"
+                          ? "Ingresos menos gastos; sin no computables"
+                          : key === "no_computable"
+                            ? "Afectan al saldo de tus cuentas"
+                            : month
+                              ? `Total de ${months[Number(month) - 1]} del ejercicio seleccionado`
+                              : "Total del ejercicio seleccionado"}
+                      </small>
+                    </article>
+                  );
+                },
+              )}
             </div>
             <SummaryCharts
               month={month}
