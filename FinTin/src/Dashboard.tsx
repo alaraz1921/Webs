@@ -19,6 +19,7 @@ import {
 import { Field, Empty, ErrorBox, Panel, Form, text, Modal } from "./ui";
 import type { MasterProps } from "./Settings";
 import { SummaryCharts, type ChartPeriods } from "./SummaryCharts";
+import { AccountBalanceCards } from "./AccountBalanceCards";
 export interface YearProps extends MasterProps {
   year: number;
   currency: string;
@@ -160,6 +161,15 @@ export function Summary({
                 },
               )}
             </div>
+            <AccountBalanceCards
+              uid={uid}
+              year={year}
+              month={month}
+              currency={currency}
+              entity={entity}
+              account={account}
+              accounts={accounts}
+            />
             <SummaryCharts
               month={month}
               chartPeriods={chartPeriods}

@@ -95,6 +95,7 @@ afterEach(cleanup);
 beforeEach(() => {
   vi.clearAllMocks();
   api.annual.mockResolvedValue(rows);
+  api.list.mockResolvedValue([]);
 });
 const numbers = (table: HTMLElement, name: string | RegExp) =>
   within(within(table).getByRole("row", { name }))
