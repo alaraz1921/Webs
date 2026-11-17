@@ -108,12 +108,26 @@ export function ComparisonsPage({
               <Panel title="Ingresos, gastos y neto">
                 <FinanceChart
                   title="Comparación de ingresos, gastos y neto"
-                  labels={["Ingresos", "Gastos", "Neto"]}
-                  series={years.map((y, i) => ({
-                    name: period(y),
-                    color: i === 0 ? "#94a3b8" : "#2563eb",
-                    values: result.summary[i],
-                  }))}
+                  labels={month ? ["Ingresos", "Gastos", "Neto"] : months}
+                  series={
+                    month
+                      ? years.map((y, i) => ({
+                          name: period(y),
+                          color: i === 0 ? "#94a3b8" : "#2563eb",
+                          values: result.summary[i],
+                        }))
+                      : ["Ingresos", "Gastos", "Neto"].flatMap((name, metric) =>
+                          years.map((y, i) => ({
+                            name: `${name} ${y}`,
+                            color: [
+                              ["#93c5fd", "#2563eb"],
+                              ["#fca5a5", "#dc2626"],
+                              ["#86efac", "#15803d"],
+                            ][metric][i],
+                            values: result.monthly[i].map((m) => m[metric]),
+                          })),
+                        )
+                  }
                   currency={currency}
                   bars
                 />

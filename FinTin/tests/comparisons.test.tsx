@@ -78,6 +78,18 @@ it("carga los ejercicios y cambia entre todo el año y un mes en los tres gráfi
   await within(region).findByRole("figure", { name: "Gastos por categoría" });
   expect(api.annual).toHaveBeenCalledWith("owner", 2025);
   expect(api.annual).toHaveBeenCalledWith("owner", 2026);
+  await u.click(within(region).getByText("Ver datos"));
+  const annualTable = within(region).getByRole("table", {
+    name: "Datos: Comparación de ingresos, gastos y neto",
+  });
+  expect(within(annualTable).getAllByRole("row")).toHaveLength(13);
+  expect(
+    within(annualTable).getByRole("row", { name: /^Ene/ }).textContent,
+  ).toContain("50,00 €");
+  expect(
+    within(annualTable).getByRole("row", { name: /^Oct/ }).textContent,
+  ).toContain("200,00 €300,00 €99,99 €150,00 €100,01 €150,00 €");
+  await u.click(within(region).getByText("Ver datos"));
   await u.selectOptions(screen.getByLabelText("Mes"), "10");
   const expenses = within(region).getByRole("figure", {
     name: "Gastos por categoría",

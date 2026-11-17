@@ -20,14 +20,22 @@ export function comparisonData(
         (!accountIds || accountIds.has(r.cuenta_id)),
     ),
   );
-  const summary = periods.map((period) => {
+  const summarize = (period: Movement[]) => {
     const t = totals(period);
     return [
       t.ingreso.toFixed(2),
       t.gasto.negated().toFixed(2),
       t.balance.toFixed(2),
     ];
-  });
+  };
+  const summary = periods.map(summarize);
+  const monthly = periods.map((period) =>
+    Array.from({ length: 12 }, (_, i) =>
+      summarize(
+        period.filter((r) => Number(r.fecha_valor.slice(5, 7)) === i + 1),
+      ),
+    ),
+  );
   const byCategory = (kind: "ingreso" | "gasto") => {
     const groups = new Map<
       string,
@@ -63,6 +71,7 @@ export function comparisonData(
   };
   return {
     summary,
+    monthly,
     expenses: byCategory("gasto"),
     income: byCategory("ingreso"),
     count: periods.map((period) => period.length),
