@@ -10,6 +10,18 @@ const brandLogo='<div class="brand"><img class="brand-logo" src="assets/tracktin
 const statusLabels={pending:'Pendiente',watching:'Viendo',watched:'Vista',up_to_date:'Al día',waiting_new_season:'Esperando nueva temporada',completed:'Completada',abandoned:'Abandonada'};
 const eyeIcon=closed=>closed?'<svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/><path d="m4 4 16 16"/></svg>':'<svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg>';
 const platformMarkup=m=>{const providers=m?.['watch/providers']?.results?.ES?.flatrate||m?.['watch/providers']?.results?.ES?.buy||[];return providers.length?`<div class="platforms" aria-label="Disponible en">${providers.slice(0,4).map(p=>`<span class="platform"><img src="${img(p.logo_path).replace('/w500','/w92')}" alt="">${esc(p.provider_name)}</span>`).join('')}</div>`:'<span class="muted platform-empty">Plataforma no disponible</span>'};
+function ageRating(m){
+  let rating='';
+  if(m.media_type==='movie'){
+    const dates=m.release_dates?.results?.find(country=>country.iso_3166_1==='ES')?.release_dates||[];
+    const priority=[3,2,4,5,6,1],rank=type=>{const i=priority.indexOf(type);return i<0?priority.length:i};
+    rating=[...dates].sort((a,b)=>rank(a.type)-rank(b.type)).find(date=>date.certification?.trim())?.certification?.trim()||'';
+  }else if(m.media_type==='tv'){
+    rating=m.content_ratings?.results?.find(country=>country.iso_3166_1==='ES')?.rating?.trim()||'';
+  }
+  const label=/^\d+$/.test(rating)?`+${rating}`:rating;
+  return label?`<span class="age-rating" aria-label="Edad recomendada en España: ${esc(label)}" title="Clasificación por edades en España">${esc(label)}</span>`:'<span class="age-rating age-rating-unavailable" aria-label="Clasificación por edades en España no disponible" title="Clasificación por edades en España no disponible">Edad no disponible</span>';
+}
 function toast(t){const n=document.createElement('div');n.className='toast';n.textContent=t;document.body.append(n);setTimeout(()=>n.remove(),3500)}
 function nav(){return `<nav class="nav">${[['inicio','⌂ Inicio'],['buscar','⌕ Buscar'],['lista','⚑ En Seguimiento'],['custom-lists','▣ Listas'],['estadisticas','◒ Estadísticas'],['perfil','◎ Perfil']].map(([v,l])=>`<button class="${state.view===v?'active':''}" data-view="${v}">${l}</button>`).join('')}</nav>`}
 function shell(content){app.innerHTML=`<div class="shell"><header class="topbar">${brandLogo}<div class="row"><button class="menu-button" data-menu-toggle aria-expanded="${state.menuOpen}" aria-label="Abrir menú">☰</button></div></header><div class="menu-panel ${state.menuOpen?'open':''}">${nav()}<button class="menu-logout" data-action="logout">↪ Cerrar sesión</button></div><div class="layout"><aside class="sidebar">${nav()}</aside><main>${content}</main></div></div>`;bind()}
@@ -23,7 +35,7 @@ async function loadNextEpisodes(){const candidates=state.media.filter(m=>m.media
 async function loadProgress(seriesId){const r=await sb.from('tracktin_episode_progress').select('*').eq('tmdb_series_id',Number(seriesId));if(r.error)toast('No se pudo cargar el progreso');state.episodeProgress=r.data||[]}
 async function loadSeason(seriesId,n,rerender=true){if(state.seasonData[n]?.episodes)return;state.seasonData[n]={loading:true};if(rerender)render();try{state.seasonData[n]=await tmdb(`/tv/${seriesId}/season/${n}`,{language:'es-ES'})}catch(e){state.seasonData[n]={error:e.message}}if(rerender)render()}
 async function loadAllSeasons(seriesId){await Promise.all(state.seasons.map(s=>loadSeason(seriesId,s.season_number,false)))}
-async function detail(id,type){try{state.detail=await tmdb(`/${type}/${id}`,{language:'es-ES',region:'ES',append_to_response:'credits,videos,watch/providers'});state.detail.media_type=type;state.seasons=type==='tv'?(state.detail.seasons||[]).filter(s=>s.season_number>=0):[];state.seasonData={};state.openSeasons=new Set();state.episodeProgress=[];if(type==='tv')await loadProgress(id);state.view='detalle';render();if(type==='tv')loadAllSeasons(id).then(async()=>{if(state.detail?.id===Number(id)&&state.view==='detalle'){await syncSeriesStatus(id);if(state.detail?.id===Number(id)&&state.view==='detalle')render()}})}catch(e){toast(e.message)}}
+async function detail(id,type){try{state.detail=await tmdb(`/${type}/${id}`,{language:'es-ES',region:'ES',append_to_response:`credits,videos,watch/providers,${type==='tv'?'content_ratings':'release_dates'}`});state.detail.media_type=type;state.seasons=type==='tv'?(state.detail.seasons||[]).filter(s=>s.season_number>=0):[];state.seasonData={};state.openSeasons=new Set();state.episodeProgress=[];if(type==='tv')await loadProgress(id);state.view='detalle';render();if(type==='tv')loadAllSeasons(id).then(async()=>{if(state.detail?.id===Number(id)&&state.view==='detalle'){await syncSeriesStatus(id);if(state.detail?.id===Number(id)&&state.view==='detalle')render()}})}catch(e){toast(e.message)}}
 function watched(s,e){return state.episodeProgress.some(p=>p.season_number===s&&p.episode_number===e&&p.watched)}
 function regularEpisodes(){return Object.entries(state.seasonData).filter(([n])=>Number(n)>0).flatMap(([,s])=>s.episodes||[])}
 function loadedEpisodes(){return regularEpisodes().filter(e=>e&&(!e.air_date||new Date(e.air_date)<=new Date()))}
@@ -91,7 +103,7 @@ function detailPage(){
   return `<button class="btn ghost" data-view="buscar">← Volver</button><br><br>
     <article class="detail-hero"><div class="detail-top">
       <img class="detail-poster" src="${img(m.poster_path)}" alt="Carátula de ${esc(m.title||m.name)}">
-      <div class="detail-summary"><span class="eyebrow">${tv?'Serie':'Película'}</span><h1>${esc(m.title||m.name)}</h1><p class="muted">${(m.release_date||m.first_air_date||'').slice(0,4)} · ${esc((m.genres||[]).map(g=>g.name).join(', '))}</p>${platformMarkup(m)}</div>
+      <div class="detail-summary"><span class="eyebrow">${tv?'Serie':'Película'}</span><h1>${esc(m.title||m.name)}</h1><div class="detail-meta">${ageRating(m)}<span class="muted">${(m.release_date||m.first_air_date||'').slice(0,4)} · ${esc((m.genres||[]).map(g=>g.name).join(', '))}</span></div>${platformMarkup(m)}</div>
     </div><div class="detail-content">
       <div class="synopsis-wrap"><p class="synopsis">${esc(m.overview||'Sinopsis no disponible.')}</p>${m.overview&&m.overview.length>180?'<button class="synopsis-toggle" data-synopsis-toggle>Mostrar más</button>':''}</div>
       <div class="detail-actions" aria-label="Acciones del título">

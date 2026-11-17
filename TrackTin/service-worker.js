@@ -1,4 +1,4 @@
-const CACHE='tracktin-shell-v11';
+const CACHE='tracktin-shell-v12';
 const SHELL=['./','./index.html','./manifest.webmanifest','./css/styles.css','./css/episodes.css','./css/list-picker.css','./js/app.js','./js/list-picker.js','./js/config.example.js','./assets/tracktin-logo-claro.png','./assets/icons/favicon-32.png','./assets/icons/apple-touch-icon-180.png','./assets/icons/icon-192.png','./assets/icons/icon-512.png','./assets/icons/icon-maskable-512.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

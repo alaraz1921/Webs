@@ -9,7 +9,7 @@ La publicación se realiza junto al resto del repositorio en `https://www.alaraz
 - Inicio y cierre de sesión con correo y contraseña mediante Supabase, con comprobación de permisos de acceso a TrackTin.
 - Inicio con títulos en seguimiento, pendientes, favoritos, añadidos recientemente y siguiente episodio pendiente.
 - Búsqueda de películas y series en TMDB o entre los títulos de las listas personales.
-- Fichas con carátula, año, géneros, sinopsis desplegable y plataformas disponibles en España según los datos de TMDB.
+- Fichas con carátula, año, géneros, clasificación por edades de España, sinopsis desplegable y plataformas disponibles en España según los datos de TMDB. Si falta la clasificación española, se indica que no está disponible.
 - En Seguimiento con filtros por tipo, estado, lista personalizada y favoritos, además de edición de estado, valoración personal y notas desde la ficha. El marcador permite añadir o quitar un título del seguimiento; al quitarlo se elimina su registro de estado, valoración, notas y favorito, conservando las pertenencias a listas y el progreso de episodios.
 - Apartado Listas para crear, renombrar, borrar y consultar los títulos de cada lista, incluso si no están en seguimiento. Desde la ficha, el modal de tarjetas permite añadir o quitar un título de varias listas de forma independiente del seguimiento. Su buscador se despliega al pulsar la lupa, evitando abrir el teclado al entrar en el modal en móvil.
 - Seguimiento de series por temporadas y episodios: marcar o desmarcar episodios, temporadas o la serie completa, con confirmación para esta última. El marcado en bloque incluye los episodios emitidos o sin fecha conocida.
