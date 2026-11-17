@@ -11,6 +11,7 @@ import {
   LogOut,
   ArrowUpRight,
   Menu,
+  BarChart3,
 } from "lucide-react";
 import { configured, db, client, list } from "./api";
 import {
@@ -23,6 +24,7 @@ import type { Account, Alias, Category } from "./types";
 import { months } from "./types";
 import { Summary, AccountsPage, type YearProps } from "./Dashboard";
 import { MovementPage, filtersFor } from "./Movements";
+import { ComparisonsPage } from "./Comparisons";
 import { ImportPage } from "./Import";
 import { Settings, type SettingsSection } from "./Settings";
 import {
@@ -58,6 +60,12 @@ const pages = [
     name: "Movimientos",
     icon: ListFilter,
     description: "Cada movimiento, en su lugar.",
+  },
+  {
+    id: "comparativas",
+    name: "Comparativas",
+    icon: BarChart3,
+    description: "Compara tus ingresos y gastos entre ejercicios.",
   },
   {
     id: "importacion",
@@ -526,7 +534,7 @@ function Workspace({ session }: { session: Session }) {
               </p>
             </div>
           )}
-          {!settingsPage && (
+          {!settingsPage && page.id !== "comparativas" && (
             <div className="context-bar">
               <YearPicker
                 value={year}
@@ -671,6 +679,9 @@ function Workspace({ session }: { session: Session }) {
                   setFilters={setFilters}
                 />
               )}{" "}
+              {page.id === "comparativas" && (
+                <ComparisonsPage {...base} year={year} />
+              )}
               {page.id === "importacion" && (
                 <ImportPage {...base} year={year} onBusy={setImportBusy} />
               )}{" "}

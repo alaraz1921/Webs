@@ -1242,6 +1242,65 @@ h1 {
   size: A4 landscape;
   margin: 9mm;
 }
+.mirror-chart {
+  margin: 0;
+}
+.mirror-periods,
+.mirror-values,
+.mirror-bars {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.mirror-periods > :first-child,
+.mirror-values > :first-child {
+  text-align: right;
+  padding-right: 12px;
+}
+.mirror-periods > :last-child,
+.mirror-values > :last-child {
+  padding-left: 12px;
+}
+.mirror-row {
+  padding: 9px 0;
+  border-top: 1px solid #f1f5f9;
+}
+.mirror-category {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.mirror-values {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  margin: 3px 0;
+}
+.mirror-half {
+  display: flex;
+  height: 14px;
+}
+.mirror-half:first-child {
+  justify-content: flex-end;
+  border-right: 1px solid #64748b;
+}
+.mirror-half:last-child {
+  border-left: 1px solid #64748b;
+}
+.mirror-bar.older {
+  background: #94a3b8;
+}
+.mirror-bar.newer {
+  background: #2563eb;
+}
+.mirror-bar.refund {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 3px,
+    #ffffff99 3px,
+    #ffffff99 6px
+  );
+}
 @media print {
   :root {
     background: white;

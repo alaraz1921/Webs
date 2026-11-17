@@ -91,6 +91,8 @@ El listado pagina en servidor, 50 filas, con filtros y búsqueda por concepto. L
 
 ## Informes e impresión
 
+«Comparativas», después de Movimientos, compara un mismo mes de dos ejercicios o los dos ejercicios completos. El primer gráfico muestra ingresos, gastos netos de devoluciones y neto (sin no computables). Los otros dos comparan todas las categorías de gastos e ingresos con eje central, año antiguo a la izquierda y reciente a la derecha, misma escala y valores exactos. Los importes negativos llevan barras rayadas. Usa fecha de valor, Decimal y consultas anuales paginadas por propietario; las monedas se presentan por separado.
+
 Resumen incluye bajo los totales las tarjetas de saldo calculado de Cuentas, Tarjetas de crédito, Inversiones y Caja. Usan los cierres de Cuentas del ejercicio seleccionado: el cierre del mes filtrado o el último disponible si se elige «Todos». Respetan entidad, cuenta y moneda, indican la fecha y cuántas cuentas tienen cierre y se incluyen en el informe. Un mes sin cierre muestra «—». Los tipos de producto distintos se conservan en tarjetas adicionales.
 
 «Informe» en Resumen imprime las tarjetas, gráficos y tablas con el ejercicio, mes y cuenta seleccionados. Los gráficos con selectores propios conservan su periodo, ejercicio, mes y categoría y muestran esos datos en el informe. «Imprimir» en Cuentas genera el cuadrante del ejercicio, moneda y cuenta seleccionados, con saldo calculado y saldo real por mes. «Imprimir» en el filtro de Movimientos prepara **todas** las filas que cumplen los filtros y el orden actuales, incluidas las de otras páginas, y las presenta como tabla.
