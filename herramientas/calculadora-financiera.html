@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora de préstamo / hipoteca</title>
+<style>
+  :root { --bg:#f4f5f9; --card:#fff; --txt:#1d2333; --muted:#6b7385; --accent:#3557d6; --cap:#3557d6; --int:#f08c00; --extra:#12b886; --line:#e5e8ef; --err:#e5484d; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--txt); }
+  header { background:var(--card); border-bottom:1px solid var(--line); padding:16px 20px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+  h1 { margin:0; font-size:1.3rem; }
+  header p { margin:4px 0 0; color:var(--muted); font-size:.9rem; }
+  .wrap { max-width:1150px; margin:0 auto; padding:20px; display:grid; gap:16px; }
+  .top { display:grid; grid-template-columns:1fr 1.3fr; gap:16px; align-items:start; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:880px) { .top, .grid2 { grid-template-columns:1fr; } }
+  .card { background:var(--card); border-radius:14px; padding:18px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  h2 { font-size:1rem; margin:0 0 14px; }
+  .campos { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  label { display:grid; gap:5px; font-size:.88rem; color:var(--muted); }
+  .full { grid-column:1 / -1; }
+  .input-u { display:flex; align-items:center; border:1px solid var(--line); border-radius:8px; background:#fff; overflow:hidden; }
+  .input-u:focus-within { border-color:var(--accent); box-shadow:0 0 0 3px rgba(53,87,214,.15); }
+  .input-u input { border:none; outline:none; padding:10px; font:inherit; color:var(--txt); width:100%; min-width:0; }
+  .input-u span { padding:0 10px; color:var(--muted); font-size:.85rem; white-space:nowrap; }
+  input[type=text], input[type=month], select { font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:8px; width:100%; background:#fff; color:var(--txt); }
+  .seg { display:flex; background:#eef0f5; border-radius:10px; padding:4px; gap:4px; }
+  .seg button { flex:1; border:none; background:none; padding:9px; border-radius:8px; font:inherit; cursor:pointer; color:var(--muted); }
+  .seg button.on { background:#fff; color:var(--txt); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.1); }
+  .btn { padding:10px 14px; border:none; border-radius:10px; background:var(--accent); color:#fff; font:inherit; font-weight:600; cursor:pointer; }
+  .btn.sec { background:#eef0f5; color:var(--txt); }
+  .btn.peq { padding:7px 12px; font-size:.88rem; }
+  .acciones { display:flex; gap:8px; flex-wrap:wrap; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; }
+  .kpi { background:#f7f8fb; border-radius:12px; padding:12px 14px; }
+  .kpi.destacado { background:var(--accent); color:#fff; }
+  .kpi.destacado small, .kpi.destacado .sub { color:rgba(255,255,255,.8); }
+  .kpi small { color:var(--muted); font-size:.8rem; display:block; }
+  .kpi strong { font-size:1.35rem; font-variant-numeric:tabular-nums; display:block; margin:3px 0; }
+  .kpi .sub { font-size:.8rem; color:var(--muted); }
+  .kpi.ahorro strong { color:var(--extra); }
+  .reparto { margin-top:14px; }
+  .barra { display:flex; height:14px; border-radius:99px; overflow:hidden; background:var(--line); }
+  .ley { display:flex; gap:14px; flex-wrap:wrap; font-size:.82rem; color:var(--muted); margin-top:8px; }
+  .ley i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  .extra-fila { display:grid; grid-template-columns:150px 1fr 190px 110px 36px; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); }
+  @media (max-width:700px) { .extra-fila { grid-template-columns:1fr 1fr; } }
+  .extra-fila .k { font-size:.8rem; color:var(--muted); }
+  .extra-fila .k.mal { color:var(--err); }
+  .del { background:none; border:none; color:var(--muted); cursor:pointer; font-size:1rem; }
+  .del:hover { color:var(--err); }
+  .vacio { color:var(--muted); text-align:center; padding:14px; font-size:.9rem; }
+  .cab { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .cab h2 { margin:0; }
+  .tabla-scroll { max-height:480px; overflow:auto; border:1px solid var(--line); border-radius:10px; }
+  table { width:100%; border-collapse:collapse; font-size:.88rem; }
+  th, td { padding:7px 10px; border-bottom:1px solid var(--line); text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  th { position:sticky; top:0; background:#f7f8fb; color:var(--muted); font-weight:600; font-size:.8rem; z-index:1; }
+  td:first-child, th:first-child, td:nth-child(2), th:nth-child(2) { text-align:left; }
+  tr.con-extra td { background:#e9f9f2; }
+  tr.fin-anio td { border-bottom:2px solid #d3d8e4; }
+  svg text { font-family:inherit; }
+  .nota { font-size:.8rem; color:var(--muted); margin:10px 0 0; line-height:1.45; }
+  .aviso { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(120px); background:#1d2333; color:#fff; padding:12px 18px; border-radius:10px; font-size:.92rem; box-shadow:0 6px 20px rgba(0,0,0,.2); transition:transform .3s; z-index:10; max-width:90vw; }
+  .aviso.ver { transform:translateX(-50%) translateY(0); }
+  .aviso.error { background:var(--err); }
+  .soltar { position:fixed; inset:0; background:rgba(53,87,214,.1); border:3px dashed var(--accent); display:none; align-items:center; justify-content:center; font-size:1.3rem; font-weight:600; color:var(--accent); z-index:9; pointer-events:none; }
+  .soltar.ver { display:flex; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🏠 Calculadora de préstamo / hipoteca</h1>
+    <p>Cuota, intereses, TAE, amortizaciones anticipadas y cuadro de amortización.</p>
+  </div>
+  <div class="acciones">
+    <button class="btn" id="guardar">💾 Guardar</button>
+    <button class="btn sec" id="importar">📂 Importar</button>
+    <input type="file" id="archivo" accept=".json,application/json" hidden>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="top">
+    <!-- DATOS -->
+    <div class="card">
+      <h2>Datos del préstamo</h2>
+      <div class="campos">
+        <label class="full">Nombre (se usa como nombre del archivo)
+          <input type="text" id="nombre" placeholder="Ej. Hipoteca piso">
+        </label>
+        <label class="full">Importe solicitado
+          <div class="input-u"><input type="number" id="importe" min="0" step="any"><span>€</span></div>
+        </label>
+        <label>Interés nominal (TIN)
+          <div class="input-u"><input type="number" id="tin" min="0" step="any"><span>% anual</span></div>
+        </label>
+        <label>Plazo
+          <div class="input-u"><input type="number" id="anios" min="0.0834" step="any"><span>años</span></div>
+        </label>
+        <label>Comisión de apertura
+          <div class="input-u"><input type="number" id="comision" min="0" step="any"><span>€</span></div>
+        </label>
+        <label>Primera cuota
+          <input type="month" id="inicio">
+        </label>
+        <div class="full">
+          <label style="margin-bottom:6px">Sistema de amortización</label>
+          <div class="seg" id="sistema">
+            <button data-s="frances">Francés (cuota fija)</button>
+            <button data-s="aleman">Alemán (capital fijo)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="card">
+      <h2>Resumen</h2>
+      <div class="kpis" id="kpis"></div>
+      <div class="reparto">
+        <div class="barra">
+          <div id="bCap" style="background:var(--cap)"></div>
+          <div id="bInt" style="background:var(--int)"></div>
+        </div>
+        <div class="ley">
+          <span><i style="background:var(--cap)"></i><span id="lCap">Capital</span></span>
+          <span><i style="background:var(--int)"></i><span id="lInt">Intereses</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AMORTIZACIONES ANTICIPADAS -->
+  <div class="card">
+    <div class="cab">
+      <h2>Amortizaciones anticipadas</h2>
+      <button class="btn sec peq" id="addExtra">+ Añadir amortización</button>
+    </div>
+    <div id="extras"></div>
+    <p class="nota">Cada aportación se aplica justo después de pagar la cuota de ese mes. <b>Reducir plazo</b> mantiene la cuota y acorta el préstamo (suele ahorrar más intereses); <b>reducir cuota</b> mantiene el plazo y baja lo que pagas cada mes.</p>
+  </div>
+
+  <!-- GRÁFICOS -->
+  <div class="grid2">
+    <div class="card">
+      <h2>Capital pendiente</h2>
+      <div id="gSaldo"></div>
+      <div class="ley">
+        <span><i style="background:var(--cap)"></i>Con amortizaciones</span>
+        <span><i style="background:#b9c0d0"></i>Sin amortizaciones</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Pagos por año</h2>
+      <div id="gAnios"></div>
+      <div class="ley">
+        <span><i style="background:var(--cap)"></i>Capital</span>
+        <span><i style="background:var(--extra)"></i>Amortización anticipada</span>
+        <span><i style="background:var(--int)"></i>Intereses</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="card">
+    <div class="cab">
+      <h2>Cuadro de amortización</h2>
+      <div class="acciones">
+        <div class="seg" id="vista" style="min-width:200px">
+          <button data-v="mensual">Mensual</button>
+          <button data-v="anual">Anual</button>
+        </div>
+        <button class="btn sec peq" id="csv">Exportar CSV</button>
+      </div>
+    </div>
+    <div class="tabla-scroll"><table id="tabla"></table></div>
+    <p class="nota">Cálculo orientativo con tipo de interés fijo durante todo el plazo. No incluye seguros, vinculaciones, comisiones por amortización anticipada ni revisiones de tipo variable (Euríbor). La TAE se calcula con la comisión de apertura y los pagos del cuadro.</p>
+  </div>
+
+</div>
+
+<div class="aviso" id="aviso"></div>
+<div class="soltar" id="soltar">Suelta aquí el archivo del préstamo</div>
+
+<script>
+const APP_ID = 'calculadora-hipoteca';
+const KEY = 'calcHipotecaV1';
+const $ = id => document.getElementById(id);
+const pad2 = n => String(n).padStart(2, '0');
+const eur = (n, d = 2) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: d, maximumFractionDigits: d });
+const num = (n, d = 0) => n.toLocaleString('es-ES', { maximumFractionDigits: d });
+const kfmt = n => n >= 1000 ? num(n / 1000, n >= 10000 ? 0 : 1) + 'k' : num(n);
+
+function mesMas(ym, n) {
+  const [Y, M] = ym.split('-').map(Number);
+  const d = new Date(Y, M - 1 + n, 1);
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
+}
+function difMeses(a, b) {
+  const [Ya, Ma] = a.split('-').map(Number), [Yb, Mb] = b.split('-').map(Number);
+  return (Yb - Ya) * 12 + (Mb - Ma);
+}
+const etiquetaMes = ym => {
+  const [Y, M] = ym.split('-').map(Number);
+  return new Date(Y, M - 1, 1).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+};
+
+const hoy = new Date();
+const mesSiguiente = `${new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1).getFullYear()}-${pad2(new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1).getMonth() + 1)}`;
+const DEF = {
+  nombre: 'Hipoteca de ejemplo', importe: 180000, tin: 2.9, anios: 25, comision: 0,
+  inicio: mesSiguiente, sistema: 'frances',
+  extras: [{ fecha: mesMas(mesSiguiente, 59), importe: 10000, modo: 'plazo' }]
+};
+
+let state = structuredClone(DEF);
+let vista = 'mensual';
+let ultimo = null;
+try {
+  const s = JSON.parse(localStorage.getItem(KEY));
+  if (s && s.importe !== undefined) state = { ...DEF, ...s };
+} catch (e) {}
+const guardarLocal = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+/* ---------- Cálculo ---------- */
+const cuotaFrancesa = (P, i, n) => i ? P * i / (1 - Math.pow(1 + i, -n)) : P / n;
+
+function mesesRestantes(saldo, i, cuota, amort, sistema) {
+  if (sistema === 'aleman') return Math.ceil(saldo / amort - 1e-9);
+  if (!i) return Math.ceil(saldo / cuota - 1e-9);
+  return Math.ceil(-Math.log(1 - saldo * i / cuota) / Math.log(1 + i) - 1e-9);
+}
+
+function simular(p, extras) {
+  const n = Math.round(p.anios * 12);
+  const i = p.tin / 100 / 12;
+  const porMes = {};
+  extras.forEach(e => (porMes[e.k] ||= []).push(e));
+  let saldo = p.importe;
+  let cuota = cuotaFrancesa(saldo, i, n);
+  let amort = saldo / n;
+  const filas = [];
+  for (let k = 1; saldo > 0.005 && k <= n + 1; k++) {
+    const interes = saldo * i;
+    const capital = Math.min(p.sistema === 'frances' ? cuota - interes : amort, saldo);
+    saldo -= capital;
+    let extra = 0;
+    (porMes[k] || []).forEach(e => {
+      if (saldo <= 0.005) return;
+      const x = Math.min(e.importe, saldo);
+      const restantes = mesesRestantes(saldo, i, cuota, amort, p.sistema);
+      extra += x; saldo -= x;
+      if (saldo > 0.005 && e.modo === 'cuota' && restantes > 0) {
+        if (p.sistema === 'frances') cuota = cuotaFrancesa(saldo, i, restantes);
+        else amort = saldo / restantes;
+      }
+    });
+    if (saldo < 0.005) saldo = 0;
+    filas.push({ k, mes: mesMas(p.inicio, k - 1), cuota: capital + interes, interes, capital, extra, saldo });
+  }
+  return filas;
+}
+
+function calcularTAE(P, comision, filas) {
+  const neto = P - comision;
+  const pagos = filas.map(f => f.cuota + f.extra);
+  const vpn = r => { let s = neto, d = 1; for (const x of pagos) { d /= 1 + r; s -= x * d; } return s; };
+  if (vpn(0) >= 0) return 0;
+  let lo = 0, hi = 0.05;
+  while (vpn(hi) < 0 && hi < 10) hi *= 2;
+  for (let it = 0; it < 100; it++) { const m = (lo + hi) / 2; vpn(m) < 0 ? lo = m : hi = m; }
+  return (Math.pow(1 + (lo + hi) / 2, 12) - 1) * 100;
+}
+
+/* ---------- Formulario ---------- */
+function volcar() {
+  ['nombre', 'importe', 'tin', 'anios', 'comision', 'inicio'].forEach(c => $(c).value = state[c] ?? '');
+  pintarSeg();
+  pintarExtras();
+}
+function leer() {
+  state.nombre = $('nombre').value;
+  ['importe', 'tin', 'anios', 'comision'].forEach(c => { const v = parseFloat($(c).value); state[c] = isNaN(v) || v < 0 ? 0 : v; });
+  state.inicio = $('inicio').value || mesSiguiente;
+}
+function pintarSeg() {
+  document.querySelectorAll('#sistema button').forEach(b => b.classList.toggle('on', b.dataset.s === state.sistema));
+  document.querySelectorAll('#vista button').forEach(b => b.classList.toggle('on', b.dataset.v === vista));
+}
+
+function pintarExtras() {
+  const cont = $('extras');
+  if (!state.extras.length) { cont.innerHTML = '<div class="vacio">Sin amortizaciones anticipadas</div>'; return; }
+  cont.innerHTML = '';
+  state.extras.forEach((e, idx) => {
+    const fila = document.createElement('div');
+    fila.className = 'extra-fila';
+    fila.innerHTML = `
+      <input type="month">
+      <div class="input-u"><input type="number" min="0" step="any" placeholder="Importe"><span>€</span></div>
+      <select><option value="plazo">Reducir plazo</option><option value="cuota">Reducir cuota</option></select>
+      <span class="k"></span>
+      <button class="del" title="Quitar">✕</button>`;
+    const [fMes, fImp, fModo, , fDel] = [fila.querySelector('input[type=month]'), fila.querySelector('input[type=number]'), fila.querySelector('select'), null, fila.querySelector('.del')];
+    fMes.value = e.fecha; fImp.value = e.importe; fModo.value = e.modo;
+    fMes.oninput = () => { e.fecha = fMes.value; render(); };
+    fImp.oninput = () => { const v = parseFloat(fImp.value); e.importe = isNaN(v) || v < 0 ? 0 : v; render(); };
+    fModo.onchange = () => { e.modo = fModo.value; render(); };
+    fDel.onclick = () => { state.extras.splice(idx, 1); pintarExtras(); render(); };
+    cont.appendChild(fila);
+  });
+}
+
+function actualizarIndicesExtras(nTotal) {
+  document.querySelectorAll('#extras .extra-fila').forEach((fila, idx) => {
+    const e = state.extras[idx];
+    const k = e.fecha ? difMeses(state.inicio, e.fecha) + 1 : 0;
+    const etq = fila.querySelector('.k');
+    const valido = k >= 1 && k <= nTotal;
+    etq.textContent = valido ? `cuota nº ${k}` : 'fuera de plazo';
+    etq.classList.toggle('mal', !valido);
+  });
+}
+
+/* ---------- Render ---------- */
+function render() {
+  leer();
+  guardarLocal();
+  const n = Math.round(state.anios * 12);
+  if (!(state.importe > 0) || !(n > 0)) {
+    $('kpis').innerHTML = '<div class="vacio full">Introduce importe y plazo</div>';
+    ['gSaldo', 'gAnios'].forEach(id => $(id).innerHTML = '');
+    $('tabla').innerHTML = '';
+    ultimo = null;
+    return;
+  }
+  const extras = state.extras
+    .map(e => ({ ...e, k: e.fecha ? difMeses(state.inicio, e.fecha) + 1 : 0 }))
+    .filter(e => e.importe > 0 && e.k >= 1 && e.k <= n);
+  const con = simular(state, extras);
+  const sin = simular(state, []);
+  ultimo = con;
+  actualizarIndicesExtras(n);
+
+  const sum = (arr, f) => arr.reduce((t, x) => t + f(x), 0);
+  const intCon = sum(con, f => f.interes), intSin = sum(sin, f => f.interes);
+  const pagado = sum(con, f => f.cuota + f.extra);
+  const tae = calcularTAE(state.importe, state.comision, con);
+  const ultima = con[con.length - 1];
+  const meses = con.length;
+  const ahorroMeses = sin.length - con.length;
+
+  let cuotaTxt, cuotaSub;
+  if (state.sistema === 'frances') {
+    cuotaTxt = eur(con[0].cuota);
+    const despues = con.length > 2 ? con[con.length - 2].cuota : con[0].cuota;
+    cuotaSub = Math.abs(despues - con[0].cuota) > 0.01 ? `Tras amortizar: ${eur(despues)}` : 'Cuota fija todo el plazo';
+  } else {
+    cuotaTxt = eur(con[0].cuota);
+    cuotaSub = `Baja hasta ${eur(ultima.cuota)}`;
+  }
+
+  $('kpis').innerHTML = `
+    <div class="kpi destacado"><small>${state.sistema === 'frances' ? 'Cuota mensual' : 'Primera cuota'}</small><strong>${cuotaTxt}</strong><div class="sub">${cuotaSub}</div></div>
+    <div class="kpi"><small>Intereses totales</small><strong>${eur(intCon, 0)}</strong><div class="sub">Total pagado: ${eur(pagado + state.comision, 0)}</div></div>
+    <div class="kpi"><small>TAE</small><strong>${num(tae, 2)} %</strong><div class="sub">TIN ${num(state.tin, 2)} %</div></div>
+    <div class="kpi"><small>Última cuota</small><strong>${etiquetaMes(ultima.mes)}</strong><div class="sub">${meses} cuotas (${Math.floor(meses / 12)} años${meses % 12 ? ' y ' + (meses % 12) + ' meses' : ''})</div></div>
+    <div class="kpi ahorro"><small>Ahorro por amortizar</small>
+      ${extras.length
+        ? `<strong>${eur(intSin - intCon, 0)}</strong><div class="sub">en intereses${ahorroMeses > 0 ? ` y ${ahorroMeses} meses menos` : ''}</div>`
+        : `<strong style="color:var(--muted)">—</strong><div class="sub">Añade amortizaciones abajo</div>`}
+    </div>`;
+
+  const totalBarra = state.importe + intCon;
+  $('bCap').style.width = (state.importe / totalBarra * 100) + '%';
+  $('bInt').style.width = (intCon / totalBarra * 100) + '%';
+  $('lCap').textContent = `Capital ${eur(state.importe, 0)} (${num(state.importe / totalBarra * 100)} %)`;
+  $('lInt').textContent = `Intereses ${eur(intCon, 0)} (${num(intCon / totalBarra * 100)} %)`;
+
+  $('gSaldo').innerHTML = graficoSaldo(con, sin);
+  $('gAnios').innerHTML = graficoAnios(con);
+  pintarTabla(con);
+}
+
+function graficoSaldo(con, sin) {
+  const W = 560, H = 240, L = 46, R = 12, T = 12, B = 26;
+  const n = Math.max(sin.length, con.length);
+  const P = state.importe;
+  const x = k => L + k / n * (W - L - R);
+  const y = v => T + (1 - v / P) * (H - T - B);
+  const pts = arr => [[0, P], ...arr.map(f => [f.k, f.saldo])].map(([k, v]) => `${x(k).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  let s = '';
+  [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+    s += `<line x1="${L}" x2="${W - R}" y1="${y(P * f)}" y2="${y(P * f)}" stroke="#eef0f5"/>
+          <text x="${L - 6}" y="${y(P * f) + 4}" text-anchor="end" font-size="10" fill="#6b7385">${kfmt(P * f)}</text>`;
+  });
+  const paso = n > 240 ? 60 : n > 120 ? 36 : 12;
+  for (let k = 0; k <= n; k += paso) {
+    s += `<text x="${x(k)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#6b7385">${k / 12} a</text>`;
+  }
+  s += `<polyline points="${pts(sin)}" fill="none" stroke="#b9c0d0" stroke-width="2" stroke-dasharray="5 4"/>`;
+  s += `<polygon points="${x(0)},${y(0)} ${pts(con)} ${x(con.length)},${y(0)}" fill="rgba(53,87,214,.12)"/>`;
+  s += `<polyline points="${pts(con)}" fill="none" stroke="var(--cap)" stroke-width="2.5"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%">${s}</svg>`;
+}
+
+function agruparAnios(filas) {
+  const anios = [];
+  filas.forEach(f => {
+    const a = Math.ceil(f.k / 12) - 1;
+    anios[a] ||= { anio: a + 1, desde: f.mes, hasta: f.mes, cuotas: 0, interes: 0, capital: 0, extra: 0, saldo: 0, pagos: 0 };
+    const g = anios[a];
+    g.hasta = f.mes; g.cuotas++; g.interes += f.interes; g.capital += f.capital; g.extra += f.extra; g.saldo = f.saldo; g.pagos += f.cuota + f.extra;
+  });
+  return anios;
+}
+
+function graficoAnios(filas) {
+  const anios = agruparAnios(filas);
+  const W = 560, H = 240, L = 46, R = 12, T = 12, B = 26;
+  const max = Math.max(...anios.map(a => a.capital + a.extra + a.interes)) * 1.05;
+  const ancho = (W - L - R) / anios.length;
+  const bw = Math.max(2, ancho * 0.72);
+  const y = v => T + (1 - v / max) * (H - T - B);
+  const h = v => v / max * (H - T - B);
+  let s = '';
+  [0, 0.5, 1].forEach(f => {
+    s += `<line x1="${L}" x2="${W - R}" y1="${y(max * f)}" y2="${y(max * f)}" stroke="#eef0f5"/>
+          <text x="${L - 6}" y="${y(max * f) + 4}" text-anchor="end" font-size="10" fill="#6b7385">${kfmt(max * f)}</text>`;
+  });
+  const cadaEtq = anios.length > 30 ? 10 : anios.length > 12 ? 5 : 1;
+  anios.forEach((a, i) => {
+    const x = L + i * ancho + (ancho - bw) / 2;
+    let base = y(0);
+    const tramo = (v, color) => { if (v <= 0) return ''; const hh = h(v); base -= hh; return `<rect x="${x}" y="${base}" width="${bw}" height="${hh}" fill="${color}"/>`; };
+    s += `<g><title>Año ${a.anio}: capital ${eur(a.capital, 0)}, extra ${eur(a.extra, 0)}, intereses ${eur(a.interes, 0)}</title>`
+       + tramo(a.capital, 'var(--cap)') + tramo(a.extra, 'var(--extra)') + tramo(a.interes, 'var(--int)') + '</g>';
+    if (a.anio % cadaEtq === 0 || a.anio === 1)
+      s += `<text x="${x + bw / 2}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#6b7385">${a.anio}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%">${s}</svg>`;
+}
+
+function pintarTabla(filas) {
+  if (vista === 'mensual') {
+    $('tabla').innerHTML = `<thead><tr><th>Nº</th><th>Mes</th><th>Cuota</th><th>Intereses</th><th>Capital</th><th>Amort. extra</th><th>Pendiente</th></tr></thead><tbody>` +
+      filas.map(f => `<tr class="${f.extra ? 'con-extra' : ''} ${f.k % 12 === 0 ? 'fin-anio' : ''}">
+        <td>${f.k}</td><td>${etiquetaMes(f.mes)}</td><td>${eur(f.cuota)}</td><td>${eur(f.interes)}</td>
+        <td>${eur(f.capital)}</td><td>${f.extra ? eur(f.extra) : '—'}</td><td>${eur(f.saldo)}</td></tr>`).join('') + '</tbody>';
+  } else {
+    $('tabla').innerHTML = `<thead><tr><th>Año</th><th>Periodo</th><th>Pagado</th><th>Intereses</th><th>Capital</th><th>Amort. extra</th><th>Pendiente</th></tr></thead><tbody>` +
+      agruparAnios(filas).map(a => `<tr class="${a.extra ? 'con-extra' : ''}">
+        <td>${a.anio}</td><td>${etiquetaMes(a.desde)} – ${etiquetaMes(a.hasta)}</td><td>${eur(a.pagos)}</td><td>${eur(a.interes)}</td>
+        <td>${eur(a.capital)}</td><td>${a.extra ? eur(a.extra) : '—'}</td><td>${eur(a.saldo)}</td></tr>`).join('') + '</tbody>';
+  }
+}
+
+/* ---------- Avisos ---------- */
+let tmr;
+function avisar(t, error = false) {
+  const a = $('aviso'); a.textContent = t; a.classList.toggle('error', error); a.classList.add('ver');
+  clearTimeout(tmr); tmr = setTimeout(() => a.classList.remove('ver'), 3500);
+}
+
+/* ---------- Archivos ---------- */
+function nombreArchivo(nombre, ext) {
+  const base = (nombre || 'prestamo').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'prestamo';
+  return `${base}.${ext}`;
+}
+function descargar(contenido, nombre, tipo) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([contenido], { type: tipo }));
+  a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+$('guardar').onclick = () => {
+  render();
+  const datos = { nombre: state.nombre, importe: state.importe, tin: state.tin, anios: state.anios, comision: state.comision, inicio: state.inicio, sistema: state.sistema, extras: state.extras };
+  const nombre = 'prestamo-' + nombreArchivo(state.nombre, 'json');
+  descargar(JSON.stringify({ app: APP_ID, version: 1, guardado: new Date().toISOString(), datos }, null, 2), nombre, 'application/json');
+  avisar(`Guardado como ${nombre}`);
+};
+
+function importarArchivo(file) {
+  if (!file) return;
+  file.text().then(texto => {
+    let obj;
+    try { obj = JSON.parse(texto); } catch { throw new Error('El archivo no es un JSON válido.'); }
+    if (!obj || obj.app !== APP_ID || !obj.datos) throw new Error('Este archivo no es de esta calculadora.');
+    const d = obj.datos;
+    const n = (v, def = 0) => { const x = parseFloat(v); return isNaN(x) || x < 0 ? def : x; };
+    const mesOk = v => typeof v === 'string' && /^\d{4}-\d{2}$/.test(v);
+    state = {
+      nombre: typeof d.nombre === 'string' ? d.nombre.slice(0, 120) : '',
+      importe: n(d.importe), tin: n(d.tin), anios: n(d.anios), comision: n(d.comision),
+      inicio: mesOk(d.inicio) ? d.inicio : mesSiguiente,
+      sistema: d.sistema === 'aleman' ? 'aleman' : 'frances',
+      extras: Array.isArray(d.extras) ? d.extras.filter(e => e && mesOk(e.fecha)).slice(0, 100)
+        .map(e => ({ fecha: e.fecha, importe: n(e.importe), modo: e.modo === 'cuota' ? 'cuota' : 'plazo' })) : []
+    };
+    volcar(); render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    avisar(`Cargado: ${state.nombre || file.name}`);
+  }).catch(err => avisar(err.message || 'No se pudo leer el archivo.', true));
+}
+
+$('importar').onclick = () => { $('archivo').value = ''; $('archivo').click(); };
+$('archivo').onchange = e => importarArchivo(e.target.files[0]);
+
+let cnt = 0;
+window.addEventListener('dragenter', e => { e.preventDefault(); cnt++; $('soltar').classList.add('ver'); });
+window.addEventListener('dragleave', () => { if (--cnt <= 0) { cnt = 0; $('soltar').classList.remove('ver'); } });
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => { e.preventDefault(); cnt = 0; $('soltar').classList.remove('ver'); importarArchivo(e.dataTransfer.files[0]); });
+
+$('csv').onclick = () => {
+  if (!ultimo) return;
+  const f2 = v => v.toFixed(2).replace('.', ',');
+  const filas = [['Nº', 'Mes', 'Cuota', 'Intereses', 'Capital', 'Amortización extra', 'Pendiente']]
+    .concat(ultimo.map(f => [f.k, f.mes, f2(f.cuota), f2(f.interes), f2(f.capital), f2(f.extra), f2(f.saldo)]));
+  descargar('\uFEFF' + filas.map(r => r.join(';')).join('\n'), 'cuadro-' + nombreArchivo(state.nombre, 'csv'), 'text/csv;charset=utf-8');
+};
+
+/* ---------- Eventos ---------- */
+['nombre', 'importe', 'tin', 'anios', 'comision', 'inicio'].forEach(id => $(id).addEventListener('input', render));
+document.querySelectorAll('#sistema button').forEach(b => b.onclick = () => { state.sistema = b.dataset.s; pintarSeg(); render(); });
+document.querySelectorAll('#vista button').forEach(b => b.onclick = () => { vista = b.dataset.v; pintarSeg(); if (ultimo) pintarTabla(ultimo); });
+$('addExtra').onclick = () => {
+  const ultimoExtra = state.extras[state.extras.length - 1];
+  state.extras.push({ fecha: ultimoExtra ? mesMas(ultimoExtra.fecha, 12) : mesMas(state.inicio, 11), importe: 5000, modo: 'plazo' });
+  pintarExtras(); render();
+};
+
+volcar();
+render();
+</script>
+</body>
+</html>

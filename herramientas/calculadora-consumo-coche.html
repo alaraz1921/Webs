@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora de coste de viaje</title>
+<style>
+  :root { --bg:#f3f5f9; --card:#fff; --txt:#1d2333; --muted:#6b7385; --accent:#0f9d77; --line:#e5e8ef; --fuel:#0f9d77; --toll:#f59f00; --other:#6366f1; --err:#e5484d; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--txt); }
+  header { background:var(--card); border-bottom:1px solid var(--line); padding:16px 20px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+  h1 { margin:0; font-size:1.3rem; }
+  header p { margin:4px 0 0; color:var(--muted); font-size:.9rem; }
+  .wrap { max-width:1050px; margin:0 auto; padding:20px; display:grid; grid-template-columns:1.1fr 1fr; gap:16px; align-items:start; }
+  @media (max-width:820px) { .wrap { grid-template-columns:1fr; } }
+  .card { background:var(--card); border-radius:14px; padding:18px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  h2 { font-size:1rem; margin:0 0 14px; }
+  h3 { font-size:.85rem; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin:18px 0 10px; }
+  .campos { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  label { display:grid; gap:5px; font-size:.88rem; color:var(--muted); }
+  .full { grid-column:1 / -1; }
+  .input-u { display:flex; align-items:center; border:1px solid var(--line); border-radius:8px; background:#fff; overflow:hidden; }
+  .input-u:focus-within { border-color:var(--accent); box-shadow:0 0 0 3px rgba(15,157,119,.15); }
+  .input-u input { border:none; outline:none; padding:10px; font:inherit; color:var(--txt); width:100%; min-width:0; }
+  .input-u span { padding:0 10px; color:var(--muted); font-size:.85rem; white-space:nowrap; }
+  input[type=text] { font:inherit; padding:10px; border:1px solid var(--line); border-radius:8px; width:100%; }
+  .seg { display:flex; background:#eef0f5; border-radius:10px; padding:4px; gap:4px; }
+  .seg button { flex:1; border:none; background:none; padding:9px; border-radius:8px; font:inherit; cursor:pointer; color:var(--muted); }
+  .seg button.on { background:#fff; color:var(--txt); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.1); }
+  .switch { display:flex; align-items:center; gap:10px; color:var(--txt); font-size:.95rem; cursor:pointer; }
+  .switch input { width:18px; height:18px; accent-color:var(--accent); }
+  .total { text-align:center; padding:8px 0 16px; border-bottom:1px solid var(--line); }
+  .total small { color:var(--muted); }
+  .total strong { display:block; font-size:2.4rem; font-variant-numeric:tabular-nums; margin:4px 0; }
+  .total .pp { font-size:1.05rem; color:var(--accent); font-weight:600; }
+  .barra { display:flex; height:14px; border-radius:99px; overflow:hidden; margin:16px 0 8px; background:var(--line); }
+  .barra div { transition:width .3s; }
+  .ley { display:flex; gap:14px; flex-wrap:wrap; font-size:.82rem; color:var(--muted); }
+  .ley i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  .datos { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+  .dato { background:#f7f8fb; border-radius:10px; padding:10px 12px; }
+  .dato small { color:var(--muted); font-size:.78rem; display:block; }
+  .dato b { font-size:1.08rem; font-variant-numeric:tabular-nums; }
+  .botones { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+  .btn { padding:11px; border:none; border-radius:10px; background:var(--accent); color:#fff; font:inherit; font-weight:600; cursor:pointer; }
+  .btn.sec { background:#eef0f5; color:var(--txt); }
+  .hist { list-style:none; padding:0; margin:0; }
+  .hist li { display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .hist li:hover { background:#f7f8fb; }
+  .hist .n { flex:1; }
+  .hist .n small { display:block; color:var(--muted); font-size:.8rem; }
+  .hist .p { font-weight:700; font-variant-numeric:tabular-nums; }
+  .hist button { background:none; border:none; color:var(--muted); cursor:pointer; font-size:1rem; }
+  .hist button:hover { color:var(--err); }
+  .vacio { color:var(--muted); text-align:center; padding:14px; font-size:.9rem; }
+  .nota { font-size:.8rem; color:var(--muted); margin-top:12px; line-height:1.4; }
+  .aviso { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(120px); background:#1d2333; color:#fff; padding:12px 18px; border-radius:10px; font-size:.92rem; box-shadow:0 6px 20px rgba(0,0,0,.2); transition:transform .3s; z-index:10; max-width:90vw; }
+  .aviso.ver { transform:translateX(-50%) translateY(0); }
+  .aviso.error { background:var(--err); }
+  .soltar { position:fixed; inset:0; background:rgba(15,157,119,.12); border:3px dashed var(--accent); display:none; align-items:center; justify-content:center; font-size:1.3rem; font-weight:600; color:var(--accent); z-index:9; pointer-events:none; }
+  .soltar.ver { display:flex; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🚗 Calculadora de coste de viaje</h1>
+    <p>Combustible, peajes y gastos extra, con reparto entre pasajeros.</p>
+  </div>
+  <button class="btn sec" id="importar">📂 Importar viaje</button>
+  <input type="file" id="archivo" accept=".json,application/json" hidden>
+</header>
+
+<div class="wrap">
+
+  <!-- ENTRADA -->
+  <div class="card">
+    <h2>Datos del viaje</h2>
+
+    <div class="campos">
+      <label class="full">Nombre del viaje (se usa también como nombre del archivo)
+        <input type="text" id="nombre" placeholder="Ej. Utrera → Madrid">
+      </label>
+
+      <label>Distancia (solo ida)
+        <div class="input-u"><input type="number" id="km" min="0" step="any"><span>km</span></div>
+      </label>
+      <label>Velocidad media
+        <div class="input-u"><input type="number" id="vel" min="1" step="any"><span>km/h</span></div>
+      </label>
+
+      <label class="full switch"><input type="checkbox" id="idaVuelta"> Ida y vuelta (duplica distancia y peajes)</label>
+    </div>
+
+    <h3>Vehículo</h3>
+    <div class="seg" id="tipo">
+      <button data-t="gasolina">⛽ Gasolina</button>
+      <button data-t="diesel">🛢️ Diésel</button>
+      <button data-t="electrico">🔌 Eléctrico</button>
+    </div>
+    <div class="campos" style="margin-top:12px">
+      <label>Consumo medio
+        <div class="input-u"><input type="number" id="consumo" min="0" step="any"><span id="uCons">L/100 km</span></div>
+      </label>
+      <label>Precio
+        <div class="input-u"><input type="number" id="precio" min="0" step="any"><span id="uPrecio">€/L</span></div>
+      </label>
+      <label class="full">Capacidad del depósito / batería
+        <div class="input-u"><input type="number" id="deposito" min="0" step="any"><span id="uDep">L</span></div>
+      </label>
+    </div>
+
+    <h3>Otros gastos</h3>
+    <div class="campos">
+      <label>Peajes (solo ida)
+        <div class="input-u"><input type="number" id="peajes" min="0" step="any"><span>€</span></div>
+      </label>
+      <label>Parking, comidas, etc.
+        <div class="input-u"><input type="number" id="otros" min="0" step="any"><span>€</span></div>
+      </label>
+      <label class="full">Personas que pagan
+        <div class="input-u"><input type="number" id="personas" min="1" step="1"><span>personas</span></div>
+      </label>
+    </div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div style="display:grid; gap:16px">
+    <div class="card">
+      <div class="total">
+        <small>Coste total del viaje</small>
+        <strong id="rTotal">0,00 €</strong>
+        <span class="pp" id="rPersona"></span>
+      </div>
+
+      <div class="barra">
+        <div id="bFuel" style="background:var(--fuel)"></div>
+        <div id="bToll" style="background:var(--toll)"></div>
+        <div id="bOther" style="background:var(--other)"></div>
+      </div>
+      <div class="ley">
+        <span><i style="background:var(--fuel)"></i><span id="lFuel">Combustible</span></span>
+        <span><i style="background:var(--toll)"></i><span id="lToll">Peajes</span></span>
+        <span><i style="background:var(--other)"></i><span id="lOther">Otros</span></span>
+      </div>
+
+      <div class="datos">
+        <div class="dato"><small>Distancia total</small><b id="rKm">—</b></div>
+        <div class="dato"><small id="rCantLbl">Combustible necesario</small><b id="rCant">—</b></div>
+        <div class="dato"><small>Coste por km</small><b id="rPorKm">—</b></div>
+        <div class="dato"><small>Tiempo estimado al volante</small><b id="rTiempo">—</b></div>
+        <div class="dato"><small id="rRepLbl">Repostajes necesarios</small><b id="rRepost">—</b></div>
+        <div class="dato"><small>Emisiones CO₂ (escape)</small><b id="rCo2">—</b></div>
+      </div>
+
+      <div class="botones">
+        <button class="btn" id="guardar">💾 Guardar viaje</button>
+        <button class="btn sec" id="importar2">📂 Importar viaje</button>
+      </div>
+      <p class="nota">También puedes arrastrar un archivo de viaje sobre la página para cargarlo.<br>
+      Los repostajes cuentan saliendo con el depósito lleno. El CO₂ usa factores medios de 2,31 kg/L (gasolina) y 2,68 kg/L (diésel); el eléctrico no emite por el escape. El tiempo no incluye paradas.</p>
+    </div>
+
+    <div class="card">
+      <h2>Viajes recientes</h2>
+      <ul class="hist" id="hist"></ul>
+      <p class="nota">Lista rápida de los últimos viajes guardados o importados en este navegador. La copia que perdura es el archivo descargado.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="aviso" id="aviso"></div>
+<div class="soltar" id="soltar">Suelta aquí el archivo del viaje</div>
+
+<script>
+const TIPOS = {
+  gasolina:  { cons: 6.5, precio: 1.55, dep: 50, uCons: 'L/100 km',   uPrecio: '€/L',   uDep: 'L',   unidad: 'L',   co2: 2.31, lbl: 'Combustible' },
+  diesel:    { cons: 5.5, precio: 1.48, dep: 55, uCons: 'L/100 km',   uPrecio: '€/L',   uDep: 'L',   unidad: 'L',   co2: 2.68, lbl: 'Combustible' },
+  electrico: { cons: 17,  precio: 0.20, dep: 60, uCons: 'kWh/100 km', uPrecio: '€/kWh', uDep: 'kWh', unidad: 'kWh', co2: 0,    lbl: 'Electricidad' }
+};
+const APP_ID = 'calculadora-viaje';
+const KEY = 'calcViajeV1';
+const eur = n => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+const num = (n, d = 1) => n.toLocaleString('es-ES', { maximumFractionDigits: d, minimumFractionDigits: 0 });
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const $ = id => document.getElementById(id);
+const CAMPOS = ['nombre', 'km', 'vel', 'consumo', 'precio', 'deposito', 'peajes', 'otros', 'personas'];
+
+let datos = { tipo: 'gasolina', idaVuelta: true, km: 530, vel: 95, consumo: 6.5, precio: 1.55, deposito: 50, peajes: 0, otros: 20, personas: 2, nombre: 'Viaje de ejemplo' };
+let historial = [];
+try {
+  const s = JSON.parse(localStorage.getItem(KEY));
+  if (s) { datos = { ...datos, ...s.datos }; historial = s.historial || []; }
+} catch (e) {}
+
+const guardarLocal = () => { try { localStorage.setItem(KEY, JSON.stringify({ datos, historial })); } catch (e) {} };
+const val = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
+
+let temporizador;
+function avisar(texto, error = false) {
+  const a = $('aviso');
+  a.textContent = texto;
+  a.classList.toggle('error', error);
+  a.classList.add('ver');
+  clearTimeout(temporizador);
+  temporizador = setTimeout(() => a.classList.remove('ver'), 3500);
+}
+
+function volcarFormulario() {
+  CAMPOS.forEach(c => $(c).value = datos[c] ?? '');
+  $('idaVuelta').checked = datos.idaVuelta;
+  pintarTipo();
+}
+
+function pintarTipo() {
+  const t = TIPOS[datos.tipo];
+  document.querySelectorAll('#tipo button').forEach(b => b.classList.toggle('on', b.dataset.t === datos.tipo));
+  $('uCons').textContent = t.uCons;
+  $('uPrecio').textContent = t.uPrecio;
+  $('uDep').textContent = t.uDep;
+  $('rCantLbl').textContent = datos.tipo === 'electrico' ? 'Energía necesaria' : 'Combustible necesario';
+  $('rRepLbl').textContent = datos.tipo === 'electrico' ? 'Recargas necesarias' : 'Repostajes necesarios';
+}
+
+function calcular() {
+  CAMPOS.forEach(c => datos[c] = c === 'nombre' ? $(c).value : val(c));
+  datos.idaVuelta = $('idaVuelta').checked;
+  const t = TIPOS[datos.tipo];
+  const f = datos.idaVuelta ? 2 : 1;
+
+  const kmTot = datos.km * f;
+  const cantidad = datos.consumo ? kmTot * datos.consumo / 100 : 0;
+  const cFuel = cantidad * datos.precio;
+  const cToll = datos.peajes * f;
+  const cOther = datos.otros;
+  const total = cFuel + cToll + cOther;
+  const personas = Math.max(1, Math.round(datos.personas) || 1);
+
+  $('rTotal').textContent = eur(total);
+  $('rPersona').textContent = personas > 1 ? `${eur(total / personas)} por persona (${personas})` : '';
+
+  const pct = v => total ? (v / total * 100) + '%' : '0%';
+  $('bFuel').style.width = pct(cFuel);
+  $('bToll').style.width = pct(cToll);
+  $('bOther').style.width = pct(cOther);
+  $('lFuel').textContent = `${t.lbl} ${eur(cFuel)}`;
+  $('lToll').textContent = `Peajes ${eur(cToll)}`;
+  $('lOther').textContent = `Otros ${eur(cOther)}`;
+
+  $('rKm').textContent = `${num(kmTot, 0)} km`;
+  $('rCant').textContent = `${num(cantidad)} ${t.unidad}`;
+  $('rPorKm').textContent = kmTot ? `${num(total / kmTot * 100, 1)} cént.` : '—';
+
+  if (datos.vel > 0 && kmTot > 0) {
+    const min = Math.round(kmTot / datos.vel * 60);
+    $('rTiempo').textContent = `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')} min`;
+  } else $('rTiempo').textContent = '—';
+
+  if (datos.deposito > 0 && cantidad > 0) {
+    const autonomia = datos.deposito / datos.consumo * 100;
+    const paradas = Math.max(0, Math.ceil(cantidad / datos.deposito) - 1);
+    $('rRepost').textContent = `${paradas} · autonomía ${num(autonomia, 0)} km`;
+  } else $('rRepost').textContent = '—';
+
+  $('rCo2').textContent = t.co2 ? `${num(cantidad * t.co2)} kg` : '0 kg';
+
+  guardarLocal();
+  return { total, kmTot, personas, cFuel, cToll, cOther, cantidad };
+}
+
+function pintarHistorial() {
+  $('hist').innerHTML = historial.length
+    ? historial.map((h, i) => `
+      <li data-i="${i}">
+        <div class="n">${esc(h.datos.nombre || 'Sin nombre')}
+          <small>${num(h.kmTot, 0)} km · ${esc(h.datos.tipo)} · ${esc(h.fecha)}</small></div>
+        <span class="p">${eur(h.total)}</span>
+        <button title="Quitar de la lista" data-del="${i}">✕</button>
+      </li>`).join('')
+    : '<li class="vacio" style="cursor:default">Aún no hay viajes recientes</li>';
+}
+
+function añadirReciente(d, r) {
+  historial.unshift({ datos: { ...d }, total: r.total, kmTot: r.kmTot, fecha: new Date().toLocaleDateString('es-ES') });
+  historial = historial.slice(0, 30);
+  guardarLocal(); pintarHistorial();
+}
+
+/* ---------- Guardar en archivo ---------- */
+function nombreArchivo(nombre) {
+  const base = (nombre || 'viaje')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'viaje';
+  return `viaje-${base}.json`;
+}
+
+$('guardar').onclick = () => {
+  const r = calcular();
+  const contenido = {
+    app: APP_ID,
+    version: 1,
+    guardado: new Date().toISOString(),
+    datos: { ...datos },
+    resumen: {
+      total: +r.total.toFixed(2),
+      porPersona: +(r.total / r.personas).toFixed(2),
+      kmTotales: r.kmTot,
+      combustible: +r.cFuel.toFixed(2),
+      peajes: +r.cToll.toFixed(2),
+      otros: +r.cOther.toFixed(2),
+      cantidadEnergia: +r.cantidad.toFixed(2),
+      unidad: TIPOS[datos.tipo].unidad
+    }
+  };
+  const blob = new Blob([JSON.stringify(contenido, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nombreArchivo(datos.nombre);
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  añadirReciente(datos, r);
+  avisar(`Viaje guardado como ${a.download}`);
+};
+
+/* ---------- Importar desde archivo ---------- */
+function importarArchivo(file) {
+  if (!file) return;
+  file.text().then(texto => {
+    let obj;
+    try { obj = JSON.parse(texto); } catch { throw new Error('El archivo no es un JSON válido.'); }
+    if (!obj || obj.app !== APP_ID || !obj.datos) throw new Error('Este archivo no es un viaje de esta calculadora.');
+    const d = obj.datos;
+    const limpio = { ...datos };
+    limpio.tipo = TIPOS[d.tipo] ? d.tipo : 'gasolina';
+    limpio.idaVuelta = !!d.idaVuelta;
+    limpio.nombre = typeof d.nombre === 'string' ? d.nombre.slice(0, 120) : '';
+    ['km', 'vel', 'consumo', 'precio', 'deposito', 'peajes', 'otros', 'personas'].forEach(c => {
+      const v = parseFloat(d[c]);
+      limpio[c] = isNaN(v) || v < 0 ? 0 : v;
+    });
+    datos = limpio;
+    volcarFormulario();
+    const r = calcular();
+    añadirReciente(datos, r);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    avisar(`Cargado: ${datos.nombre || file.name}`);
+  }).catch(err => avisar(err.message || 'No se pudo leer el archivo.', true));
+}
+
+const abrirSelector = () => { $('archivo').value = ''; $('archivo').click(); };
+$('importar').onclick = abrirSelector;
+$('importar2').onclick = abrirSelector;
+$('archivo').onchange = e => importarArchivo(e.target.files[0]);
+
+// Arrastrar y soltar
+let contador = 0;
+window.addEventListener('dragenter', e => { e.preventDefault(); contador++; $('soltar').classList.add('ver'); });
+window.addEventListener('dragleave', () => { if (--contador <= 0) { contador = 0; $('soltar').classList.remove('ver'); } });
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => {
+  e.preventDefault(); contador = 0; $('soltar').classList.remove('ver');
+  importarArchivo(e.dataTransfer.files[0]);
+});
+
+/* ---------- Resto de eventos ---------- */
+document.querySelectorAll('#tipo button').forEach(b => b.onclick = () => {
+  datos.tipo = b.dataset.t;
+  const t = TIPOS[datos.tipo];
+  datos.consumo = t.cons; datos.precio = t.precio; datos.deposito = t.dep;
+  $('consumo').value = t.cons; $('precio').value = t.precio; $('deposito').value = t.dep;
+  pintarTipo(); calcular();
+});
+document.querySelectorAll('.wrap input').forEach(i => i.addEventListener('input', calcular));
+
+$('hist').onclick = e => {
+  const del = e.target.closest('[data-del]');
+  if (del) { historial.splice(+del.dataset.del, 1); guardarLocal(); pintarHistorial(); return; }
+  const li = e.target.closest('li[data-i]');
+  if (li) { datos = { ...historial[+li.dataset.i].datos }; volcarFormulario(); calcular(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+};
+
+volcarFormulario();
+calcular();
+pintarHistorial();
+</script>
+</body>
+</html>

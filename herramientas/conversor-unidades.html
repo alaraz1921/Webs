@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Utilidades: unidades, recetas, IVA y descuentos</title>
+<style>
+  :root { --bg:#f3f6f8; --card:#fff; --txt:#1d2333; --muted:#6b7385; --accent:#0c8599; --line:#e3e8ee; --ok:#12b886; --err:#e5484d; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--txt); }
+  header { background:var(--card); border-bottom:1px solid var(--line); padding:14px 20px 0; position:sticky; top:0; z-index:5; }
+  h1 { margin:0 0 10px; font-size:1.25rem; }
+  nav { display:flex; gap:4px; overflow-x:auto; }
+  nav button { border:none; background:none; padding:10px 14px; font:inherit; color:var(--muted); cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; }
+  nav button.on { color:var(--accent); border-bottom-color:var(--accent); font-weight:600; }
+  .wrap { max-width:1100px; margin:0 auto; padding:20px; }
+  .tab { display:none; }
+  .tab.on { display:grid; gap:16px; }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
+  .cols3 { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; align-items:start; }
+  @media (max-width:900px) { .cols, .cols3 { grid-template-columns:1fr; } }
+  .card { background:var(--card); border-radius:14px; padding:18px; box-shadow:0 1px 3px rgba(0,0,0,.06); display:grid; gap:12px; align-content:start; }
+  h2 { font-size:1rem; margin:0; }
+  label { display:grid; gap:5px; font-size:.88rem; color:var(--muted); }
+  input[type=text], select, textarea { font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:8px; width:100%; background:#fff; color:var(--txt); }
+  textarea { min-height:230px; resize:vertical; line-height:1.5; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(12,133,153,.15); }
+  .input-u { display:flex; align-items:center; border:1px solid var(--line); border-radius:8px; background:#fff; overflow:hidden; }
+  .input-u:focus-within { border-color:var(--accent); box-shadow:0 0 0 3px rgba(12,133,153,.15); }
+  .input-u input { border:none !important; box-shadow:none !important; padding:10px; font:inherit; color:var(--txt); width:100%; min-width:0; }
+  .input-u span { padding:0 10px; color:var(--muted); font-size:.85rem; white-space:nowrap; }
+  .grande input { font-size:1.4rem; font-weight:600; }
+  .seg { display:flex; flex-wrap:wrap; background:#eef1f4; border-radius:10px; padding:4px; gap:4px; }
+  .seg button { flex:1; border:none; background:none; padding:8px 8px; border-radius:8px; font:inherit; font-size:.9rem; cursor:pointer; color:var(--muted); white-space:nowrap; }
+  .seg button.on { background:#fff; color:var(--txt); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.1); }
+  .btn { padding:9px 14px; border:none; border-radius:10px; background:var(--accent); color:#fff; font:inherit; font-weight:600; cursor:pointer; }
+  .btn.sec { background:#eef1f4; color:var(--txt); }
+  .btn.peq { padding:6px 11px; font-size:.85rem; }
+  .acciones { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .conv { display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:end; }
+  @media (max-width:600px) { .conv { grid-template-columns:1fr; } }
+  .swap { width:44px; height:42px; border-radius:50%; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:1.1rem; }
+  .resultado { background:linear-gradient(135deg, #0c8599, #1098ad); color:#fff; border-radius:12px; padding:16px 18px; }
+  .resultado small { opacity:.85; font-size:.85rem; }
+  .resultado strong { display:block; font-size:2rem; font-variant-numeric:tabular-nums; margin:2px 0; word-break:break-all; }
+  .resultado .sub { opacity:.85; font-size:.85rem; }
+  .lista { list-style:none; margin:0; padding:0; }
+  .lista li { display:flex; justify-content:space-between; gap:10px; padding:8px 4px; border-bottom:1px solid var(--line); font-size:.92rem; }
+  .lista li b { font-variant-numeric:tabular-nums; text-align:right; }
+  .lista li.sel { background:#e6f6f8; border-radius:6px; }
+  .filas { display:grid; gap:0; }
+  .fila { display:flex; justify-content:space-between; padding:9px 2px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  .fila.total { font-size:1.2rem; font-weight:700; border-bottom:none; padding-top:12px; }
+  .fila .neg { color:var(--err); }
+  .rac { display:flex; align-items:center; gap:8px; }
+  .rac button { width:38px; height:38px; border-radius:10px; border:1px solid var(--line); background:#fff; font-size:1.2rem; cursor:pointer; }
+  .rac input { width:80px; text-align:center; font-size:1.2rem; font-weight:600; }
+  .factor { background:#e6f6f8; color:var(--accent); border-radius:99px; padding:4px 12px; font-weight:700; font-size:.9rem; }
+  .ingredientes { list-style:none; padding:0; margin:0; }
+  .ingredientes li { padding:8px 4px; border-bottom:1px dashed var(--line); }
+  .ingredientes li b { color:var(--accent); }
+  .ingredientes li.igual { color:var(--muted); }
+  .recetas li { cursor:pointer; align-items:center; }
+  .recetas li:hover { background:#f5f8fa; }
+  .x { background:none; border:none; color:var(--muted); cursor:pointer; font-size:1rem; }
+  .x:hover { color:var(--err); }
+  table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  th, td { padding:8px 6px; border-bottom:1px solid var(--line); text-align:right; font-variant-numeric:tabular-nums; }
+  th { color:var(--muted); font-weight:600; font-size:.8rem; }
+  th:first-child, td:first-child { text-align:left; }
+  tr.mejor td { background:#e9f9f2; font-weight:600; }
+  .switch { display:flex; align-items:center; gap:10px; color:var(--txt); font-size:.92rem; cursor:pointer; }
+  .switch input { width:18px; height:18px; accent-color:var(--accent); }
+  .nota { font-size:.8rem; color:var(--muted); margin:0; line-height:1.45; }
+  .vacio { color:var(--muted); text-align:center; padding:12px; font-size:.9rem; }
+  .oculto { display:none !important; }
+  .aviso { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(140px); background:#1d2333; color:#fff; padding:12px 18px; border-radius:10px; font-size:.92rem; box-shadow:0 6px 20px rgba(0,0,0,.2); transition:transform .3s; z-index:10; max-width:90vw; }
+  .aviso.ver { transform:translateX(-50%) translateY(0); }
+  .aviso.error { background:var(--err); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧰 Utilidades</h1>
+  <nav id="tabs">
+    <button data-tab="unidades">📏 Unidades</button>
+    <button data-tab="recetas">🍰 Recetas</button>
+    <button data-tab="iva">🧾 IVA</button>
+    <button data-tab="descuentos">🏷️ Descuentos</button>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <!-- ================= UNIDADES ================= -->
+  <section class="tab" id="tab-unidades">
+    <div class="cols">
+      <div class="card">
+        <h2>Conversor de unidades</h2>
+        <label>Tipo de medida <select id="uCat"></select></label>
+        <label>Valor
+          <div class="input-u grande"><input type="text" inputmode="decimal" id="uValor" value="1"></div>
+        </label>
+        <div class="conv">
+          <label>De <select id="uDe"></select></label>
+          <button class="swap" id="uSwap" title="Intercambiar">⇄</button>
+          <label>A <select id="uA"></select></label>
+        </div>
+        <div class="resultado">
+          <small id="uResTit"></small>
+          <strong id="uRes">—</strong>
+          <div class="sub" id="uResSub"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2 id="uEqTit">Equivalencias</h2>
+        <ul class="lista" id="uEq"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RECETAS ================= -->
+  <section class="tab" id="tab-recetas">
+    <div class="cols">
+      <div class="card">
+        <h2>Receta original</h2>
+        <label>Nombre <input type="text" id="rNombre" maxlength="80"></label>
+        <label>Ingredientes (uno por línea, con la cantidad delante)
+          <textarea id="rTexto" spellcheck="false"></textarea>
+        </label>
+        <p class="nota">Entiende cantidades como <b>250 g</b>, <b>1,5 l</b>, <b>1/2</b>, <b>1 1/2</b>, <b>½</b> o rangos como <b>2-3</b>. Las líneas sin cantidad delante (por ejemplo, "sal al gusto") se dejan igual.</p>
+        <div class="acciones">
+          <button class="btn" id="rGuardar">💾 Guardar receta</button>
+          <button class="btn sec" id="rNueva">Nueva</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Receta escalada</h2>
+        <div class="cols" style="gap:12px">
+          <label>Raciones de la receta
+            <div class="rac"><button data-r="base" data-d="-1">−</button><input type="text" inputmode="decimal" id="rBase"><button data-r="base" data-d="1">+</button></div>
+          </label>
+          <label>Raciones que quieres
+            <div class="rac"><button data-r="des" data-d="-1">−</button><input type="text" inputmode="decimal" id="rDes"><button data-r="des" data-d="1">+</button></div>
+          </label>
+        </div>
+        <div class="acciones">
+          <span class="factor" id="rFactor">×1</span>
+          <button class="btn sec peq" data-mult="0.5">Mitad</button>
+          <button class="btn sec peq" data-mult="2">Doble</button>
+          <button class="btn sec peq" data-mult="3">Triple</button>
+          <span style="flex:1"></span>
+          <button class="btn sec peq" id="rCopiar">📋 Copiar</button>
+        </div>
+        <ul class="ingredientes" id="rSalida"></ul>
+        <p class="nota">Los gramos y mililitros se redondean y pasan a kg o litros a partir de 1.000. El resto se muestra en fracciones de cocina (½, ¼, ⅓…) cuando encaja. Ojo con los tiempos de horno y los moldes: al cambiar mucho la cantidad, también pueden cambiar.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="acciones">
+        <h2 style="flex:1">Mis recetas</h2>
+        <button class="btn sec peq" id="rExportar">Exportar a archivo</button>
+        <button class="btn sec peq" id="rImportar">Importar archivo</button>
+        <input type="file" id="rArchivo" accept=".json,application/json" hidden>
+      </div>
+      <ul class="lista recetas" id="rLista"></ul>
+    </div>
+  </section>
+
+  <!-- ================= IVA ================= -->
+  <section class="tab" id="tab-iva">
+    <div class="cols">
+      <div class="card">
+        <h2>Calculadora de IVA</h2>
+        <div class="seg" id="ivaModo">
+          <button data-m="base">Tengo el precio sin IVA</button>
+          <button data-m="total">Tengo el precio final</button>
+        </div>
+        <label><span id="ivaLbl">Base imponible (sin IVA)</span>
+          <div class="input-u grande"><input type="text" inputmode="decimal" id="ivaImporte" value="100"><span>€</span></div>
+        </label>
+        <label>Tipo de IVA</label>
+        <div class="seg" id="ivaTipos">
+          <button data-v="21">21 % general</button>
+          <button data-v="10">10 % reducido</button>
+          <button data-v="4">4 % superred.</button>
+          <button data-v="0">0 %</button>
+        </div>
+        <label>Otro porcentaje
+          <div class="input-u"><input type="text" inputmode="decimal" id="ivaOtro"><span>%</span></div>
+        </label>
+        <label class="switch"><input type="checkbox" id="irpfOn"> Aplicar retención de IRPF (facturas de autónomos)</label>
+        <div id="irpfBox" class="oculto" style="display:grid; gap:10px">
+          <div class="seg" id="irpfTipos">
+            <button data-v="15">15 % general</button>
+            <button data-v="7">7 % inicio actividad</button>
+          </div>
+          <label>Otro porcentaje de retención
+            <div class="input-u"><input type="text" inputmode="decimal" id="irpfOtro"><span>%</span></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Resultado</h2>
+        <div class="filas" id="ivaRes"></div>
+        <h2 style="margin-top:8px">Comparativa con la misma base</h2>
+        <table id="ivaComp"></table>
+        <p class="nota">Qué tipo corresponde depende del producto o servicio; ante la duda, consulta la Agencia Tributaria o a tu gestor.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DESCUENTOS ================= -->
+  <section class="tab" id="tab-descuentos">
+    <div class="cols3">
+      <div class="card">
+        <h2>Precio con descuento</h2>
+        <label>Precio original
+          <div class="input-u"><input type="text" inputmode="decimal" id="dPrecio" value="80"><span>€</span></div>
+        </label>
+        <label>Descuento
+          <div class="input-u"><input type="text" inputmode="decimal" id="dPct1" value="30"><span>%</span></div>
+        </label>
+        <label>Descuento adicional (opcional)
+          <div class="input-u"><input type="text" inputmode="decimal" id="dPct2" placeholder="Ej. 10 % extra en caja"><span>%</span></div>
+        </label>
+        <div class="resultado">
+          <small>Pagas</small>
+          <strong id="dFinal">—</strong>
+          <div class="sub" id="dFinalSub"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>¿Cuánto me han descontado?</h2>
+        <label>Precio original
+          <div class="input-u"><input type="text" inputmode="decimal" id="qAntes" value="59,99"><span>€</span></div>
+        </label>
+        <label>Precio rebajado
+          <div class="input-u"><input type="text" inputmode="decimal" id="qDespues" value="44,99"><span>€</span></div>
+        </label>
+        <div class="resultado">
+          <small>Descuento</small>
+          <strong id="qPct">—</strong>
+          <div class="sub" id="qSub"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Comparar ofertas</h2>
+        <label>Precio por unidad
+          <div class="input-u"><input type="text" inputmode="decimal" id="oPrecio" value="3,50"><span>€</span></div>
+        </label>
+        <label>Unidades que te llevas
+          <div class="input-u"><input type="text" inputmode="numeric" id="oUnid" value="3"><span>uds.</span></div>
+        </label>
+        <table id="oTabla"></table>
+        <p class="nota">Las ofertas se aplican por grupos completos: con un 3x2 y 4 unidades, pagas 3. En verde, la que sale más barata con esas unidades.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="aviso" id="aviso"></div>
+
+<script>
+/* ================= UTILIDADES COMUNES ================= */
+const $ = id => document.getElementById(id);
+const KEY = 'utilidadesV1';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function parseNum(s) {
+  s = String(s).trim().replace(/\s/g, '');
+  if (s.indexOf('.') >= 0 && s.indexOf(',') >= 0) s = s.replace(/\./g, '');
+  const n = parseFloat(s.replace(',', '.'));
+  return isNaN(n) ? NaN : n;
+}
+const dec = (v, d) => v.toLocaleString('es-ES', { maximumFractionDigits: d });
+const eur = v => isFinite(v) ? v.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }) : '—';
+const pct = v => isFinite(v) ? dec(v, 2) + ' %' : '—';
+function fmtSig(v) {
+  if (!isFinite(v)) return '—';
+  const a = Math.abs(v);
+  if (a !== 0 && (a >= 1e12 || a < 1e-6)) return v.toExponential(4).replace('.', ',');
+  return v.toLocaleString('es-ES', { maximumSignificantDigits: 8 });
+}
+
+let datos = { tab: 'unidades', uCat: 'longitud', receta: null, recetas: [] };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) datos = Object.assign(datos, s); } catch (e) {}
+function guardarLocal() { try { localStorage.setItem(KEY, JSON.stringify(datos)); } catch (e) {} }
+
+let tmr;
+function avisar(t, error) {
+  const a = $('aviso'); a.textContent = t; a.classList.toggle('error', !!error); a.classList.add('ver');
+  clearTimeout(tmr); tmr = setTimeout(() => a.classList.remove('ver'), 3000);
+}
+function copiar(txt) {
+  const ok = () => avisar('Copiado al portapapeles');
+  const viejo = () => {
+    const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); let r = false; try { r = document.execCommand('copy'); } catch (e) {} ta.remove();
+    r ? ok() : avisar('No se pudo copiar', true);
+  };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(ok).catch(viejo);
+  else viejo();
+}
+
+/* Pestañas */
+function abrirTab(t) {
+  datos.tab = t; guardarLocal();
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  document.querySelectorAll('.tab').forEach(s => s.classList.toggle('on', s.id === 'tab-' + t));
+}
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => abrirTab(b.dataset.tab));
+
+/* ================= UNIDADES ================= */
+const UNIDADES = {
+  longitud: { nombre: 'Longitud', def: ['km', 'mi'], u: {
+    mm: ['Milímetros', 'mm', 0.001], cm: ['Centímetros', 'cm', 0.01], m: ['Metros', 'm', 1], km: ['Kilómetros', 'km', 1000],
+    in: ['Pulgadas', 'in', 0.0254], ft: ['Pies', 'ft', 0.3048], yd: ['Yardas', 'yd', 0.9144], mi: ['Millas', 'mi', 1609.344], nmi: ['Millas náuticas', 'nmi', 1852] } },
+  masa: { nombre: 'Peso / masa', def: ['kg', 'lb'], u: {
+    mg: ['Miligramos', 'mg', 1e-6], g: ['Gramos', 'g', 0.001], kg: ['Kilogramos', 'kg', 1], t: ['Toneladas', 't', 1000],
+    oz: ['Onzas', 'oz', 0.028349523125], lb: ['Libras', 'lb', 0.45359237], st: ['Stones', 'st', 6.35029318] } },
+  volumen: { nombre: 'Volumen', def: ['l', 'galus'], u: {
+    ml: ['Mililitros', 'ml', 0.001], cl: ['Centilitros', 'cl', 0.01], dl: ['Decilitros', 'dl', 0.1], l: ['Litros', 'l', 1], m3: ['Metros cúbicos', 'm³', 1000],
+    cdta: ['Cucharaditas', 'cdta', 0.005], cda: ['Cucharadas', 'cda', 0.015], taza: ['Tazas (EE. UU.)', 'taza', 0.2365882365],
+    flozus: ['Onzas líquidas (EE. UU.)', 'fl oz', 0.0295735295625], pintus: ['Pintas (EE. UU.)', 'pt', 0.473176473], pintuk: ['Pintas (R. Unido)', 'pt UK', 0.56826125],
+    galus: ['Galones (EE. UU.)', 'gal', 3.785411784], galuk: ['Galones (R. Unido)', 'gal UK', 4.54609] } },
+  superficie: { nombre: 'Superficie', def: ['m2', 'ft2'], u: {
+    cm2: ['Centímetros cuadrados', 'cm²', 1e-4], m2: ['Metros cuadrados', 'm²', 1], a: ['Áreas', 'a', 100], ha: ['Hectáreas', 'ha', 10000],
+    km2: ['Kilómetros cuadrados', 'km²', 1e6], ft2: ['Pies cuadrados', 'ft²', 0.09290304], ac: ['Acres', 'ac', 4046.8564224] } },
+  temperatura: { nombre: 'Temperatura', def: ['C', 'F'], especial: 'temp', u: {
+    C: ['Grados Celsius', '°C'], F: ['Grados Fahrenheit', '°F'], K: ['Kelvin', 'K'] } },
+  velocidad: { nombre: 'Velocidad', def: ['kmh', 'mph'], u: {
+    ms: ['Metros por segundo', 'm/s', 1], kmh: ['Kilómetros por hora', 'km/h', 1 / 3.6], mph: ['Millas por hora', 'mph', 0.44704], kn: ['Nudos', 'kn', 1852 / 3600] } },
+  tiempo: { nombre: 'Tiempo', def: ['h', 'min'], u: {
+    s: ['Segundos', 's', 1], min: ['Minutos', 'min', 60], h: ['Horas', 'h', 3600], d: ['Días', 'd', 86400],
+    sem: ['Semanas', 'sem', 604800], mes: ['Meses (promedio)', 'meses', 2629800], an: ['Años', 'años', 31557600] } },
+  datos: { nombre: 'Datos digitales', def: ['GB', 'MB'], u: {
+    bit: ['Bits', 'bit', 0.125], B: ['Bytes', 'B', 1], KB: ['Kilobytes', 'KB', 1e3], MB: ['Megabytes', 'MB', 1e6], GB: ['Gigabytes', 'GB', 1e9], TB: ['Terabytes', 'TB', 1e12],
+    KiB: ['Kibibytes', 'KiB', 1024], MiB: ['Mebibytes', 'MiB', 1048576], GiB: ['Gibibytes', 'GiB', 1073741824] } },
+  energia: { nombre: 'Energía', def: ['kcal', 'kJ'], u: {
+    J: ['Julios', 'J', 1], kJ: ['Kilojulios', 'kJ', 1000], cal: ['Calorías', 'cal', 4.184], kcal: ['Kilocalorías', 'kcal', 4184], Wh: ['Vatios hora', 'Wh', 3600], kWh: ['Kilovatios hora', 'kWh', 3.6e6] } },
+  consumo: { nombre: 'Consumo de combustible', def: ['l100', 'mpgus'], especial: 'consumo', u: {
+    l100: ['Litros cada 100 km', 'L/100 km'], kml: ['Kilómetros por litro', 'km/L'], mpgus: ['Millas por galón (EE. UU.)', 'mpg US'], mpguk: ['Millas por galón (R. Unido)', 'mpg UK'] } }
+};
+
+function aBase(cat, u, v) {
+  const c = UNIDADES[cat];
+  if (c.especial === 'temp') return u === 'C' ? v : u === 'F' ? (v - 32) * 5 / 9 : v - 273.15;
+  if (c.especial === 'consumo') {
+    if (u === 'l100') return 100 / v;
+    if (u === 'kml') return v;
+    if (u === 'mpgus') return v * 1.609344 / 3.785411784;
+    return v * 1.609344 / 4.54609;
+  }
+  return v * c.u[u][2];
+}
+function deBase(cat, u, b) {
+  const c = UNIDADES[cat];
+  if (c.especial === 'temp') return u === 'C' ? b : u === 'F' ? b * 9 / 5 + 32 : b + 273.15;
+  if (c.especial === 'consumo') {
+    if (u === 'l100') return 100 / b;
+    if (u === 'kml') return b;
+    if (u === 'mpgus') return b * 3.785411784 / 1.609344;
+    return b * 4.54609 / 1.609344;
+  }
+  return b / c.u[u][2];
+}
+
+function pintarUnidades(cat) {
+  const c = UNIDADES[cat];
+  const opts = Object.keys(c.u).map(k => '<option value="' + k + '">' + c.u[k][0] + ' (' + c.u[k][1] + ')</option>').join('');
+  $('uDe').innerHTML = opts; $('uA').innerHTML = opts;
+  $('uDe').value = c.def[0]; $('uA').value = c.def[1];
+  if (c.especial === 'temp') $('uValor').value = '20';
+  else if (c.especial === 'consumo') $('uValor').value = '6,5';
+  else $('uValor').value = '1';
+}
+
+function convertir() {
+  const cat = $('uCat').value, c = UNIDADES[cat];
+  const de = $('uDe').value, a = $('uA').value;
+  const v = parseNum($('uValor').value);
+  $('uResTit').textContent = isNaN(v) ? 'Introduce un número' : fmtSig(v) + ' ' + c.u[de][1] + ' son';
+  if (isNaN(v)) { $('uRes').textContent = '—'; $('uResSub').textContent = ''; $('uEq').innerHTML = ''; return; }
+  const base = aBase(cat, de, v);
+  $('uRes').textContent = fmtSig(deBase(cat, a, base)) + ' ' + c.u[a][1];
+  if (c.especial === 'temp') $('uResSub').textContent = 'Fórmula: °F = °C × 9/5 + 32 · K = °C + 273,15';
+  else if (c.especial === 'consumo') $('uResSub').textContent = 'Menos L/100 km = más eficiente; más km/L o mpg = más eficiente';
+  else $('uResSub').textContent = '1 ' + c.u[de][1] + ' = ' + fmtSig(deBase(cat, a, aBase(cat, de, 1))) + ' ' + c.u[a][1];
+  $('uEqTit').textContent = 'Equivalencias de ' + fmtSig(v) + ' ' + c.u[de][1];
+  $('uEq').innerHTML = Object.keys(c.u).filter(k => k !== de).map(k =>
+    '<li class="' + (k === a ? 'sel' : '') + '"><span>' + c.u[k][0] + '</span><b>' + fmtSig(deBase(cat, k, base)) + ' ' + c.u[k][1] + '</b></li>').join('');
+}
+
+$('uCat').innerHTML = Object.keys(UNIDADES).map(k => '<option value="' + k + '">' + UNIDADES[k].nombre + '</option>').join('');
+$('uCat').value = UNIDADES[datos.uCat] ? datos.uCat : 'longitud';
+pintarUnidades($('uCat').value);
+$('uCat').onchange = () => { datos.uCat = $('uCat').value; guardarLocal(); pintarUnidades(datos.uCat); convertir(); };
+['uDe', 'uA'].forEach(id => $(id).onchange = convertir);
+$('uValor').oninput = convertir;
+$('uSwap').onclick = () => { const t = $('uDe').value; $('uDe').value = $('uA').value; $('uA').value = t; convertir(); };
+convertir();
+
+/* ================= RECETAS ================= */
+const RECETA_EJEMPLO = {
+  nombre: 'Bizcocho de yogur', base: 8, deseadas: 12,
+  texto: '3 huevos\n250 g de harina de trigo\n200 g de azúcar\n1 yogur natural\n120 ml de aceite de girasol\n16 g de levadura química\n1/2 cucharadita de canela\n1 limón (la ralladura)\nUna pizca de sal'
+};
+const FRAC = { '½': 0.5, '⅓': 1 / 3, '⅔': 2 / 3, '¼': 0.25, '¾': 0.75, '⅛': 0.125 };
+const QTY = '(\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[.,]\\d+)?[½⅓⅔¼¾⅛]?|[½⅓⅔¼¾⅛])';
+const RE_LINEA = new RegExp('^(\\s*)' + QTY + '(?:\\s*[-–]\\s*' + QTY + ')?(.*)$');
+const U_G = ['g', 'gr', 'gramo', 'gramos'];
+const U_ML = ['ml', 'mililitro', 'mililitros'];
+const U_DEC = ['kg', 'kilo', 'kilos', 'kilogramo', 'kilogramos', 'l', 'litro', 'litros', 'cl', 'dl'];
+
+function parseQty(s) {
+  s = s.trim();
+  let m = s.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+  if (m) return +m[1] + (+m[3] ? m[2] / m[3] : 0);
+  m = s.match(/^(\d+)\/(\d+)$/);
+  if (m) return +m[2] ? m[1] / m[2] : 0;
+  const ult = s.slice(-1);
+  if (FRAC[ult] !== undefined) { const r = s.slice(0, -1); return (r ? parseFloat(r.replace(',', '.')) : 0) + FRAC[ult]; }
+  return parseFloat(s.replace(',', '.'));
+}
+function fraccion(v) {
+  const ent = Math.floor(v), d = v - ent;
+  const F = [[0, ''], [0.125, '⅛'], [0.25, '¼'], [1 / 3, '⅓'], [0.5, '½'], [2 / 3, '⅔'], [0.75, '¾'], [1, '']];
+  let mejor = F[0], err = 1;
+  F.forEach(f => { const e = Math.abs(d - f[0]); if (e < err) { err = e; mejor = f; } });
+  if (err <= 0.04) { const e2 = ent + (mejor[0] === 1 ? 1 : 0); return ((e2 ? String(e2) : '') + mejor[1]) || '0'; }
+  return dec(v, 2);
+}
+function fmtCantidad(v, unidad, sinConvertir) {
+  const u = unidad.toLowerCase().replace(/\.$/, '');
+  if (U_G.indexOf(u) >= 0) { if (v >= 1000 && !sinConvertir) return [dec(v / 1000, 2), 'kg']; return [dec(v >= 10 ? Math.round(v) : v, 1), unidad]; }
+  if (U_ML.indexOf(u) >= 0) { if (v >= 1000 && !sinConvertir) return [dec(v / 1000, 2), 'l']; return [dec(v >= 10 ? Math.round(v) : v, 1), unidad]; }
+  if (U_DEC.indexOf(u) >= 0) return [dec(v, 2), unidad];
+  return [fraccion(v), unidad];
+}
+function escalarLinea(linea, f) {
+  const l = linea.trim();
+  const m = l.match(RE_LINEA);
+  if (!m) return { texto: l, html: esc(l), igual: true };
+  const q1 = parseQty(m[2]) * f;
+  const q2 = m[3] ? parseQty(m[3]) * f : null;
+  const resto = m[4];
+  const um = resto.match(/^(\s*)([A-Za-zÁÉÍÓÚáéíóúÑñü.]+)(.*)$/);
+  const unidad = um ? um[2] : '', sep = um ? um[1] : '', cola = um ? um[3] : resto;
+  let a = fmtCantidad(q1, unidad), cant = a[0], uni = a[1];
+  if (q2 !== null) {
+    let b = fmtCantidad(q2, unidad);
+    if (b[1] !== a[1]) { a = fmtCantidad(q1, unidad, true); b = fmtCantidad(q2, unidad, true); uni = unidad; cant = a[0]; }
+    cant = cant + '–' + b[0];
+  }
+  const tramoUnidad = unidad ? sep + uni : '';
+  return { texto: cant + tramoUnidad + cola, html: '<b>' + esc(cant) + '</b>' + esc(tramoUnidad + cola), igual: false };
+}
+
+let receta = datos.receta || JSON.parse(JSON.stringify(RECETA_EJEMPLO));
+function volcarReceta() {
+  $('rNombre').value = receta.nombre;
+  $('rTexto').value = receta.texto;
+  $('rBase').value = dec(receta.base, 2);
+  $('rDes').value = dec(receta.deseadas, 2);
+}
+function escalar() {
+  receta.nombre = $('rNombre').value;
+  receta.texto = $('rTexto').value;
+  const b = parseNum($('rBase').value), d = parseNum($('rDes').value);
+  receta.base = b > 0 ? b : 1; receta.deseadas = d > 0 ? d : 1;
+  datos.receta = receta; guardarLocal();
+  const f = receta.deseadas / receta.base;
+  $('rFactor').textContent = '×' + dec(f, 3);
+  const lineas = receta.texto.split('\n').filter(l => l.trim());
+  $('rSalida').innerHTML = lineas.length
+    ? lineas.map(l => { const r = escalarLinea(l, f); return '<li class="' + (r.igual ? 'igual' : '') + '">' + r.html + '</li>'; }).join('')
+    : '<li class="vacio">Escribe los ingredientes a la izquierda</li>';
+}
+function textoEscalado() {
+  const f = receta.deseadas / receta.base;
+  return (receta.nombre || 'Receta') + ' (' + dec(receta.deseadas, 2) + ' raciones)\n' +
+    receta.texto.split('\n').filter(l => l.trim()).map(l => '• ' + escalarLinea(l, f).texto).join('\n');
+}
+function pintarRecetas() {
+  $('rLista').innerHTML = datos.recetas.length
+    ? datos.recetas.map((r, i) => '<li data-i="' + i + '"><span>🍽️ ' + esc(r.nombre) + ' <small style="color:var(--muted)">· ' + dec(r.base, 2) + ' raciones</small></span>' +
+        '<button class="x" data-del="' + i + '" title="Borrar">✕</button></li>').join('')
+    : '<li class="vacio" style="cursor:default;justify-content:center">Aún no has guardado recetas</li>';
+}
+
+['rNombre', 'rTexto', 'rBase', 'rDes'].forEach(id => $(id).addEventListener('input', escalar));
+document.querySelectorAll('.rac button').forEach(b => b.onclick = () => {
+  const id = b.dataset.r === 'base' ? 'rBase' : 'rDes';
+  const v = parseNum($(id).value) || 0;
+  $(id).value = dec(Math.max(1, Math.round(v) + Number(b.dataset.d)), 2);
+  escalar();
+});
+document.querySelectorAll('[data-mult]').forEach(b => b.onclick = () => {
+  $('rDes').value = dec(receta.base * Number(b.dataset.mult), 2); escalar();
+});
+$('rCopiar').onclick = () => copiar(textoEscalado());
+$('rGuardar').onclick = () => {
+  escalar();
+  const nombre = (receta.nombre || '').trim();
+  if (!nombre) return avisar('Ponle un nombre a la receta', true);
+  const copia = { nombre: nombre, base: receta.base, texto: receta.texto };
+  const i = datos.recetas.findIndex(r => r.nombre.toLowerCase() === nombre.toLowerCase());
+  if (i >= 0) datos.recetas[i] = copia; else datos.recetas.push(copia);
+  datos.recetas.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+  guardarLocal(); pintarRecetas();
+  avisar(i >= 0 ? 'Receta actualizada' : 'Receta guardada');
+};
+$('rNueva').onclick = () => { receta = { nombre: '', base: 4, deseadas: 4, texto: '' }; volcarReceta(); escalar(); $('rNombre').focus(); };
+$('rLista').onclick = e => {
+  const del = e.target.closest('[data-del]');
+  if (del) {
+    const r = datos.recetas[+del.dataset.del];
+    if (confirm('¿Borrar la receta "' + r.nombre + '"?')) { datos.recetas.splice(+del.dataset.del, 1); guardarLocal(); pintarRecetas(); }
+    return;
+  }
+  const li = e.target.closest('li[data-i]');
+  if (li) {
+    const r = datos.recetas[+li.dataset.i];
+    receta = { nombre: r.nombre, base: r.base, deseadas: r.base, texto: r.texto };
+    volcarReceta(); escalar(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
+$('rExportar').onclick = () => {
+  if (!datos.recetas.length) return avisar('No hay recetas guardadas para exportar', true);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({ app: 'utilidades-recetas', version: 1, recetas: datos.recetas }, null, 2)], { type: 'application/json' }));
+  a.download = 'mis-recetas.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  avisar('Exportadas ' + datos.recetas.length + ' recetas');
+};
+$('rImportar').onclick = () => { $('rArchivo').value = ''; $('rArchivo').click(); };
+$('rArchivo').onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  file.text().then(t => {
+    let obj;
+    try { obj = JSON.parse(t); } catch (err) { throw new Error('El archivo no es un JSON válido.'); }
+    if (!obj || obj.app !== 'utilidades-recetas' || !Array.isArray(obj.recetas)) throw new Error('Este archivo no es de recetas.');
+    let n = 0;
+    obj.recetas.forEach(r => {
+      if (!r || typeof r.nombre !== 'string' || typeof r.texto !== 'string') return;
+      const copia = { nombre: r.nombre.slice(0, 80), base: Number(r.base) > 0 ? Number(r.base) : 4, texto: r.texto.slice(0, 5000) };
+      const i = datos.recetas.findIndex(x => x.nombre.toLowerCase() === copia.nombre.toLowerCase());
+      if (i >= 0) datos.recetas[i] = copia; else datos.recetas.push(copia);
+      n++;
+    });
+    datos.recetas.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    guardarLocal(); pintarRecetas();
+    avisar('Importadas ' + n + ' recetas');
+  }).catch(err => avisar(err.message, true));
+};
+volcarReceta(); escalar(); pintarRecetas();
+
+/* ================= IVA ================= */
+let ivaModo = 'base', ivaTipo = 21, irpfTipo = 15;
+function calcIVA() {
+  document.querySelectorAll('#ivaModo button').forEach(b => b.classList.toggle('on', b.dataset.m === ivaModo));
+  document.querySelectorAll('#ivaTipos button').forEach(b => b.classList.toggle('on', Number(b.dataset.v) === ivaTipo));
+  document.querySelectorAll('#irpfTipos button').forEach(b => b.classList.toggle('on', Number(b.dataset.v) === irpfTipo));
+  const irpf = $('irpfOn').checked;
+  $('irpfBox').classList.toggle('oculto', !irpf);
+  $('ivaLbl').textContent = ivaModo === 'base' ? 'Base imponible (sin IVA)' : (irpf ? 'Total de la factura (lo que se cobra)' : 'Precio final (con IVA)');
+  const imp = parseNum($('ivaImporte').value);
+  if (isNaN(imp)) { $('ivaRes').innerHTML = '<div class="vacio">Introduce un importe</div>'; $('ivaComp').innerHTML = ''; return; }
+  const i = ivaTipo / 100, r = irpf ? irpfTipo / 100 : 0;
+  const base = ivaModo === 'base' ? imp : imp / (1 + i - r);
+  const cuotaIva = base * i, ret = base * r, total = base + cuotaIva - ret;
+  $('ivaRes').innerHTML =
+    '<div class="fila"><span>Base imponible</span><span>' + eur(base) + '</span></div>' +
+    '<div class="fila"><span>IVA (' + dec(ivaTipo, 2) + ' %)</span><span>+ ' + eur(cuotaIva) + '</span></div>' +
+    (irpf ? '<div class="fila"><span>Retención IRPF (' + dec(irpfTipo, 2) + ' %)</span><span class="neg">− ' + eur(ret) + '</span></div>' : '') +
+    '<div class="fila total"><span>' + (irpf ? 'Total factura' : 'Total con IVA') + '</span><span>' + eur(total) + '</span></div>';
+  $('ivaComp').innerHTML = '<thead><tr><th>Tipo</th><th>IVA</th>' + (irpf ? '<th>Retención</th>' : '') + '<th>Total</th></tr></thead><tbody>' +
+    [21, 10, 4, 0].map(t => '<tr' + (t === ivaTipo ? ' class="mejor"' : '') + '><td>' + t + ' %</td><td>' + eur(base * t / 100) + '</td>' +
+      (irpf ? '<td>− ' + eur(ret) + '</td>' : '') + '<td>' + eur(base * (1 + t / 100) - ret) + '</td></tr>').join('') + '</tbody>';
+}
+document.querySelectorAll('#ivaModo button').forEach(b => b.onclick = () => { ivaModo = b.dataset.m; calcIVA(); });
+document.querySelectorAll('#ivaTipos button').forEach(b => b.onclick = () => { ivaTipo = Number(b.dataset.v); $('ivaOtro').value = ''; calcIVA(); });
+document.querySelectorAll('#irpfTipos button').forEach(b => b.onclick = () => { irpfTipo = Number(b.dataset.v); $('irpfOtro').value = ''; calcIVA(); });
+$('ivaOtro').oninput = () => { const v = parseNum($('ivaOtro').value); if (v >= 0) ivaTipo = v; calcIVA(); };
+$('irpfOtro').oninput = () => { const v = parseNum($('irpfOtro').value); if (v >= 0) irpfTipo = v; calcIVA(); };
+$('ivaImporte').oninput = calcIVA;
+$('irpfOn').onchange = calcIVA;
+calcIVA();
+
+/* ================= DESCUENTOS ================= */
+function calcDescuento() {
+  const p = parseNum($('dPrecio').value), d1 = parseNum($('dPct1').value) || 0, d2 = parseNum($('dPct2').value) || 0;
+  if (isNaN(p)) { $('dFinal').textContent = '—'; $('dFinalSub').textContent = ''; return; }
+  const fin = p * (1 - d1 / 100) * (1 - d2 / 100);
+  const efectivo = p ? (1 - fin / p) * 100 : 0;
+  $('dFinal').textContent = eur(fin);
+  $('dFinalSub').textContent = 'Te ahorras ' + eur(p - fin) + (d2 ? ' · descuento real ' + pct(efectivo) + ' (no ' + pct(d1 + d2) + ')' : '');
+}
+function calcQueDescuento() {
+  const a = parseNum($('qAntes').value), b = parseNum($('qDespues').value);
+  if (!(a > 0) || isNaN(b)) { $('qPct').textContent = '—'; $('qSub').textContent = ''; return; }
+  const d = (1 - b / a) * 100;
+  $('qPct').textContent = d >= 0 ? pct(d) : '+' + pct(-d);
+  $('qSub').textContent = d >= 0 ? 'Ahorras ' + eur(a - b) : '¡Ojo! Es ' + eur(b - a) + ' más caro';
+}
+const OFERTAS = [
+  { n: 'Sin oferta', f: (p, u) => p * u },
+  { n: '2x1', f: (p, u) => (Math.floor(u / 2) + u % 2) * p },
+  { n: '3x2', f: (p, u) => (Math.floor(u / 3) * 2 + u % 3) * p },
+  { n: '4x3', f: (p, u) => (Math.floor(u / 4) * 3 + u % 4) * p },
+  { n: '2ª unidad −50 %', f: (p, u) => Math.floor(u / 2) * p * 1.5 + (u % 2) * p },
+  { n: '2ª unidad −70 %', f: (p, u) => Math.floor(u / 2) * p * 1.3 + (u % 2) * p },
+  { n: '3ª unidad −50 %', f: (p, u) => Math.floor(u / 3) * p * 2.5 + (u % 3) * p }
+];
+function calcOfertas() {
+  const p = parseNum($('oPrecio').value), u = Math.round(parseNum($('oUnid').value));
+  if (!(p > 0) || !(u > 0)) { $('oTabla').innerHTML = '<tr><td class="vacio">Introduce precio y unidades</td></tr>'; return; }
+  const filas = OFERTAS.map(o => ({ n: o.n, t: o.f(p, u) }));
+  const min = Math.min.apply(null, filas.map(x => x.t));
+  $('oTabla').innerHTML = '<thead><tr><th>Oferta</th><th>Pagas</th><th>€/ud.</th><th>Dto.</th></tr></thead><tbody>' +
+    filas.map(x => '<tr' + (x.t === min && x.t < p * u ? ' class="mejor"' : '') + '><td>' + x.n + '</td><td>' + eur(x.t) + '</td><td>' + eur(x.t / u) + '</td><td>' + pct((1 - x.t / (p * u)) * 100) + '</td></tr>').join('') +
+    '</tbody>';
+}
+['dPrecio', 'dPct1', 'dPct2'].forEach(id => $(id).oninput = calcDescuento);
+['qAntes', 'qDespues'].forEach(id => $(id).oninput = calcQueDescuento);
+['oPrecio', 'oUnid'].forEach(id => $(id).oninput = calcOfertas);
+calcDescuento(); calcQueDescuento(); calcOfertas();
+
+/* ================= INICIO ================= */
+abrirTab(['unidades', 'recetas', 'iva', 'descuentos'].indexOf(datos.tab) >= 0 ? datos.tab : 'unidades');
+</script>
+</body>
+</html>

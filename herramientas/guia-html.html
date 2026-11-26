@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía de las herramientas HTML</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 20mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; color: #1d2333; font-size: 11pt; line-height: 1.55; background: #eef1f5; }
+  .hoja { max-width: 820px; margin: 24px auto; background: #fff; padding: 48px 56px; box-shadow: 0 2px 12px rgba(0,0,0,.08); border-radius: 8px; }
+  .barra { position: sticky; top: 0; background: #1d2333; color: #fff; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 5; }
+  .barra button { background: #33ccff; color: #08304a; border: none; border-radius: 8px; padding: 8px 16px; font: inherit; font-weight: 700; cursor: pointer; }
+  .portada { text-align: center; padding: 120px 0 80px; }
+  .portada .icono { font-size: 64px; }
+  .portada h1 { font-size: 30pt; margin: 16px 0 8px; color: #1d2333; }
+  .portada p { color: #6b7385; font-size: 13pt; margin: 4px 0; }
+  .portada .fecha { margin-top: 40px; font-size: 11pt; }
+  h2 { font-size: 18pt; color: #1a73e8; border-bottom: 3px solid #1a73e8; padding-bottom: 6px; margin: 0 0 14px; }
+  h3 { font-size: 12.5pt; margin: 18px 0 6px; color: #1d2333; }
+  p { margin: 6px 0 10px; }
+  ul, ol { margin: 6px 0 10px; padding-left: 22px; }
+  li { margin: 3px 0; }
+  section { padding-top: 8px; }
+  .salto { break-before: page; page-break-before: always; }
+  .indice ol { font-size: 12pt; line-height: 2; }
+  .indice a { color: #1d2333; text-decoration: none; }
+  .caja { border-radius: 8px; padding: 10px 14px; margin: 10px 0; font-size: 10.5pt; break-inside: avoid; }
+  .caja.info { background: #eef4fe; border-left: 4px solid #1a73e8; }
+  .caja.aviso { background: #fff4e5; border-left: 4px solid #f08c00; }
+  .caja.ok { background: #e9f9f2; border-left: 4px solid #12b886; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: 10pt; break-inside: avoid; }
+  th, td { border: 1px solid #dfe3ea; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #f4f6f9; }
+  code { background: #f1f3f6; padding: 1px 5px; border-radius: 4px; font-size: 9.5pt; }
+  .ficha { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; font-size: 10pt; background: #f7f8fb; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; }
+  .ficha b { color: #6b7385; font-weight: 600; }
+  @media print {
+    body { background: #fff; }
+    .barra { display: none; }
+    .hoja { margin: 0; padding: 0; box-shadow: none; max-width: none; border-radius: 0; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="barra">
+  <span>Guía de las herramientas HTML</span>
+  <button onclick="window.print()">🖨️ Guardar como PDF</button>
+</div>
+
+<div class="hoja">
+
+  <!-- PORTADA -->
+  <div class="portada">
+    <div class="icono">🧰</div>
+    <h1>Guía de las herramientas HTML</h1>
+    <p>Explicación y funcionamiento de las páginas creadas</p>
+    <p class="fecha">Noviembre de 2026</p>
+  </div>
+
+  <!-- ÍNDICE -->
+  <section class="salto indice">
+    <h2>Índice</h2>
+    <ol>
+      <li><a href="#intro">Introducción y funcionamiento general</a></li>
+      <li><a href="#waze">Lista de lugares para Waze</a></li>
+      <li><a href="#gastos">Control de gastos mensual</a></li>
+      <li><a href="#viaje">Calculadora de coste de viaje</a></li>
+      <li><a href="#hipoteca">Calculadora de préstamo o hipoteca</a></li>
+      <li><a href="#dividir">Dividir gastos entre amigos</a></li>
+      <li><a href="#utilidades">Utilidades: unidades, recetas, IVA y descuentos</a></li>
+      <li><a href="#rutas">Planificador de rutas</a></li>
+      <li><a href="#problemas">Resolución de problemas y consejos</a></li>
+    </ol>
+  </section>
+
+  <!-- 1. INTRO -->
+  <section class="salto" id="intro">
+    <h2>1. Introducción y funcionamiento general</h2>
+    <p>Todas las herramientas son páginas web autónomas: cada una es un único archivo <code>.html</code> que contiene el diseño y el código necesarios. No requieren instalación, cuentas de usuario ni servidor.</p>
+
+    <h3>Cómo abrirlas</h3>
+    <ol>
+      <li>Copia el código de la herramienta en un editor de texto (por ejemplo, el Bloc de notas).</li>
+      <li>Guárdalo con extensión <code>.html</code>, por ejemplo <code>calculadora-hipoteca.html</code>. Asegúrate de copiar el código completo, desde <code>&lt;!DOCTYPE html&gt;</code> hasta <code>&lt;/html&gt;</code>.</li>
+      <li>Haz doble clic sobre el archivo: se abrirá en tu navegador (Chrome, Edge, Firefox o Safari).</li>
+    </ol>
+
+    <h3>Dónde se guardan los datos</h3>
+    <p>Las páginas recuerdan lo que introduces mediante el <b>almacenamiento local del navegador</b> (<i>localStorage</i>). Por eso, al cerrar y volver a abrir una página, tus datos siguen ahí.</p>
+    <ul>
+      <li>Los datos solo existen en <b>ese navegador y ese equipo</b>. En otro navegador o en el móvil la página aparecerá vacía.</li>
+      <li>Se pierden si borras los datos de navegación, si usas una ventana privada o, a veces, si mueves o renombras el archivo.</li>
+      <li>Nada se envía a internet: todo se queda en tu equipo.</li>
+    </ul>
+
+    <h3>Guardar e importar en archivo</h3>
+    <p>La mayoría de herramientas incluyen los botones <b>Guardar</b> e <b>Importar</b>:</p>
+    <ul>
+      <li><b>Guardar</b> descarga un archivo <code>.json</code> (normalmente en la carpeta Descargas) con un nombre basado en el que hayas dado a tus datos.</li>
+      <li><b>Importar</b> abre el selector de archivos para cargar uno de esos <code>.json</code>. También puedes <b>arrastrar el archivo</b> sobre la página.</li>
+      <li>Cada herramienta solo acepta sus propios archivos; si no corresponde, muestra un aviso en rojo y no cambia nada.</li>
+    </ul>
+    <div class="caja ok">Consejo: guarda en archivo los datos importantes. Es la copia de seguridad real y la forma de pasarlos a otro equipo o compartirlos.</div>
+
+    <h3>Resumen de las herramientas</h3>
+    <table>
+      <tr><th>Herramienta</th><th>Para qué sirve</th><th>Guardar/Importar</th><th>Internet</th></tr>
+      <tr><td>Lugares para Waze</td><td>Preparar destinos y abrirlos en Waze</td><td>Sí</td><td>No</td></tr>
+      <tr><td>Control de gastos</td><td>Gastos mensuales por categorías</td><td>CSV</td><td>No</td></tr>
+      <tr><td>Coste de viaje</td><td>Combustible, peajes y reparto</td><td>Sí</td><td>No</td></tr>
+      <tr><td>Hipoteca</td><td>Cuotas, intereses y amortización</td><td>Sí + CSV</td><td>No</td></tr>
+      <tr><td>Dividir gastos</td><td>Quién debe a quién</td><td>Sí</td><td>No</td></tr>
+      <tr><td>Utilidades</td><td>Unidades, recetas, IVA, descuentos</td><td>Recetas</td><td>No</td></tr>
+      <tr><td>Planificador de rutas</td><td>Enlaces Google Maps, Waze y GPX</td><td>Sí + GPX</td><td>No*</td></tr>
+    </table>
+    <p style="font-size:9.5pt;color:#6b7385">* La página funciona sin conexión; los enlaces que genera necesitan internet al abrirse en Google Maps o Waze.</p>
+  </section>
+
+  <!-- 2. WAZE -->
+  <section class="salto" id="waze">
+    <h2>2. Lista de lugares para Waze</h2>
+    <div class="ficha"><span><b>Objetivo:</b> preparar destinos desde el ordenador</span><span><b>Datos:</b> navegador + exportar/importar</span></div>
+    <p>Waze no permite editar los favoritos de la cuenta desde su versión web, y no existe una forma pública de añadirlos desde fuera de la app. Esta página ofrece una alternativa: preparas la lista con comodidad y desde el móvil abres cada lugar en Waze para guardarlo allí.</p>
+    <h3>Cómo se usa</h3>
+    <ol>
+      <li>Escribe un nombre y una dirección o coordenadas (por ejemplo, <code>37.1855, -5.7811</code>) y pulsa <b>Añadir</b>.</li>
+      <li>Pulsa <b>Exportar lista</b> y pasa el archivo al móvil, o abre la página en el móvil e <b>Importa</b> la lista.</li>
+      <li>En el móvil, toca <b>Abrir en Waze</b> en cada lugar y guárdalo desde la app.</li>
+    </ol>
+    <div class="caja info">Si una dirección es ambigua, usa coordenadas: en Google Maps, clic derecho sobre el punto (o mantener pulsado en el móvil) y copiar las coordenadas.</div>
+  </section>
+
+  <!-- 3. GASTOS -->
+  <section class="salto" id="gastos">
+    <h2>3. Control de gastos mensual</h2>
+    <div class="ficha"><span><b>Objetivo:</b> controlar gastos por categorías</span><span><b>Datos:</b> navegador + exportar CSV</span></div>
+    <p>Permite apuntar gastos, verlos agrupados por categorías y compararlos mes a mes. Incluye seis meses de datos de ejemplo para probarla.</p>
+    <h3>Partes de la página</h3>
+    <ul>
+      <li><b>Selector de mes</b> (arriba): flechas ◀ ▶ o calendario para cambiar de mes.</li>
+      <li><b>Resumen:</b> total del mes, comparación con el mes anterior, presupuesto restante con barra de color (verde, naranja o rojo) y media diaria.</li>
+      <li><b>Gráfico de dona por categorías:</b> al pulsar una categoría se filtra la tabla; al volver a pulsarla se quita el filtro.</li>
+      <li><b>Gráfico de barras de los últimos 6 meses:</b> con la línea del presupuesto; las barras que lo superan salen en rojo. Al pulsar una barra se salta a ese mes.</li>
+      <li><b>Añadir gasto:</b> fecha, concepto, categoría e importe.</li>
+      <li><b>Tabla de gastos</b> del mes, con borrado individual y total.</li>
+    </ul>
+    <h3>Herramientas</h3>
+    <ul>
+      <li><b>Presupuesto mensual:</b> define el límite que se usa en el resumen y en los gráficos.</li>
+      <li><b>Exportar CSV:</b> genera un archivo que se abre correctamente en Excel en español.</li>
+      <li><b>Restaurar datos de ejemplo</b> y <b>Borrar todo</b> para empezar con tus datos reales.</li>
+    </ul>
+    <p>Categorías disponibles: Vivienda, Alimentación, Transporte, Suministros, Ocio, Salud y Otros.</p>
+  </section>
+
+  <!-- 4. VIAJE -->
+  <section class="salto" id="viaje">
+    <h2>4. Calculadora de coste de viaje</h2>
+    <div class="ficha"><span><b>Objetivo:</b> saber cuánto cuesta un viaje en coche</span><span><b>Datos:</b> navegador + archivo <code>viaje-*.json</code></span></div>
+    <h3>Datos que se introducen</h3>
+    <ul>
+      <li><b>Nombre del viaje</b> (también da nombre al archivo al guardar).</li>
+      <li><b>Distancia de ida</b> y <b>velocidad media</b>; casilla <b>Ida y vuelta</b> (duplica distancia y peajes, no los otros gastos).</li>
+      <li><b>Tipo de vehículo:</b> gasolina, diésel o eléctrico. Al cambiarlo se ajustan las unidades (litros o kWh) y se cargan valores orientativos editables.</li>
+      <li><b>Consumo medio</b>, <b>precio</b> del combustible o la electricidad y <b>capacidad</b> del depósito o la batería.</li>
+      <li><b>Peajes</b>, <b>otros gastos</b> (parking, comidas…) y <b>personas que pagan</b>.</li>
+    </ul>
+    <h3>Resultados (se calculan al momento)</h3>
+    <ul>
+      <li>Coste total y por persona, con una barra que reparte combustible, peajes y otros.</li>
+      <li>Distancia total, litros o kWh necesarios, coste por kilómetro y tiempo estimado al volante (sin paradas).</li>
+      <li>Repostajes o recargas necesarios y autonomía, contando que se sale con el depósito lleno.</li>
+      <li>Emisiones de CO₂ por el escape (factores medios: 2,31 kg/L gasolina y 2,68 kg/L diésel).</li>
+    </ul>
+    <h3>Guardar e importar viajes</h3>
+    <p><b>Guardar viaje</b> descarga un archivo con los datos y un resumen de costes. <b>Importar viaje</b> (o arrastrar el archivo) vuelve a cargarlo. La lista de <b>viajes recientes</b> es un acceso rápido en ese navegador.</p>
+    <div class="caja aviso">Los precios por defecto son orientativos. Consulta el precio real del combustible antes de viajar, por ejemplo en el Geoportal de Gasolineras del Ministerio.</div>
+  </section>
+
+  <!-- 5. HIPOTECA -->
+  <section class="salto" id="hipoteca">
+    <h2>5. Calculadora de préstamo o hipoteca</h2>
+    <div class="ficha"><span><b>Objetivo:</b> cuotas, intereses y cuadro de amortización</span><span><b>Datos:</b> navegador + archivo <code>prestamo-*.json</code> + CSV</span></div>
+    <h3>Datos del préstamo</h3>
+    <ul>
+      <li><b>Importe</b>, <b>plazo</b> en años, <b>comisión de apertura</b> y mes de la <b>primera cuota</b>.</li>
+      <li><b>Sistema de amortización:</b> <i>francés</i> (cuota constante, el habitual) o <i>alemán</i> (se amortiza el mismo capital cada mes y la cuota va bajando).</li>
+    </ul>
+    <h3>Tipo de interés</h3>
+    <table>
+      <tr><th>Modalidad</th><th>Funcionamiento</th></tr>
+      <tr><td><b>Fijo</b></td><td>El mismo TIN durante todo el plazo.</td></tr>
+      <tr><td><b>Variable</b></td><td>Un tipo inicial durante los meses indicados y después Euríbor + diferencial, revisado cada 6 o 12 meses.</td></tr>
+      <tr><td><b>Mixto</b></td><td>Un TIN fijo durante X años y después Euríbor + diferencial.</td></tr>
+    </table>
+    <p>En las modalidades variable y mixta, la cuota se recalcula en cada revisión. La <b>evolución prevista del Euríbor</b> (puntos por año) y los botones de escenario (baja, estable, sube, sube fuerte) permiten simular cómo cambiaría la cuota. Si el tipo total resultara negativo, se considera 0 %.</p>
+    <h3>Amortizaciones anticipadas</h3>
+    <p>Se pueden añadir varias, cada una con fecha, importe y modo:</p>
+    <ul>
+      <li><b>Reducir plazo:</b> mantiene la cuota y acorta el préstamo (normalmente ahorra más intereses).</li>
+      <li><b>Reducir cuota:</b> mantiene el plazo y baja la cuota mensual.</li>
+    </ul>
+    <h3>Resultados</h3>
+    <ul>
+      <li><b>Resumen:</b> cuota (con mínimo y máximo si cambia), tipo aplicado, intereses y total pagado, TAE (estimada en variable y mixto), fecha de la última cuota y ahorro por amortizar.</li>
+      <li><b>Gráficos:</b> evolución de la cuota y del tipo; capital pendiente con y sin amortizaciones; pagos por año divididos en capital, aportaciones extra e intereses.</li>
+      <li><b>Cuadro de amortización</b> mensual o anual. En verde, meses con amortización anticipada; en naranja, meses con cambio de tipo. Exportable a CSV.</li>
+    </ul>
+    <div class="caja aviso">Es una herramienta orientativa: no incluye seguros, vinculaciones ni comisiones por amortización anticipada, y el Euríbor futuro es una suposición. Para comparar ofertas reales, usa la FEIN que entrega el banco.</div>
+  </section>
+
+  <!-- 6. DIVIDIR -->
+  <section class="salto" id="dividir">
+    <h2>6. Dividir gastos entre amigos</h2>
+    <div class="ficha"><span><b>Objetivo:</b> saber quién debe a quién</span><span><b>Datos:</b> navegador + archivo <code>gastos-*.json</code></span></div>
+    <h3>Pasos</h3>
+    <ol>
+      <li>Escribe el <b>nombre del grupo</b> y añade a los <b>participantes</b>.</li>
+      <li>Apunta cada <b>gasto</b>: concepto, importe, fecha, quién pagó y entre quiénes se reparte.</li>
+      <li>Consulta los <b>saldos</b> y la lista de <b>quién debe a quién</b>.</li>
+      <li>Cuando alguien pague, pulsa <b>✓ Pagado</b> para descontarlo.</li>
+    </ol>
+    <h3>Reparto por partes</h3>
+    <p>Por defecto, cada gasto se reparte a partes iguales entre las personas marcadas. Se puede desmarcar a quien no participó o cambiar sus <b>partes</b>: con 2 partes paga el doble; con 0,5, la mitad. Mientras se escribe se ve cuánto le toca a cada uno.</p>
+    <h3>Saldos y liquidación</h3>
+    <ul>
+      <li><b>Saldos:</b> en verde, a quien le deben dinero; en rojo, quien tiene que pagar. Se muestra lo que pagó cada uno y lo que le correspondía.</li>
+      <li><b>Quién debe a quién:</b> calcula los pagos necesarios para saldar cuentas con el menor número de transferencias.</li>
+      <li><b>Copiar resumen:</b> genera un texto listo para pegar en WhatsApp.</li>
+    </ul>
+    <h3>Otros detalles</h3>
+    <ul>
+      <li>Los gastos y pagos se pueden <b>editar</b> (✎) o <b>borrar</b> (✕) desde la lista de movimientos, que se puede filtrar por persona.</li>
+      <li>Los cálculos se hacen en céntimos, para que los repartos cuadren exactos.</li>
+      <li>No se puede quitar a un participante que aparece en algún movimiento.</li>
+      <li>El archivo guardado se puede enviar al resto del grupo para que lo importe.</li>
+    </ul>
+  </section>
+
+  <!-- 7. UTILIDADES -->
+  <section class="salto" id="utilidades">
+    <h2>7. Utilidades: unidades, recetas, IVA y descuentos</h2>
+    <p>Una sola página con cuatro pestañas. Recuerda la última pestaña usada y las recetas guardadas.</p>
+
+    <h3>📏 Conversor de unidades</h3>
+    <p>Elige el tipo de medida, escribe el valor y las unidades de origen y destino (⇄ las intercambia). A la derecha aparecen las equivalencias en todas las unidades del mismo tipo.</p>
+    <table>
+      <tr><th>Tipo</th><th>Ejemplos de unidades</th></tr>
+      <tr><td>Longitud</td><td>mm, cm, m, km, pulgadas, pies, yardas, millas, millas náuticas</td></tr>
+      <tr><td>Peso / masa</td><td>mg, g, kg, toneladas, onzas, libras, stones</td></tr>
+      <tr><td>Volumen</td><td>ml, cl, dl, l, m³, cucharaditas, cucharadas, tazas, pintas, galones</td></tr>
+      <tr><td>Superficie</td><td>cm², m², áreas, hectáreas, km², pies², acres</td></tr>
+      <tr><td>Temperatura</td><td>Celsius, Fahrenheit, Kelvin</td></tr>
+      <tr><td>Velocidad, tiempo, datos, energía</td><td>km/h, mph, nudos · horas, días, años · MB, GB, GiB · kcal, kJ, kWh</td></tr>
+      <tr><td>Consumo de combustible</td><td>L/100 km, km/L, mpg (EE. UU. y Reino Unido)</td></tr>
+    </table>
+
+    <h3>🍰 Recetas escaladas por raciones</h3>
+    <ul>
+      <li>Escribe los ingredientes, uno por línea, con la cantidad delante. Entiende <code>250 g</code>, <code>1,5 l</code>, <code>1/2</code>, <code>1 1/2</code>, <code>½</code> y rangos como <code>2-3</code>.</li>
+      <li>Indica las raciones de la receta y las que quieres (o usa Mitad, Doble, Triple).</li>
+      <li>Los gramos y mililitros se redondean y pasan a kg o litros a partir de 1.000; el resto se muestra en fracciones de cocina (½, ¼, ⅓…).</li>
+      <li>Las líneas sin cantidad delante ("una pizca de sal") se mantienen igual.</li>
+      <li>Las recetas se pueden guardar, copiar y exportar o importar en archivo.</li>
+    </ul>
+
+    <h3>🧾 Calculadora de IVA</h3>
+    <ul>
+      <li>Dos modos: partir del precio <b>sin IVA</b> (añade el impuesto) o del precio <b>final</b> (lo desglosa).</li>
+      <li>Tipos vigentes en Península y Baleares: 21 % general, 10 % reducido, 4 % superreducido y 0 %, o cualquier otro porcentaje.</li>
+      <li>Opción de <b>retención de IRPF</b> para facturas de autónomos (15 % general o 7 % en el inicio de actividad).</li>
+      <li>Tabla comparativa del resultado con los distintos tipos de IVA.</li>
+    </ul>
+
+    <h3>🏷️ Descuentos</h3>
+    <ul>
+      <li><b>Precio con descuento:</b> admite dos descuentos encadenados e indica el descuento real (un 30 % más un 10 % adicional es un 37 %, no un 40 %).</li>
+      <li><b>¿Cuánto me han descontado?:</b> calcula el porcentaje a partir del precio original y el rebajado.</li>
+      <li><b>Comparar ofertas:</b> 2x1, 3x2, 4x3, segunda unidad al −50 % o −70 % y tercera al −50 %, según las unidades que te llevas. Resalta en verde la más barata.</li>
+    </ul>
+  </section>
+
+  <!-- 8. RUTAS -->
+  <section class="salto" id="rutas">
+    <h2>8. Planificador de rutas</h2>
+    <div class="ficha"><span><b>Objetivo:</b> enlaces de navegación con paradas</span><span><b>Datos:</b> navegador + archivo <code>ruta-*.json</code> + GPX</span></div>
+    <h3>Introducir los puntos</h3>
+    <ul>
+      <li>Añade los puntos en orden (origen, paradas y destino). Se pueden reordenar con ↑ ↓, quitar o invertir toda la ruta.</li>
+      <li>Cada punto admite una <b>dirección</b>, unas <b>coordenadas</b> con punto decimal (<code>37.3772, -5.9869</code>) o un <b>enlace largo de Google Maps</b>, del que se extraen las coordenadas.</li>
+      <li>El icono de cada fila indica el tipo: 🔎 dirección, 📍 coordenadas, ⚠️ enlace que no se puede leer.</li>
+      <li><b>Salir desde mi ubicación actual</b> hace que los enlaces partan de donde estés.</li>
+    </ul>
+    <h3>Enlaces que genera</h3>
+    <table>
+      <tr><th>Opción</th><th>Qué hace</th></tr>
+      <tr><td>Google Maps con paradas</td><td>Sigue el recorrido pasando por todos los puntos, tratados como paradas. Si se supera el límite por enlace (9, o 3 en el navegador del móvil), se divide en tramos encadenados.</td></tr>
+      <tr><td>Google Maps directo</td><td>Del inicio al destino por el camino que elija Google.</td></tr>
+      <tr><td>Waze tramo a tramo</td><td>Un enlace por tramo, que se abre al llegar a cada punto (Waze solo admite un destino por enlace y siempre sale desde donde estás).</td></tr>
+      <tr><td>Waze directo</td><td>Directamente al destino final.</td></tr>
+      <tr><td>Archivo GPX</td><td>La ruta con todos los puntos como puntos de paso, para navegadores que la siguen sin detenerse en cada punto (OsmAnd, GPS Garmin…). Requiere coordenadas en todos los puntos.</td></tr>
+    </table>
+    <div class="caja aviso">Los enlaces de Google Maps no permiten marcar puntos como "pasar sin parar": esa opción solo existe en la API de pago de Google. Por eso la ruta "sin paradas pero por el mismo camino" solo es exacta con el archivo GPX. Google Maps y Waze no permiten importar GPX para navegar.</div>
+    <h3>Otras funciones</h3>
+    <ul>
+      <li><b>Copiar todo:</b> texto con la lista de puntos y todos los enlaces, para enviarlo al móvil o compartirlo.</li>
+      <li>Distancia aproximada <b>en línea recta</b> cuando todos los puntos tienen coordenadas (la real por carretera será mayor).</li>
+      <li>Los enlaces cortos tipo <code>maps.app.goo.gl</code> no contienen coordenadas: ábrelos y copia la dirección o las coordenadas.</li>
+    </ul>
+  </section>
+
+  <!-- 9. PROBLEMAS -->
+  <section class="salto" id="problemas">
+    <h2>9. Resolución de problemas y consejos</h2>
+    <table>
+      <tr><th>Problema</th><th>Solución</th></tr>
+      <tr><td>La página se ve pero no calcula nada o aparece en blanco</td><td>Comprueba que copiaste el código completo, desde <code>&lt;!DOCTYPE html&gt;</code> hasta <code>&lt;/html&gt;</code>. Si persiste, pulsa F12, abre la pestaña Consola y revisa el mensaje en rojo.</td></tr>
+      <tr><td>En iPhone o iPad no funciona</td><td>La vista previa de la app Archivos no ejecuta el código. Abre el archivo en un navegador como Safari o Chrome.</td></tr>
+      <tr><td>Han desaparecido mis datos</td><td>Se habrán borrado los datos del navegador, se usó otro navegador o una ventana privada, o se movió el archivo. Importa la última copia guardada.</td></tr>
+      <tr><td>Quiero los datos en otro equipo</td><td>Usa Guardar (o Exportar), pasa el archivo y usa Importar en el otro equipo.</td></tr>
+      <tr><td>Un archivo no se importa</td><td>Cada herramienta solo acepta sus propios archivos. Comprueba que corresponde a esa página.</td></tr>
+      <tr><td>El CSV se ve mal en Excel</td><td>Ábrelo con doble clic; está preparado para Excel en español (separador punto y coma y coma decimal).</td></tr>
+    </table>
+    <h3>Buenas prácticas</h3>
+    <ul>
+      <li>Guarda en archivo los datos importantes de forma periódica.</li>
+      <li>Usa siempre el mismo navegador para cada herramienta.</li>
+      <li>Revisa los valores por defecto (precios, tipos de interés, Euríbor) y ajústalos a tu caso.</li>
+      <li>Los resultados financieros son orientativos; para decisiones importantes, contrasta con tu banco o asesor.</li>
+    </ul>
+  </section>
+
+</div>
+</body>
+</html>

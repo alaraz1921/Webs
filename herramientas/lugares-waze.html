@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mis lugares para Waze</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 0 auto; padding: 16px; background: #f4f7fb; color: #1a1a1a; }
+  h1 { font-size: 1.4rem; }
+  form { background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.08); display: grid; gap: 10px; }
+  input, button { font-size: 1rem; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+  button { cursor: pointer; border: none; background: #33ccff; color: #fff; font-weight: 600; }
+  button.sec { background: #e0e6ee; color: #1a1a1a; }
+  ul { list-style: none; padding: 0; }
+  li { background: #fff; margin: 10px 0; padding: 12px; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.08); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  li small { color: #666; display: block; }
+  .acciones { display: flex; gap: 6px; }
+  .acciones a { background: #33ccff; color: #fff; text-decoration: none; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+  .acciones button { background: #ff5c5c; padding: 8px 12px; }
+  .hint { font-size: .85rem; color: #555; }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+</style>
+</head>
+<body>
+<h1>📍 Mis lugares para Waze</h1>
+<p class="hint">Añade lugares por dirección o por coordenadas (lat, lon). Luego, desde el móvil, pulsa "Abrir en Waze" y guárdalo en la app.</p>
+
+<form id="form">
+  <input id="nombre" placeholder="Nombre (ej. Casa de mamá)" required>
+  <input id="destino" placeholder="Dirección o coordenadas: 37.1855, -5.7811" required>
+  <button type="submit">Añadir</button>
+</form>
+
+<ul id="lista"></ul>
+
+<div class="tools">
+  <button class="sec" id="exportar">Exportar lista</button>
+  <button class="sec" id="importar">Importar lista</button>
+  <input type="file" id="archivo" accept=".json" hidden>
+</div>
+
+<script>
+  const KEY = 'lugaresWaze';
+  let lugares = [];
+  try { lugares = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) {}
+
+  const guardar = () => { try { localStorage.setItem(KEY, JSON.stringify(lugares)); } catch (e) {} };
+
+  const esCoord = t => /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(t);
+
+  const enlaceWaze = d => esCoord(d)
+    ? `https://waze.com/ul?ll=${encodeURIComponent(d.replace(/\s/g, ''))}&z=17`
+    : `https://waze.com/ul?q=${encodeURIComponent(d)}`;
+
+  function pintar() {
+    const ul = document.getElementById('lista');
+    ul.innerHTML = '';
+    lugares.forEach((l, i) => {
+      const li = document.createElement('li');
+      li.innerHTML = `<div><strong></strong><small></small></div>
+        <div class="acciones"><a target="_blank" rel="noopener">Abrir en Waze</a><button title="Borrar">✕</button></div>`;
+      li.querySelector('strong').textContent = l.nombre;
+      li.querySelector('small').textContent = l.destino;
+      li.querySelector('a').href = enlaceWaze(l.destino);
+      li.querySelector('button').onclick = () => { lugares.splice(i, 1); guardar(); pintar(); };
+      ul.appendChild(li);
+    });
+  }
+
+  document.getElementById('form').onsubmit = e => {
+    e.preventDefault();
+    const nombre = document.getElementById('nombre').value.trim();
+    const destino = document.getElementById('destino').value.trim();
+    if (!nombre || !destino) return;
+    lugares.push({ nombre, destino });
+    guardar(); pintar(); e.target.reset();
+  };
+
+  document.getElementById('exportar').onclick = () => {
+    const blob = new Blob([JSON.stringify(lugares, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'lugares-waze.json';
+    a.click();
+  };
+
+  document.getElementById('importar').onclick = () => document.getElementById('archivo').click();
+  document.getElementById('archivo').onchange = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    f.text().then(t => {
+      try { lugares = JSON.parse(t); guardar(); pintar(); }
+      catch { alert('Archivo no válido'); }
+    });
+  };
+
+  pintar();
+</script>
+</body>
+</html>

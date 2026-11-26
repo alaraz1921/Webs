@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control de gastos mensual</title>
+<style>
+  :root { --bg:#f5f6fa; --card:#fff; --txt:#1d2333; --muted:#6b7385; --accent:#4f6bed; --danger:#e5484d; --ok:#1a9e5c; --line:#e6e8ef; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--txt); }
+  header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:16px 20px; background:var(--card); border-bottom:1px solid var(--line); }
+  h1 { font-size:1.3rem; margin:0; }
+  .wrap { max-width:1100px; margin:0 auto; padding:20px; display:grid; gap:16px; }
+  .card { background:var(--card); border-radius:14px; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:12px; }
+  .kpi small { color:var(--muted); display:block; margin-bottom:4px; }
+  .kpi strong { font-size:1.45rem; font-variant-numeric:tabular-nums; }
+  .kpi .sub { font-size:.85rem; color:var(--muted); margin-top:4px; }
+  .up { color:var(--danger) !important; } .down { color:var(--ok) !important; }
+  .progress { height:10px; background:var(--line); border-radius:99px; overflow:hidden; margin-top:8px; }
+  .progress > div { height:100%; border-radius:99px; transition:width .3s; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:800px) { .grid2 { grid-template-columns:1fr; } }
+  h2 { font-size:1rem; margin:0 0 12px; }
+  .donut-wrap { display:flex; gap:16px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  .legend { list-style:none; padding:0; margin:0; flex:1; min-width:200px; }
+  .legend li { display:flex; align-items:center; gap:8px; padding:5px 6px; font-size:.9rem; cursor:pointer; border-radius:6px; }
+  .legend li:hover, .legend li.activo { background:#f0f2f8; }
+  .legend .dot { width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+  .legend .val { margin-left:auto; font-variant-numeric:tabular-nums; }
+  .legend .pct { color:var(--muted); width:42px; text-align:right; font-size:.8rem; }
+  form { display:grid; grid-template-columns:140px 1fr 150px 110px auto; gap:8px; }
+  @media (max-width:800px) { form { grid-template-columns:1fr 1fr; } }
+  input, select, button { font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--txt); }
+  button { cursor:pointer; background:var(--accent); color:#fff; border:none; font-weight:600; }
+  button.sec { background:#eef0f6; color:var(--txt); }
+  button.danger { background:var(--danger); }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { padding:8px; border-bottom:1px solid var(--line); text-align:left; }
+  th { color:var(--muted); font-weight:600; font-size:.82rem; }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  tfoot td { font-weight:700; border-bottom:none; }
+  .tag { display:inline-block; padding:2px 9px; border-radius:99px; font-size:.78rem; color:#fff; }
+  .del { background:none; color:var(--muted); padding:2px 8px; }
+  .del:hover { color:var(--danger); }
+  .tools { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .filtro { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+  .tabla-scroll { max-height:420px; overflow:auto; }
+  .vacio { text-align:center; color:var(--muted); padding:24px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💶 Control de gastos</h1>
+  <div class="tools">
+    <button class="sec" id="prev">◀</button>
+    <input type="month" id="mes">
+    <button class="sec" id="next">▶</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>Gasto por categoría</h2>
+      <div class="donut-wrap">
+        <div id="donut"></div>
+        <ul class="legend" id="leyenda"></ul>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Últimos 6 meses <small style="color:var(--muted);font-weight:400">(toca una barra para ir a ese mes)</small></h2>
+      <div id="barras"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Añadir gasto</h2>
+    <form id="form">
+      <input type="date" id="fFecha" required>
+      <input type="text" id="fConcepto" placeholder="Concepto (ej. Supermercado)" required>
+      <select id="fCat"></select>
+      <input type="number" id="fImporte" placeholder="Importe €" step="0.01" min="0.01" required>
+      <button type="submit">Añadir</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="filtro">
+      <h2 style="margin:0" id="tituloTabla">Gastos del mes</h2>
+      <select id="filtroCat"></select>
+    </div>
+    <div class="tabla-scroll">
+      <table>
+        <thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th class="num">Importe</th><th></th></tr></thead>
+        <tbody id="tbody"></tbody>
+        <tfoot><tr><td colspan="3">Total</td><td class="num" id="tTotal"></td><td></td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="card tools">
+    <label>Presupuesto mensual: <input type="number" id="presupuesto" step="10" min="0" style="width:110px"> €</label>
+    <span style="flex:1"></span>
+    <button class="sec" id="exportar">Exportar CSV</button>
+    <button class="sec" id="ejemplo">Restaurar datos de ejemplo</button>
+    <button class="danger" id="borrar">Borrar todo</button>
+  </div>
+
+</div>
+
+<script>
+const CATS = {
+  'Vivienda':     '#4f6bed',
+  'Alimentación': '#1a9e5c',
+  'Transporte':   '#f59f00',
+  'Suministros':  '#0ea5e9',
+  'Ocio':         '#d946ef',
+  'Salud':        '#e5484d',
+  'Otros':        '#64748b'
+};
+const KEY = 'controlGastosV1';
+const eur = n => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+const pad2 = n => String(n).padStart(2, '0');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const nuevoId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const hoy = new Date();
+const mesActual = `${hoy.getFullYear()}-${pad2(hoy.getMonth() + 1)}`;
+
+let mes = mesActual;
+let filtro = '';
+let state = cargar();
+
+/* ---------- Datos ---------- */
+function cargar() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && Array.isArray(s.gastos)) return s;
+  } catch (e) {}
+  return { gastos: datosEjemplo(), presupuesto: 1400 };
+}
+function guardar() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+function datosEjemplo() {
+  let seed = 7;
+  const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const rnd = (a, b) => Math.round((a + r() * (b - a)) * 100) / 100;
+  const out = [];
+  for (let m = 5; m >= 0; m--) {
+    const base = new Date(hoy.getFullYear(), hoy.getMonth() - m, 1);
+    const Y = base.getFullYear(), M = base.getMonth();
+    const limite = m === 0 ? hoy.getDate() : new Date(Y, M + 1, 0).getDate();
+    const add = (d, concepto, categoria, importe) => {
+      if (d <= limite) out.push({ id: nuevoId(), fecha: `${Y}-${pad2(M + 1)}-${pad2(d)}`, concepto, categoria, importe });
+    };
+    add(1, 'Alquiler', 'Vivienda', 650);
+    add(5, 'Comunidad', 'Vivienda', 45);
+    add(3, 'Internet y móvil', 'Suministros', 39.9);
+    add(8, 'Luz', 'Suministros', rnd(48, 88));
+    add(14, 'Agua', 'Suministros', rnd(21, 31));
+    add(2, 'Gimnasio', 'Salud', 32);
+    add(10, 'Streaming', 'Ocio', 12.99);
+    [2, 7, 12, 17, 22, 27].forEach(d => add(d, 'Supermercado', 'Alimentación', rnd(28, 95)));
+    [4, 15, 24].forEach(d => add(d, 'Mercado / panadería', 'Alimentación', rnd(6, 22)));
+    [6, 16, 26].forEach(d => add(d, 'Gasolina', 'Transporte', rnd(45, 72)));
+    if (r() < 0.7) add(11, 'Parking', 'Transporte', rnd(3, 12));
+    add(9, 'Restaurante', 'Ocio', rnd(25, 62));
+    add(23, 'Cena con amigos', 'Ocio', rnd(20, 55));
+    if (r() < 0.6) add(19, 'Cine', 'Ocio', rnd(14, 24));
+    if (r() < 0.6) add(13, 'Farmacia', 'Salud', rnd(8, 35));
+    if (r() < 0.5) add(20, 'Ropa', 'Otros', rnd(25, 90));
+    if (r() < 0.4) add(25, 'Regalo', 'Otros', rnd(15, 60));
+  }
+  return out;
+}
+
+const gastosMes = m => state.gastos.filter(g => g.fecha.startsWith(m));
+const suma = arr => arr.reduce((t, g) => t + g.importe, 0);
+const mesDesplazado = (m, n) => {
+  const [Y, M] = m.split('-').map(Number);
+  const d = new Date(Y, M - 1 + n, 1);
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
+};
+const nombreMes = (m, largo) => {
+  const [Y, M] = m.split('-').map(Number);
+  return new Date(Y, M - 1, 1).toLocaleDateString('es-ES', largo ? { month: 'long', year: 'numeric' } : { month: 'short' });
+};
+
+/* ---------- Render ---------- */
+function render() {
+  document.getElementById('mes').value = mes;
+  document.getElementById('presupuesto').value = state.presupuesto || '';
+  const lista = gastosMes(mes);
+  const total = suma(lista);
+  renderKpis(lista, total);
+  renderDonut(lista, total);
+  document.getElementById('barras').innerHTML = barras();
+  renderTabla(lista);
+}
+
+function renderKpis(lista, total) {
+  const anterior = suma(gastosMes(mesDesplazado(mes, -1)));
+  const diff = anterior ? (total - anterior) / anterior * 100 : null;
+  const [Y, M] = mes.split('-').map(Number);
+  const dias = mes === mesActual ? hoy.getDate() : new Date(Y, M, 0).getDate();
+  const pres = state.presupuesto || 0;
+  const usado = pres ? total / pres * 100 : 0;
+  const colorBarra = usado > 100 ? 'var(--danger)' : usado > 85 ? '#f59f00' : 'var(--ok)';
+  const porCat = agrupar(lista);
+  const top = porCat[0];
+
+  document.getElementById('kpis').innerHTML = `
+    <div class="card kpi"><small>Total ${esc(nombreMes(mes, true))}</small><strong>${eur(total)}</strong>
+      <div class="sub">${lista.length} movimientos</div></div>
+    <div class="card kpi"><small>Vs. mes anterior</small>
+      <strong class="${diff === null ? '' : diff > 0 ? 'up' : 'down'}">${diff === null ? '—' : (diff > 0 ? '▲ ' : '▼ ') + Math.abs(diff).toFixed(1) + ' %'}</strong>
+      <div class="sub">Mes anterior: ${eur(anterior)}</div></div>
+    <div class="card kpi"><small>Presupuesto</small>
+      <strong class="${pres && total > pres ? 'up' : ''}">${pres ? eur(pres - total) : '—'}</strong>
+      <div class="sub">${pres ? (total > pres ? 'por encima del límite' : 'disponible') + ` · ${usado.toFixed(0)} % usado` : 'Sin presupuesto definido'}</div>
+      ${pres ? `<div class="progress"><div style="width:${Math.min(usado, 100)}%;background:${colorBarra}"></div></div>` : ''}</div>
+    <div class="card kpi"><small>Media diaria</small><strong>${eur(total / dias)}</strong>
+      <div class="sub">${top ? 'Mayor categoría: ' + esc(top[0]) : '&nbsp;'}</div></div>`;
+}
+
+function agrupar(lista) {
+  const acc = {};
+  lista.forEach(g => acc[g.categoria] = (acc[g.categoria] || 0) + g.importe);
+  return Object.entries(acc).sort((a, b) => b[1] - a[1]);
+}
+
+function renderDonut(lista, total) {
+  const porCat = agrupar(lista);
+  const R = 70, C = 2 * Math.PI * R;
+  let off = 0, segs = '';
+  porCat.forEach(([cat, v]) => {
+    const len = v / total * C;
+    const atenuar = filtro && filtro !== cat ? ' opacity="0.25"' : '';
+    segs += `<circle r="${R}" cx="90" cy="90" fill="none" stroke="${CATS[cat] || '#999'}" stroke-width="28"
+      stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}" transform="rotate(-90 90 90)"${atenuar}
+      style="cursor:pointer" onclick="setFiltro('${esc(cat)}')"><title>${esc(cat)}: ${eur(v)}</title></circle>`;
+    off += len;
+  });
+  if (!segs) segs = `<circle r="${R}" cx="90" cy="90" fill="none" stroke="#e6e8ef" stroke-width="28"/>`;
+  document.getElementById('donut').innerHTML = `
+    <svg viewBox="0 0 180 180" width="190" height="190">${segs}
+      <text x="90" y="84" text-anchor="middle" font-size="11" fill="#6b7385">Total</text>
+      <text x="90" y="104" text-anchor="middle" font-size="15" font-weight="700" fill="#1d2333">${eur(total)}</text>
+    </svg>`;
+  document.getElementById('leyenda').innerHTML = porCat.length
+    ? porCat.map(([cat, v]) => `
+      <li class="${filtro === cat ? 'activo' : ''}" onclick="setFiltro('${esc(cat)}')">
+        <span class="dot" style="background:${CATS[cat] || '#999'}"></span>${esc(cat)}
+        <span class="val">${eur(v)}</span><span class="pct">${(v / total * 100).toFixed(0)} %</span>
+      </li>`).join('')
+    : '<li class="vacio">Sin gastos este mes</li>';
+}
+
+function barras() {
+  const meses = [];
+  for (let i = 5; i >= 0; i--) meses.push(mesDesplazado(mes, -i));
+  const tot = meses.map(m => suma(gastosMes(m)));
+  const pres = state.presupuesto || 0;
+  const max = Math.max(...tot, pres, 1) * 1.1;
+  const W = 460, H = 230, top = 20, bottom = 28, left = 12, bw = 52;
+  const gap = (W - left * 2 - bw * 6) / 5;
+  const alto = H - top - bottom;
+  let s = '';
+  if (pres) {
+    const y = top + alto - pres / max * alto;
+    s += `<line x1="${left}" x2="${W - left}" y1="${y}" y2="${y}" stroke="#e5484d" stroke-dasharray="5 4"/>
+          <text x="${W - left}" y="${y - 5}" text-anchor="end" font-size="10" fill="#e5484d">Presupuesto</text>`;
+  }
+  meses.forEach((m, i) => {
+    const h = tot[i] / max * alto;
+    const x = left + i * (bw + gap), y = top + alto - h;
+    const sel = m === mes;
+    const color = pres && tot[i] > pres ? (sel ? '#e5484d' : '#f5b5b7') : (sel ? '#4f6bed' : '#c7cff8');
+    s += `<g style="cursor:pointer" onclick="setMes('${m}')">
+      <rect x="${x}" y="${top}" width="${bw}" height="${alto}" fill="transparent"/>
+      <rect x="${x}" y="${y}" width="${bw}" height="${Math.max(h, 1)}" rx="6" fill="${color}"><title>${eur(tot[i])}</title></rect>
+      <text x="${x + bw / 2}" y="${y - 6}" text-anchor="middle" font-size="10" fill="#1d2333">${Math.round(tot[i])} €</text>
+      <text x="${x + bw / 2}" y="${H - 8}" text-anchor="middle" font-size="11" fill="${sel ? '#1d2333' : '#6b7385'}"
+        font-weight="${sel ? 700 : 400}">${nombreMes(m)}</text></g>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%">${s}</svg>`;
+}
+
+function renderTabla(lista) {
+  const filtrados = lista.filter(g => !filtro || g.categoria === filtro)
+                         .sort((a, b) => b.fecha.localeCompare(a.fecha));
+  document.getElementById('tituloTabla').textContent = `Gastos de ${nombreMes(mes, true)}${filtro ? ' · ' + filtro : ''}`;
+  document.getElementById('filtroCat').value = filtro;
+  document.getElementById('tbody').innerHTML = filtrados.length
+    ? filtrados.map(g => `
+      <tr>
+        <td>${g.fecha.split('-').reverse().join('/')}</td>
+        <td>${esc(g.concepto)}</td>
+        <td><span class="tag" style="background:${CATS[g.categoria] || '#999'}">${esc(g.categoria)}</span></td>
+        <td class="num">${eur(g.importe)}</td>
+        <td><button class="del" title="Borrar" onclick="borrarGasto('${g.id}')">✕</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" class="vacio">No hay gastos que mostrar</td></tr>';
+  document.getElementById('tTotal').textContent = eur(suma(filtrados));
+}
+
+/* ---------- Acciones ---------- */
+function setMes(m) {
+  mes = m;
+  const f = document.getElementById('fFecha');
+  f.value = m === mesActual ? `${mesActual}-${pad2(hoy.getDate())}` : `${m}-01`;
+  render();
+}
+function setFiltro(cat) { filtro = filtro === cat ? '' : cat; render(); }
+function borrarGasto(id) {
+  state.gastos = state.gastos.filter(g => g.id !== id);
+  guardar(); render();
+}
+
+const opciones = Object.keys(CATS).map(c => `<option>${c}</option>`).join('');
+document.getElementById('fCat').innerHTML = opciones;
+document.getElementById('filtroCat').innerHTML = '<option value="">Todas las categorías</option>' + opciones;
+document.getElementById('filtroCat').onchange = e => { filtro = e.target.value; render(); };
+
+document.getElementById('form').onsubmit = e => {
+  e.preventDefault();
+  const fecha = document.getElementById('fFecha').value;
+  const concepto = document.getElementById('fConcepto').value.trim();
+  const categoria = document.getElementById('fCat').value;
+  const importe = Math.round(parseFloat(document.getElementById('fImporte').value) * 100) / 100;
+  if (!fecha || !concepto || !(importe > 0)) return;
+  state.gastos.push({ id: nuevoId(), fecha, concepto, categoria, importe });
+  guardar();
+  document.getElementById('fConcepto').value = '';
+  document.getElementById('fImporte').value = '';
+  mes = fecha.slice(0, 7);
+  render();
+};
+
+document.getElementById('mes').onchange = e => { if (e.target.value) setMes(e.target.value); };
+document.getElementById('prev').onclick = () => setMes(mesDesplazado(mes, -1));
+document.getElementById('next').onclick = () => setMes(mesDesplazado(mes, 1));
+document.getElementById('presupuesto').onchange = e => {
+  state.presupuesto = parseFloat(e.target.value) || 0;
+  guardar(); render();
+};
+
+document.getElementById('exportar').onclick = () => {
+  const filas = [['Fecha', 'Concepto', 'Categoría', 'Importe']]
+    .concat([...state.gastos].sort((a, b) => a.fecha.localeCompare(b.fecha))
+      .map(g => [g.fecha, '"' + g.concepto.replace(/"/g, '""') + '"', g.categoria, g.importe.toFixed(2).replace('.', ',')]));
+  const csv = '\uFEFF' + filas.map(f => f.join(';')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'gastos.csv';
+  a.click();
+};
+document.getElementById('ejemplo').onclick = () => {
+  if (confirm('Esto sustituirá tus gastos actuales por los datos de ejemplo. ¿Continuar?')) {
+    state = { gastos: datosEjemplo(), presupuesto: 1400 }; filtro = ''; guardar(); render();
+  }
+};
+document.getElementById('borrar').onclick = () => {
+  if (confirm('¿Borrar todos los gastos? No se puede deshacer.')) {
+    state.gastos = []; filtro = ''; guardar(); render();
+  }
+};
+
+setMes(mesActual);
+</script>
+</body>
+</html>

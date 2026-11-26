@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planificador de rutas</title>
+<style>
+  :root { --bg:#f3f5f8; --card:#fff; --txt:#1d2333; --muted:#6b7385; --accent:#1a73e8; --waze:#33ccff; --line:#e3e7ee; --ok:#12b886; --err:#e5484d; --warn:#f08c00; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--txt); }
+  header { background:var(--card); border-bottom:1px solid var(--line); padding:16px 20px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+  h1 { margin:0; font-size:1.3rem; }
+  header p { margin:4px 0 0; color:var(--muted); font-size:.9rem; }
+  .wrap { max-width:1150px; margin:0 auto; padding:20px; display:grid; grid-template-columns:1.15fr 1fr; gap:16px; align-items:start; }
+  @media (max-width:900px) { .wrap { grid-template-columns:1fr; } }
+  .col { display:grid; gap:16px; }
+  .card { background:var(--card); border-radius:14px; padding:18px; box-shadow:0 1px 3px rgba(0,0,0,.06); display:grid; gap:12px; align-content:start; }
+  h2 { font-size:1rem; margin:0; }
+  h3 { font-size:.95rem; margin:4px 0 0; display:flex; align-items:center; gap:8px; }
+  label { display:grid; gap:5px; font-size:.88rem; color:var(--muted); }
+  input[type=text], select { font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:8px; width:100%; background:#fff; color:var(--txt); min-width:0; }
+  input:focus, select:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(26,115,232,.15); }
+  .btn { padding:9px 14px; border:none; border-radius:10px; background:var(--accent); color:#fff; font:inherit; font-weight:600; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+  .btn.sec { background:#eef1f5; color:var(--txt); }
+  .btn.waze { background:var(--waze); color:#08304a; }
+  .btn.peq { padding:6px 10px; font-size:.84rem; }
+  .btn[disabled] { opacity:.45; cursor:not-allowed; }
+  .acciones { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .switch { display:flex; align-items:center; gap:10px; color:var(--txt); font-size:.92rem; cursor:pointer; }
+  .switch input { width:18px; height:18px; accent-color:var(--accent); }
+  .punto { display:grid; grid-template-columns:34px 150px 1fr 26px auto; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); }
+  @media (max-width:640px) { .punto { grid-template-columns:34px 1fr auto; } .punto .nom { grid-column:2 / 4; } .punto .val { grid-column:1 / 3; } .punto .estado { display:none; } }
+  .letra { width:30px; height:30px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.85rem; }
+  .letra.inicio { background:var(--ok); } .letra.fin { background:var(--err); }
+  .estado { font-size:1rem; text-align:center; cursor:help; }
+  .mover { display:flex; gap:2px; }
+  .mover button { border:none; background:#eef1f5; border-radius:6px; width:28px; height:30px; cursor:pointer; color:var(--txt); }
+  .mover button:hover { background:#dfe4ec; }
+  .mover button.del:hover { background:#fde8e8; color:var(--err); }
+  .aqui { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); color:var(--muted); font-size:.92rem; }
+  .enlace { display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  .enlace .txt { flex:1; min-width:180px; font-size:.92rem; }
+  .enlace .txt small { display:block; color:var(--muted); font-size:.8rem; }
+  .nota { font-size:.8rem; color:var(--muted); margin:0; line-height:1.45; }
+  .alerta { background:#fff4e5; color:#8a4b00; border-radius:10px; padding:10px 12px; font-size:.85rem; line-height:1.45; }
+  .alerta.error { background:#fde8e8; color:#9b1c1c; }
+  .resumen { display:flex; gap:10px; flex-wrap:wrap; }
+  .pill { background:#eef4fe; color:var(--accent); border-radius:99px; padding:5px 12px; font-size:.85rem; font-weight:600; }
+  .vacio { color:var(--muted); text-align:center; padding:12px; font-size:.9rem; }
+  .oculto { display:none !important; }
+  .aviso { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(140px); background:#1d2333; color:#fff; padding:12px 18px; border-radius:10px; font-size:.92rem; box-shadow:0 6px 20px rgba(0,0,0,.2); transition:transform .3s; z-index:10; max-width:90vw; }
+  .aviso.ver { transform:translateX(-50%) translateY(0); }
+  .aviso.error { background:var(--err); }
+  .soltar { position:fixed; inset:0; background:rgba(26,115,232,.1); border:3px dashed var(--accent); display:none; align-items:center; justify-content:center; font-size:1.3rem; font-weight:600; color:var(--accent); z-index:9; pointer-events:none; }
+  .soltar.ver { display:flex; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🗺️ Planificador de rutas</h1>
+    <p>Organiza las paradas y genera enlaces para Google Maps, Waze o un archivo GPX.</p>
+  </div>
+  <div class="acciones">
+    <button class="btn" id="guardar">💾 Guardar</button>
+    <button class="btn sec" id="importar">📂 Importar</button>
+    <input type="file" id="archivo" accept=".json,application/json" hidden>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- RUTA -->
+  <div class="col">
+    <div class="card">
+      <h2>Ruta</h2>
+      <label>Nombre de la ruta (se usa como nombre de los archivos)
+        <input type="text" id="nombre" maxlength="80" placeholder="Ej. Ruta por Andalucía">
+      </label>
+      <label class="switch"><input type="checkbox" id="desdeAqui"> Salir desde mi ubicación actual (el primer punto será la primera parada)</label>
+
+      <div id="puntos"></div>
+
+      <div class="acciones">
+        <button class="btn" id="addPunto">+ Añadir punto</button>
+        <button class="btn sec" id="invertir">⇅ Invertir ruta</button>
+        <span style="flex:1"></span>
+        <button class="btn sec peq" id="ejemplo">Ejemplo</button>
+        <button class="btn sec peq" id="vaciar" style="color:var(--err)">Vaciar</button>
+      </div>
+      <p class="nota">En cada punto puedes escribir una <b>dirección</b> ("Plaza Mayor, Salamanca"), unas <b>coordenadas</b> con punto decimal ("37.3772, -5.9869") o pegar un <b>enlace largo de Google Maps</b> de un lugar (se extraen sus coordenadas). Para el archivo GPX hacen falta coordenadas en todos los puntos: en Google Maps, haz clic derecho (o mantén pulsado en el móvil) sobre el sitio y copia las coordenadas que aparecen.</p>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="col">
+    <div class="card">
+      <div class="acciones">
+        <h2 style="flex:1">Enlaces</h2>
+        <button class="btn sec peq" id="copiarTodo">📋 Copiar todo</button>
+      </div>
+      <div class="resumen" id="resumen"></div>
+      <div id="errores"></div>
+
+      <h3>🔵 Google Maps</h3>
+      <label>Paradas por enlace
+        <select id="limite">
+          <option value="9">Hasta 9 (app de Google Maps y ordenador)</option>
+          <option value="3">Hasta 3 (si el enlace se abre en el navegador del móvil)</option>
+        </select>
+      </label>
+      <div id="gRuta"></div>
+      <div id="gDirecto"></div>
+
+      <h3>🚙 Waze</h3>
+      <div id="wTramos"></div>
+      <div id="wDirecto"></div>
+
+      <h3>🧭 Archivo GPX</h3>
+      <div id="gpx"></div>
+    </div>
+
+    <div class="card">
+      <h2>Qué hace cada opción</h2>
+      <p class="nota"><b>Google Maps con paradas:</b> sigue tu recorrido pasando por todos los puntos, pero los trata como paradas (al llegar a cada una te lo avisa). Si hay más puntos de los que admite un enlace, se divide en tramos encadenados.</p>
+      <p class="nota"><b>Directo al destino:</b> va del inicio al final por el camino que elija la app, sin pasar necesariamente por tus puntos.</p>
+      <p class="nota"><b>Waze tramo a tramo:</b> Waze no acepta varias paradas en un enlace y siempre sale desde donde estás. Abre el primer enlace al salir y el siguiente al llegar a cada punto. Si solo quieres una parada intermedia, también puedes añadirla a mano dentro de Waze.</p>
+      <p class="nota"><b>GPX (ruta sin paradas):</b> guarda el recorrido con todos los puntos como puntos de paso. Navegadores como OsmAnd o los GPS Garmin pueden seguir esa ruta sin detenerse en cada punto. Google Maps y Waze no permiten importar GPX para navegar.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="aviso" id="aviso"></div>
+<div class="soltar" id="soltar">Suelta aquí el archivo de la ruta</div>
+
+<script>
+const APP_ID = 'planificador-rutas';
+const KEY = 'planRutasV1';
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const nuevoId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const LETRAS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const letra = i => i < 26 ? LETRAS[i] : String(i + 1);
+
+function ejemplo() {
+  return {
+    nombre: 'Ruta por Andalucía (ejemplo)', desdeAqui: false, limite: 9,
+    puntos: [
+      { id: nuevoId(), nombre: 'Salida', valor: 'Plaza de España, Sevilla' },
+      { id: nuevoId(), nombre: 'Mezquita', valor: '37.8789, -4.7794' },
+      { id: nuevoId(), nombre: 'Catedral de Jaén', valor: '37.7656, -3.7899' },
+      { id: nuevoId(), nombre: 'Alhambra', valor: '37.1761, -3.5881' }
+    ]
+  };
+}
+
+let state;
+try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+if (!state || !Array.isArray(state.puntos)) state = ejemplo();
+function guardarLocal() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+/* ---------- Interpretar puntos ---------- */
+function coordsDe(valor) {
+  const s = String(valor || '').trim();
+  if (!s) return null;
+  let m = null, x;
+  const re = /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/g;
+  while ((x = re.exec(s))) m = x;
+  if (!m) m = s.match(/[?&](?:q|query|ll|destination|daddr)=(-?\d+(?:\.\d+)?)(?:,|%2C)\s*(-?\d+(?:\.\d+)?)/i);
+  if (!m) m = s.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+  if (!m) m = s.match(/^\s*(-?\d{1,2}(?:\.\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/);
+  if (!m) return null;
+  const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+  return { lat: lat, lng: lng };
+}
+const esEnlace = s => /^https?:\/\//i.test(String(s || '').trim());
+
+function analizar(p) {
+  const v = (p.valor || '').trim();
+  if (!v) return { ok: false, motivo: 'vacío' };
+  const c = coordsDe(v);
+  if (c) return { ok: true, coords: c, url: c.lat.toFixed(6) + ',' + c.lng.toFixed(6) };
+  if (esEnlace(v)) return { ok: false, motivo: 'enlace sin coordenadas' };
+  return { ok: true, coords: null, url: v };
+}
+const nombreDe = (p, i) => (p.nombre || '').trim() || (p.valor || '').trim().slice(0, 40) || 'Punto ' + letra(i);
+
+/* ---------- Enlaces ---------- */
+const enc = encodeURIComponent;
+function linkGoogle(origen, destino, paradas) {
+  let u = 'https://www.google.com/maps/dir/?api=1';
+  if (origen) u += '&origin=' + enc(origen);
+  u += '&destination=' + enc(destino);
+  if (paradas.length) u += '&waypoints=' + paradas.map(enc).join('%7C');
+  return u + '&travelmode=driving&dir_action=navigate';
+}
+function linkWaze(a) {
+  return a.coords
+    ? 'https://waze.com/ul?ll=' + a.coords.lat.toFixed(6) + '%2C' + a.coords.lng.toFixed(6) + '&navigate=yes'
+    : 'https://waze.com/ul?q=' + enc(a.url) + '&navigate=yes';
+}
+function distancia(a, b) {
+  const R = 6371, r = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * r, dLng = (b.lng - a.lng) * r;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/* ---------- Pintar puntos ---------- */
+function pintarPuntos() {
+  const n = state.puntos.length;
+  let html = state.desdeAqui ? '<div class="aqui"><span class="letra inicio">📍</span>Tu ubicación actual</div>' : '';
+  html += state.puntos.map((p, i) => {
+    const cls = (!state.desdeAqui && i === 0) ? 'inicio' : (i === n - 1 && n > 1 ? 'fin' : '');
+    const ph = (!state.desdeAqui && i === 0) ? 'Origen' : (i === n - 1 ? 'Destino' : 'Parada');
+    return '<div class="punto" data-id="' + p.id + '">' +
+      '<span class="letra ' + cls + '">' + letra(i) + '</span>' +
+      '<input type="text" class="nom" placeholder="' + ph + ' (nombre)" maxlength="40">' +
+      '<input type="text" class="val" placeholder="Dirección, coordenadas o enlace">' +
+      '<span class="estado"></span>' +
+      '<div class="mover"><button data-acc="up" title="Subir">↑</button><button data-acc="down" title="Bajar">↓</button><button data-acc="del" class="del" title="Quitar">✕</button></div>' +
+    '</div>';
+  }).join('');
+  $('puntos').innerHTML = html || '<div class="vacio">Añade el primer punto</div>';
+  document.querySelectorAll('#puntos .punto').forEach(fila => {
+    const p = state.puntos.find(x => x.id === fila.dataset.id);
+    const nom = fila.querySelector('.nom'), val = fila.querySelector('.val');
+    nom.value = p.nombre || ''; val.value = p.valor || '';
+    nom.oninput = () => { p.nombre = nom.value; actualizar(); };
+    val.oninput = () => { p.valor = val.value; actualizar(); };
+  });
+  actualizar();
+}
+
+function pintarEstados() {
+  document.querySelectorAll('#puntos .punto').forEach(fila => {
+    const p = state.puntos.find(x => x.id === fila.dataset.id);
+    const a = analizar(p), e = fila.querySelector('.estado');
+    if (!a.ok) { e.textContent = a.motivo === 'vacío' ? '⚪' : '⚠️'; e.title = a.motivo === 'vacío' ? 'Sin rellenar' : 'Es un enlace sin coordenadas: pega la dirección o las coordenadas'; }
+    else if (a.coords) { e.textContent = '📍'; e.title = 'Coordenadas: ' + a.url; }
+    else { e.textContent = '🔎'; e.title = 'Dirección (la app la buscará)'; }
+  });
+}
+
+/* ---------- Generar enlaces ---------- */
+let textoCompartir = '';
+function filaEnlace(titulo, sub, url, claseBtn, textoBtn) {
+  return '<div class="enlace"><div class="txt">' + titulo + (sub ? '<small>' + sub + '</small>' : '') + '</div>' +
+    '<a class="btn peq ' + (claseBtn || '') + '" href="' + esc(url) + '" target="_blank" rel="noopener">' + (textoBtn || 'Abrir') + '</a>' +
+    '<button class="btn sec peq" data-copiar="' + esc(url) + '">Copiar</button></div>';
+}
+
+function actualizar() {
+  state.nombre = $('nombre').value;
+  guardarLocal();
+  pintarEstados();
+
+  const validos = [], errores = [];
+  state.puntos.forEach((p, i) => {
+    const a = analizar(p);
+    if (a.ok) validos.push({ p: p, i: i, a: a, nombre: nombreDe(p, i) });
+    else if (a.motivo !== 'vacío') errores.push('El punto ' + letra(i) + ' es un enlace sin coordenadas (los enlaces cortos tipo maps.app.goo.gl no se pueden leer): pega la dirección o las coordenadas.');
+  });
+  const vacios = state.puntos.filter(p => !(p.valor || '').trim()).length;
+  $('errores').innerHTML = errores.map(e => '<div class="alerta error">' + esc(e) + '</div>').join('') +
+    (vacios ? '<div class="alerta">' + vacios + (vacios === 1 ? ' punto vacío se ignora.' : ' puntos vacíos se ignoran.') + '</div>' : '');
+
+  const minimo = state.desdeAqui ? 1 : 2;
+  ['gRuta', 'gDirecto', 'wTramos', 'wDirecto', 'gpx'].forEach(id => $(id).innerHTML = '');
+  $('resumen').innerHTML = '';
+  textoCompartir = '';
+  if (validos.length < minimo) {
+    $('gRuta').innerHTML = '<div class="vacio">' + (state.desdeAqui ? 'Añade al menos un destino' : 'Añade al menos origen y destino') + '</div>';
+    return;
+  }
+
+  // Secuencia: null = ubicación actual
+  const seq = state.desdeAqui ? [null].concat(validos) : validos;
+  const nomSeq = x => x ? x.nombre : 'tu ubicación';
+  const paradas = seq.length - 2;
+  const lineas = [];
+
+  // Resumen
+  const conCoords = validos.every(v => v.a.coords);
+  let km = null;
+  if (conCoords && validos.length > 1) {
+    km = 0;
+    for (let i = 1; i < validos.length; i++) km += distancia(validos[i - 1].a.coords, validos[i].a.coords);
+  }
+  $('resumen').innerHTML = '<span class="pill">' + validos.length + ' puntos</span><span class="pill">' + Math.max(0, paradas) + ' paradas intermedias</span>' +
+    (km !== null ? '<span class="pill" title="Distancia en línea recta entre puntos; por carretera será mayor">≈ ' + Math.round(km).toLocaleString('es-ES') + ' km en línea recta' + (state.desdeAqui ? ' (sin contar tu salida)' : '') + '</span>' : '');
+
+  // Google: tramos
+  const L = Number(state.limite) === 3 ? 3 : 9;
+  const tramos = [];
+  for (let s = 0; s < seq.length - 1;) {
+    const e = Math.min(s + L + 1, seq.length - 1);
+    tramos.push({ s: s, e: e, url: linkGoogle(seq[s] ? seq[s].a.url : null, seq[e].a.url, seq.slice(s + 1, e).map(x => x.a.url)) });
+    s = e;
+  }
+  let gHtml = '';
+  if (tramos.length === 1) {
+    gHtml = filaEnlace('<b>Ruta completa con paradas</b>', nomSeq(seq[0]) + ' → ' + (paradas > 0 ? paradas + ' parada' + (paradas > 1 ? 's' : '') + ' → ' : '') + nomSeq(seq[seq.length - 1]), tramos[0].url, '', 'Abrir');
+    lineas.push('Google Maps (ruta completa):\n' + tramos[0].url);
+  } else {
+    gHtml = '<div class="alerta">Hay más puntos de los que admite un enlace, así que la ruta se ha dividido en ' + tramos.length + ' tramos. Abre el siguiente al terminar cada uno.</div>';
+    lineas.push('Google Maps (por tramos):');
+    tramos.forEach((t, k) => {
+      gHtml += filaEnlace('<b>Tramo ' + (k + 1) + '</b>', nomSeq(seq[t.s]) + ' → ' + nomSeq(seq[t.e]) + ' (' + (t.e - t.s - 1) + ' paradas)', t.url);
+      lineas.push('Tramo ' + (k + 1) + ': ' + t.url);
+    });
+  }
+  $('gRuta').innerHTML = gHtml;
+  if (paradas > 0) {
+    const directo = linkGoogle(seq[0] ? seq[0].a.url : null, seq[seq.length - 1].a.url, []);
+    $('gDirecto').innerHTML = filaEnlace('Directo al destino', 'Sin paradas; Google elige el camino', directo, 'sec');
+    lineas.push('Google Maps (directo): ' + directo);
+  }
+
+  // Waze
+  let wHtml = '';
+  lineas.push('\nWaze (tramo a tramo):');
+  for (let i = 1; i < seq.length; i++) {
+    const url = linkWaze(seq[i].a);
+    const sub = i === 1 ? (seq[0] ? 'Ábrelo al salir desde ' + nomSeq(seq[0]) : 'Desde tu ubicación') : 'Ábrelo al llegar a ' + nomSeq(seq[i - 1]);
+    wHtml += filaEnlace('<b>' + i + '.</b> Hacia ' + esc(nomSeq(seq[i])), esc(sub), url, 'waze', 'Waze');
+    lineas.push(i + '. ' + nomSeq(seq[i]) + ': ' + url);
+  }
+  $('wTramos').innerHTML = wHtml;
+  if (seq.length > 2) {
+    const wd = linkWaze(seq[seq.length - 1].a);
+    $('wDirecto').innerHTML = filaEnlace('Directo al destino', 'Sin paradas; Waze elige el camino', wd, 'sec', 'Waze');
+  }
+
+  // GPX
+  const sinCoords = validos.filter(v => !v.a.coords);
+  if (sinCoords.length) {
+    $('gpx').innerHTML = '<div class="alerta">Para el GPX hacen falta coordenadas en todos los puntos. Sin coordenadas: ' +
+      sinCoords.map(v => letra(v.i) + ' (' + esc(v.nombre) + ')').join(', ') + '.</div>';
+  } else {
+    $('gpx').innerHTML = '<div class="enlace"><div class="txt"><b>Ruta sin paradas</b><small>Todos los puntos como puntos de paso' +
+      (state.desdeAqui ? '; empieza en el punto A' : '') + '</small></div><button class="btn peq" id="bajarGpx">⬇ Descargar GPX</button></div>';
+    $('bajarGpx').onclick = () => descargarGPX(validos);
+  }
+
+  textoCompartir = '🗺️ ' + (state.nombre || 'Ruta') + '\n' +
+    validos.map(v => letra(v.i) + '. ' + v.nombre).join('\n') + '\n\n' + lineas.join('\n');
+}
+
+/* ---------- GPX ---------- */
+function xml(s) { return String(s).replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c])); }
+function nombreArchivo(ext) {
+  const base = (state.nombre || 'ruta').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'ruta';
+  return base + '.' + ext;
+}
+function descargar(contenido, nombre, tipo) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([contenido], { type: tipo }));
+  a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function descargarGPX(validos) {
+  const nom = xml(state.nombre || 'Ruta');
+  const pt = (tag, v) => '  <' + tag + ' lat="' + v.a.coords.lat.toFixed(6) + '" lon="' + v.a.coords.lng.toFixed(6) + '"><name>' + xml(letra(v.i) + '. ' + v.nombre) + '</name></' + tag + '>';
+  const gpx = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<gpx version="1.1" creator="Planificador de rutas" xmlns="http://www.topografix.com/GPX/1/1">\n' +
+    ' <metadata><name>' + nom + '</name></metadata>\n' +
+    validos.map(v => pt('wpt', v)).join('\n') + '\n' +
+    ' <rte>\n  <name>' + nom + '</name>\n' + validos.map(v => ' ' + pt('rtept', v)).join('\n') + '\n </rte>\n</gpx>\n';
+  descargar(gpx, nombreArchivo('gpx'), 'application/gpx+xml');
+  avisar('GPX descargado: ' + nombreArchivo('gpx'));
+}
+
+/* ---------- Acciones ---------- */
+$('nombre').oninput = actualizar;
+$('desdeAqui').onchange = () => { state.desdeAqui = $('desdeAqui').checked; pintarPuntos(); };
+$('limite').onchange = () => { state.limite = Number($('limite').value); actualizar(); };
+$('addPunto').onclick = () => {
+  state.puntos.push({ id: nuevoId(), nombre: '', valor: '' });
+  pintarPuntos();
+  const filas = document.querySelectorAll('#puntos .punto .val');
+  if (filas.length) filas[filas.length - 1].focus();
+};
+$('invertir').onclick = () => { state.puntos.reverse(); pintarPuntos(); };
+$('ejemplo').onclick = () => { if (confirm('¿Sustituir la ruta actual por la de ejemplo?')) { state = ejemplo(); volcar(); } };
+$('vaciar').onclick = () => {
+  if (confirm('¿Borrar todos los puntos?')) {
+    state = { nombre: '', desdeAqui: state.desdeAqui, limite: state.limite, puntos: [{ id: nuevoId(), nombre: '', valor: '' }, { id: nuevoId(), nombre: '', valor: '' }] };
+    volcar();
+  }
+};
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.copiar) { copiar(b.dataset.copiar); return; }
+  if (b.dataset.acc) {
+    const id = b.closest('.punto').dataset.id;
+    const i = state.puntos.findIndex(p => p.id === id);
+    if (b.dataset.acc === 'up' && i > 0) { const t = state.puntos[i - 1]; state.puntos[i - 1] = state.puntos[i]; state.puntos[i] = t; }
+    else if (b.dataset.acc === 'down' && i < state.puntos.length - 1) { const t = state.puntos[i + 1]; state.puntos[i + 1] = state.puntos[i]; state.puntos[i] = t; }
+    else if (b.dataset.acc === 'del') state.puntos.splice(i, 1);
+    pintarPuntos();
+  }
+});
+$('copiarTodo').onclick = () => textoCompartir ? copiar(textoCompartir) : avisar('Aún no hay enlaces que copiar', true);
+
+function copiar(txt) {
+  const ok = () => avisar('Copiado al portapapeles');
+  const viejo = () => {
+    const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); let r = false; try { r = document.execCommand('copy'); } catch (e) {} ta.remove();
+    r ? ok() : avisar('No se pudo copiar', true);
+  };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(ok).catch(viejo);
+  else viejo();
+}
+
+let tmr;
+function avisar(t, error) {
+  const a = $('aviso'); a.textContent = t; a.classList.toggle('error', !!error); a.classList.add('ver');
+  clearTimeout(tmr); tmr = setTimeout(() => a.classList.remove('ver'), 3000);
+}
+
+/* ---------- Guardar / importar ---------- */
+$('guardar').onclick = () => {
+  const datos = { nombre: state.nombre, desdeAqui: state.desdeAqui, limite: state.limite, puntos: state.puntos.map(p => ({ nombre: p.nombre, valor: p.valor })) };
+  descargar(JSON.stringify({ app: APP_ID, version: 1, guardado: new Date().toISOString(), datos: datos }, null, 2), 'ruta-' + nombreArchivo('json'), 'application/json');
+  avisar('Guardado como ruta-' + nombreArchivo('json'));
+};
+function importarArchivo(file) {
+  if (!file) return;
+  file.text().then(t => {
+    let obj;
+    try { obj = JSON.parse(t); } catch (e) { throw new Error('El archivo no es un JSON válido.'); }
+    if (!obj || obj.app !== APP_ID || !obj.datos || !Array.isArray(obj.datos.puntos)) throw new Error('Este archivo no es de esta aplicación.');
+    const d = obj.datos;
+    state = {
+      nombre: typeof d.nombre === 'string' ? d.nombre.slice(0, 80) : '',
+      desdeAqui: !!d.desdeAqui,
+      limite: Number(d.limite) === 3 ? 3 : 9,
+      puntos: d.puntos.slice(0, 50).filter(p => p && typeof p === 'object').map(p => ({
+        id: nuevoId(),
+        nombre: typeof p.nombre === 'string' ? p.nombre.slice(0, 40) : '',
+        valor: typeof p.valor === 'string' ? p.valor.slice(0, 2000) : ''
+      }))
+    };
+    volcar();
+    avisar('Cargada: ' + (state.nombre || file.name));
+  }).catch(err => avisar(err.message || 'No se pudo leer el archivo.', true));
+}
+$('importar').onclick = () => { $('archivo').value = ''; $('archivo').click(); };
+$('archivo').onchange = e => importarArchivo(e.target.files[0]);
+
+let cnt = 0;
+window.addEventListener('dragenter', e => { e.preventDefault(); cnt++; $('soltar').classList.add('ver'); });
+window.addEventListener('dragleave', () => { cnt--; if (cnt <= 0) { cnt = 0; $('soltar').classList.remove('ver'); } });
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => { e.preventDefault(); cnt = 0; $('soltar').classList.remove('ver'); importarArchivo(e.dataTransfer.files[0]); });
+
+/* ---------- Inicio ---------- */
+function volcar() {
+  $('nombre').value = state.nombre || '';
+  $('desdeAqui').checked = !!state.desdeAqui;
+  $('limite').value = String(Number(state.limite) === 3 ? 3 : 9);
+  pintarPuntos();
+}
+volcar();
+</script>
+</body>
+</html>
