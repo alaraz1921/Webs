@@ -42,6 +42,10 @@ export function checked<T>(r: {
   return r.data;
 }
 const selects: Record<string, string> = {
+  depositos:
+    "id,titular,nombre,notas,fecha_apertura,duracion_meses,interes::text,retencion::text,aportacion::text",
+  financiaciones: "id,nombre,notas,importe_compra::text,total_cuotas",
+  financiacion_pagos: "id,financiacion_id,fecha,importe::text,nota",
   cuentas:
     "id,user_id,entidad,nombre_producto,tipo_producto,moneda,saldo_inicial::text,fecha_saldo_inicial,activo",
   movimientos:

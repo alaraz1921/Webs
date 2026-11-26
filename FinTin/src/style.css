@@ -189,6 +189,9 @@ form > .primary {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+.financing-selected > :is(th, td) {
+  background: #eff6ff;
+}
 .app {
   display: flex;
   min-height: 100vh;

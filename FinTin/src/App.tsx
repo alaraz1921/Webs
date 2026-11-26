@@ -12,6 +12,8 @@ import {
   ArrowUpRight,
   Menu,
   BarChart3,
+  Landmark,
+  CreditCard,
 } from "lucide-react";
 import { configured, db, client, list } from "./api";
 import {
@@ -25,6 +27,8 @@ import { months } from "./types";
 import { Summary, AccountsPage, type YearProps } from "./Dashboard";
 import { MovementPage, filtersFor } from "./Movements";
 import { ComparisonsPage } from "./Comparisons";
+import { DepositsPage } from "./Deposits";
+import { FinancingPage } from "./Financing";
 import { ImportPage } from "./Import";
 import { Settings, type SettingsSection } from "./Settings";
 import {
@@ -66,6 +70,18 @@ const pages = [
     name: "Comparativas",
     icon: BarChart3,
     description: "Compara tus ingresos y gastos entre ejercicios.",
+  },
+  {
+    id: "depositos",
+    name: "Depósitos",
+    icon: Landmark,
+    description: "Consulta tus depósitos a plazo fijo y sus vencimientos.",
+  },
+  {
+    id: "financiera",
+    name: "Financiera",
+    icon: CreditCard,
+    description: "Consulta tus compras financiadas y registra sus pagos.",
   },
   {
     id: "importacion",
@@ -534,106 +550,112 @@ function Workspace({ session }: { session: Session }) {
               </p>
             </div>
           )}
-          {!settingsPage && page.id !== "comparativas" && (
-            <div className="context-bar">
-              <YearPicker
-                value={year}
-                disabled={importBusy}
-                onChange={(y) => {
-                  setYear(y);
-                  setFilters(filtersFor(y));
-                }}
-              />
-              {["resumen", "cuentas", "conciliacion"].includes(page.id) && (
-                <>
-                  {page.id === "resumen" ? (
-                    <Field label="Mes">
+          {!settingsPage &&
+            !["comparativas", "depositos", "financiera"].includes(page.id) && (
+              <div className="context-bar">
+                <YearPicker
+                  value={year}
+                  disabled={importBusy}
+                  onChange={(y) => {
+                    setYear(y);
+                    setFilters(filtersFor(y));
+                  }}
+                />
+                {["resumen", "cuentas", "conciliacion"].includes(page.id) && (
+                  <>
+                    {page.id === "resumen" ? (
+                      <Field label="Mes">
+                        <select
+                          value={summaryMonth}
+                          onChange={(e) => setSummaryMonth(e.target.value)}
+                        >
+                          <option value="">Todos</option>
+                          {months.map((m, i) => (
+                            <option
+                              key={m}
+                              value={String(i + 1).padStart(2, "0")}
+                            >
+                              {m}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                    ) : (
+                      <Field label="Moneda">
+                        <select
+                          value={currency}
+                          onChange={(e) => {
+                            setCurrency(e.target.value);
+                            setAccount("");
+                          }}
+                        >
+                          {[
+                            ...new Set([
+                              "EUR",
+                              ...accounts.map((a) => a.moneda),
+                            ]),
+                          ]
+                            .sort()
+                            .map((c) => (
+                              <option key={c}>{c}</option>
+                            ))}
+                        </select>
+                      </Field>
+                    )}
+                    <Field label="Entidad">
                       <select
-                        value={summaryMonth}
-                        onChange={(e) => setSummaryMonth(e.target.value)}
-                      >
-                        <option value="">Todos</option>
-                        {months.map((m, i) => (
-                          <option
-                            key={m}
-                            value={String(i + 1).padStart(2, "0")}
-                          >
-                            {m}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                  ) : (
-                    <Field label="Moneda">
-                      <select
-                        value={currency}
+                        value={entity}
                         onChange={(e) => {
-                          setCurrency(e.target.value);
-                          setAccount("");
+                          const next = e.target.value;
+                          setEntity(next);
+                          if (
+                            next &&
+                            account &&
+                            accounts.find((a) => a.id === account)?.entidad !==
+                              next
+                          )
+                            setAccount("");
                         }}
                       >
-                        {[...new Set(["EUR", ...accounts.map((a) => a.moneda)])]
-                          .sort()
-                          .map((c) => (
-                            <option key={c}>{c}</option>
+                        <option value="">Todas</option>
+                        {[...new Set(accounts.map((a) => a.entidad))]
+                          .sort(compareText)
+                          .map((name) => (
+                            <option key={name} value={name}>
+                              {name}
+                            </option>
                           ))}
                       </select>
                     </Field>
-                  )}
-                  <Field label="Entidad">
-                    <select
-                      value={entity}
-                      onChange={(e) => {
-                        const next = e.target.value;
-                        setEntity(next);
-                        if (
-                          next &&
-                          account &&
-                          accounts.find((a) => a.id === account)?.entidad !==
-                            next
-                        )
-                          setAccount("");
-                      }}
-                    >
-                      <option value="">Todas</option>
-                      {[...new Set(accounts.map((a) => a.entidad))]
-                        .sort(compareText)
-                        .map((name) => (
-                          <option key={name} value={name}>
-                            {name}
-                          </option>
-                        ))}
-                    </select>
-                  </Field>
-                  <Field label="Cuenta">
-                    <select
-                      value={account}
-                      onChange={(e) => {
-                        setAccount(e.target.value);
-                        const selected = accounts.find(
-                          (a) => a.id === e.target.value,
-                        );
-                        if (selected) setCurrency(selected.moneda);
-                      }}
-                    >
-                      <option value="">Todas las cuentas</option>
-                      {accounts
-                        .filter(
-                          (a) =>
-                            (!entity || a.entidad === entity) &&
-                            (page.id === "resumen" || a.moneda === currency),
-                        )
-                        .map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.nombre_producto}
-                          </option>
-                        ))}
-                    </select>
-                  </Field>
-                </>
-              )}
-            </div>
-          )}
+                    <Field label="Cuenta">
+                      <select
+                        value={account}
+                        onChange={(e) => {
+                          setAccount(e.target.value);
+                          const selected = accounts.find(
+                            (a) => a.id === e.target.value,
+                          );
+                          if (selected) setCurrency(selected.moneda);
+                        }}
+                      >
+                        <option value="">Todas las cuentas</option>
+                        {accounts
+                          .filter(
+                            (a) =>
+                              (!entity || a.entidad === entity) &&
+                              (page.id === "resumen" || a.moneda === currency),
+                          )
+                          .map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.nombre_producto}
+                            </option>
+                          ))}
+                      </select>
+                    </Field>
+                  </>
+                )}
+              </div>
+            )}
           <ErrorBox error={error} />
           {loading ? (
             <Empty>Cargando tu espacio…</Empty>
@@ -682,6 +704,8 @@ function Workspace({ session }: { session: Session }) {
               {page.id === "comparativas" && (
                 <ComparisonsPage {...base} year={year} />
               )}
+              {page.id === "depositos" && <DepositsPage uid={uid} />}
+              {page.id === "financiera" && <FinancingPage uid={uid} />}
               {page.id === "importacion" && (
                 <ImportPage {...base} year={year} onBusy={setImportBusy} />
               )}{" "}
