@@ -113,15 +113,21 @@ describe("Resumen separado por tipos", () => {
       const expense = screen.getByRole("article", {
         name: "Media mensual de gastos",
       });
+      const net = screen.getByRole("article", {
+        name: "Media mensual del neto",
+      });
       expect(income.textContent).toContain("100,00 €");
       expect(expense.textContent).toContain("-25,00 €");
+      expect(net.textContent).toContain("75,00 €");
       view.rerender(<Summary {...props} month="02" />);
       expect(income.textContent).toContain("20,00 €");
       expect(expense.textContent).toContain("-50,00 €");
+      expect(net.textContent).toContain("-30,00 €");
       vi.setSystemTime(new Date("2026-04-01T12:00:00Z"));
       view.rerender(<Summary {...props} />);
       expect(income.textContent).toContain("40,00 €");
       expect(expense.textContent).toContain("-25,00 €");
+      expect(net.textContent).toContain("15,00 €");
     } finally {
       vi.useRealTimers();
     }

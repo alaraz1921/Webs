@@ -171,36 +171,42 @@ export function Summary({
               role="group"
               aria-label="Medias mensuales"
             >
-              {(["ingreso", "gasto"] as const).map((kind) => (
-                <article
-                  className="stat"
-                  key={kind}
-                  aria-label={`Media mensual de ${labels[kind].toLowerCase()}`}
-                >
-                  <span>Media mensual de {labels[kind].toLowerCase()}</span>
-                  <strong
-                    className={
-                      kind === "ingreso" ? "income-amount" : "negative"
-                    }
+              {(["ingreso", "gasto", "balance"] as const).map((kind) => {
+                const label =
+                  kind === "balance"
+                    ? "del neto"
+                    : `de ${labels[kind].toLowerCase()}`;
+                const average = averageMonths
+                  ? sum(averageRows.map((m) => m[kind].toString())).div(
+                      averageMonths,
+                    )
+                  : null;
+                const color =
+                  kind === "ingreso"
+                    ? "income-amount"
+                    : kind === "gasto" || average?.lt(0)
+                      ? "negative"
+                      : "positive";
+                return (
+                  <article
+                    className="stat"
+                    key={kind}
+                    aria-label={`Media mensual ${label}`}
                   >
-                    {averageMonths
-                      ? moneyWithSymbol(
-                          sum(averageRows.map((m) => m[kind].toString())).div(
-                            averageMonths,
-                          ),
-                          currency,
-                        )
-                      : "—"}
-                  </strong>
-                  <small>
-                    {month
-                      ? months[Number(month) - 1]
-                      : averageMonths
-                        ? `${averageMonths} meses completos`
-                        : "Sin meses completos"}
-                  </small>
-                </article>
-              ))}
+                    <span>Media mensual {label}</span>
+                    <strong className={color}>
+                      {average ? moneyWithSymbol(average, currency) : "—"}
+                    </strong>
+                    <small>
+                      {month
+                        ? months[Number(month) - 1]
+                        : averageMonths
+                          ? `${averageMonths} meses completos`
+                          : "Sin meses completos"}
+                    </small>
+                  </article>
+                );
+              })}
             </div>
             <AccountBalanceCards
               uid={uid}
