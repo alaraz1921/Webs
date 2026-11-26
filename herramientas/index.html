@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Herramientas útiles</title>
+<meta name="description" content="Calculadoras y utilidades gratuitas: hipoteca, gastos, viajes, rutas, conversor de unidades y más.">
+<style>
+  :root {
+    --bg:#f4f6fa; --card:#ffffff; --txt:#1d2333; --muted:#6b7385; --line:#e3e7ee;
+    --accent:#4f6bed; --sombra:0 1px 3px rgba(0,0,0,.06), 0 6px 20px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12151c; --card:#1b1f29; --txt:#e8ebf2; --muted:#9aa3b5; --line:#2a3040; --accent:#7b93ff; --sombra:0 1px 3px rgba(0,0,0,.4); }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  .wrap { max-width:1100px; margin:0 auto; padding:0 20px; }
+  header { padding:48px 0 28px; text-align:center; }
+  header .logo { font-size:48px; }
+  h1 { margin:8px 0 6px; font-size:clamp(1.7rem, 4vw, 2.4rem); }
+  header p { margin:0 auto; color:var(--muted); max-width:620px; font-size:1.05rem; }
+  .controles { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; margin:8px 0 22px; }
+  .buscar { flex:1; min-width:220px; max-width:360px; position:relative; }
+  .buscar input { width:100%; font:inherit; padding:11px 14px 11px 40px; border:1px solid var(--line); border-radius:12px; background:var(--card); color:var(--txt); }
+  .buscar input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(79,107,237,.18); }
+  .buscar span { position:absolute; left:13px; top:50%; transform:translateY(-50%); opacity:.6; }
+  .filtros { display:flex; flex-wrap:wrap; gap:6px; }
+  .filtros button { font:inherit; font-size:.9rem; padding:8px 14px; border-radius:99px; border:1px solid var(--line); background:var(--card); color:var(--muted); cursor:pointer; }
+  .filtros button.on { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:16px; }
+  .tarjeta { display:flex; flex-direction:column; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; text-decoration:none; color:inherit; box-shadow:var(--sombra); transition:transform .15s, box-shadow .15s, border-color .15s; position:relative; overflow:hidden; }
+  .tarjeta::before { content:""; position:absolute; inset:0 0 auto 0; height:4px; background:var(--color); }
+  .tarjeta:hover, .tarjeta:focus-visible { transform:translateY(-3px); border-color:var(--color); box-shadow:0 10px 28px rgba(0,0,0,.1); outline:none; }
+  .cab { display:flex; align-items:center; gap:12px; }
+  .icono { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:26px; background:var(--fondo); flex-shrink:0; }
+  .tarjeta h2 { margin:0; font-size:1.08rem; }
+  .tarjeta .cat { font-size:.78rem; color:var(--muted); }
+  .tarjeta p { margin:0; color:var(--muted); font-size:.93rem; flex:1; }
+  .tags { display:flex; flex-wrap:wrap; gap:6px; }
+  .tags span { font-size:.75rem; padding:3px 9px; border-radius:99px; background:var(--fondo); color:var(--color); font-weight:600; }
+  .abrir { font-weight:600; color:var(--color); font-size:.92rem; }
+  .vacio { text-align:center; color:var(--muted); padding:40px; grid-column:1 / -1; }
+  .info { margin:36px 0 0; display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; }
+  .info div { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; font-size:.9rem; color:var(--muted); }
+  .info b { color:var(--txt); display:block; margin-bottom:4px; font-size:.95rem; }
+  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:36px 0 40px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="logo">🧰</div>
+    <h1>Herramientas útiles</h1>
+    <p>Calculadoras y utilidades para el día a día: finanzas, viajes, cocina y más. Gratis, sin registro y sin enviar tus datos a ningún sitio.</p>
+  </header>
+
+  <div class="controles">
+    <div class="buscar">
+      <span>🔍</span>
+      <input type="search" id="buscar" placeholder="Buscar herramienta…" aria-label="Buscar herramienta">
+    </div>
+    <div class="filtros" id="filtros"></div>
+  </div>
+
+  <main class="grid" id="grid"></main>
+
+  <section class="info">
+    <div><b>🔒 Tus datos son tuyos</b>Todo se calcula y se guarda en tu propio navegador. No se envía nada a ningún servidor.</div>
+    <div><b>💾 Copia de seguridad</b>Usa los botones Guardar e Importar de cada herramienta para tener tus datos en un archivo o pasarlos a otro dispositivo.</div>
+    <div><b>📱 En cualquier dispositivo</b>Funcionan en ordenador, tablet y móvil, en cualquier navegador actual.</div>
+  </section>
+
+  <footer>Los resultados son orientativos. Para decisiones importantes, contrasta con un profesional.</footer>
+</div>
+
+<script>
+// ====== LISTA DE HERRAMIENTAS (edita aquí para añadir, quitar o cambiar) ======
+const HERRAMIENTAS = [
+  {
+    archivo: 'calculadora-financiera2.html', icono: '🏠', titulo: 'Calculadora de hipoteca',
+    categoria: 'Finanzas', color: '#3557d6',
+    descripcion: 'Cuota, intereses, TAE y cuadro de amortización. Tipo fijo, variable o mixto, con escenarios del Euríbor y amortizaciones anticipadas.',
+    tags: ['Fijo, variable y mixto', 'Euríbor', 'Amortización']
+  },
+  {
+    archivo: 'calculadora-financiera.html', icono: '🏦', titulo: 'Calculadora de préstamo (tipo fijo)',
+    categoria: 'Finanzas', color: '#1c7ed6',
+    descripcion: 'Versión sencilla para préstamos y hipotecas a tipo fijo, con amortizaciones anticipadas y cuadro de amortización.',
+    tags: ['Tipo fijo', 'Sistema francés y alemán']
+  },
+  {
+    archivo: 'gastos.html', icono: '💶', titulo: 'Control de gastos mensual',
+    categoria: 'Finanzas', color: '#12b886',
+    descripcion: 'Apunta tus gastos por categorías, fija un presupuesto y compara meses con gráficos. Exporta a Excel.',
+    tags: ['Presupuesto', 'Gráficos', 'CSV']
+  },
+  {
+    archivo: 'dividir-gastos.html', icono: '🧾', titulo: 'Dividir gastos entre amigos',
+    categoria: 'Finanzas', color: '#7048e8',
+    descripcion: 'Apunta quién paga qué en un viaje o una cena y descubre quién debe a quién con el menor número de pagos.',
+    tags: ['Viajes en grupo', 'Cenas', 'Compartir']
+  },
+  {
+    archivo: 'calculadora-consumo-coche.html', icono: '🚗', titulo: 'Coste de un viaje en coche',
+    categoria: 'Viajes y coche', color: '#0f9d77',
+    descripcion: 'Combustible, peajes y gastos extra, con reparto por persona. Gasolina, diésel o eléctrico.',
+    tags: ['Consumo', 'Peajes', 'Por persona']
+  },
+  {
+    archivo: 'planificador-rutas.html', icono: '🗺️', titulo: 'Planificador de rutas',
+    categoria: 'Viajes y coche', color: '#1a73e8',
+    descripcion: 'Organiza una ruta con paradas y genera enlaces para Google Maps y Waze, o un archivo GPX.',
+    tags: ['Google Maps', 'Waze', 'GPX']
+  },
+  {
+    archivo: 'lugares-waze.html', icono: '📍', titulo: 'Mis lugares para Waze',
+    categoria: 'Viajes y coche', color: '#0ca5d6',
+    descripcion: 'Prepara tu lista de destinos desde el ordenador y ábrelos en Waze desde el móvil para guardarlos.',
+    tags: ['Waze', 'Favoritos']
+  },
+  {
+    archivo: 'conversor-unidades.html', icono: '🧰', titulo: 'Utilidades',
+    categoria: 'Utilidades', color: '#0c8599',
+    descripcion: 'Conversor de unidades, recetas escaladas por raciones, calculadora de IVA y de descuentos y ofertas.',
+    tags: ['Unidades', 'Recetas', 'IVA', 'Descuentos']
+  }
+];
+// ==============================================================================
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const normalizar = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const categorias = ['Todas'].concat(HERRAMIENTAS.map(h => h.categoria).filter((c, i, a) => a.indexOf(c) === i));
+let categoria = 'Todas';
+
+function hexAFondo(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',0.12)';
+}
+
+function pintarFiltros() {
+  $('filtros').innerHTML = categorias.map(c =>
+    '<button class="' + (c === categoria ? 'on' : '') + '" data-cat="' + esc(c) + '">' + esc(c) + '</button>').join('');
+  document.querySelectorAll('#filtros button').forEach(b => b.onclick = () => { categoria = b.dataset.cat; pintarFiltros(); pintar(); });
+}
+
+function pintar() {
+  const q = normalizar($('buscar').value.trim());
+  const lista = HERRAMIENTAS.filter(h =>
+    (categoria === 'Todas' || h.categoria === categoria) &&
+    (!q || normalizar(h.titulo + ' ' + h.descripcion + ' ' + h.tags.join(' ') + ' ' + h.categoria).indexOf(q) >= 0));
+  $('grid').innerHTML = lista.length
+    ? lista.map(h =>
+      '<a class="tarjeta" href="' + esc(h.archivo) + '" style="--color:' + h.color + ';--fondo:' + hexAFondo(h.color) + '">' +
+        '<div class="cab"><div class="icono">' + h.icono + '</div><div><h2>' + esc(h.titulo) + '</h2><div class="cat">' + esc(h.categoria) + '</div></div></div>' +
+        '<p>' + esc(h.descripcion) + '</p>' +
+        '<div class="tags">' + h.tags.map(t => '<span>' + esc(t) + '</span>').join('') + '</div>' +
+        '<span class="abrir">Abrir →</span>' +
+      '</a>').join('')
+    : '<div class="vacio">No hay herramientas que coincidan con la búsqueda.</div>';
+}
+
+$('buscar').addEventListener('input', pintar);
+pintarFiltros();
+pintar();
+</script>
+</body>
+</html>
