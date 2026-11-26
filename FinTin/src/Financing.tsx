@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Decimal from "decimal.js";
 import { remove, save } from "./api";
 import {
   financingTotals,
@@ -8,16 +9,48 @@ import {
 } from "./contracts";
 import { displayDate, moneyWithSymbol } from "./finance";
 import { alphabetical } from "./alphabetical";
-import { ContractEditor, DecimalField, useContractRows } from "./ContractForms";
+import {
+  ContractEditor,
+  ContractRow,
+  DecimalField,
+  useContractRows,
+} from "./ContractForms";
+import { SortHeader, sortRows, useTableSort } from "./sorting";
 import { ConfirmDelete, Empty, ErrorBox, Field, Panel, text } from "./ui";
 
 const table = "financiaciones";
 const paymentsTable = "financiacion_pagos";
+const columns = [
+  ["nombre", "Nombre"],
+  ["notas", "Notas"],
+  ["fecha_inicio", "Inicio"],
+  ["fecha_fin", "Fin"],
+  ["importe_compra", "Importe compra"],
+  ["paid", "Importe pagado"],
+  ["pending", "Importe pendiente"],
+  ["total_cuotas", "Total cuotas"],
+  ["installments", "Cuotas pendientes"],
+] as const;
+type Column = (typeof columns)[number][0];
+const numeric: Column[] = [
+  "importe_compra",
+  "paid",
+  "pending",
+  "total_cuotas",
+  "installments",
+];
+const paymentColumns = [
+  ["fecha", "Fecha"],
+  ["importe", "Importe"],
+  ["nota", "Nota"],
+] as const;
 
 export function FinancingPage({ uid }: { uid: string }) {
   const purchases = useContractRows<Financing>(uid, table);
   const payments = useContractRows<Payment>(uid, paymentsTable);
   const [selectedId, setSelectedId] = useState("");
+  const sorting = useTableSort<Column>();
+  const paymentSorting = useTableSort<(typeof paymentColumns)[number][0]>();
   const [editor, setEditor] = useState<Financing | null | undefined>();
   const [paymentEditor, setPaymentEditor] = useState<
     Payment | null | undefined
@@ -30,8 +63,26 @@ export function FinancingPage({ uid }: { uid: string }) {
     group.push(payment);
     grouped.set(payment.financiacion_id, group);
   }
-  const selectedPayments = [...(grouped.get(selected?.id) ?? [])].sort((a, b) =>
-    b.fecha.localeCompare(a.fecha),
+  const orderedPayments = [...(grouped.get(selected?.id ?? "") ?? [])].sort(
+    (a, b) => b.fecha.localeCompare(a.fecha),
+  );
+  const selectedPayments = sortRows(
+    orderedPayments,
+    paymentSorting.sort,
+    (p, key) => p[key],
+    ["importe"],
+  );
+  const sorted = sortRows(
+    rows.map((row) => {
+      const group = grouped.get(row.id) ?? [];
+      return { row, group, totals: financingTotals(row, group) };
+    }),
+    sorting.sort,
+    ({ row, totals }, key) =>
+      key === "paid" || key === "pending" || key === "installments"
+        ? totals[key].toString()
+        : row[key],
+    numeric,
   );
   const busy = purchases.busy || payments.busy;
   const error = purchases.error || payments.error;
@@ -55,72 +106,60 @@ export function FinancingPage({ uid }: { uid: string }) {
               <table className="compact-table" aria-label="Compras financiadas">
                 <thead>
                   <tr>
-                    {[
-                      "Nombre",
-                      "Notas",
-                      "Importe compra",
-                      "Importe pagado",
-                      "Importe pendiente",
-                      "Total cuotas",
-                      "Cuotas pendientes",
-                      "Acciones",
-                    ].map((label) => (
-                      <th key={label} scope="col">
-                        {label}
-                      </th>
+                    {columns.map(([field, label]) => (
+                      <SortHeader
+                        key={field}
+                        field={field}
+                        label={label}
+                        numeric={numeric.includes(field)}
+                        {...sorting}
+                      />
                     ))}
+                    <th scope="col">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((row) => {
-                    const group = grouped.get(row.id) ?? [];
-                    const totals = financingTotals(row, group);
-                    return (
-                      <tr
-                        key={row.id}
-                        className={
-                          selected.id === row.id
-                            ? "financing-selected"
-                            : undefined
-                        }
-                      >
-                        <th scope="row">
-                          <button
-                            aria-pressed={selected.id === row.id}
-                            onClick={() => setSelectedId(row.id)}
-                          >
-                            {row.nombre}
-                          </button>
-                        </th>
-                        <td>{row.notas}</td>
-                        <td className="numeric">
-                          {moneyWithSymbol(row.importe_compra)}
-                        </td>
-                        <td className="numeric">
-                          {moneyWithSymbol(totals.paid)}
-                        </td>
-                        <td className="numeric">
-                          {moneyWithSymbol(totals.pending)}
-                        </td>
-                        <td className="numeric">{row.total_cuotas}</td>
-                        <td className="numeric">{totals.installments}</td>
-                        <td>
-                          <button onClick={() => setEditor(row)}>Editar</button>
-                          <ConfirmDelete
-                            onDelete={async () => {
-                              if (group.length)
-                                throw new Error(
-                                  "Elimina primero los pagos de esta financiación.",
-                                );
-                              await remove(table, uid, row.id);
-                              if (selectedId === row.id) setSelectedId("");
-                              purchases.refresh();
-                            }}
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {sorted.map(({ row, group, totals }) => (
+                    <ContractRow
+                      key={row.id}
+                      selected={selected?.id === row.id}
+                      onSelect={() => setSelectedId(row.id)}
+                    >
+                      <th scope="row">{row.nombre}</th>
+                      <td>{row.notas}</td>
+                      <td>
+                        {row.fecha_inicio ? displayDate(row.fecha_inicio) : "—"}
+                      </td>
+                      <td>
+                        {row.fecha_fin ? displayDate(row.fecha_fin) : "—"}
+                      </td>
+                      <td className="numeric">
+                        {moneyWithSymbol(row.importe_compra)}
+                      </td>
+                      <td className="numeric">
+                        {moneyWithSymbol(totals.paid)}
+                      </td>
+                      <td className="numeric">
+                        {moneyWithSymbol(totals.pending)}
+                      </td>
+                      <td className="numeric">{row.total_cuotas}</td>
+                      <td className="numeric">{totals.installments}</td>
+                      <td>
+                        <button onClick={() => setEditor(row)}>Editar</button>
+                        <ConfirmDelete
+                          onDelete={async () => {
+                            if (group.length)
+                              throw new Error(
+                                "Elimina primero los pagos de esta financiación.",
+                              );
+                            await remove(table, uid, row.id);
+                            if (selectedId === row.id) setSelectedId("");
+                            purchases.refresh();
+                          }}
+                        />
+                      </td>
+                    </ContractRow>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -129,6 +168,9 @@ export function FinancingPage({ uid }: { uid: string }) {
           ))
         )}
       </Panel>
+      {!busy && !error && selected && (
+        <FinancingDetails financing={selected} payments={selectedPayments} />
+      )}
       {!busy && !error && selected && (
         <Panel
           title={`Pagos de ${selected.nombre}`}
@@ -143,9 +185,15 @@ export function FinancingPage({ uid }: { uid: string }) {
               <table className="compact-table" aria-label="Pagos realizados">
                 <thead>
                   <tr>
-                    <th>Fecha</th>
-                    <th>Importe</th>
-                    <th>Nota</th>
+                    {paymentColumns.map(([field, label]) => (
+                      <SortHeader
+                        key={field}
+                        field={field}
+                        label={label}
+                        numeric={field === "importe"}
+                        {...paymentSorting}
+                      />
+                    ))}
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -183,6 +231,12 @@ export function FinancingPage({ uid }: { uid: string }) {
           title={editor ? "Editar financiación" : "Nueva financiación"}
           onClose={() => setEditor(undefined)}
           onSave={async (data) => {
+            const start = text(data, "inicio");
+            const end = text(data, "fin");
+            if (start && end && end < start)
+              throw new Error(
+                "La fecha de fin debe ser igual o posterior a la fecha de inicio.",
+              );
             await save(
               table,
               uid,
@@ -191,6 +245,8 @@ export function FinancingPage({ uid }: { uid: string }) {
                 notas: text(data, "notas"),
                 importe_compra: positiveAmount(text(data, "importe")),
                 total_cuotas: Number(text(data, "cuotas")),
+                fecha_inicio: start || null,
+                fecha_fin: end || null,
               },
               editor?.id,
             );
@@ -223,6 +279,22 @@ export function FinancingPage({ uid }: { uid: string }) {
           </Field>
           <Field label="Notas">
             <textarea name="notas" defaultValue={editor?.notas} />
+          </Field>
+          <Field label="Fecha de inicio">
+            <input
+              name="inicio"
+              type="date"
+              required={!editor}
+              defaultValue={editor?.fecha_inicio ?? ""}
+            />
+          </Field>
+          <Field label="Fecha de fin">
+            <input
+              name="fin"
+              type="date"
+              required={!editor}
+              defaultValue={editor?.fecha_fin ?? ""}
+            />
           </Field>
         </ContractEditor>
       )}
@@ -266,5 +338,70 @@ export function FinancingPage({ uid }: { uid: string }) {
         </ContractEditor>
       )}
     </>
+  );
+}
+
+function FinancingDetails({
+  financing,
+  payments,
+}: {
+  financing: Financing;
+  payments: Payment[];
+}) {
+  const totals = financingTotals(financing, payments);
+  const paidShare = Decimal.min(
+    100,
+    totals.paid.div(financing.importe_compra).times(100),
+  ).toNumber();
+  return (
+    <Panel title={`Detalle de ${financing.nombre}`}>
+      <div className="stats contract-stats">
+        <article className="stat">
+          <span>Importe pendiente</span>
+          <strong>{moneyWithSymbol(totals.pending)}</strong>
+        </article>
+        <article className="stat">
+          <span>Cuotas pendientes</span>
+          <strong>{totals.installments}</strong>
+        </article>
+        <article className="stat">
+          <span>Fecha de fin</span>
+          <strong>
+            {financing.fecha_fin
+              ? displayDate(financing.fecha_fin)
+              : "Sin indicar"}
+          </strong>
+        </article>
+      </div>
+      <figure className="financing-chart">
+        <div
+          className="financing-pie"
+          aria-hidden="true"
+          style={{
+            background: `conic-gradient(#2563eb 0% ${paidShare}%, #bfdbfe ${paidShare}% 100%)`,
+          }}
+        />
+        <figcaption>
+          <strong>
+            Total financiado: {moneyWithSymbol(financing.importe_compra)}
+          </strong>
+          <ul className="chart-legend">
+            <li>
+              <i style={{ background: "#2563eb" }} /> Pagado:{" "}
+              {moneyWithSymbol(totals.paid)}
+            </li>
+            <li>
+              <i style={{ background: "#bfdbfe" }} /> Pendiente:{" "}
+              {moneyWithSymbol(Decimal.max(0, totals.pending))}
+            </li>
+          </ul>
+          {totals.pending.lt(0) && (
+            <small>
+              Pagado de más: {moneyWithSymbol(totals.pending.abs())}
+            </small>
+          )}
+        </figcaption>
+      </figure>
+    </Panel>
   );
 }

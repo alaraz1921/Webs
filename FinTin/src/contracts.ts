@@ -11,6 +11,7 @@ export interface Deposit {
   interes: string;
   retencion: string;
   aportacion: string;
+  importe_liquidacion: string | null;
 }
 export interface Financing {
   id: string;
@@ -18,6 +19,8 @@ export interface Financing {
   notas: string;
   importe_compra: string;
   total_cuotas: number;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
 }
 export interface Payment {
   id: string;
@@ -43,8 +46,40 @@ export function depositTerms(deposit: Deposit) {
   return {
     maturity: maturity.toISOString().split("T")[0],
     net,
-    settlement: net.plus(deposit.aportacion),
   };
+}
+
+export function depositProgress(
+  deposit: Deposit,
+  maturity: string,
+  today: string,
+) {
+  const dayMs = 86_400_000;
+  const time = (date: string) => Date.parse(date + "T00:00:00Z");
+  const total = (time(maturity) - time(deposit.fecha_apertura)) / dayMs;
+  const settled = deposit.importe_liquidacion != null;
+  const elapsed = Math.min(
+    total,
+    Math.max(0, (time(today) - time(deposit.fecha_apertura)) / dayMs),
+  );
+  const remaining = settled
+    ? 0
+    : Math.max(0, (time(maturity) - time(today)) / dayMs);
+  return {
+    elapsed,
+    remaining,
+    percent: Math.round((100 * elapsed) / total),
+    expired: settled || today >= maturity,
+    settled,
+  };
+}
+
+export function settlementAmount(value: string) {
+  if (!value) return null;
+  const parsed = amount(value);
+  if (new Decimal(parsed).lt(0))
+    throw new Error("La liquidación no puede ser negativa.");
+  return parsed;
 }
 
 export function financingTotals(financing: Financing, payments: Payment[]) {

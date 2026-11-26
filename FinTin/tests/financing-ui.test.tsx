@@ -50,7 +50,10 @@ it("registra un pago en la compra elegida y actualiza sus importes y cuotas", as
   });
   const user = userEvent.setup();
   render(<FinancingPage uid="owner" />);
-  await user.click(await screen.findByRole("button", { name: "Compra B" }));
+  const purchase = (
+    await screen.findByRole("rowheader", { name: "Compra B" })
+  ).closest("tr")!;
+  await user.click(within(purchase).getByRole("cell", { name: "0,00 €" }));
   await user.click(screen.getByRole("button", { name: "Registrar pago" }));
   const dialog = screen.getByRole("dialog", { name: "Registrar pago" });
   await user.type(within(dialog).getByLabelText("Fecha"), "2026-11-26");
@@ -61,15 +64,18 @@ it("registra un pago en la compra elegida y actualiza sus importes y cuotas", as
     await screen.findByRole("cell", { name: "Primera cuota" }),
   ).toBeTruthy();
   expect(payments[0].financiacion_id).toBe("b");
-  const purchase = screen
-    .getByRole("button", { name: "Compra B" })
+  const updated = screen
+    .getByRole("rowheader", { name: "Compra B" })
     .closest("tr")!;
   expect(
-    within(purchase)
+    within(updated)
       .getAllByRole("cell")
-      .slice(2, 6)
+      .slice(4, 8)
       .map((c) => c.textContent),
   ).toEqual(["40,50 €", "59,50 €", "2", "1"]);
-  await user.click(screen.getByRole("button", { name: "Compra A" }));
+  expect(
+    screen.getByRole("heading", { name: "Detalle de Compra B" }),
+  ).toBeTruthy();
+  await user.click(screen.getByRole("rowheader", { name: "Compra A" }));
   expect(screen.queryByRole("cell", { name: "Primera cuota" })).toBeNull();
 });

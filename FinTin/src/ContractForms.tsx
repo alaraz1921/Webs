@@ -4,6 +4,39 @@ import { decimalComma } from "./amount-input";
 import { formatAmount } from "./finance";
 import { Field, Form, Modal } from "./ui";
 
+export function ContractRow({
+  selected,
+  onSelect,
+  children,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <tr
+      tabIndex={0}
+      aria-current={selected || undefined}
+      className="contract-row"
+      onClick={(event) => {
+        if (!(event.target as HTMLElement).closest("button, a, input"))
+          onSelect();
+      }}
+      onKeyDown={(event) => {
+        if (
+          event.target !== event.currentTarget ||
+          !["Enter", " "].includes(event.key)
+        )
+          return;
+        event.preventDefault();
+        onSelect();
+      }}
+    >
+      {children}
+    </tr>
+  );
+}
+
 export function useContractRows<T>(uid: string, table: string) {
   const [rows, setRows] = useState<T[]>([]);
   const [busy, setBusy] = useState(true);
@@ -55,16 +88,18 @@ export function DecimalField({
   label,
   name,
   value,
+  required = true,
 }: {
   label: string;
   name: string;
   value?: string;
+  required?: boolean;
 }) {
   return (
     <Field label={label}>
       <input
         name={name}
-        required
+        required={required}
         inputMode="decimal"
         onKeyDown={decimalComma}
         defaultValue={value === undefined ? "" : formatAmount(value)}

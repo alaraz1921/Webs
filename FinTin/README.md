@@ -93,7 +93,9 @@ El listado pagina en servidor, 50 filas, con filtros y búsqueda por concepto. L
 
 La migración [20261126000001_fintin_depositos_financiera.sql](./supabase/migrations/20261126000001_fintin_depositos_financiera.sql) debe aplicarse antes de publicar estas pantallas. Crea exclusivamente las tres tablas nuevas de FinTin y reutiliza su autorización. La prueba local comprueba RLS, permisos y propiedad de los pagos.
 
-Depósitos calcula el vencimiento por meses naturales, ajustando al último día del mes cuando haga falta. El beneficio se estima con interés simple anual y la retención indicada (0 % si se deja el valor inicial). La liquidación suma la aportación y el beneficio neto. En Financiera, cada pago cuenta como una cuota. Un importe pendiente negativo indica un pago superior al total de compra. Las cuotas pendientes se muestran como mínimo en cero. Para eliminar una compra con pagos, elimina primero esos pagos. Ambas pantallas usan euros.
+Para el detalle de ambas pantallas, aplica a continuación [20261126000002_fintin_detalles_contratos.sql](./supabase/migrations/20261126000002_fintin_detalles_contratos.sql). Las fechas y liquidaciones de registros anteriores quedan vacías hasta que las indiques.
+
+Depósitos calcula el vencimiento por meses naturales, ajustando al último día del mes cuando haga falta. El beneficio se estima con interés simple anual y la retención indicada (0 % si se deja el valor inicial). La liquidación se registra al recibir el abono y marca el depósito como vencido aunque el abono se haga antes de la fecha prevista. Pulsar una fila muestra el detalle y el progreso del plazo. En Financiera, al pulsar una fila se ven sus fechas, el detalle de lo pagado y pendiente y sus pagos. Cada pago cuenta como una cuota. Un importe pendiente negativo indica un pago superior al total de compra. Las cuotas pendientes se muestran como mínimo en cero. Para eliminar una compra con pagos, elimina primero esos pagos. Ambas pantallas usan euros y permiten ordenar las tablas por sus cabeceras.
 
 ## Informes e impresión
 

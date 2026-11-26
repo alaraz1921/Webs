@@ -27,6 +27,32 @@ it("aísla depósitos, financiaciones y pagos y rechaza un pago enlazado a otro 
       INSERT INTO public.fintin_financiacion_pagos(financiacion_id,fecha,importe)
         VALUES ('${financing}','2026-11-26',50);
     `);
+    await db.exec("RESET ROLE");
+    await db.exec(migration("20261126000002_fintin_detalles_contratos.sql"));
+    await db.exec("SET ROLE authenticated");
+    expect(
+      (
+        await db.query(
+          "SELECT fecha_inicio, fecha_fin FROM public.fintin_financiaciones",
+        )
+      ).rows,
+    ).toEqual([{ fecha_inicio: null, fecha_fin: null }]);
+    expect(
+      (
+        await db.query(
+          "SELECT importe_liquidacion FROM public.fintin_depositos",
+        )
+      ).rows,
+    ).toEqual([{ importe_liquidacion: null }]);
+    await expect(
+      db.exec(
+        "UPDATE public.fintin_financiaciones SET fecha_inicio='2027-01-01', fecha_fin='2026-01-01'",
+      ),
+    ).rejects.toMatchObject({ code: "23514" });
+    await db.exec(
+      "UPDATE public.fintin_financiaciones SET fecha_inicio='2026-01-01', fecha_fin='2027-01-01'",
+    );
+    await db.exec("UPDATE public.fintin_depositos SET importe_liquidacion=0");
     for (const table of tables) {
       expect(
         (await db.query(`SELECT id FROM public.fintin_${table}`)).rows,
