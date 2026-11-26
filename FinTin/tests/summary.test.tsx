@@ -102,6 +102,30 @@ const numbers = (table: HTMLElement, name: string | RegExp) =>
     .getAllByRole("cell")
     .map((c) => c.textContent);
 describe("Resumen separado por tipos", () => {
+  it("calcula las medias solo con meses cerrados al consultar el ejercicio", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-02-15T12:00:00Z"));
+    try {
+      const view = render(<Summary {...props} />);
+      const income = await screen.findByRole("article", {
+        name: "Media mensual de ingresos",
+      });
+      const expense = screen.getByRole("article", {
+        name: "Media mensual de gastos",
+      });
+      expect(income.textContent).toContain("100,00 €");
+      expect(expense.textContent).toContain("-25,00 €");
+      view.rerender(<Summary {...props} month="02" />);
+      expect(income.textContent).toContain("20,00 €");
+      expect(expense.textContent).toContain("-50,00 €");
+      vi.setSystemTime(new Date("2026-04-01T12:00:00Z"));
+      view.rerender(<Summary {...props} />);
+      expect(income.textContent).toContain("40,00 €");
+      expect(expense.textContent).toContain("-25,00 €");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
   it("mantiene el código de las otras monedas en las tarjetas", async () => {
     render(<Summary {...props} currency="USD" />);
     const card = await screen.findByRole("article", { name: "Total Ingresos" });
@@ -143,7 +167,7 @@ describe("Resumen separado por tipos", () => {
     ).toEqual([
       "Balance mensual · últimos 12 meses",
       "Evolución de ingresos y gastos · últimos 12 meses",
-      "Gastos por categorías · las 6 principales",
+      "Gastos por categorías · las 8 principales",
       "Evolución del gasto de una categoría",
       "Ingresos",
       "Gastos",

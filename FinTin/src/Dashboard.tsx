@@ -20,6 +20,7 @@ import { Field, Empty, ErrorBox, Panel, Form, text, Modal } from "./ui";
 import type { MasterProps } from "./Settings";
 import { SummaryCharts, type ChartPeriods } from "./SummaryCharts";
 import { AccountBalanceCards } from "./AccountBalanceCards";
+import { completedMonths, dateInMadrid } from "./chart-data";
 export interface YearProps extends MasterProps {
   year: number;
   currency: string;
@@ -110,6 +111,10 @@ export function Summary({
   const monthly = months.map((_, i) =>
     totals(rows.filter((r) => Number(r.fecha_valor.slice(5, 7)) === i + 1)),
   );
+  const averageMonths = month
+    ? 1
+    : completedMonths(year, dateInMadrid(new Date()));
+  const averageRows = month ? [t] : monthly.slice(0, averageMonths);
   return (
     <>
       <ErrorBox error={error} />
@@ -160,6 +165,42 @@ export function Summary({
                   );
                 },
               )}
+            </div>
+            <div
+              className="stats summary-averages"
+              role="group"
+              aria-label="Medias mensuales"
+            >
+              {(["ingreso", "gasto"] as const).map((kind) => (
+                <article
+                  className="stat"
+                  key={kind}
+                  aria-label={`Media mensual de ${labels[kind].toLowerCase()}`}
+                >
+                  <span>Media mensual de {labels[kind].toLowerCase()}</span>
+                  <strong
+                    className={
+                      kind === "ingreso" ? "income-amount" : "negative"
+                    }
+                  >
+                    {averageMonths
+                      ? moneyWithSymbol(
+                          sum(averageRows.map((m) => m[kind].toString())).div(
+                            averageMonths,
+                          ),
+                          currency,
+                        )
+                      : "—"}
+                  </strong>
+                  <small>
+                    {month
+                      ? months[Number(month) - 1]
+                      : averageMonths
+                        ? `${averageMonths} meses completos`
+                        : "Sin meses completos"}
+                  </small>
+                </article>
+              ))}
             </div>
             <AccountBalanceCards
               uid={uid}

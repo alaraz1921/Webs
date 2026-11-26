@@ -52,8 +52,8 @@ it("agrupa por fecha valor, descuenta devoluciones y excluye los no computables 
     { income: "0.00", expense: "0.00", other: "0.00", net: "0.00" },
   ]);
 });
-it("selecciona las seis categorías con más gasto neto y respeta el mes", () => {
-  const rows = Array.from({ length: 8 }, (_, i) =>
+it("selecciona las ocho categorías con más gasto neto y respeta el mes", () => {
+  const rows = Array.from({ length: 9 }, (_, i) =>
     row({ categoria_csv: `Categoría ${i}`, importe: String(-(i + 1)) }),
   );
   rows.push(
@@ -65,14 +65,16 @@ it("selecciona las seis categorías con más gasto neto y respeta el mes", () =>
     }),
   );
   const top = topExpenses(rows, [], "01");
-  expect(top).toHaveLength(6);
+  expect(top).toHaveLength(8);
   expect(top.map((c) => c.name)).toEqual([
+    "Categoría 8",
     "Categoría 6",
     "Categoría 5",
     "Categoría 4",
     "Categoría 3",
     "Categoría 2",
     "Categoría 1",
+    "Categoría 0",
   ]);
   expect(topExpenses(rows, [], "")[0].name).toBe("Febrero");
 });

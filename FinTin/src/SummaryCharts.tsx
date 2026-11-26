@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { annual } from "./api";
 import type { Category, Movement } from "./types";
 import { months } from "./types";
-import { moneyWithSymbol } from "./finance";
+import { moneyWithSymbol, sum } from "./finance";
 import {
   categoryEvolution,
   dateInMadrid,
@@ -14,6 +14,77 @@ import {
 import { FinanceChart } from "./FinanceChart";
 import { Empty, ErrorBox, Field, Panel } from "./ui";
 import { YearPicker } from "./YearPicker";
+
+const categoryColors = [
+  "#4f63e8",
+  "#16824b",
+  "#0284c7",
+  "#d97706",
+  "#a236c6",
+  "#64748b",
+  "#dc4655",
+  "#0f766e",
+];
+const formatShare = new Intl.NumberFormat("es-ES", {
+  style: "percent",
+  maximumFractionDigits: 1,
+});
+
+function ExpenseDonut({
+  categories,
+  currency,
+}: {
+  categories: ReturnType<typeof topExpenses>;
+  currency: string;
+}) {
+  const total = sum(categories.map(({ value }) => value));
+  let cumulative = total.times(0);
+  const slices = categories.map((category, index) => {
+    const start = cumulative.div(total).times(100).toNumber();
+    cumulative = cumulative.plus(category.value);
+    const end = cumulative.div(total).times(100).toNumber();
+    const color = categoryColors[index];
+    return {
+      ...category,
+      color,
+      stop: `${color} ${start}% ${end}%`,
+      share: sum([category.value]).div(total).toNumber(),
+    };
+  });
+  return (
+    <figure
+      className="expense-donut"
+      aria-label="Distribución del gasto por categoría"
+    >
+      <div
+        className="expense-donut-ring"
+        style={{
+          background: `conic-gradient(${slices.map(({ stop }) => stop).join(", ")})`,
+        }}
+      >
+        <div className="expense-donut-total">
+          <span>Total mostrado</span>
+          <strong>{moneyWithSymbol(total, currency)}</strong>
+        </div>
+      </div>
+      <ul
+        className="expense-donut-legend"
+        aria-label="Categorías con más gasto"
+      >
+        {slices.map(({ key, name, color, value, share }) => (
+          <li key={key}>
+            <span>
+              <i aria-hidden="true" style={{ backgroundColor: color }} />
+              {name}
+            </span>
+            <strong>{moneyWithSymbol(value, currency)}</strong>
+            <span className="muted">{formatShare.format(share)}</span>
+          </li>
+        ))}
+      </ul>
+    </figure>
+  );
+}
 
 function MonthFilter({
   value,
@@ -270,7 +341,7 @@ export function SummaryCharts({
           />,
         )}
       </Panel>
-      <Panel title="Gastos por categorías · las 6 principales">
+      <Panel title="Gastos por categorías · las 8 principales">
         <p className="print-only print-context">
           Ejercicio {topYear} · Mes:{" "}
           {topMonth ? months[Number(topMonth) - 1] : "Todos"}
@@ -291,23 +362,7 @@ export function SummaryCharts({
         </div>
         {chart(
           top.length ? (
-            <ul className="category-bars" aria-label="Categorías con más gasto">
-              {top.map((c) => (
-                <li key={c.key}>
-                  <div>
-                    <span>{c.name}</span>
-                    <strong>{moneyWithSymbol(c.value, currency)}</strong>
-                  </div>
-                  <div className="category-bar-track">
-                    <div
-                      style={{
-                        width: `${(Number(c.value) / Number(top[0].value)) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <ExpenseDonut categories={top} currency={currency} />
           ) : (
             <Empty>No hay gastos netos positivos para esta selección.</Empty>
           ),

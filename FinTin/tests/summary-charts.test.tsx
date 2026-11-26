@@ -137,7 +137,7 @@ it("aplica el mes general a ambos gráficos y Todos recupera la vista anual sin 
   ).toBe("02");
   expect(
     screen.getByRole("list", { name: "Categorías con más gasto" }).textContent,
-  ).toBe("Categoría B20,59 €");
+  ).toBe("Categoría B20,59 €100\u00a0%");
   await u.selectOptions(
     screen.getByLabelText("Categoría de evolución"),
     "id:b",
@@ -154,7 +154,7 @@ it("aplica el mes general a ambos gráficos y Todos recupera la vista anual sin 
   ).toBe("01");
   expect(
     screen.getByRole("list", { name: "Categorías con más gasto" }).textContent,
-  ).toBe("Categoría A1.234,56 €");
+  ).toBe("Categoría A1.234,56 €100\u00a0%");
   view.rerender(<SummaryCharts {...props} month="" />);
   expect(
     (screen.getByLabelText("Mes de categorías") as HTMLSelectElement).value,
@@ -182,7 +182,7 @@ it("cambia mes y ejercicio del ranking y mes/categoría de evolución de forma i
   await u.selectOptions(screen.getByLabelText("Mes de categorías"), "02");
   expect(
     screen.getByRole("list", { name: "Categorías con más gasto" }).textContent,
-  ).toBe("Categoría B20,59 €");
+  ).toBe("Categoría B20,59 €100\u00a0%");
   await u.selectOptions(screen.getByLabelText("Mes de evolución"), "02");
   await u.selectOptions(
     screen.getByLabelText("Categoría de evolución"),
@@ -200,7 +200,7 @@ it("cambia mes y ejercicio del ranking y mes/categoría de evolución de forma i
   const ranking = await screen.findByRole("list", {
     name: "Categorías con más gasto",
   });
-  expect(ranking.textContent).toBe("Categoría A77,77 €");
+  expect(ranking.textContent).toBe("Categoría A77,77 €100\u00a0%");
   expect(api.annual).toHaveBeenLastCalledWith("owner", 2024);
   expect(
     screen.getByRole("combobox", { name: /^Ejercicio de evolución/ })

@@ -23,6 +23,12 @@ export function lastTwelveMonths(today: string) {
     return date.toISOString().slice(0, 7);
   });
 }
+export function completedMonths(year: number, today: string) {
+  const currentYear = Number(today.slice(0, 4));
+  if (year < currentYear) return 12;
+  if (year > currentYear) return 0;
+  return Number(today.slice(5, 7)) - 1;
+}
 export function monthlyChartData(rows: Movement[], periods: string[]) {
   return periods.map((period) => {
     const t = totals(rows.filter((r) => r.fecha_valor.startsWith(period)));
@@ -77,7 +83,7 @@ export function topExpenses(
         b[1].comparedTo(a[1]) ||
         (names.get(a[0]) || "").localeCompare(names.get(b[0]) || "", "es"),
     )
-    .slice(0, 6)
+    .slice(0, 8)
     .map(([key, value]) => ({
       key,
       name: names.get(key) || "Sin categoría",
