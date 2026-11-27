@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Explorador y comparador de carpetas</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font: 13px "Segoe UI", system-ui, sans-serif; color: #1b1b1b; background: #f3f3f3; }
+  body { display: flex; flex-direction: column; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; padding: 8px 12px; background: #fff; border-bottom: 1px solid #ddd; }
+  .toolbar strong { font-size: 14px; margin-right: 6px; }
+  .toolbar label { display: flex; align-items: center; gap: 4px; }
+  button { font: inherit; padding: 4px 10px; border: 1px solid #c8c8c8; background: #fdfdfd; border-radius: 4px; cursor: pointer; }
+  button:hover:not(:disabled) { background: #e5f1fb; border-color: #0078d4; }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: #0078d4; color: #fff; border-color: #0078d4; }
+  button.primary:hover:not(:disabled) { background: #106ebe; }
+  button.danger { background: #c42b1c; color: #fff; border-color: #c42b1c; }
+  button.danger:hover:not(:disabled) { background: #a52316; border-color: #a52316; }
+  button:focus-visible { outline: 2px solid #0078d4; outline-offset: 1px; }
+  #status { color: #555; margin-left: auto; }
+  main { flex: 1; display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; padding: 8px; min-height: 0; }
+  .pane { display: flex; flex-direction: column; background: #fff; border: 1px solid #d6d6d6; border-radius: 6px; min-height: 0; min-width: 0; }
+  .pbar { display: flex; gap: 6px; align-items: center; padding: 6px; border-bottom: 1px solid #e5e5e5; }
+  .selbar { display: flex; gap: 6px; padding: 5px 6px; border-bottom: 1px solid #e5e5e5; background: #fbfbfb; flex-wrap: wrap; }
+  .selbar button { font-size: 12px; padding: 3px 8px; }
+  .path { flex: 1; padding: 4px 8px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: left; }
+  .row { display: grid; grid-template-columns: 24px 1fr 90px 135px; gap: 6px; padding: 3px 8px; align-items: center; white-space: nowrap; }
+  .row > span { overflow: hidden; text-overflow: ellipsis; }
+  .head { font-weight: 600; color: #555; border-bottom: 1px solid #e5e5e5; background: #fafafa; }
+  .list { flex: 1; overflow: auto; outline: none; user-select: none; }
+  .item { cursor: default; border: 1px solid transparent; }
+  .item:hover { background: #f0f7fd; }
+  .item.sel { background: #cce8ff; border-color: #99d1ff; }
+  .item.only { color: #0a6b2a; background-color: #eaf7ee; }
+  .item.diff { color: #a4262c; background-color: #fdecea; }
+  .item.pending { color: #888; font-style: italic; }
+  .item.sel.only, .item.sel.diff { background: #cce8ff; }
+  .item.sel.diff { box-shadow: inset 4px 0 #a4262c; }
+  .item.sel.only { box-shadow: inset 4px 0 #0a6b2a; }
+  .sz { text-align: right; }
+  .empty { padding: 30px; text-align: center; color: #888; }
+  .pstatus { padding: 4px 8px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px; }
+  .middle { display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+  .middle button { font-size: 18px; padding: 8px 12px; }
+  footer { display: flex; gap: 16px; padding: 5px 12px; font-size: 12px; color: #555; background: #fff; border-top: 1px solid #ddd; }
+  .sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
+  #nosupport { display: none; padding: 10px 14px; background: #fff4ce; border-bottom: 1px solid #e0c060; }
+
+  /* ---- Modal ---- */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  .overlay[hidden] { display: none; }
+  .dialog { background: #fff; width: min(480px, 92vw); border-radius: 8px; box-shadow: 0 12px 40px rgba(0,0,0,.3); overflow: hidden; animation: pop .15s ease-out; }
+  .dlg-head { display: flex; gap: 10px; align-items: center; padding: 16px 20px 4px; }
+  .dlg-head h2 { font-size: 16px; margin: 0; font-weight: 600; }
+  #dlgIcon { font-size: 22px; width: 24px; text-align: center; }
+  .dlg-body { padding: 4px 20px 16px 54px; max-height: 55vh; overflow: auto; line-height: 1.45; }
+  .dlg-body p { margin: 6px 0; white-space: pre-line; overflow-wrap: anywhere; }
+  .dlg-body .note { color: #666; font-size: 12px; }
+  .dlg-body ul { margin: 6px 0; padding-left: 18px; max-height: 200px; overflow: auto; }
+  .dlg-body li { overflow-wrap: anywhere; }
+  .dlg-body progress { width: 100%; height: 14px; margin-top: 8px; accent-color: #0078d4; }
+  .dlg-buttons { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; background: #f7f7f7; border-top: 1px solid #e5e5e5; }
+  .dlg-buttons button { min-width: 90px; padding: 6px 14px; }
+  @keyframes pop { from { transform: scale(.96); opacity: 0; } }
+</style>
+</head>
+<body>
+<div id="nosupport">⚠️ Este navegador no admite acceso a carpetas locales. Usa Chrome, Edge, Opera o Brave en escritorio.</div>
+
+<header class="toolbar">
+  <strong>📂 Comparador de carpetas</strong>
+  <label>Comparar por
+    <select id="mode">
+      <option value="size">Tamaño</option>
+      <option value="date">Tamaño y fecha</option>
+      <option value="content">Contenido (lento)</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="deep" checked> Analizar subcarpetas</label>
+  <label><input type="checkbox" id="onlyDiff"> Solo diferencias</label>
+  <label><input type="checkbox" id="sync" checked> Navegación sincronizada</label>
+  <button id="btnCompare" class="primary">⇄ Comparar</button>
+  <span id="status"></span>
+</header>
+
+<main>
+  <section class="pane" id="paneL"></section>
+  <div class="middle">
+    <button id="toR" title="Copiar selección de izquierda a derecha">→</button>
+    <button id="toL" title="Copiar selección de derecha a izquierda">←</button>
+  </div>
+  <section class="pane" id="paneR"></section>
+</main>
+
+<footer>
+  <span><span class="sw" style="background:#eaf7ee;border:1px solid #0a6b2a"></span>Solo existe en este lado</span>
+  <span><span class="sw" style="background:#fdecea;border:1px solid #a4262c"></span>Distinto</span>
+  <span><span class="sw" style="background:#fff;border:1px solid #999"></span>Igual</span>
+  <span style="margin-left:auto">Pasa el ratón por un elemento para ver el motivo · Doble clic: abrir carpeta · Ctrl/Mayús+clic: selección múltiple · Retroceso: subir · Ctrl+A: todo</span>
+</footer>
+
+<!-- Modal -->
+<div id="overlay" class="overlay" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <div class="dlg-head"><span id="dlgIcon"></span><h2 id="dlgTitle"></h2></div>
+    <div id="dlgBody" class="dlg-body"></div>
+    <div id="dlgButtons" class="dlg-buttons"></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const key = n => n.normalize('NFC').toLowerCase();   // ignora mayúsculas y diferencias de codificación de tildes
+let compareOn = false, cmpToken = 0, cancelCopy = false, busyNow = false;
+
+if (!('showDirectoryPicker' in window)) $('nosupport').style.display = 'block';
+
+/* ---------- Modal ---------- */
+let dlgResolve = null, dlgCancelValue = null;
+
+function showDialog({ title = '', icon = 'ℹ️', message = '', list = null, note = '', progress = false,
+                      buttons = [{ label: 'Aceptar', value: true, primary: true }], cancelValue = null } = {}) {
+  if (dlgResolve) closeDialog(dlgCancelValue);
+  $('dlgTitle').textContent = title;
+  $('dlgIcon').textContent = icon;
+  const body = $('dlgBody');
+  body.innerHTML = '';
+  const p = document.createElement('p');
+  p.id = 'dlgMsg';
+  p.textContent = message;
+  body.appendChild(p);
+  if (list && list.length) {
+    const ul = document.createElement('ul');
+    list.slice(0, 15).forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+    if (list.length > 15) { const li = document.createElement('li'); li.textContent = `… y ${list.length - 15} más`; ul.appendChild(li); }
+    body.appendChild(ul);
+  }
+  if (progress) {
+    const bar = document.createElement('progress');
+    bar.id = 'dlgBar';
+    body.appendChild(bar);
+  }
+  if (note) {
+    const n = document.createElement('p');
+    n.className = 'note';
+    n.textContent = note;
+    body.appendChild(n);
+  }
+  const bb = $('dlgButtons');
+  bb.innerHTML = '';
+  for (const b of buttons) {
+    const btn = document.createElement('button');
+    btn.textContent = b.label;
+    if (b.primary) btn.className = 'primary';
+    if (b.danger) btn.className = 'danger';
+    btn.onclick = () => closeDialog(b.value);
+    bb.appendChild(btn);
+  }
+  dlgCancelValue = cancelValue;
+  $('overlay').hidden = false;
+  (bb.querySelector('.primary, .danger') || bb.lastElementChild).focus();
+  return new Promise(r => dlgResolve = r);
+}
+
+function closeDialog(value) {
+  $('overlay').hidden = true;
+  const r = dlgResolve;
+  dlgResolve = null;
+  if (r) r(value);
+}
+
+document.addEventListener('keydown', ev => {
+  if ($('overlay').hidden) return;
+  if (ev.key === 'Escape') { ev.preventDefault(); closeDialog(dlgCancelValue); }
+  if (ev.key === 'Tab') {
+    const btns = [...$('dlgButtons').querySelectorAll('button')];
+    const i = btns.indexOf(document.activeElement);
+    ev.preventDefault();
+    btns[(i + (ev.shiftKey ? -1 : 1) + btns.length) % btns.length].focus();
+  }
+}, true);
+
+const info  = (title, message, icon = 'ℹ️') => showDialog({ title, message, icon });
+const warn  = (title, message) => showDialog({ title, message, icon: '⚠️' });
+const error = (title, message) => showDialog({ title, message, icon: '⛔' });
+
+/* ---------- Paneles ---------- */
+function makePane(id) {
+  const el = $('pane' + id);
+  el.innerHTML = `
+    <div class="pbar">
+      <button data-a="open">Abrir carpeta…</button>
+      <button data-a="up" title="Subir un nivel">⬆</button>
+      <button data-a="refresh" title="Actualizar">⟳</button>
+      <div class="path"></div>
+    </div>
+    <div class="selbar">
+      <button data-a="all" title="Seleccionar todos los elementos visibles">☑ Seleccionar todo</button>
+      <button data-a="missing" title="Seleccionar lo que no existe en el otro panel">➕ Faltan en el otro</button>
+      <button data-a="none" title="Quitar la selección">☐ Ninguno</button>
+    </div>
+    <div class="row head"><span></span><span>Nombre</span><span class="sz">Tamaño</span><span>Modificado</span></div>
+    <div class="list" tabindex="0"></div>
+    <div class="pstatus">—</div>`;
+  const p = {
+    id, el, stack: [], entries: [], sel: new Set(), last: null, visible: [],
+    status: new Map(), why: new Map(),
+    list: el.querySelector('.list'), pathEl: el.querySelector('.path'), statusEl: el.querySelector('.pstatus')
+  };
+  el.querySelector('[data-a=open]').onclick = () => openRoot(p);
+  el.querySelector('[data-a=up]').onclick = () => goUp(p, true);
+  el.querySelector('[data-a=refresh]').onclick = refreshAll;
+  el.querySelector('[data-a=all]').onclick = () => selectAll(p);
+  el.querySelector('[data-a=missing]').onclick = () => selectMissing(p);
+  el.querySelector('[data-a=none]').onclick = () => { p.sel.clear(); p.last = null; render(p); };
+  p.list.addEventListener('keydown', ev => {
+    if (ev.key === 'Backspace') { ev.preventDefault(); goUp(p, true); }
+    if (ev.key === 'a' && (ev.ctrlKey || ev.metaKey)) { ev.preventDefault(); selectAll(p); }
+    if (ev.key === 'Enter' && p.sel.size === 1) {
+      const e = p.entries.find(x => p.sel.has(x.name));
+      if (e && e.kind === 'directory') enter(p, e.name, true);
+    }
+  });
+  render(p);
+  return p;
+}
+const panes = { L: makePane('L'), R: makePane('R') };
+const other = p => p.id === 'L' ? panes.R : panes.L;
+const cur = p => p.stack[p.stack.length - 1];
+
+async function openRoot(p) {
+  try {
+    const h = await window.showDirectoryPicker({ mode: 'readwrite', id: 'dir' + p.id });
+    p.stack = [h];
+    await load(p);
+    if (compareOn || (panes.L.stack.length && panes.R.stack.length)) compare();
+  } catch (e) {
+    if (e.name !== 'AbortError') error('No se pudo abrir la carpeta', e.message);
+  }
+}
+
+async function load(p) {
+  const dir = cur(p);
+  if (!dir) return;
+  const list = [];
+  for await (const [name, h] of dir.entries()) {
+    const e = { name, kind: h.kind, handle: h, size: null, modified: null };
+    if (h.kind === 'file') {
+      try { const f = await h.getFile(); e.size = f.size; e.modified = f.lastModified; } catch {}
+    }
+    list.push(e);
+  }
+  list.sort((a, b) => a.kind === b.kind
+    ? a.name.localeCompare(b.name, 'es', { numeric: true, sensitivity: 'base' })
+    : (a.kind === 'directory' ? -1 : 1));
+  p.entries = list;
+  p.sel.clear();
+  p.status = new Map();
+  p.why = new Map();
+  render(p);
+}
+
+function render(p) {
+  p.pathEl.textContent = p.stack.map(h => h.name).join(' \\ ');
+  p.pathEl.title = p.pathEl.textContent;
+  p.list.innerHTML = '';
+  p.visible = [];
+  if (!p.stack.length) {
+    p.list.innerHTML = '<div class="empty">Pulsa «Abrir carpeta…» para elegir un directorio</div>';
+    p.statusEl.textContent = '—';
+    return;
+  }
+  const onlyDiff = compareOn && $('onlyDiff').checked;
+  const frag = document.createDocumentFragment();
+
+  if (p.stack.length > 1) {
+    const up = document.createElement('div');
+    up.className = 'row item';
+    up.innerHTML = '<span>↩</span><span>..</span><span></span><span></span>';
+    up.ondblclick = () => goUp(p, true);
+    frag.appendChild(up);
+  }
+  for (const e of p.entries) {
+    const k = key(e.name);
+    const st = compareOn ? (p.status.get(k) || '') : '';
+    if (onlyDiff && st === 'same') continue;
+    p.visible.push(e.name);
+    const r = document.createElement('div');
+    r.className = 'row item ' + st + (p.sel.has(e.name) ? ' sel' : '');
+    r.innerHTML = `<span>${e.kind === 'directory' ? '📁' : icon(e.name)}</span><span class="nm"></span>
+      <span class="sz">${e.kind === 'file' ? fmtSize(e.size) : (st === 'pending' ? '…' : '')}</span>
+      <span>${e.modified ? fmtDate(e.modified) : ''}</span>`;
+    r.querySelector('.nm').textContent = e.name;
+    r.title = e.name + (compareOn && p.status.has(k) ? '\n' + (p.why.get(k) || '') : '');
+    r.onclick = ev => select(p, e.name, ev);
+    r.ondblclick = () => { if (e.kind === 'directory') enter(p, e.name, true); };
+    frag.appendChild(r);
+  }
+  p.list.appendChild(frag);
+  const nd = p.entries.filter(e => e.kind === 'directory').length;
+  const nf = p.entries.length - nd;
+  const total = p.entries.reduce((s, e) => s + (e.size || 0), 0);
+  p.statusEl.textContent = `${nd} carpetas, ${nf} archivos (${fmtSize(total)})` +
+    (p.sel.size ? ` — ${p.sel.size} seleccionado(s)` : '');
+}
+
+/* ---------- Selección ---------- */
+function select(p, name, ev) {
+  if (ev.ctrlKey || ev.metaKey) {
+    p.sel.has(name) ? p.sel.delete(name) : p.sel.add(name);
+    p.last = name;
+  } else if (ev.shiftKey && p.last && p.visible.includes(p.last)) {
+    let a = p.visible.indexOf(p.last), b = p.visible.indexOf(name);
+    if (a > b) [a, b] = [b, a];
+    p.sel.clear();
+    p.visible.slice(a, b + 1).forEach(n => p.sel.add(n));
+  } else {
+    p.sel.clear(); p.sel.add(name); p.last = name;
+  }
+  p.list.focus();
+  render(p);
+}
+
+function selectAll(p) {
+  if (!p.stack.length) return warn('Sin carpeta', 'Primero abre una carpeta en este panel.');
+  p.sel = new Set(p.visible);
+  p.last = null;
+  render(p);
+}
+
+function selectMissing(p) {
+  if (!p.stack.length) return warn('Sin carpeta', 'Primero abre una carpeta en este panel.');
+  const o = other(p);
+  if (!o.stack.length) return warn('Falta la otra carpeta', 'Abre una carpeta en el otro panel para saber qué elementos faltan en él.');
+  const otherKinds = new Map(o.entries.map(e => [key(e.name), e.kind]));
+  const missing = p.entries.filter(e => otherKinds.get(key(e.name)) !== e.kind).map(e => e.name);
+  p.sel = new Set(missing);
+  p.last = null;
+  render(p);
+  if (!missing.length) info('Nada que seleccionar', `Todos los elementos de esta carpeta existen también en «${cur(o).name}».`, '✔️');
+  else setStatus(`${missing.length} elemento(s) seleccionados que no están en «${cur(o).name}»`);
+}
+
+/* ---------- Navegación ---------- */
+async function enter(p, name, sync) {
+  const e = p.entries.find(x => x.name === name);
+  if (!e) return;
+  p.stack.push(e.handle);
+  await load(p);
+  if (sync && $('sync').checked) {
+    const o = other(p);
+    const oe = o.entries.find(x => x.kind === 'directory' && key(x.name) === key(name));
+    if (oe) { o.stack.push(oe.handle); await load(o); }
+  }
+  if (compareOn) compare();
+}
+
+async function goUp(p, sync) {
+  if (p.stack.length <= 1) return;
+  const leaving = cur(p).name;
+  p.stack.pop();
+  await load(p);
+  if (sync && $('sync').checked) {
+    const o = other(p);
+    if (o.stack.length > 1 && key(cur(o).name) === key(leaving)) { o.stack.pop(); await load(o); }
+  }
+  if (compareOn) compare();
+}
+
+async function refreshAll() {
+  for (const p of [panes.L, panes.R]) if (p.stack.length) await load(p);
+  if (compareOn) compare();
+}
+
+/* ---------- Comparación ---------- */
+async function compare() {
+  const L = panes.L, R = panes.R;
+  if (!L.stack.length || !R.stack.length) {
+    return warn('Faltan carpetas', 'Abre una carpeta en cada panel para poder compararlas.');
+  }
+  compareOn = true;
+  const tok = ++cmpToken;
+  const mode = $('mode').value, deep = $('deep').checked;
+  const mapL = new Map(L.entries.map(e => [key(e.name), e]));
+  const mapR = new Map(R.entries.map(e => [key(e.name), e]));
+  L.status = new Map(); R.status = new Map();
+  L.why = new Map();    R.why = new Map();
+  const setBoth = (k, s, why) => { L.status.set(k, s); R.status.set(k, s); L.why.set(k, why); R.why.set(k, why); };
+  const bytes = n => n == null ? '?' : n.toLocaleString('es-ES') + ' bytes';
+  const kindName = kind => kind === 'file' ? 'un archivo' : 'una carpeta';
+  const pending = [];
+  let n = 0;
+  setStatus('Comparando…');
+
+  for (const [k, e] of mapL) {
+    const o = mapR.get(k);
+    if (!o) { L.status.set(k, 'only'); L.why.set(k, 'Solo existe en este lado'); continue; }
+    if (o.kind !== e.kind) { L.status.set(k, 'only'); L.why.set(k, `En el otro lado este nombre es ${kindName(o.kind)}`); continue; }
+
+    if (e.kind === 'file') {
+      let eq = false, why;
+      try {
+        eq = await filesEqual(e.handle, o.handle, mode);
+        why = eq ? 'Igual'
+          : e.size !== o.size ? `Tamaño distinto: ${bytes(e.size)} (izq.) ↔ ${bytes(o.size)} (der.)`
+          : mode === 'date'   ? `Mismo tamaño, distinta fecha: ${fmtDate(e.modified)} ↔ ${fmtDate(o.modified)}`
+          :                     'Mismo tamaño, distinto contenido';
+      } catch (err) {
+        why = 'No se pudo leer el archivo: ' + err.message;
+      }
+      if (tok !== cmpToken) return;
+      setBoth(k, eq ? 'same' : 'diff', why);
+      if (++n % 50 === 0) { render(L); render(R); }
+    } else if (deep) {
+      setBoth(k, 'pending', 'Analizando contenido…');
+      pending.push(k);
+    } else {
+      setBoth(k, 'same', 'Carpeta no analizada (activa «Analizar subcarpetas»)');
+    }
+  }
+  for (const [k] of mapR) {
+    if (R.status.has(k)) continue;
+    const o = mapL.get(k);
+    R.status.set(k, 'only');
+    R.why.set(k, o ? `En el otro lado este nombre es ${kindName(o.kind)}` : 'Solo existe en este lado');
+  }
+  render(L); render(R);
+
+  for (const k of pending) {
+    let differ = true;
+    try { differ = await dirsDiffer(mapL.get(k).handle, mapR.get(k).handle, mode, tok); } catch {}
+    if (tok !== cmpToken) return;
+    setBoth(k, differ ? 'diff' : 'same', differ ? 'Hay diferencias dentro de la carpeta' : 'Contenido idéntico');
+    render(L); render(R);
+  }
+  const count = (p, s) => [...p.status.values()].filter(v => v === s).length;
+  const diffs = count(L, 'diff'), onlyL = count(L, 'only'), onlyR = count(R, 'only');
+  setStatus(diffs + onlyL + onlyR === 0
+    ? '✔ Las carpetas son idénticas'
+    : `${diffs} distinto(s) · ${onlyL} solo a la izquierda · ${onlyR} solo a la derecha`);
+}
+
+async function filesEqual(ha, hb, mode) {
+  const [fa, fb] = await Promise.all([ha.getFile(), hb.getFile()]);
+  if (fa.size !== fb.size) return false;
+  if (mode === 'date') return Math.abs(fa.lastModified - fb.lastModified) < 2000;
+  if (mode === 'content') return bytesEqual(fa, fb);
+  return true;
+}
+
+async function bytesEqual(fa, fb) {
+  const CHUNK = 4 * 1024 * 1024;
+  for (let i = 0; i < fa.size; i += CHUNK) {
+    const [x, y] = await Promise.all([fa.slice(i, i + CHUNK).arrayBuffer(), fb.slice(i, i + CHUNK).arrayBuffer()]);
+    const A = new Uint8Array(x), B = new Uint8Array(y);
+    for (let j = 0; j < A.length; j++) if (A[j] !== B[j]) return false;
+  }
+  return true;
+}
+
+async function listDir(d) {
+  const m = new Map();
+  for await (const [n, h] of d.entries()) m.set(key(n), h);
+  return m;
+}
+
+async function dirsDiffer(da, db, mode, tok) {
+  if (tok !== cmpToken) return true;
+  const [a, b] = await Promise.all([listDir(da), listDir(db)]);
+  if (a.size !== b.size) return true;
+  for (const [k, h] of a) {
+    const o = b.get(k);
+    if (!o || o.kind !== h.kind) return true;
+    if (h.kind === 'file') { if (!(await filesEqual(h, o, mode))) return true; }
+    else if (await dirsDiffer(h, o, mode, tok)) return true;
+  }
+  return false;
+}
+
+/* ---------- Copia ---------- */
+let copied = { files: 0, bytes: 0 }, total = { files: 0, bytes: 0 };
+
+async function copySelection(from, to) {
+  if (busyNow) return;
+  if (!from.stack.length || !to.stack.length) return warn('Faltan carpetas', 'Abre una carpeta en ambos paneles.');
+  const items = from.entries.filter(e => from.sel.has(e.name));
+  if (!items.length) return warn('Nada seleccionado', 'Selecciona archivos o carpetas en el panel de origen.');
+  const dest = cur(to);
+
+  if (await cur(from).isSameEntry(dest)) return warn('Misma carpeta', 'El origen y el destino son la misma carpeta.');
+  for (const e of items) {
+    if (e.kind !== 'directory') continue;
+    let inside = null;
+    try { inside = await e.handle.resolve(dest); } catch {}
+    if (inside !== null || await e.handle.isSameEntry(dest))
+      return warn('Copia no válida', `No se puede copiar «${e.name}» dentro de sí misma.`);
+  }
+
+  const existing = new Set(to.entries.map(e => key(e.name)));
+  const conflicts = items.filter(e => existing.has(key(e.name)));
+  let toCopy = items;
+  if (conflicts.length) {
+    const choice = await showDialog({
+      title: 'Elementos ya existentes',
+      icon: '⚠️',
+      message: `${conflicts.length} de los ${items.length} elemento(s) seleccionados ya existen en «${dest.name}»:`,
+      list: conflicts.map(e => (e.kind === 'directory' ? '📁 ' : '📄 ') + e.name),
+      note: 'Sobrescribir reemplaza los archivos coincidentes y fusiona las carpetas. Omitir copia solo los elementos que no existen.',
+      buttons: [
+        { label: 'Cancelar', value: null },
+        { label: 'Omitir existentes', value: 'skip', primary: true },
+        { label: 'Sobrescribir', value: 'overwrite', danger: true }
+      ],
+      cancelValue: null
+    });
+    if (!choice) return;
+    if (choice === 'skip') {
+      toCopy = items.filter(e => !existing.has(key(e.name)));
+      if (!toCopy.length) return info('Nada que copiar', 'Todos los elementos seleccionados ya existían en el destino.');
+    }
+  }
+
+  setBusy(true);
+  cancelCopy = false;
+  copied = { files: 0, bytes: 0 };
+  total = { files: 0, bytes: 0 };
+  showDialog({
+    title: `Copiando a «${dest.name}»`,
+    icon: '📋',
+    message: 'Calculando tamaño…',
+    progress: true,
+    buttons: [{ label: 'Cancelar', value: 'cancel' }],
+    cancelValue: 'cancel'
+  }).then(v => { if (v === 'cancel') { cancelCopy = true; setStatus('Cancelando…'); } });
+
+  let err = null;
+  try {
+    total = await measure(toCopy);
+    for (const e of toCopy) {
+      if (cancelCopy) break;
+      if (e.kind === 'file') await copyFile(e.handle, dest, e.name);
+      else await copyDir(e.handle, dest, e.name);
+    }
+  } catch (e) { err = e; }
+  closeDialog('done');
+  setBusy(false);
+
+  await load(to);
+  if (compareOn) await compare();
+  const resumen = `${copied.files} archivo(s), ${fmtSize(copied.bytes)}`;
+  if (err) error('Error durante la copia', `Se copiaron ${resumen} antes del error.\n\n${err.message}`);
+  else if (cancelCopy) info('Copia cancelada', `Se copiaron ${resumen} antes de cancelar.`, '⏹️');
+  else setStatus('✔ Copiados ' + resumen);
+}
+
+async function measure(items) {
+  const t = { files: 0, bytes: 0 };
+  async function walk(h) {
+    if (cancelCopy) return;
+    if (h.kind === 'file') { const f = await h.getFile(); t.files++; t.bytes += f.size; }
+    else for await (const c of h.values()) await walk(c);
+  }
+  for (const e of items) await walk(e.handle);
+  return t;
+}
+
+function updateProgress(name) {
+  const m = $('dlgMsg'), bar = $('dlgBar');
+  if (!m || !bar) return;
+  m.textContent = `${name}\n${copied.files} de ${total.files} archivos · ${fmtSize(copied.bytes)} de ${fmtSize(total.bytes)}`;
+  bar.max = total.bytes || 1;
+  bar.value = copied.bytes;
+}
+
+async function copyFile(src, destDir, name) {
+  if (cancelCopy) return;
+  updateProgress(name);
+  const f = await src.getFile();
+  let dh;
+  try { dh = await destDir.getFileHandle(name, { create: true }); }
+  catch (e) {
+    if (e.name === 'TypeMismatchError') throw new Error(`En el destino ya hay una carpeta llamada «${name}».`);
+    throw e;
+  }
+  const w = await dh.createWritable();
+  await f.stream().pipeTo(w);          // pipeTo cierra el archivo al terminar
+  copied.files++; copied.bytes += f.size;
+  updateProgress(name);
+}
+
+async function copyDir(src, destParent, name) {
+  if (cancelCopy) return;
+  let d;
+  try { d = await destParent.getDirectoryHandle(name, { create: true }); }
+  catch (e) {
+    if (e.name === 'TypeMismatchError') throw new Error(`En el destino ya hay un archivo llamado «${name}».`);
+    throw e;
+  }
+  for await (const [n, h] of src.entries()) {
+    if (cancelCopy) return;
+    if (h.kind === 'file') await copyFile(h, d, n);
+    else await copyDir(h, d, n);
+  }
+}
+
+function setBusy(b) {
+  busyNow = b;
+  $('toR').disabled = $('toL').disabled = $('btnCompare').disabled = b;
+}
+
+/* ---------- Utilidades ---------- */
+function setStatus(t) { $('status').textContent = t; }
+function fmtSize(n) {
+  if (n == null) return '';
+  const u = ['B', 'KB', 'MB', 'GB', 'TB']; let i = 0;
+  while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+  return (i ? n.toFixed(1) : n) + ' ' + u[i];
+}
+function fmtDate(ms) {
+  return new Date(ms).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function icon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  const map = {
+    '🖼️': ['jpg','jpeg','png','gif','bmp','webp','svg','ico','heic'],
+    '🎵': ['mp3','wav','flac','ogg','m4a','aac'],
+    '🎬': ['mp4','mkv','avi','mov','wmv','webm'],
+    '📦': ['zip','rar','7z','tar','gz'],
+    '📕': ['pdf'],
+    '📝': ['txt','md','doc','docx','rtf','odt'],
+    '📊': ['xls','xlsx','csv','ods'],
+    '⚙️': ['exe','msi','bat','cmd','dll'],
+    '💻': ['js','ts','html','css','py','java','c','cpp','cs','json','xml','php']
+  };
+  for (const [ic, exts] of Object.entries(map)) if (exts.includes(ext)) return ic;
+  return '📄';
+}
+
+/* ---------- Eventos ---------- */
+$('btnCompare').onclick = compare;
+$('toR').onclick = () => copySelection(panes.L, panes.R);
+$('toL').onclick = () => copySelection(panes.R, panes.L);
+$('mode').onchange = $('deep').onchange = () => { if (compareOn) compare(); };
+$('onlyDiff').onchange = () => { render(panes.L); render(panes.R); };
+</script>
+</body>
+</html>
