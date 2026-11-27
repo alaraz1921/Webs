@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ideas de búsqueda para Bing</title>
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: #f4f6f8;
+    color: #222;
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    margin-bottom: 20px;
+  }
+  #consulta {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 10px 0 20px;
+    min-height: 1.6em;
+  }
+  button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    background: #0078d4;
+    color: #fff;
+  }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  #aviso { margin-top: 12px; color: #107c10; min-height: 1.2em; }
+  #log { list-style: none; padding: 0; font-family: monospace; font-size: .9rem; }
+  #log li { padding: 4px 0; border-bottom: 1px solid #eee; }
+</style>
+</head>
+<body>
+
+<h1>🔍 Ideas de búsqueda para Bing</h1>
+
+<div class="card">
+  <div>Siguiente búsqueda:</div>
+  <div id="consulta">—</div>
+  <button id="btn">Copiar y abrir Bing</button>
+  <div id="aviso"></div>
+  <p>Búsquedas: <span id="contador">0</span></p>
+</div>
+
+<div class="card">
+  <strong>Historial</strong>
+  <ul id="log"></ul>
+</div>
+
+<script>
+  const temas = [
+  "receta de", "historia de", "cómo funciona", "qué es", "mejores lugares en",
+  "curiosidades sobre", "precio de", "noticias de", "significado de", "origen de",
+  "beneficios de", "cómo hacer", "datos sobre", "clima en", "imágenes de",
+  "documental sobre", "libros sobre", "por qué existe", "evolución de",
+  "importancia de", "características de", "tipos de", "ventajas y desventajas de",
+  "cómo se dice en inglés", "mitos sobre", "récords de", "dónde ver",
+  "qué ver en", "cuándo visitar", "cómo llegar a", "historia breve de",
+  "datos curiosos de", "cómo cuidar", "mejor época para ver", "cuánto cuesta",
+  "qué comer en", "leyendas sobre", "personajes famosos de", "inventos relacionados con",
+  "explicación sencilla de", "fotos antiguas de", "cómo se formó", "dibujo de"
+];
+
+const palabras = [
+  // Gastronomía
+  "paella", "gazpacho", "salmorejo", "la tortilla de patatas", "el jamón ibérico",
+  "el aceite de oliva", "el chocolate", "el café", "el pan de masa madre",
+  "el sushi", "la pizza napolitana", "el queso manchego", "las croquetas",
+  "el pulpo a la gallega", "los churros", "el turrón", "el vino de Jerez",
+  "las aceitunas", "la naranja", "el té matcha",
+
+  // Ciudades y lugares
+  "Sevilla", "Madrid", "Barcelona", "Granada", "Córdoba", "Cádiz", "Málaga",
+  "Valencia", "Bilbao", "Toledo", "Salamanca", "Santiago de Compostela",
+  "la Alhambra", "la Mezquita de Córdoba", "la Sagrada Familia", "Doñana",
+  "los Picos de Europa", "las Islas Canarias", "Mallorca", "Lisboa", "París",
+  "Roma", "Londres", "Nueva York", "Tokio", "Japón", "Islandia", "Noruega",
+  "Marruecos", "Egipto", "Perú", "México", "Argentina", "Australia",
+  "el Amazonas", "el Sáhara", "el Himalaya", "la Patagonia",
+
+  // Historia y cultura
+  "las pirámides de Egipto", "el Imperio romano", "los vikingos", "los mayas",
+  "los aztecas", "la Edad Media", "el Renacimiento", "la Revolución francesa",
+  "Al-Ándalus", "Cristóbal Colón", "Leonardo da Vinci", "Velázquez", "Goya",
+  "Picasso", "el Quijote", "el flamenco", "la Semana Santa", "la Feria de Abril",
+  "los castillos medievales", "los faraones",
+
+  // Naturaleza y animales
+  "los delfines", "los pingüinos", "las abejas", "los gatos", "los perros",
+  "los lobos", "el lince ibérico", "las águilas", "los pulpos", "las ballenas",
+  "los tiburones", "los elefantes", "los osos polares", "las mariposas",
+  "los camaleones", "los dinosaurios", "los bonsáis", "los olivos",
+  "las orquídeas", "los cactus",
+
+  // Ciencia y espacio
+  "la Luna", "Marte", "Júpiter", "Saturno", "el Sol", "la Vía Láctea",
+  "los agujeros negros", "los cometas", "las auroras boreales", "los eclipses",
+  "los volcanes", "los terremotos", "los tsunamis", "la fotosíntesis",
+  "el ADN", "las vacunas", "la gravedad", "los arcoíris", "los relámpagos",
+  "los glaciares",
+
+  // Tecnología
+  "la inteligencia artificial", "la energía solar", "la energía eólica",
+  "los coches eléctricos", "la impresión 3D", "los satélites", "internet",
+  "los robots", "los drones", "la realidad virtual",
+
+  // Ocio y bienestar
+  "el ajedrez", "el yoga", "la meditación", "el senderismo", "la jardinería",
+  "la fotografía", "la música clásica", "el jazz", "la guitarra española",
+  "el piano", "la cerámica", "el ciclismo", "la natación", "el pilates",
+  "los juegos de mesa", "la lectura"
+];
+
+  const ESPERA = 6; // segundos entre búsquedas
+  const $ = id => document.getElementById(id);
+  let contador = 0;
+  let actual = nueva();
+  $("consulta").textContent = actual;
+
+  function nueva() {
+    const t = temas[Math.floor(Math.random() * temas.length)];
+    const p = palabras[Math.floor(Math.random() * palabras.length)];
+    return `${t} ${p}`;
+  }
+
+  async function copiar(texto) {
+    try {
+      await navigator.clipboard.writeText(texto);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = texto;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    }
+  }
+
+  $("btn").addEventListener("click", async () => {
+    await copiar(actual);
+    window.open("https://www.bing.com/", "_blank");
+
+    contador++;
+    $("contador").textContent = contador;
+    const li = document.createElement("li");
+    li.textContent = `${new Date().toLocaleTimeString()} — ${actual}`;
+    $("log").prepend(li);
+    $("aviso").textContent = "Copiado. Pega con Ctrl+V en Bing y pulsa buscar.";
+
+    actual = nueva();
+    $("consulta").textContent = actual;
+
+    // Cuenta atrás antes de la siguiente
+    let s = ESPERA;
+    $("btn").disabled = true;
+    $("btn").textContent = `Espera ${s}s`;
+    const t = setInterval(() => {
+      s--;
+      if (s <= 0) {
+        clearInterval(t);
+        $("btn").disabled = false;
+        $("btn").textContent = "Copiar y abrir Bing";
+      } else {
+        $("btn").textContent = `Espera ${s}s`;
+      }
+    }, 1000);
+  });
+</script>
+
+</body>
+</html>
